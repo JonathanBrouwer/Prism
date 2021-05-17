@@ -1,13 +1,13 @@
 use logos::Source;
 
-use crate::parser::parser_base::JonlaParser;
+use crate::parser::parser::JonlaParser;
 use crate::lexer::lexer::{JonlaLexer, LexerToken};
 
 mod parser;
 mod lexer;
 
 fn main() {
-    let source = include_str!("../resources/test_data.jnl");
+    let source = include_str!("../resources/test_fn.jnl");
 
     let lexer = JonlaLexer::lexer(source);
     let lexer_tokens : Vec<LexerToken> = lexer.collect();
@@ -37,7 +37,7 @@ fn main() {
         println!("------------------");
         println!("Parser output:");
 
-        println!("{:?}", program)
+        println!("{}", program)
     }
 
 }

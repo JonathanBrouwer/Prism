@@ -9,18 +9,17 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="378a8893-fa17-45b1-a887-2423cc6522c1" name="Default Changelist" comment="First part of the lexer working">
-      <change afterPath="$PROJECT_DIR$/resources/test_data.jnl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lexer/lexer.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lexer/logos_lexer.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lexer/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/mod.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_base.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_program.rs" afterDir="false" />
+    <list default="true" id="378a8893-fa17-45b1-a887-2423cc6522c1" name="Default Changelist" comment="Implement part of the parser">
+      <change afterPath="$PROJECT_DIR$/resources/test_fn.jnl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_expr.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_expr_functiondefinition.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_stmt.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_stmt_datadefinition.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/test_indent.jnl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lexer.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_base.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_program.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_program.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,7 +63,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/parser" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -76,6 +75,8 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/parser" />
+      <recent name="$PROJECT_DIR$/resources" />
       <recent name="$PROJECT_DIR$/src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -125,7 +126,7 @@
       <updated>1621245156281</updated>
       <workItem from="1621245157813" duration="218000" />
       <workItem from="1621245378754" duration="702000" />
-      <workItem from="1621246111833" duration="23687000" />
+      <workItem from="1621246111833" duration="29646000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1621245262385</created>
@@ -148,7 +149,14 @@
       <option name="project" value="LOCAL" />
       <updated>1621263090073</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Implement part of the parser">
+      <created>1621278233631</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1621278233631</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -169,7 +177,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit" />
     <MESSAGE value="First part of the lexer working" />
-    <option name="LAST_COMMIT_MESSAGE" value="First part of the lexer working" />
+    <MESSAGE value="Implement part of the parser" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implement part of the parser" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

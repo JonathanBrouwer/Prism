@@ -61,6 +61,30 @@ impl<'a> JonlaParser<'a> {
             Err(format!("Expected the keyword {:?}, but got {:?}.", keyword, id))
         }
     }
+
+    pub fn or<T>(&mut self, options: Vec<fn(&mut JonlaParser<'a>) -> Result<T, String>>) -> Result<T, String> {
+        let mut errors = Vec::<String>::new();
+        for f in options {
+            let cursor_prev = self.cursor;
+            match f(self) {
+                Ok(v) => return Ok(v),
+                Err(s) => {
+                    errors.push(s);
+                    self.cursor = cursor_prev
+                }
+            }
+        }
+        let error = errors.join(" / ");
+        Err(error)
+    }
+}
+
+pub fn compose<A, B, C, G, F>(f: F, g: G) -> impl Fn(A) -> C
+    where
+        F: Fn(A) -> B,
+        G: Fn(B) -> C,
+{
+    move |x| g(f(x))
 }
 
 
