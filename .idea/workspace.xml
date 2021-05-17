@@ -9,11 +9,17 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="378a8893-fa17-45b1-a887-2423cc6522c1" name="Default Changelist" comment="Initial commit">
-      <change afterPath="$PROJECT_DIR$/resources/test_indent.jnl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lexer.rs" afterDir="false" />
+    <list default="true" id="378a8893-fa17-45b1-a887-2423cc6522c1" name="Default Changelist" comment="First part of the lexer working">
+      <change afterPath="$PROJECT_DIR$/resources/test_data.jnl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lexer/lexer.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lexer/logos_lexer.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lexer/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_base.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_program.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/test_indent.jnl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lexer.rs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -58,14 +64,24 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
     <property name="cidr.known.project.marker" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Other File Types" />
+    <property name="settings.editor.selected.configurable" value="preferences.editor" />
     <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/lexer" />
+      <recent name="$PROJECT_DIR$/src/parser" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
@@ -109,7 +125,7 @@
       <updated>1621245156281</updated>
       <workItem from="1621245157813" duration="218000" />
       <workItem from="1621245378754" duration="702000" />
-      <workItem from="1621246111833" duration="14319000" />
+      <workItem from="1621246111833" duration="23687000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1621245262385</created>
@@ -125,7 +141,14 @@
       <option name="project" value="LOCAL" />
       <updated>1621245397176</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="First part of the lexer working">
+      <created>1621263090073</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1621263090073</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -145,7 +168,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
+    <MESSAGE value="First part of the lexer working" />
+    <option name="LAST_COMMIT_MESSAGE" value="First part of the lexer working" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

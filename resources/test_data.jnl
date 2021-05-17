@@ -1,0 +1,6 @@
+data Test =
+    A
+    B
+data Test2 =
+    C
+    D
