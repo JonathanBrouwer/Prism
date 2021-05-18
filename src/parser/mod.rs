@@ -5,3 +5,4 @@ mod parser_expr_identifiereval;
 pub mod parser_program;
 mod parser_stmt;
 mod parser_stmt_datadefinition;
+mod parser_expr_block;

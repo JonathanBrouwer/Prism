@@ -1,6 +1,6 @@
 use crate::parser::parser::JonlaParser;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdentifierEval<'a> {
     name: &'a str,
 }

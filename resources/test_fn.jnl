@@ -1,2 +1,1 @@
-fn yeet : (a : Test) (b : Test) -> Test =
-    lololol
+fn yeet : (a : Test) (b : Test) -> Test = value

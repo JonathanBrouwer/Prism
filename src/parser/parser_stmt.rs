@@ -1,4 +1,3 @@
-use crate::lexer::lexer::LexerTokenType::Line;
 use crate::parser::parser::JonlaParser;
 use crate::parser::parser_expr::Expression;
 use crate::parser::parser_stmt_datadefinition::DataDefinition;
@@ -15,11 +14,5 @@ impl<'a> JonlaParser<'a> {
             |p| Self::parse_stmt_data(p).map(Statement::DataDefinition),
             |p| Self::parse_expr(p).map(Statement::Expression),
         ])
-        .and_then(|i| {
-            while self.peek().is_some() && self.peek().unwrap().token == Line {
-                self.next();
-            }
-            Ok(i)
-        })
     }
 }

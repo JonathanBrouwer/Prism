@@ -2,7 +2,7 @@ use crate::lexer::lexer::LexerTokenType::{BlockStart, BlockStop, Line, ParenClos
 use crate::parser::parser::JonlaParser;
 use crate::parser::parser_expr::Expression;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionDefinition<'a> {
     name: &'a str,
     tpe: FunctionType<'a>,
@@ -16,18 +16,13 @@ impl<'a> JonlaParser<'a> {
         self.expect_keyword(":")?;
         let tpe = self.parse_expr_function_type()?;
         self.expect_keyword("=")?;
-
-        self.expect(Line)?;
-        self.expect(BlockStart)?;
         let body = Box::new(self.parse_expr()?);
-        self.expect(Line)?;
-        self.expect(BlockStop)?;
 
         Ok(FunctionDefinition { name, tpe, body })
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionType<'a> {
     inputs: Vec<(&'a str, Expression<'a>)>,
     output: Box<Expression<'a>>,

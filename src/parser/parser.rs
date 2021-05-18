@@ -86,7 +86,35 @@ impl<'a> JonlaParser<'a> {
                 }
             }
         }
-        let error = errors.join(" / ");
+        let error = errors.join("\n");
         Err(error)
+    }
+
+    pub fn zero_or_more<T>(
+        &mut self,
+        f: fn(&mut JonlaParser<'a>) -> Result<T, String>,
+    ) -> Vec<T> {
+        let mut values = Vec::<T>::new();
+        loop {
+            let cursor_old = self.cursor;
+            let cons = f(self);
+            if let Ok(v) = cons {
+                values.push(v);
+            } else {
+                self.cursor = cursor_old;
+                break;
+            }
+        }
+        values
+    }
+
+    pub fn one_or_more<T>(
+        &mut self,
+        f: fn(&mut JonlaParser<'a>) -> Result<T, String>,
+    ) -> Result<Vec<T>, String> {
+        let mut values = Vec::<T>::new();
+        values.push(f(self)?);
+        values.append(&mut self.zero_or_more(f));
+        Ok(values)
     }
 }
