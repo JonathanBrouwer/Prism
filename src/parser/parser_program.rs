@@ -1,5 +1,4 @@
 use crate::parser::parser::JonlaParser;
-use crate::lexer::lexer::LexerTokenType;
 use std::fmt::{Display, Formatter};
 use std::fmt;
 use crate::parser::parser_stmt::Statement;

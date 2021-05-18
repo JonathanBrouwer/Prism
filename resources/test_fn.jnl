@@ -1,5 +1,2 @@
-data Test =
-    A
-    B
 fn yeet : (a : Test) (b : Test) -> Test =
     lololol

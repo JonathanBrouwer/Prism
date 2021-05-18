@@ -10,16 +10,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="378a8893-fa17-45b1-a887-2423cc6522c1" name="Default Changelist" comment="Implement part of the parser">
-      <change afterPath="$PROJECT_DIR$/resources/test_fn.jnl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_expr.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_expr_functiondefinition.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_stmt.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/parser/parser_stmt_datadefinition.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/parser/parser_expr_identifiereval.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/test_fn.jnl" beforeDir="false" afterPath="$PROJECT_DIR$/resources/test_fn.jnl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/parser/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/parser/parser_base.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_expr.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_expr.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_expr_functiondefinition.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_expr_functiondefinition.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/parser/parser_program.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_program.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_stmt.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_stmt.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/parser/parser_stmt_datadefinition.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser/parser_stmt_datadefinition.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,7 +70,8 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.editor" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RecentsManager">
@@ -127,6 +128,8 @@
       <workItem from="1621245157813" duration="218000" />
       <workItem from="1621245378754" duration="702000" />
       <workItem from="1621246111833" duration="29646000" />
+      <workItem from="1621326960689" duration="1151000" />
+      <workItem from="1621328487485" duration="3240000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1621245262385</created>
@@ -179,6 +182,13 @@
     <MESSAGE value="First part of the lexer working" />
     <MESSAGE value="Implement part of the parser" />
     <option name="LAST_COMMIT_MESSAGE" value="Implement part of the parser" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="CargoCommandRunConfiguration">
+        <watch expression="self.peek()" language="Rust" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
