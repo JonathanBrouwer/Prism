@@ -1,6 +1,6 @@
+use crate::lexer::lexer::LexerTokenType::{BlockStart, BlockStop, Line, ParenClose, ParenOpen};
 use crate::parser::parser::JonlaParser;
 use crate::parser::parser_expr::Expression;
-use crate::lexer::lexer::LexerTokenType::{BlockStart, BlockStop, ParenOpen, ParenClose, Line};
 
 #[derive(Debug)]
 pub struct FunctionDefinition<'a> {
@@ -23,7 +23,7 @@ impl<'a> JonlaParser<'a> {
         self.expect(Line)?;
         self.expect(BlockStop)?;
 
-        Ok(FunctionDefinition{name, tpe, body})
+        Ok(FunctionDefinition { name, tpe, body })
     }
 }
 
@@ -55,7 +55,6 @@ impl<'a> JonlaParser<'a> {
         self.expect_keyword("->")?;
         let output = Box::new(self.parse_expr()?);
 
-
-        Ok(FunctionType{inputs, output})
+        Ok(FunctionType { inputs, output })
     }
 }

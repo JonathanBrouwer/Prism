@@ -5,7 +5,7 @@ use crate::parser::parser_expr_identifiereval::IdentifierEval;
 #[derive(Debug)]
 pub enum Expression<'a> {
     FunctionDefinition(FunctionDefinition<'a>),
-    IdentifierEval(IdentifierEval<'a>)
+    IdentifierEval(IdentifierEval<'a>),
 }
 
 impl<'a> JonlaParser<'a> {
@@ -16,5 +16,3 @@ impl<'a> JonlaParser<'a> {
         ])
     }
 }
-
-

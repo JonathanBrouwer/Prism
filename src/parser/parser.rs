@@ -1,6 +1,5 @@
 use crate::lexer::lexer::{LexerToken, LexerTokenType};
 
-
 pub struct JonlaParser<'a> {
     pub source: &'a str,
     pub tokens: Vec<LexerToken<'a>>,
@@ -10,7 +9,11 @@ pub struct JonlaParser<'a> {
 
 impl<'a> JonlaParser<'a> {
     pub fn new(source: &'a str, tokens: Vec<LexerToken<'a>>) -> JonlaParser<'a> {
-        JonlaParser { source, tokens, cursor: 0 }
+        JonlaParser {
+            source,
+            tokens,
+            cursor: 0,
+        }
     }
 
     pub fn peek(&self) -> Option<&LexerToken<'a>> {
@@ -45,7 +48,11 @@ impl<'a> JonlaParser<'a> {
 
     pub fn expect_identifier(&mut self) -> Result<&'a str, String> {
         let next = self.next();
-        if let Some(LexerToken{span: _, token: LexerTokenType::Identifier(id)}) = next {
+        if let Some(LexerToken {
+            span: _,
+            token: LexerTokenType::Identifier(id),
+        }) = next
+        {
             Ok(id)
         } else {
             Err(format!("Expected an identifier, but got {:?}.", next))
@@ -57,11 +64,17 @@ impl<'a> JonlaParser<'a> {
         if id == keyword {
             Ok(())
         } else {
-            Err(format!("Expected the keyword {:?}, but got {:?}.", keyword, id))
+            Err(format!(
+                "Expected the keyword {:?}, but got {:?}.",
+                keyword, id
+            ))
         }
     }
 
-    pub fn or<T>(&mut self, options: Vec<fn(&mut JonlaParser<'a>) -> Result<T, String>>) -> Result<T, String> {
+    pub fn or<T>(
+        &mut self,
+        options: Vec<fn(&mut JonlaParser<'a>) -> Result<T, String>>,
+    ) -> Result<T, String> {
         let mut errors = Vec::<String>::new();
         for f in options {
             let cursor_prev = self.cursor;

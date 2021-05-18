@@ -1,4 +1,4 @@
-use logos::{Logos};
+use logos::Logos;
 
 #[derive(Logos, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum LogosLexerToken {

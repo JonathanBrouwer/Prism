@@ -1,15 +1,15 @@
-use crate::parser::parser::JonlaParser;
 use crate::lexer::lexer::LexerTokenType;
+use crate::parser::parser::JonlaParser;
 
 #[derive(Debug)]
 pub struct DataDefinition<'a> {
     name: &'a str,
-    constructors: Vec<DataDefinitionConstructor<'a>>
+    constructors: Vec<DataDefinitionConstructor<'a>>,
 }
 
 #[derive(Debug)]
 pub struct DataDefinitionConstructor<'a> {
-    name: &'a str
+    name: &'a str,
 }
 
 impl<'a> JonlaParser<'a> {
@@ -34,13 +34,12 @@ impl<'a> JonlaParser<'a> {
 
         self.expect(LexerTokenType::BlockStop)?;
 
-        Ok(DataDefinition{name, constructors})
+        Ok(DataDefinition { name, constructors })
     }
 
     pub fn parse_data_constructor(&mut self) -> Result<DataDefinitionConstructor<'a>, String> {
         let name = self.expect_identifier()?;
         self.expect(LexerTokenType::Line)?;
-        Ok(DataDefinitionConstructor{name})
+        Ok(DataDefinitionConstructor { name })
     }
 }
-

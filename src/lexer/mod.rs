@@ -1,2 +1,2 @@
-pub mod logos_lexer;
 pub mod lexer;
+pub mod logos_lexer;

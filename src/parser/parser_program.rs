@@ -1,6 +1,7 @@
-use crate::parser::parser::JonlaParser;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
+
+use crate::parser::parser::JonlaParser;
 use crate::parser::parser_stmt::Statement;
 
 #[derive(Debug)]
@@ -18,6 +19,7 @@ impl<'a> JonlaParser<'a> {
         return Ok(Program { statements: stmts });
     }
 }
+
 impl<'a> Display for Program<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for st in &self.statements {
