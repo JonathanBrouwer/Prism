@@ -1,15 +1,15 @@
 use crate::lexer::lexer::*;
-use logos::{Source};
-use crate::lexer::layout_builder::LayoutBuilder;
+use crate::parser::parser::*;
 
 mod lexer;
+mod parser;
 
 fn main() {
-    let source = include_str!("../resources/test_block.jnl");
+    let source = include_str!("../resources/test.jnl");
 
     // Lexer
-    let lexer = FinalLexer::new(source);
-    let (lexer_res, lexer_err) = lexer.collect_and_errors();
+    let lexer = ActualLexer::new(source);
+    let lexer_res: Vec<LexerItem> = lexer.collect();
 
     let print_lexer_result = true;
     if print_lexer_result {
@@ -17,52 +17,27 @@ fn main() {
         println!("Lexer tokens:");
 
         lexer_res.iter().for_each(|l| {
-            print!("{} - ", l.indent);
-            for token in &l.tokens {
-                print!("{} ", source.slice(token.span.clone()).unwrap().escape_debug());
-            }
-            println!();
+            println!("[{:?}] {:?}", l.span, l.token);
         });
     }
 
-    if lexer_err.len() > 0 {
-        println!("------------------");
-        println!("Lexer errors:");
-        lexer_err.iter().for_each(|e| {
-            println!("{:?} - {:?}", e, &source[e.start..e.end]);
-        });
-        return
-    }
+    lexer_res.as_slice();
 
-    // Layout
-
-    let layout = LayoutBuilder { input: lexer_res };
-    let (layout_res, layout_err) = layout.build_layout();
-
-    let print_layout_result = true;
-    if print_layout_result {
-        println!("------------------");
-        println!("Layout tokens:");
-        for item in &layout_res {
-            println!("{:?}", item);
+    // Parse file
+    let program = match parse_program_file_final(lexer_res.as_slice()) {
+        Ok(program) => program,
+        Err(e) => {
+            println!("Parse error: {:?}", e);
+            return
         }
-
-    }
-
-    if layout_err.len() > 0 {
-        println!("------------------");
-        println!("Layout errors:");
-        layout_err.iter().for_each(|e| {
-            println!("{:?} - {:?}", e, &source[e.start..e.end]);
-        });
-        return
-    }
+    };
+    println!("{:?}", program);
 
 
 
 
-    // let mut parser = JonlaParser::new(source, lexer_tokens);
-    // let program = parser.parse_program();
+    // let mut parser_old = JonlaParser::new(source, lexer_tokens);
+    // let program = parser_old.parse_program();
     // let program = match program {
     //     Ok(program) => program,
     //     Err(err) => {

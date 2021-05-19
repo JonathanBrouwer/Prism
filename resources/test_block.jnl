@@ -1,4 +1,4 @@
-if c
+if(cond)
     true
 else
     false

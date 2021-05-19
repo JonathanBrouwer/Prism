@@ -1,120 +1,59 @@
-use crate::lexer::lexer::{LexerToken, LexerTokenType};
+use crate::lexer::lexer::{LexerItem, LexerToken};
+use crate::parser::parser_utils::*;
+use std::ops::Range;
+use crate::lexer::lexer::LexerToken::{Line, Name};
+use crate::parser::parser::ParseError::LeftoverJunk;
 
-pub struct JonlaParser<'a> {
-    pub source: &'a str,
-    pub tokens: Vec<LexerToken<'a>>,
-
-    pub cursor: usize,
+#[derive(Debug, Eq, PartialEq)]
+pub struct ProgramFile {
+    pub statements: Vec<Statement>
 }
 
-impl<'a> JonlaParser<'a> {
-    pub fn new(source: &'a str, tokens: Vec<LexerToken<'a>>) -> JonlaParser<'a> {
-        JonlaParser {
-            source,
-            tokens,
-            cursor: 0,
-        }
-    }
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum ParseError {
+    ParseError,
+    LeftoverJunk
+}
 
-    pub fn peek(&self) -> Option<&LexerToken<'a>> {
-        if self.cursor >= self.tokens.len() {
-            None
+impl ParseError {
+    pub fn combine(self, other: ParseError) -> ParseError {
+        todo!()
+    }
+}
+
+pub fn parse_program_file_final<'a>(mut input: &'a [LexerItem<'a>]) -> Result<ProgramFile, ParseError> {
+    let (program, rest) = parse_program_file(input)?;
+    if rest.len() == 0 {
+        Ok(program)
+    } else {
+        Err(LeftoverJunk)
+    }
+}
+
+pub fn parse_program_file<'a>(mut input: &'a [LexerItem<'a>]) -> Result<(ProgramFile, &'a [LexerItem<'a>]), ParseError> {
+    let mut statements = Vec::new();
+
+    loop {
+        if let Ok((v, rest)) = parse_statement(input) {
+            statements.push(v);
+            input = rest;
         } else {
-            Some(&self.tokens[self.cursor])
+            return Ok((ProgramFile{ statements }, input))
         }
-    }
-
-    pub fn next(&mut self) -> Option<&LexerToken<'a>> {
-        if self.cursor >= self.tokens.len() {
-            None
+        if let Ok((_, rest)) = expect(input, Line) {
+            input = rest;
         } else {
-            self.cursor += 1;
-            Some(&self.tokens[self.cursor - 1])
+            return Ok((ProgramFile{ statements }, input))
         }
     }
+}
 
-    pub fn expect(&mut self, expected: LexerTokenType) -> Result<&LexerToken<'a>, String> {
-        let next = self.next();
-        if let Some(token) = next {
-            if token.token == expected {
-                Ok(token)
-            } else {
-                Err(format!("Expected {:?}, but got {:?}", expected, token))
-            }
-        } else {
-            Err(format!("Expected {:?}, but reached end of file.", expected))
-        }
-    }
+#[derive(Debug, Eq, PartialEq)]
+pub struct Statement {
 
-    pub fn expect_identifier(&mut self) -> Result<&'a str, String> {
-        let next = self.next();
-        if let Some(LexerToken {
-            span: _,
-            token: LexerTokenType::Identifier(id),
-        }) = next
-        {
-            Ok(id)
-        } else {
-            Err(format!("Expected an identifier, but got {:?}.", next))
-        }
-    }
+}
 
-    pub fn expect_keyword(&mut self, keyword: &str) -> Result<(), String> {
-        let id = self.expect_identifier()?;
-        if id == keyword {
-            Ok(())
-        } else {
-            Err(format!(
-                "Expected the keyword {:?}, but got {:?}.",
-                keyword, id
-            ))
-        }
-    }
-
-    pub fn or<T>(
-        &mut self,
-        options: Vec<fn(&mut JonlaParser<'a>) -> Result<T, String>>,
-    ) -> Result<T, String> {
-        let mut errors = Vec::<String>::new();
-        for f in options {
-            let cursor_prev = self.cursor;
-            match f(self) {
-                Ok(v) => return Ok(v),
-                Err(s) => {
-                    errors.push(s);
-                    self.cursor = cursor_prev
-                }
-            }
-        }
-        let error = errors.join("\n");
-        Err(error)
-    }
-
-    pub fn zero_or_more<T>(
-        &mut self,
-        f: fn(&mut JonlaParser<'a>) -> Result<T, String>,
-    ) -> Vec<T> {
-        let mut values = Vec::<T>::new();
-        loop {
-            let cursor_old = self.cursor;
-            let cons = f(self);
-            if let Ok(v) = cons {
-                values.push(v);
-            } else {
-                self.cursor = cursor_old;
-                break;
-            }
-        }
-        values
-    }
-
-    pub fn one_or_more<T>(
-        &mut self,
-        f: fn(&mut JonlaParser<'a>) -> Result<T, String>,
-    ) -> Result<Vec<T>, String> {
-        let mut values = Vec::<T>::new();
-        values.push(f(self)?);
-        values.append(&mut self.zero_or_more(f));
-        Ok(values)
-    }
+pub fn parse_statement<'a>(input: &'a [LexerItem<'a>]) -> Result<(Statement, &'a [LexerItem<'a>]), ParseError> {
+    let (_, rest) = expect_name(input)?;
+    Ok((Statement{}, rest))
 }

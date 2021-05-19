@@ -1,80 +1,93 @@
 use logos::{Lexer, Logos};
 
 use std::ops::Range;
-use std::fmt::Debug;
-use std::fmt;
-
-#[derive(Logos, Debug, PartialEq, Eq, Clone, Copy)]
-pub enum LogosToken {
-    #[regex(r"([\p{Letter}\p{Mark}\p{Symbol}\p{Number}\p{Dash_Punctuation}\p{Connector_Punctuation}\p{Other_Punctuation}]+)|[\p{Open_Punctuation}\p{Close_Punctuation}]")]
-    Name,
-
-    #[token("\n")]
-    Line,
-
-    #[error]
-    #[regex(r"[\p{Separator}\r]+", logos::skip)]
-    Error,
-}
+use crate::lexer::logos::LogosToken;
+use std::collections::VecDeque;
+use std::cmp::Ordering;
 
 
-
-#[derive(PartialEq, Eq, Clone)]
-pub struct LexerToken<'a> {
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct LexerItem<'a> {
     pub span: Range<usize>,
-    pub token: &'a str
+    pub token: LexerToken<'a>
 }
 
-impl<'a> Debug for LexerToken<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.token)
-    }
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum LexerToken<'a> {
+    Name(&'a str),
+    BlockStart,
+    BlockStop,
+    Line,
+    Error(&'a str)
 }
 
-pub struct LexerLine<'a> {
-    pub tokens: Vec<LexerToken<'a>>,
-    pub indent: usize,
+pub struct ActualLexer<'a> {
+    pub logos: Lexer<'a, LogosToken>,
+
+    // Keep track of block information
+    pub new_line: bool,
+    pub should_error: bool,
+    pub blocks: VecDeque<usize>,
 }
 
-pub struct FinalLexer<'a> {
-    pub lexer1: Lexer<'a, LogosToken>,
-    pub errors: Vec<Range<usize>>,
-}
-
-impl<'a> FinalLexer<'a> {
-    pub fn new(source: &'a str) -> FinalLexer {
-        FinalLexer { lexer1: LogosToken::lexer(source), errors: Vec::new() }
-    }
-
-    pub fn collect_and_errors(mut self) -> (Vec<LexerLine<'a>>, Vec<Range<usize>>) {
-        let mut result: Vec<LexerLine<'a>> = Vec::new();
-        loop {
-            match self.next() {
-                None => return (result, self.errors),
-                Some(v) => result.push(v)
-            }
+impl<'a> ActualLexer<'a> {
+    pub fn new(source: &'a str) -> ActualLexer<'a> {
+        ActualLexer {
+            logos: LogosToken::lexer(source),
+            new_line: false,
+            should_error: false,
+            blocks: VecDeque::from(vec![0])
         }
     }
 }
 
-impl<'a> Iterator for FinalLexer<'a> {
-    type Item = LexerLine<'a>;
+impl<'a> Iterator for ActualLexer<'a> {
+    type Item = LexerItem<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let indent: usize = self.lexer1.remainder().chars().take_while(|&c| c == ' ').count();
-        let mut tokens: Vec<LexerToken<'a>> = Vec::new();
-        loop {
-            match self.lexer1.next() {
-                None => if tokens.len() == 0 {return None} else {break},
-                Some(LogosToken::Line) => break,
-                Some(LogosToken::Name) => {
-                    tokens.push(LexerToken { span: self.lexer1.span(), token: self.lexer1.slice() })
+        if self.should_error {
+            self.should_error = false;
+            return Some(LexerItem { span: self.logos.span(), token: LexerToken::Error("Illegal indentation.") })
+        }
+        if self.new_line {
+            let indent: usize = self.logos.remainder().chars().take_while(|&c| c == ' ').count();
+            match indent.cmp(self.blocks.back().unwrap()) {
+                Ordering::Less => {
+                    self.blocks.pop_back();
+                    // We went too far, this is not a legal structure.
+                    if indent > *self.blocks.back().unwrap() {
+                        self.should_error = true;
+                    }
+                    return Some(LexerItem { span: self.logos.span(), token: LexerToken::BlockStop })
                 }
-                Some(LogosToken::Error) => {
-                    self.errors.push(self.lexer1.span());
+                Ordering::Greater => {
+                    self.blocks.push_back(indent);
+                    self.new_line = false;
+                    return Some(LexerItem { span: self.logos.span(), token: LexerToken::BlockStart })
                 }
+                Ordering::Equal => {}
             }
         }
-        Some(LexerLine {indent, tokens})
+
+        match self.logos.next() {
+            None => {
+                if self.blocks.len() > 1 {
+                    self.blocks.pop_back();
+                    Some(LexerToken::BlockStop)
+                } else {
+                    None
+                }
+            },
+            Some(LogosToken::Line) => {
+                self.new_line = true;
+                Some(LexerToken::Line)
+            },
+            Some(LogosToken::Name) => {
+                Some(LexerToken::Name(self.logos.slice()))
+            },
+            Some(LogosToken::Error) => {
+                Some(LexerToken::Error("Illegal character."))
+            }
+        }.map(|t| LexerItem { span: self.logos.span(), token: t })
     }
 }
