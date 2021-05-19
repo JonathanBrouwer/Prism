@@ -1,10 +1,12 @@
 use logos::{Lexer, Logos, Source};
 
 use std::ops::Range;
+use std::fmt::Debug;
+use std::fmt;
 
 #[derive(Logos, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum LogosToken {
-    #[regex(r"[[\p{Letter}\p{Mark}\p{Symbol}\p{Number}\p{Dash_Punctuation}\p{Connector_Punctuation}\p{Other_Punctuation}]+\p{Open_Punctuation}\p{Close_Punctuation}]")]
+    #[regex(r"([\p{Letter}\p{Mark}\p{Symbol}\p{Number}\p{Dash_Punctuation}\p{Connector_Punctuation}\p{Other_Punctuation}]+)|[\p{Open_Punctuation}\p{Close_Punctuation}]")]
     Name,
 
     #[token("\n")]
@@ -17,10 +19,16 @@ pub enum LogosToken {
 
 
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct LexerToken<'a> {
     pub span: Range<usize>,
     pub token: &'a str
+}
+
+impl<'a> Debug for LexerToken<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.token)
+    }
 }
 
 pub struct LexerLine<'a> {
@@ -36,6 +44,16 @@ pub struct FinalLexer<'a> {
 impl<'a> FinalLexer<'a> {
     pub fn new(source: &'a str) -> FinalLexer {
         FinalLexer { lexer1: LogosToken::lexer(source), errors: Vec::new() }
+    }
+
+    pub fn collect_and_errors(mut self) -> (Vec<LexerLine<'a>>, Vec<Range<usize>>) {
+        let mut result: Vec<LexerLine<'a>> = Vec::new();
+        loop {
+            match self.next() {
+                None => return (result, self.errors),
+                Some(v) => result.push(v)
+            }
+        }
     }
 }
 
