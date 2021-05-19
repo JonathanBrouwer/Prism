@@ -1,6 +1,6 @@
 use crate::lexer::lexer::{LexerItem, LexerToken};
 use crate::parser::parser::ParseError;
-use crate::lexer::lexer::LexerToken::Name;
+use crate::lexer::lexer::LexerToken::{Name, Control};
 
 pub fn take_one<'a>(input: &'a [LexerItem<'a>]) -> Option<(&'a LexerItem<'a>, &'a [LexerItem<'a>])> {
     if input.len() > 0 {
@@ -31,8 +31,27 @@ pub fn expect_name<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [Lexe
     }
 }
 
-pub fn expect_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+pub fn expect_name_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
     let (name, rest) = expect_name(input)?;
+    if name == keyword {
+        Ok(rest)
+    } else {
+        Err(ParseError::ParseError)
+    }
+}
+
+pub fn expect_control<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [LexerItem<'a>]), ParseError> {
+    match take_one(input) {
+        None => Err(ParseError::ParseError),
+        Some((v, rest)) => match v {
+            LexerItem { token: Control(name), .. } => Ok((name, rest)),
+            item => Err(ParseError::ParseError)
+        }
+    }
+}
+
+pub fn expect_control_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+    let (name, rest) = expect_control(input)?;
     if name == keyword {
         Ok(rest)
     } else {

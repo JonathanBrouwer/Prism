@@ -70,9 +70,9 @@ pub fn parse_expression<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &
 }
 
 pub fn parse_expression_parens<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
-    let input = expect_keyword(input, "(")?;
+    let input = expect_control_keyword(input, "(")?;
     let (expr, input) = parse_expression(input)?;
-    let input = expect_keyword(input, ")")?;
+    let input = expect_control_keyword(input, ")")?;
     Ok((expr, input))
 }
 

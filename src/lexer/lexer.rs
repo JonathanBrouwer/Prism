@@ -15,6 +15,7 @@ pub struct LexerItem<'a> {
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum LexerToken<'a> {
     Name(&'a str),
+    Control(&'a str),
     BlockStart,
     BlockStop,
     Line,
@@ -86,6 +87,9 @@ impl<'a> Iterator for ActualLexer<'a> {
             },
             Some(LogosToken::Name) => {
                 Some(LexerToken::Name(self.logos.slice()))
+            },
+            Some(LogosToken::Control) => {
+                Some(LexerToken::Control(self.logos.slice()))
             },
             Some(LogosToken::Error) => {
                 Some(LexerToken::Error("Illegal character."))
