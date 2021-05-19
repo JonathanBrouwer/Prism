@@ -24,7 +24,7 @@ fn main() {
     lexer_res.as_slice();
 
     // Parse file
-    let program = match parse_program_file_final(lexer_res.as_slice()) {
+    let program = match parse_program_file(lexer_res.as_slice()) {
         Ok(program) => program,
         Err(e) => {
             println!("Parse error: {:?}", e);

@@ -82,8 +82,8 @@ pub fn times<'a, T>(mut input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a
 }
 
 pub fn zero_or_more<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
-                           -> Result<(Vec<T>, &'a [LexerItem<'a>]), ParseError> {
-    times(input, parser, None, None)
+                           -> (Vec<T>, &'a [LexerItem<'a>]) {
+    times(input, parser, None, None).unwrap()
 }
 
 pub fn one_or_more<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)

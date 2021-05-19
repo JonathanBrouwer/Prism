@@ -65,7 +65,9 @@ impl<'a> Iterator for ActualLexer<'a> {
                     self.new_line = false;
                     return Some(LexerItem { span: self.logos.span(), token: LexerToken::BlockStart })
                 }
-                Ordering::Equal => {}
+                Ordering::Equal => {
+                    self.new_line = false;
+                }
             }
         }
 
