@@ -1,4 +1,4 @@
-use logos::{Lexer, Logos, Source};
+use logos::{Lexer, Logos};
 
 use std::ops::Range;
 use std::fmt::Debug;

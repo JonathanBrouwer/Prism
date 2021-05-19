@@ -1,4 +1,4 @@
-a aa a aa a
-    b d
-   c
-c cc c
+if c
+    true
+else
+    false

@@ -1,4 +1,4 @@
-use crate::lexer::lexer::{LexerToken, FinalLexer, LexerLine};
+use crate::lexer::lexer::{LexerToken, LexerLine};
 use std::cmp::Ordering;
 use std::collections::VecDeque;
 use crate::lexer::layout_builder::LayoutToken::{Block, Line};
@@ -33,7 +33,7 @@ pub struct LayoutBuilder<'a> {
 }
 
 impl<'a> LayoutBuilder<'a> {
-    pub fn build_layout(self) -> (LayoutToken<'a>, Vec<Range<usize>>) {
+    pub fn build_layout(self) -> (Vec<LayoutToken<'a>>, Vec<Range<usize>>) {
         let mut stack = VecDeque::new();
         stack.push_back((0usize, Vec::new()));
 
@@ -61,9 +61,9 @@ impl<'a> LayoutBuilder<'a> {
         }
 
         while stack.len() > 1 {
-            let mut pop = stack.pop_back().unwrap().1;
-            stack.back_mut().unwrap().1.append(&mut pop);
+            let pop = stack.pop_back().unwrap().1;
+            stack.back_mut().unwrap().1.push(Block(pop));
         }
-        (LayoutToken::Block(stack.pop_back().unwrap().1), errors)
+        (stack.pop_back().unwrap().1, errors)
     }
 }

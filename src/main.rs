@@ -11,14 +11,6 @@ fn main() {
     let lexer = FinalLexer::new(source);
     let (lexer_res, lexer_err) = lexer.collect_and_errors();
 
-    if lexer_err.len() > 0 {
-        println!("Lexer errors:");
-        lexer_err.iter().for_each(|e| {
-            println!("{:?} - {:?}", e, &source[e.start..e.end]);
-        });
-        return
-    }
-
     let print_lexer_result = true;
     if print_lexer_result {
         println!("------------------");
@@ -33,12 +25,32 @@ fn main() {
         });
     }
 
+    if lexer_err.len() > 0 {
+        println!("------------------");
+        println!("Lexer errors:");
+        lexer_err.iter().for_each(|e| {
+            println!("{:?} - {:?}", e, &source[e.start..e.end]);
+        });
+        return
+    }
+
     // Layout
 
     let layout = LayoutBuilder { input: lexer_res };
     let (layout_res, layout_err) = layout.build_layout();
 
+    let print_layout_result = true;
+    if print_layout_result {
+        println!("------------------");
+        println!("Layout tokens:");
+        for item in &layout_res {
+            println!("{:?}", item);
+        }
+
+    }
+
     if layout_err.len() > 0 {
+        println!("------------------");
         println!("Layout errors:");
         layout_err.iter().for_each(|e| {
             println!("{:?} - {:?}", e, &source[e.start..e.end]);
@@ -46,12 +58,7 @@ fn main() {
         return
     }
 
-    let print_layout_result = true;
-    if print_layout_result {
-        println!("------------------");
-        println!("Layout tokens:");
-        println!("{:?}", layout_res);
-    }
+
 
 
     // let mut parser = JonlaParser::new(source, lexer_tokens);
