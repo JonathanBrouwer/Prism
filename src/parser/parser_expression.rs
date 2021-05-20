@@ -1,25 +1,52 @@
-use crate::lexer::lexer::{LexerItem};
+use crate::lexer::lexer::{LexerItem, LexerToken};
 use crate::parser::parser::*;
-use crate::lexer::lexer::LexerToken::{Line};
+use crate::lexer::lexer::LexerToken::*;
 
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Expression<'a> {
     Name(&'a str),
     ExpressionSequence(Vec<Expression<'a>>),
+    Block(Vec<Expression<'a>>),
+}
+
+impl<'a> Expression<'a> {
+    pub fn print_indented(&self, indent: usize) {
+        match self {
+            Expression::Name(n) => print!("{}", n),
+            Expression::ExpressionSequence(vec) => for exp in vec {
+                exp.print_indented(indent);
+                print!(" ");
+            }
+            Expression::Block(vec) => {
+
+                for (n, exp) in vec.iter().enumerate() {
+                    println!();
+                    let indent = indent + 2;
+                    print!("{:indent$}", "", indent=indent);
+                    exp.print_indented(indent);
+                }
+            }
+        }
+    }
 }
 
 pub fn parse_expression<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
-    let res = one_or_more(input, |input|
+    let (mut res, mut input) = one_or_more(input, |input|
         alt(input, vec![
             |input| parse_expression_parens(input),
-            |input| parse_expression_lookupname(input)
+            |input| parse_expression_name(input),
         ])
     )?;
-    if res.0.len() == 1 {
-        Ok((res.0.into_iter().next().unwrap(), res.1))
+    //Block can only occur at the end of the sequence
+    if let Ok((nr, ni)) = parse_expression_block(input) {
+        res.push(nr);
+        input = ni;
+    }
+    if res.len() == 1 {
+        Ok((res.into_iter().next().unwrap(), input))
     } else {
-        Ok((Expression::ExpressionSequence(res.0), res.1))
+        Ok((Expression::ExpressionSequence(res), input))
     }
 }
 
@@ -30,25 +57,32 @@ pub fn parse_expression_parens<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expres
     Ok((expr, input))
 }
 
-pub fn parse_expression_lookupname<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
+pub fn parse_expression_name<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
     let (name, input) = expect_name(input)?;
     Ok((Expression::Name(name), input))
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct Argument<'a> {
-    names: Vec<&'a str>,
-    argtype: Expression<'a>
-}
+pub fn parse_expression_block<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
+    let (_, input) = expect(input,  Line)?;
+    let (_, mut input) = expect(input,  BlockStart)?;
 
-pub fn parse_arguments<'a>(input: &'a [LexerItem<'a>]) -> Result<(Vec<Argument>, &'a [LexerItem<'a>]), ParseError> {
-    Ok(zero_or_more(input, |input| {
-        let input = expect_control_keyword(input, "(")?;
-        let (names, input) = one_or_more(input, |input| expect_name(input))?;
-        let input = expect_name_keyword(input, ":")?;
-        let (argtype, input) = parse_expression(input)?;
-        let input = expect_control_keyword(input, ")")?;
-
-        Ok((Argument {names, argtype}, input))
-    }))
+    let mut expressions = Vec::new();
+    let mut first = true;
+    loop {
+        if first {
+            if let Ok((v, rest)) = parse_expression(input) {
+                expressions.push(v);
+                input = rest;
+            } else {
+                break
+            }
+        } else {
+            if let Ok((_, rest)) = expect(input, LexerToken::Line) {
+                input = rest;
+            }
+        }
+        first = !first;
+    }
+    let (_, input) = expect(input,  BlockStop)?;
+    Ok((Expression::Block(expressions), input))
 }

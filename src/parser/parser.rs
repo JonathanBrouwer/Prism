@@ -120,7 +120,7 @@ pub fn one_or_more<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<
     times(input, parser, Some(1), None)
 }
 
-pub fn zero_or_one<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
+pub fn maybe<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
                           -> (Option<T>, &'a [LexerItem<'a>]) {
     match parser(input) {
         Ok((v, rest)) => (Some(v), rest),

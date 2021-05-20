@@ -31,7 +31,7 @@ fn main() {
             return
         }
     };
-    println!("{:?}", program);
+    program.print();
 
 
 

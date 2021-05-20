@@ -8,6 +8,14 @@ pub struct ProgramFile<'a> {
     pub statements: Vec<Statement<'a>>
 }
 
+impl<'a> ProgramFile<'a> {
+    pub fn print(&self) {
+        for statement in &self.statements {
+            statement.print();
+        }
+    }
+}
+
 pub fn parse_program_file<'a>(mut input: &'a [LexerItem<'a>]) -> Result<ProgramFile<'a>, ParseError> {
     let mut statements = Vec::new();
 
