@@ -1,12 +1,5 @@
-use crate::lexer::lexer::{LexerItem};
-use crate::parser::parser_utils::*;
-use crate::lexer::lexer::LexerToken::{Line};
-use crate::parser::parser::Expression::ExpressionSequence;
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct ProgramFile<'a> {
-    pub statements: Vec<Statement<'a>>
-}
+use crate::lexer::lexer::{LexerItem, LexerToken};
+use crate::lexer::lexer::LexerToken::{Name, Control};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum ParseError {
@@ -19,64 +12,118 @@ impl ParseError {
     }
 }
 
-pub fn parse_program_file<'a>(mut input: &'a [LexerItem<'a>]) -> Result<ProgramFile<'a>, ParseError> {
-    let mut statements = Vec::new();
-
-    let mut first = true;
-    while input.len() > 0 {
-        if first {
-            let (v, rest) = parse_statement(input)?;
-            statements.push(v);
-            input = rest;
-        } else {
-            let (_, rest) = expect(input, Line)?;
-            input = rest;
-        }
-        first = !first;
-    }
-
-    Ok(ProgramFile { statements })
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum Statement<'a> {
-    Expression(Expression<'a>)
-}
-
-pub fn parse_statement<'a>(input: &'a [LexerItem<'a>]) -> Result<(Statement<'a>, &'a [LexerItem<'a>]), ParseError> {
-    alt(input, vec![
-        |input| parse_expression(input).map(|(v, r)| (Statement::Expression(v), r))
-    ])
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum Expression<'a> {
-    LookupName(&'a str),
-    ExpressionSequence(Vec<Expression<'a>>)
-}
-
-pub fn parse_expression<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
-    let res = one_or_more(input, |input|
-        alt(input, vec![
-            |input| parse_expression_parens(input),
-            |input| parse_expression_lookupname(input)
-        ])
-    )?;
-    if res.0.len() == 1 {
-        Ok((res.0.into_iter().next().unwrap(), res.1))
+pub fn take_one<'a>(input: &'a [LexerItem<'a>]) -> Option<(&'a LexerItem<'a>, &'a [LexerItem<'a>])> {
+    if input.len() > 0 {
+        Some((&input[0], &input[1..]))
     } else {
-        Ok((ExpressionSequence(res.0), res.1))
+        None
     }
 }
 
-pub fn parse_expression_parens<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
-    let input = expect_control_keyword(input, "(")?;
-    let (expr, input) = parse_expression(input)?;
-    let input = expect_control_keyword(input, ")")?;
-    Ok((expr, input))
+pub fn expect<'a>(input: &'a [LexerItem<'a>], token: LexerToken) -> Result<(&'a LexerItem<'a>, &'a [LexerItem<'a>]), ParseError> {
+    match take_one(input) {
+        None => Err(ParseError::ParseError),
+        Some((v, rest)) => if v.token == token {
+            Ok((v, rest))
+        } else {
+            Err(ParseError::ParseError)
+        }
+    }
 }
 
-pub fn parse_expression_lookupname<'a>(input: &'a [LexerItem<'a>]) -> Result<(Expression, &'a [LexerItem<'a>]), ParseError> {
-    let (name, input) = expect_name(input)?;
-    Ok((Expression::LookupName(name), input))
+pub fn expect_name<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [LexerItem<'a>]), ParseError> {
+    match take_one(input) {
+        None => Err(ParseError::ParseError),
+        Some((v, rest)) => match v {
+            LexerItem { token: Name(name), .. } => Ok((name, rest)),
+            item => Err(ParseError::ParseError)
+        }
+    }
+}
+
+pub fn expect_name_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+    let (name, rest) = expect_name(input)?;
+    if name == keyword {
+        Ok(rest)
+    } else {
+        Err(ParseError::ParseError)
+    }
+}
+
+pub fn expect_control<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [LexerItem<'a>]), ParseError> {
+    match take_one(input) {
+        None => Err(ParseError::ParseError),
+        Some((v, rest)) => match v {
+            LexerItem { token: Control(name), .. } => Ok((name, rest)),
+            item => Err(ParseError::ParseError)
+        }
+    }
+}
+
+pub fn expect_control_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+    let (name, rest) = expect_control(input)?;
+    if name == keyword {
+        Ok(rest)
+    } else {
+        Err(ParseError::ParseError)
+    }
+}
+
+pub fn alt<'a, T>(input: &'a [LexerItem<'a>], parsers: Vec<fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>>)
+                  -> Result<(T, &'a [LexerItem<'a>]), ParseError> {
+    assert!(parsers.len() > 0);
+    let mut error: Option<ParseError> = None;
+    for parser in parsers {
+        match parser(input) {
+            Ok(v) => return Ok(v),
+            Err(e2) => error = match error {
+                Some(e1) => Some(e1.combine(e2)),
+                None => Some(e2),
+            }
+        }
+    }
+    return Err(error.unwrap());
+}
+
+pub fn times<'a, T>(mut input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>,
+                    min: Option<usize>, max: Option<usize>)
+                    -> Result<(Vec<T>, &'a [LexerItem<'a>]), ParseError> {
+    let mut result = Vec::new();
+
+    //Do minimum amount of times
+    for _ in 0..(min.unwrap_or(0)) {
+        let (res, rest) = parser(input)?;
+        result.push(res);
+        input = rest;
+    }
+
+    //Do from minimum to maximum amount of times
+    for _ in (min.unwrap_or(0))..(max.unwrap_or(usize::MAX)) {
+        let (res, rest) = match parser(input) {
+            Ok(v) => v,
+            Err(_) => return Ok((result, input))
+        };
+        result.push(res);
+        input = rest;
+    }
+
+    return Ok((result, input));
+}
+
+pub fn zero_or_more<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
+                           -> (Vec<T>, &'a [LexerItem<'a>]) {
+    times(input, parser, None, None).unwrap()
+}
+
+pub fn one_or_more<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
+                           -> Result<(Vec<T>, &'a [LexerItem<'a>]), ParseError> {
+    times(input, parser, Some(1), None)
+}
+
+pub fn zero_or_one<'a, T>(input: &'a [LexerItem<'a>], parser: fn(&'a [LexerItem<'a>]) -> Result<(T, &'a [LexerItem<'a>]), ParseError>)
+                          -> (Option<T>, &'a [LexerItem<'a>]) {
+    match parser(input) {
+        Ok((v, rest)) => (Some(v), rest),
+        Err(_) => return (None, input)
+    }
 }

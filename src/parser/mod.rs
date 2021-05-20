@@ -1,2 +1,4 @@
-pub(crate) mod parser;
-mod parser_utils;
+pub(crate) mod parser_program;
+mod parser;
+mod parser_statement;
+mod parser_expression;

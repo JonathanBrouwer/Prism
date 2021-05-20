@@ -1,1 +1,1 @@
-fn yeet : (a : Test) (b : Test) -> Test = value
+fn plus : (a : Nat) (b : Nat) -> Nat = zero

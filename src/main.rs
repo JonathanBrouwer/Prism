@@ -1,5 +1,5 @@
 use crate::lexer::lexer::*;
-use crate::parser::parser::*;
+use crate::parser::parser_program::*;
 
 mod lexer;
 mod parser;

@@ -1,6 +1,10 @@
-data Test =
-    A
-    B
-data Test2 =
-    C
-    D
+Bool : Type = datatype
+    false : Bool
+    true : Bool
+
+Pair : (A B : Type) -> Type = datatype
+    pair : (A B : Type) (a : A) (b : B) -> Pair A B
+
+List : (t : Type) -> Type = datatype
+    nil : (t : Type) -> List t
+    cons : (t : Type) -> (v : t) -> List t
