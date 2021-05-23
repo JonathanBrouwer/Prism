@@ -1,5 +1,5 @@
 use crate::lexer::lexer::*;
-use crate::parser::parser_program::*;
+use crate::parser::customizable_parser::*;
 
 mod lexer;
 mod parser;
@@ -24,33 +24,24 @@ fn main() {
     lexer_res.as_slice();
 
     // Parse file
-    let program = match parse_program_file(lexer_res.as_slice()) {
+    let parser = CustomizableParser::from_vec(vec![
+        vec![ParseGroup{ rules: vec![
+            ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("+"), ParseRulePart::SameLevelExpr] },
+        ] }],
+        vec![ParseGroup{ rules: vec![
+            ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("*"), ParseRulePart::SameLevelExpr] },
+        ] }],
+        vec![ParseGroup{ rules: vec![
+            ParseRule{ parts: vec![ParseRulePart::NameBind] },
+        ] }],
+    ]);
+    let program = match parser.parse(lexer_res.as_slice()) {
         Ok(program) => program,
         Err(e) => {
             println!("Parse error: {:?}", e);
             return
         }
     };
-    program.print();
-
-
-
-
-    // let mut parser_old = JonlaParser::new(source, lexer_tokens);
-    // let program = parser_old.parse_program();
-    // let program = match program {
-    //     Ok(program) => program,
-    //     Err(err) => {
-    //         println!("Parse errors:\n{}", err);
-    //         return;
-    //     }
-    // };
-    //
-    // let print_parser_result = true;
-    // if print_parser_result {
-    //     println!("------------------");
-    //     println!("Parser output:");
-    //
-    //     println!("{:?}", program)
-    // }
+    println!("Success");
+    // program.print();
 }

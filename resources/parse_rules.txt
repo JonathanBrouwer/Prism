@@ -1,0 +1,1 @@
+[sum] <- [prod] + [sum]

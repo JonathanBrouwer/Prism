@@ -41,7 +41,7 @@ pub fn expect_name<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [Lexe
     }
 }
 
-pub fn expect_name_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+pub fn expect_name_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &str) -> Result<&'a [LexerItem<'a>], ParseError> {
     let (name, rest) = expect_name(input)?;
     if name == keyword {
         Ok(rest)
@@ -60,7 +60,7 @@ pub fn expect_control<'a>(input: &'a [LexerItem<'a>]) -> Result<(&'a str, &'a [L
     }
 }
 
-pub fn expect_control_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &'static str) -> Result<&'a [LexerItem<'a>], ParseError> {
+pub fn expect_control_keyword<'a>(input: &'a [LexerItem<'a>], keyword: &str) -> Result<&'a [LexerItem<'a>], ParseError> {
     let (name, rest) = expect_control(input)?;
     if name == keyword {
         Ok(rest)
