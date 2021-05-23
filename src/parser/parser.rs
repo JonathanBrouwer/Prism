@@ -1,28 +1,83 @@
 use crate::lexer::lexer::{LexerItem, LexerToken, LexerTokenType};
 use crate::lexer::lexer::LexerToken::{Name, Control};
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter, Debug};
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
 pub struct ParseSuccess<'a, R> {
     pub(crate) result: R,
     pub(crate) best_error: Option<ParseError<'a>>,
     pub(crate) rest: &'a [LexerItem<'a>]
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseError<'a> {
-    pub(crate) on: &'a [LexerItem<'a>],
-    pub(crate) expect: Vec<Expected<'a>>
+impl<'a, R> ParseSuccess<'a, R> {
+    pub fn map_result<T, F: FnOnce(R) -> T>(mut self, f: F) -> ParseSuccess<'a, T> {
+        ParseSuccess { result: f(self.result), best_error: self.best_error, rest: self.rest }
+    }
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone)]
+pub struct ParseError<'a> {
+    pub(crate) on: &'a LexerItem<'a>,
+    pub(crate) expect: Vec<Expected<'a>>,
+    pub(crate) tokens_remaining: usize,
+}
+
+impl<'a> Display for ParseError<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Expected one of [")?;
+        for (i, exp) in self.expect.iter().enumerate() {
+            if i != 0 {
+                write!(f, ", ")?;
+            }
+            exp.fmt(f)?;
+        }
+        writeln!(f, "], but got {}", self.on.token)
+    }
+}
+
+#[derive(Eq, PartialEq, Clone)]
 pub enum Expected<'a> {
     Token(LexerToken<'a>),
     TokenType(LexerTokenType),
 }
 
+impl<'a> Display for Expected<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expected::Token(v) => write!(f, "{}", v),
+            Expected::TokenType(v) => write!(f, "{}", v),
+        }
+    }
+}
+
+pub fn combine_err<'a>(a: Option<ParseError<'a>>, b: Option<ParseError<'a>>) -> Option<ParseError<'a>> {
+    match (a, b) {
+        (None, None) => None,
+        (Some(e), None) => Some(e),
+        (None, Some(e)) => Some(e),
+        (Some(e1), Some(e2)) => Some(e1.combine(e2))
+    }
+}
+
 impl<'a> ParseError<'a> {
-    pub fn combine(self, other: ParseError) -> ParseError {
-        todo!()
+    pub fn combine(mut self, other: ParseError<'a>) -> ParseError<'a> {
+        match self.tokens_remaining.cmp(&other.tokens_remaining) {
+            Ordering::Less => {
+                self
+            }
+            Ordering::Equal => {
+                for ex in other.expect {
+                    if !self.expect.contains(&ex) {
+                        self.expect.push(ex)
+                    }
+                }
+                self
+            }
+            Ordering::Greater => {
+                other
+            }
+        }
     }
 }
 
@@ -36,7 +91,7 @@ pub fn expect_exact<'a>(input: &'a [LexerItem<'a>], expected: LexerToken<'a>) ->
     if actual.token == expected {
         Ok(ParseSuccess{ result: actual, rest, best_error: None })
     } else {
-        Err(ParseError{ on: &input[0..1], expect: vec![ Expected::Token(expected) ] })
+        Err(ParseError{ on: &input[0], expect: vec![ Expected::Token(expected) ], tokens_remaining: input.len() })
     }
 }
 
@@ -45,7 +100,7 @@ pub fn expect_type<'a>(input: &'a [LexerItem<'a>], expected: LexerTokenType) -> 
     if actual.token.to_type() == expected {
         Ok(ParseSuccess{ result: actual, rest, best_error: None })
     } else {
-        Err(ParseError{ on: &input[0..1], expect: vec![ Expected::TokenType(expected) ] })
+        Err(ParseError{ on: &input[0], expect: vec![ Expected::TokenType(expected) ], tokens_remaining: input.len() })
     }
 }
 

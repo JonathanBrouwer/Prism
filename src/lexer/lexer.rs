@@ -4,7 +4,7 @@ use std::ops::Range;
 use crate::lexer::logos::LogosToken;
 use std::collections::VecDeque;
 use std::cmp::Ordering;
-use crate::lexer::lexer::LexerToken::*;
+use std::fmt::{Display, Formatter};
 
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -18,10 +18,24 @@ pub enum LexerToken<'a> {
     Name(&'a str),
     Control(&'a str),
     BlockStart,
-    BlockStop,
+    BlockEnd,
     Line,
     EOF,
     Error(&'a str)
+}
+
+impl<'a> Display for LexerToken<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LexerToken::Name(v) => write!(f, "( name: {} )", v),
+            LexerToken::Control(v) => write!(f, "( control: {} )", v),
+            LexerToken::BlockStart => write!(f, "start of a block"),
+            LexerToken::BlockEnd => write!(f, "end of a block"),
+            LexerToken::Line => write!(f, "new line"),
+            LexerToken::EOF => write!(f, "end of file"),
+            LexerToken::Error(_) => write!(f, "lexer error")
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -29,35 +43,49 @@ pub enum LexerTokenType {
     Name,
     Control,
     BlockStart,
-    BlockStop,
+    BlockEnd,
     Line,
     EOF,
     Error
 }
 
+impl Display for LexerTokenType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LexerTokenType::Name=> write!(f, "name"),
+            LexerTokenType::Control => write!(f, "control"),
+            LexerTokenType::BlockStart => write!(f, "start of a block"),
+            LexerTokenType::BlockEnd => write!(f, "end of a block"),
+            LexerTokenType::Line => write!(f, "new line"),
+            LexerTokenType::EOF => write!(f, "end of file"),
+            LexerTokenType::Error => write!(f, "lexer error")
+        }
+    }
+}
+
 impl<'a> LexerToken<'a> {
     pub fn to_type(&self) -> LexerTokenType {
         match self {
-            Name(_) => LexerTokenType::Name,
-            Control(_) => LexerTokenType::Control,
-            BlockStart => LexerTokenType::BlockStart,
-            BlockStop => LexerTokenType::BlockStop,
-            Line => LexerTokenType::Line,
-            EOF => LexerTokenType::EOF,
-            Error(_) => LexerTokenType::Error
+            LexerToken::Name(_) => LexerTokenType::Name,
+            LexerToken::Control(_) => LexerTokenType::Control,
+            LexerToken::BlockStart => LexerTokenType::BlockStart,
+            LexerToken::BlockEnd => LexerTokenType::BlockEnd,
+            LexerToken::Line => LexerTokenType::Line,
+            LexerToken::EOF => LexerTokenType::EOF,
+            LexerToken::Error(_) => LexerTokenType::Error
         }
     }
 
     pub fn unwrap_name(&self) -> &'a str {
         match self {
-            Name(n) => n,
+            LexerToken::Name(n) => n,
             _ => panic!("Expected name!")
         }
     }
 
     pub fn unwrap_control(&self) -> &'a str {
         match self {
-            Control(n) => n,
+            LexerToken::Control(n) => n,
             _ => panic!("Expected control!")
         }
     }
@@ -104,7 +132,7 @@ impl<'a> ActualLexer<'a> {
             None => {
                 if self.blocks.len() > 1 {
                     self.blocks.pop_back();
-                    vec![LexerToken::BlockStop]
+                    vec![LexerToken::BlockEnd]
                 } else if !self.eof {
                     self.eof = true;
                     vec![LexerToken::EOF]
@@ -119,17 +147,17 @@ impl<'a> ActualLexer<'a> {
                         self.blocks.pop_back();
                         // We went too far, this is not a legal structure.
                         if indent > *self.blocks.back().unwrap() {
-                            vec![BlockStop, Error("Illegal indentation."), Line]
+                            vec![LexerToken::BlockEnd, LexerToken::Error("Illegal indentation."), LexerToken::Line]
                         } else {
-                            vec![BlockStop, Line]
+                            vec![LexerToken::BlockEnd, LexerToken::Line]
                         }
                     }
                     Ordering::Greater => {
                         self.blocks.push_back(indent);
-                        vec![Line, BlockStart]
+                        vec![LexerToken::Line, LexerToken::BlockStart]
                     }
                     Ordering::Equal => {
-                        vec![Line]
+                        vec![LexerToken::Line]
                     }
                 }
 
