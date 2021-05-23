@@ -20,11 +20,54 @@ pub enum LexerToken<'a> {
     BlockStart,
     BlockStop,
     Line,
+    EOF,
     Error(&'a str)
+}
+
+impl<'a> LexerToken<'a> {
+    pub fn to_type(&self) -> LexerTokenType {
+        match self {
+            Name(_) => LexerTokenType::Name,
+            Control(_) => LexerTokenType::Control,
+            BlockStart => LexerTokenType::BlockStart,
+            BlockStop => LexerTokenType::BlockStop,
+            Line => LexerTokenType::Line,
+            EOF => LexerTokenType::EOF,
+            Error(_) => LexerTokenType::Error
+        }
+    }
+
+    pub fn unwrap_name(&self) -> &'a str {
+        match self {
+            Name(n) => n,
+            _ => panic!("Expected name!")
+        }
+    }
+
+    pub fn unwrap_control(&self) -> &'a str {
+        match self {
+            Control(n) => n,
+            _ => panic!("Expected control!")
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum LexerTokenType {
+    Name,
+    Control,
+    BlockStart,
+    BlockStop,
+    Line,
+    EOF,
+    Error
 }
 
 pub struct ActualLexer<'a> {
     pub logos: Lexer<'a, LogosToken>,
+
+    // Keep track of EOF information
+    pub eof: bool,
 
     // Keep track of block information
     pub blocks: VecDeque<usize>,
@@ -35,6 +78,7 @@ impl<'a> ActualLexer<'a> {
     pub fn new(source: &'a str) -> ActualLexer<'a> {
         ActualLexer {
             logos: LogosToken::lexer(source),
+            eof: false,
             blocks: VecDeque::from(vec![0]),
             queue: VecDeque::new()
         }
@@ -61,6 +105,9 @@ impl<'a> ActualLexer<'a> {
                 if self.blocks.len() > 1 {
                     self.blocks.pop_back();
                     vec![LexerToken::BlockStop]
+                } else if !self.eof {
+                    self.eof = true;
+                    vec![LexerToken::EOF]
                 } else {
                     vec![]
                 }

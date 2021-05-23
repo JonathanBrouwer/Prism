@@ -1,4 +1,4 @@
-use crate::lexer::lexer::LexerItem;
+use crate::lexer::lexer::{LexerItem, LexerTokenType, LexerToken};
 use petgraph::prelude::*;
 use petgraph::visit::{Visitable, VisitMap, IntoNeighborsDirected, IntoNodeIdentifiers};
 use petgraph::algo::DfsSpace;
@@ -7,13 +7,8 @@ use crate::lexer::lexer::LexerToken::{Line, BlockStart, BlockStop};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ParseRulePart<'a> {
-    NameBind,
-    NameLit(&'a str),
-    ControlBind,
-    ControlLit(&'a str),
-    BlockStart,
-    BlockStop,
-    Line,
+    Bind(LexerTokenType),
+    Expect(LexerToken<'a>),
     SameLevelExpr,
     SubLevelExpr,
 }
@@ -72,41 +67,48 @@ impl<'a> CustomizableParser<'a> {
             return Err(graph.node_weight(v).unwrap().clone())
         }
 
-        Ok(CustomizableParser{
-            parse_groups: result.into_iter().map(
-                |sub| sub.into_iter().map(|n|
-                    graph.node_weight(n).unwrap().clone()
-                ).collect()
+        Ok(CustomizableParser::from_vec(result.into_iter().map(
+            |sub| sub.into_iter().map(|n|
+                graph.node_weight(n).unwrap().clone()
             ).collect()
-        })
+        ).collect()
+        ))
     }
 
     pub fn from_vec(parse_groups: Vec<Vec<ParseGroup<'a>>>) -> Self {
         Self { parse_groups }
     }
 
-    pub fn parse(&self, input: &'a [LexerItem<'a>]) -> Result<((), &'a [LexerItem<'a>]), ParseError> {
+    pub fn parse(&self, input: &'a [LexerItem<'a>]) -> Result<ParseSuccess<'a, ()>, ParseError> {
         self.parse_sub(input, self.parse_groups.as_slice())
     }
 
-    fn parse_sub(&self, input: &'a [LexerItem<'a>], groups: &[Vec<ParseGroup<'a>>]) -> Result<((), &'a [LexerItem<'a>]), ParseError> {
+    fn parse_sub(&self, input: &'a [LexerItem<'a>], groups: &[Vec<ParseGroup<'a>>]) -> Result<ParseSuccess<'a, ()>, ParseError> {
         assert!(groups.len() > 0);
 
-        let mut results : Vec<((), &'a [LexerItem<'a>])> = Vec::new();
-        let mut error: Option<ParseError> = None;
+        let mut results : Vec<ParseSuccess<'a, ()>> = Vec::new();
+        let mut error: Option<ParseError<'a>> = None;
 
         for g in &groups[0] {
             for r in &g.rules {
                 match self.parse_rule(input, groups, r) {
-                    Ok(v) => results.push(v),
+                    Ok(v) => {
+                        let best_error = match (error.clone(), v.best_error.clone()) {
+                            (None, None) => None,
+                            (Some(e), None) => Some(e),
+                            (None, Some(e)) => Some(e),
+                            (Some(e1), Some(e2)) => Some(e1.combine(e2))
+                        };
+                        results.push(ParseSuccess { result: v.result, rest: v.rest, best_error: best_error })
+                    },
                     Err(e2) => error = match error {
                         Some(e1) => Some(e1.combine(e2)),
                         None => Some(e2),
                     }
                 }
-
             }
         }
+        return Err(error.unwrap());
 
         if results.len() == 0 {
             if groups.len() > 1 {
@@ -121,7 +123,7 @@ impl<'a> CustomizableParser<'a> {
         }
     }
 
-    fn parse_rule(&self, input: &'a [LexerItem<'a>], groups: &[Vec<ParseGroup<'a>>], rule: &ParseRule<'a>) -> Result<((), &'a [LexerItem<'a>]), ParseError> {
+    fn parse_rule(&self, input: &'a [LexerItem<'a>], groups: &[Vec<ParseGroup<'a>>], rule: &ParseRule<'a>) -> Result<ParseSuccess<'a, ()>, ParseError> {
         let mut rest = input;
 
         for p in &rule.parts {
@@ -168,10 +170,10 @@ mod tests_init {
 
     #[test]
     fn test_from_graph1() {
-        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::NameBind] }]};
-        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Line] }]};
-        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::ControlBind] }]};
-        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::BlockStop] }]};
+        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("A"))] }]};
+        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("B"))] }]};
+        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("C"))] }]};
+        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("D"))] }]};
 
         let mut graph = Graph::new();
         let p1i = graph.add_node(p1.clone());
@@ -195,10 +197,10 @@ mod tests_init {
 
     #[test]
     fn test_from_graph2() {
-        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::NameBind] }]};
-        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Line] }]};
-        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::ControlBind] }]};
-        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::BlockStop] }]};
+        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("A"))] }]};
+        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("B"))] }]};
+        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("C"))] }]};
+        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("D"))] }]};
 
         let mut graph = Graph::new();
         let p1i = graph.add_node(p1.clone());
@@ -225,10 +227,10 @@ mod tests_init {
 
     #[test]
     fn test_from_graph3() {
-        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::NameBind] }]};
-        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Line] }]};
-        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::ControlBind] }]};
-        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::BlockStop] }]};
+        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("A"))] }]};
+        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("B"))] }]};
+        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("C"))] }]};
+        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("D"))] }]};
 
         let mut graph = Graph::new();
         let p1i = graph.add_node(p1.clone());
@@ -252,10 +254,10 @@ mod tests_init {
 
     #[test]
     fn test_from_graph4() {
-        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::NameBind] }]};
-        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Line] }]};
-        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::ControlBind] }]};
-        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::BlockStop] }]};
+        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("A"))] }]};
+        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("B"))] }]};
+        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("C"))] }]};
+        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("D"))] }]};
 
         let mut graph = Graph::new();
         let p1i = graph.add_node(p1.clone());
@@ -279,10 +281,10 @@ mod tests_init {
 
     #[test]
     fn test_from_cycle() {
-        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::NameBind] }]};
-        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Line] }]};
-        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::ControlBind] }]};
-        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::BlockStop] }]};
+        let p1 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("A"))] }]};
+        let p2 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("B"))] }]};
+        let p3 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("C"))] }]};
+        let p4 = ParseGroup { rules: vec! [ ParseRule { parts: vec![ParseRulePart::Expect(LexerToken::Name("D"))] }]};
 
         let mut graph = Graph::new();
         let p1i = graph.add_node(p1.clone());

@@ -24,24 +24,28 @@ fn main() {
     lexer_res.as_slice();
 
     // Parse file
-    let parser = CustomizableParser::from_vec(vec![
-        vec![ParseGroup{ rules: vec![
-            ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("+"), ParseRulePart::SameLevelExpr] },
-        ] }],
-        vec![ParseGroup{ rules: vec![
-            ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("*"), ParseRulePart::SameLevelExpr] },
-        ] }],
-        vec![ParseGroup{ rules: vec![
-            ParseRule{ parts: vec![ParseRulePart::NameBind] },
-        ] }],
-    ]);
-    let program = match parser.parse(lexer_res.as_slice()) {
-        Ok(program) => program,
-        Err(e) => {
-            println!("Parse error: {:?}", e);
-            return
-        }
-    };
-    println!("Success");
+    // let parser = CustomizableParser::from_vec(vec![
+    //     //TODO don't allow only sublevelexpr
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::EOF] },
+    //     ] }],
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("+"), ParseRulePart::SameLevelExpr] },
+    //     ] }],
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::NameLit("*"), ParseRulePart::SameLevelExpr] },
+    //     ] }],
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule{ parts: vec![ParseRulePart::NameBind] },
+    //     ] }],
+    // ]);
+    // let program = match parser.parse(lexer_res.as_slice()) {
+    //     Ok(program) => program,
+    //     Err(e) => {
+    //         println!("Parse error: {:?}", e);
+    //         return
+    //     }
+    // };
+    // println!("Success");
     // program.print();
 }
