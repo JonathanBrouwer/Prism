@@ -134,31 +134,6 @@ impl<'a> CustomizableParser<'a> {
                 ParseSuccess { result: (), best_error, rest }
             }
         })
-
-
-
-        // let mut rest = input;
-        // let mut best_error: Option<ParseError<'a>> = None;
-        //
-        // for p in &rule.parts {
-        //     let res = match p {
-        //         ParseRulePart::Bind(v) => {
-        //             expect_type(rest, *v)?.map_result(|r| ())
-        //         }
-        //         ParseRulePart::Expect(v) => {
-        //             expect_exact(rest, *v)?.map_result(|r| ())
-        //         }
-        //         ParseRulePart::SameLevelExpr => {
-        //             self.parse_sub(rest, groups)?
-        //         }
-        //         ParseRulePart::SubLevelExpr => {
-        //             self.parse_sub(rest, &groups[1..])?
-        //         }
-        //     };
-        //     rest = res.rest;
-        //     best_error = combine_err(best_error, res.best_error);
-        // }
-        // Ok(ParseSuccess{ result: (), rest, best_error })
     }
 }
 
