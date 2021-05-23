@@ -13,7 +13,7 @@ pub struct LexerItem<'a> {
     pub token: LexerToken<'a>
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum LexerToken<'a> {
     Name(&'a str),
     Control(&'a str),
@@ -22,6 +22,17 @@ pub enum LexerToken<'a> {
     Line,
     EOF,
     Error(&'a str)
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum LexerTokenType {
+    Name,
+    Control,
+    BlockStart,
+    BlockStop,
+    Line,
+    EOF,
+    Error
 }
 
 impl<'a> LexerToken<'a> {
@@ -50,17 +61,6 @@ impl<'a> LexerToken<'a> {
             _ => panic!("Expected control!")
         }
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum LexerTokenType {
-    Name,
-    Control,
-    BlockStart,
-    BlockStop,
-    Line,
-    EOF,
-    Error
 }
 
 pub struct ActualLexer<'a> {
