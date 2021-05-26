@@ -1,1 +1,5 @@
-a + b c d
+if cond then :>
+    block
+    block
+else :>
+    block

@@ -3,9 +3,7 @@ use petgraph::prelude::*;
 use petgraph::visit::{IntoNeighborsDirected, IntoNodeIdentifiers, Visitable, VisitMap};
 
 use crate::lexer::lexer::{LexerItem, LexerToken, LexerTokenType};
-use crate::lexer::lexer::LexerToken::{BlockStart, BlockEnd, Line};
 use crate::parser::parser::*;
-use std::ops::Deref;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ParseRule<'a> {

@@ -2,7 +2,8 @@ use crate::lexer::lexer::*;
 use crate::parser::customizable_parser::*;
 
 mod lexer;
-mod parser;
+pub mod parser;
+pub mod util;
 
 fn main() {
     let source = include_str!("../resources/test.jnl");
