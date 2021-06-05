@@ -4,6 +4,7 @@ use crate::parser::customizable_parser::*;
 mod lexer;
 pub mod parser;
 pub mod util;
+pub mod peg_parser;
 
 fn main() {
     let source = include_str!("../resources/test.jnl");
