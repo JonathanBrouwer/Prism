@@ -18,7 +18,6 @@ pub enum PegRule<TT: TokenType, T: Token<TT>> {
     Sequence(Vec<usize>),
 
     ChooseFirst(Vec<usize>),
-    // ChooseOne(Vec<&'a PegRule<'a, TT, T>>),
 
     Repeat(usize, Option<usize>, Option<usize>),
     Option(usize),
@@ -87,38 +86,40 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
             return self.cache.get(&key).unwrap().clone();
         }
 
-        //Deal with left recursion
-        let mut prev_best = usize::MAX;
+        if self.left_rec[rule] {
+            //Deal with left recursion
+            let mut prev_best = usize::MAX;
 
-        //TODO this will be thrown for purely recursive rules
-        self.cache.layer_incr();
-        self.cache.insert(key, Err(ParseError { on: &input[0], expect: vec![], inv_priority: 0 }));
+            //TODO this will be thrown for purely recursive rules
+            self.cache.layer_incr();
+            self.cache.insert(key, Err(ParseError { on: &input[0], expect: vec![], inv_priority: 0 }));
 
-        loop {
-            let res = self.parse_sub(input, rule);
-
-            match res {
-                Ok(v) => {
-                    //Did we do better?
-                    if v.rest.len() < prev_best {
-                        prev_best = v.rest.len();
+            loop {
+                match self.parse_sub(input, rule) {
+                    Ok(v) => {
+                        //Did we do better?
+                        if v.rest.len() < prev_best {
+                            prev_best = v.rest.len();
+                            self.cache.layer_decr();
+                            self.cache.layer_incr();
+                            self.cache.insert(key, Ok(v));
+                        } else {
+                            let prev_v = self.cache.remove(&key).unwrap();
+                            self.cache.layer_decr();
+                            self.cache.insert(key, prev_v.clone());
+                            return prev_v;
+                        }
+                    },
+                    Err(v) => {
+                        //TODO what if next call errors
                         self.cache.layer_decr();
-                        self.cache.layer_incr();
-                        self.cache.insert(key, Ok(v));
-                    } else {
-                        let prev_v = self.cache.remove(&key).unwrap();
-                        self.cache.layer_decr();
-                        self.cache.insert(key, prev_v.clone());
-                        return prev_v;
+                        self.cache.insert(key, Err(v.clone()));
+                        return Err(v)
                     }
-                },
-                Err(v) => {
-                    //TODO what if next call errors
-                    self.cache.layer_decr();
-                    self.cache.insert(key, Err(v.clone()));
-                    return Err(v)
                 }
             }
+        } else {
+            self.parse_sub(input, rule)
         }
     }
 
@@ -214,7 +215,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
             PegRule::LookaheadPositive(rule) => {
                 match self.parse(input, *rule) {
                     //TODO should we return best error?
-                    Ok(v) => Ok(ParseSuccess {result: v.result, best_error: None, rest: input}),
+                    Ok(v) => Ok(ParseSuccess {result: v.result, best_error: v.best_error, rest: input}),
                     Err(e) => return Err(e)
                 }
             }
@@ -297,6 +298,38 @@ mod tests {
     }
 
     #[test]
+    fn test_left_recursive2() {
+        let input = &[T::A, T::A, T::A, T::C];
+        let rules = vec![
+            PegRule::Sequence(vec![1, 4]), // S = XC
+            PegRule::ChooseFirst(vec![2, 3]), // X = Y | A
+            PegRule::Sequence(vec![1, 3]), // Y = XA
+            PegRule::LiteralExact(T::A),
+            PegRule::LiteralExact(T::C),
+            PegRule::Sequence(vec![])
+        ];
+        let mut parser = Parser::new(&rules);
+        assert_eq!(parser.left_rec, vec![false, true, true, false, false, false]);
+        assert!(parser.parse(input, 0).is_ok());
+    }
+
+    #[test]
+    fn test_left_recursive3() {
+        let input = &[T::A, T::B, T::A, T::C];
+        let rules = vec![
+            PegRule::Sequence(vec![1, 5]), // S = XC
+            PegRule::ChooseFirst(vec![2, 3]), // X = Y | A
+            PegRule::Sequence(vec![1, 4, 1]), // Y = XBX
+            PegRule::LiteralExact(T::A),
+            PegRule::LiteralExact(T::B),
+            PegRule::LiteralExact(T::C),
+        ];
+        let mut parser = Parser::new(&rules);
+        assert_eq!(parser.left_rec, vec![false, true, true, false, false, false]);
+        assert!(parser.parse(input, 0).is_ok());
+    }
+
+    #[test]
     fn test_right_recursive() {
         let input = &[T::A, T::A, T::A, T::C];
         let rules = vec![
@@ -308,6 +341,7 @@ mod tests {
             PegRule::Sequence(vec![])
         ];
         let mut parser = Parser::new(&rules);
+        assert_eq!(parser.left_rec, vec![false, false, false, false, false, false]);
         assert!(parser.parse(input, 0).is_ok());
     }
 }

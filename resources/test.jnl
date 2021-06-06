@@ -1,5 +1,3 @@
-if cond then :>
-    block
-    block
-else :>
-    block
+define {
+    test
+}

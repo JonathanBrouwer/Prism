@@ -25,11 +25,9 @@ pub fn leftrec_analysis<TT: TokenType, T: Token<TT>>(rules: &Vec<PegRule<TT, T>>
             PegRule::LiteralExact(_) => {}
             PegRule::LiteralBind(_) => {}
             PegRule::Sequence(seq) => {
-                let mut stop = false;
                 for &to in seq.iter() {
                     graph.add_edge(*from, nodes[to], ());
-                    if stop { break }
-                    if !empty_analysis[to] { stop = true; }
+                    if !empty_analysis[to] { break }
                 }
             }
             PegRule::ChooseFirst(seq) => {seq.iter().for_each(|to| { graph.add_edge(*from, nodes[*to], ()); }); }

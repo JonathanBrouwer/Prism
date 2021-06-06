@@ -1,8 +1,6 @@
 use crate::lexer::lexer::*;
-use crate::parser::customizable_parser::*;
 
 mod lexer;
-pub mod parser;
 pub mod util;
 pub mod peg_parser;
 
@@ -26,29 +24,29 @@ fn main() {
     lexer_res.as_slice();
 
     // Parse file
-    let parser = CustomizableParser::from_vec(vec![
-        vec![ParseGroup{ rules: vec![
-            ParseRule::Seq(vec![ParseRule::SubLevelExpr, ParseRule::Expect(LexerToken::EOF)] ),
-        ] }],
-        vec![ParseGroup{ rules: vec![
-            ParseRule::Seq(vec![ParseRule::SubLevelExpr, ParseRule::Expect(LexerToken::Name("+")), ParseRule::SameLevelExpr] ),
-            ParseRule::Seq(vec![ParseRule::SubLevelExpr] ),
-        ] }],
-        // vec![ParseGroup{ rules: vec![
-        //     ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::Expect(LexerToken::Name("*")), ParseRulePart::SameLevelExpr] },
-        //     ParseRule{ parts: vec![ParseRulePart::SubLevelExpr] },
-        // ] }],
-        vec![ParseGroup{ rules: vec![
-            ParseRule::Seq(vec![ParseRule::Bind(LexerTokenType::Name)] ),
-        ] }],
-    ]);
-    let program = match parser.parse(lexer_res.as_slice()) {
-        Ok(program) => program,
-        Err(e) => {
-            println!("Parse error: {}", e);
-            return
-        }
-    };
-    println!("Success");
+    // let parser = CustomizableParser::from_vec(vec![
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule::Seq(vec![ParseRule::SubLevelExpr, ParseRule::Expect(LexerToken::EOF)] ),
+    //     ] }],
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule::Seq(vec![ParseRule::SubLevelExpr, ParseRule::Expect(LexerToken::Name("+")), ParseRule::SameLevelExpr] ),
+    //         ParseRule::Seq(vec![ParseRule::SubLevelExpr] ),
+    //     ] }],
+    //     // vec![ParseGroup{ rules: vec![
+    //     //     ParseRule{ parts: vec![ParseRulePart::SubLevelExpr, ParseRulePart::Expect(LexerToken::Name("*")), ParseRulePart::SameLevelExpr] },
+    //     //     ParseRule{ parts: vec![ParseRulePart::SubLevelExpr] },
+    //     // ] }],
+    //     vec![ParseGroup{ rules: vec![
+    //         ParseRule::Seq(vec![ParseRule::Bind(LexerTokenType::Name)] ),
+    //     ] }],
+    // ]);
+    // let program = match parser.parse(lexer_res.as_slice()) {
+    //     Ok(program) => program,
+    //     Err(e) => {
+    //         println!("Parse error: {}", e);
+    //         return
+    //     }
+    // };
+    // println!("Success");
     // program.print();
 }
