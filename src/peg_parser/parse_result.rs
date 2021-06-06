@@ -1,20 +1,20 @@
 use crate::peg_parser::peg_parser::*;
 use std::cmp::Ordering;
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ParseSuccess<'a, TT: TokenType, T: Token<TT>> {
     pub(crate) result: (),
     pub(crate) best_error: Option<ParseError<'a, TT, T>>,
     pub(crate) rest: &'a [T],
 }
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub enum Expected<TT: TokenType, T: Token<TT>> {
     LiteralExact(T),
     LiteralBind(TT),
 }
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ParseError<'a, TT: TokenType, T: Token<TT>> {
     pub on: &'a T,
     pub expect: Vec<Expected<TT, T>>,

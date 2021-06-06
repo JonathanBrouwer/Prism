@@ -10,7 +10,7 @@ pub trait Token<TT: TokenType>: Sized + Copy + Eq + Hash {
 
 pub trait TokenType: Sized + Copy + Eq + Hash {}
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub enum PegRule<TT: TokenType, T: Token<TT>> {
     LiteralExact(T),
     LiteralBind(TT),
@@ -26,26 +26,36 @@ pub enum PegRule<TT: TokenType, T: Token<TT>> {
     LookaheadNegative(usize),
 }
 
+struct ParserCacheEntry<'a, TT: TokenType, T: Token<TT>> {
+    result: ParseResult<'a, TT, T>,
+    seen: bool,
+}
+
 struct ParserCache<'a, TT: TokenType, T: Token<TT>> {
-    cache: HashMap<(usize, usize) , ParseResult<'a, TT, T>>,
+    cache: HashMap<(usize, usize) , ParserCacheEntry<'a, TT, T>>,
     cache_layers: VecDeque<HashSet<(usize, usize)>>
 }
 
 impl<'a, TT: TokenType, T: Token<TT>> ParserCache<'a, TT, T> {
     pub fn get(&mut self, key: &(usize, usize)) -> Option<&ParseResult<'a, TT, T>> {
-        self.cache.get(key)
+        self.cache.get_mut(key).unwrap().seen = true;
+        self.cache.get(key).map(|r| &r.result)
+    }
+
+    pub fn is_seen(&self, key: &(usize, usize)) -> Option<bool> {
+        self.cache.get(key).map(|r| r.seen)
     }
 
     pub fn remove(&mut self, key: &(usize, usize)) -> Option<ParseResult<'a, TT, T>> {
-        self.cache.remove(key)
+        self.cache.remove(key).map(|r| r.result)
     }
 
     pub fn contains_key(&mut self, key: &(usize, usize)) -> bool {
         self.cache.contains_key(key)
     }
 
-    pub fn insert(&mut self, key: (usize, usize), v: ParseResult<'a, TT, T>) {
-        self.cache.insert(key, v);
+    pub fn insert(&mut self, key: (usize, usize), result: ParseResult<'a, TT, T>) {
+        self.cache.insert(key, ParserCacheEntry { result, seen: false });
         self.cache_layers.back_mut().unwrap().insert(key);
     }
 
@@ -53,10 +63,14 @@ impl<'a, TT: TokenType, T: Token<TT>> ParserCache<'a, TT, T> {
         self.cache_layers.push_back(HashSet::new());
     }
 
-    pub fn layer_decr(&mut self) {
+    pub fn layer_revert(&mut self) {
         for key in self.cache_layers.pop_back().unwrap() {
             self.cache.remove(&key);
         }
+    }
+
+    pub fn layer_commit(&mut self) {
+        self.cache_layers.pop_back();
     }
 }
 
@@ -64,8 +78,6 @@ pub struct Parser<'a, TT: TokenType, T: Token<TT>> {
     glb_rules: &'a Vec<PegRule<TT, T>>,
 
     cache: ParserCache<'a, TT, T>,
-
-    left_rec: Vec<bool>
 }
 
 impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
@@ -73,7 +85,6 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
         let mut s = Parser {
             glb_rules: rules,
             cache: ParserCache { cache: HashMap::new(), cache_layers: VecDeque::new() },
-            left_rec: analyse_grammar(&rules),
         };
         s.cache.layer_incr();
         s
@@ -86,40 +97,53 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
             return self.cache.get(&key).unwrap().clone();
         }
 
-        if self.left_rec[rule] {
-            //Deal with left recursion
-            let mut prev_best = usize::MAX;
+        self.cache.layer_incr();
+        //TODO fix this error
+        self.cache.insert(key, Err(ParseError { on: &input[0], expect: vec![], inv_priority: 0 }));
 
-            //TODO this will be thrown for purely recursive rules
-            self.cache.layer_incr();
-            self.cache.insert(key, Err(ParseError { on: &input[0], expect: vec![], inv_priority: 0 }));
+        let res0 = self.parse_sub(input, rule);
 
-            loop {
-                match self.parse_sub(input, rule) {
-                    Ok(v) => {
-                        //Did we do better?
-                        if v.rest.len() < prev_best {
-                            prev_best = v.rest.len();
-                            self.cache.layer_decr();
-                            self.cache.layer_incr();
-                            self.cache.insert(key, Ok(v));
-                        } else {
-                            let prev_v = self.cache.remove(&key).unwrap();
-                            self.cache.layer_decr();
-                            self.cache.insert(key, prev_v.clone());
-                            return prev_v;
-                        }
-                    },
-                    Err(v) => {
-                        //TODO what if next call errors
-                        self.cache.layer_decr();
-                        self.cache.insert(key, Err(v.clone()));
-                        return Err(v)
+        //If there's no left recursion, return the result
+        if !self.cache.is_seen(&key).unwrap() {
+            self.cache.layer_commit();
+            self.cache.insert(key, res0.clone());
+            return res0;
+        }
+
+        //If there's left recursion, but no seed, return the result
+        if res0.is_err() {
+            self.cache.layer_commit();
+            self.cache.insert(key, res0.clone());
+            return res0;
+        }
+
+        self.cache.layer_revert();
+        self.cache.layer_incr();
+        self.cache.insert(key, res0.clone());
+        let mut seed = res0.ok().unwrap();
+
+        loop {
+            match self.parse_sub(input, rule) {
+                Ok(v) => {
+                    //Did we do better?
+                    if v.rest.len() < seed.rest.len() {
+                        seed = v.clone();
+                        self.cache.layer_revert();
+                        self.cache.layer_incr();
+                        self.cache.insert(key, Ok(v));
+                    } else {
+                        self.cache.layer_revert();
+                        self.cache.insert(key, Ok(seed.clone()));
+                        return Ok(seed);
                     }
+                },
+                Err(_) => {
+                    unreachable!("TODO: Is this reachable?");
+                    self.cache.layer_revert();
+                    self.cache.insert(key, Ok(seed.clone()));
+                    return Ok(seed);
                 }
             }
-        } else {
-            self.parse_sub(input, rule)
         }
     }
 
@@ -293,7 +317,6 @@ mod tests {
             PegRule::Sequence(vec![])
         ];
         let mut parser = Parser::new(&rules);
-        assert_eq!(parser.left_rec, vec![false, true, true, false, false, false]);
         assert!(parser.parse(input, 0).is_ok());
     }
 
@@ -309,7 +332,6 @@ mod tests {
             PegRule::Sequence(vec![])
         ];
         let mut parser = Parser::new(&rules);
-        assert_eq!(parser.left_rec, vec![false, true, true, false, false, false]);
         assert!(parser.parse(input, 0).is_ok());
     }
 
@@ -325,8 +347,29 @@ mod tests {
             PegRule::LiteralExact(T::C),
         ];
         let mut parser = Parser::new(&rules);
-        assert_eq!(parser.left_rec, vec![false, true, true, false, false, false]);
         assert!(parser.parse(input, 0).is_ok());
+    }
+
+    #[test]
+    fn test_left_recursive4() {
+        let input = &[T::A, T::A, T::A, T::C];
+
+        let rules = vec![
+            PegRule::ChooseFirst(vec![1, 2, 8]), // S = XB | AS | e
+            PegRule::Sequence(vec![3, 6]), // XB
+            PegRule::Sequence(vec![5, 0]), // AS
+
+            PegRule::ChooseFirst(vec![4, 5]), // X = XA / A
+            PegRule::Sequence(vec![3, 5]), // XA
+
+            PegRule::LiteralExact(T::A),
+            PegRule::LiteralExact(T::B),
+            PegRule::LiteralExact(T::C),
+            PegRule::Sequence(vec![]),
+            PegRule::Sequence(vec![0, 7]),
+        ];
+        let mut parser = Parser::new(&rules);
+        assert!(parser.parse(&input[..], 0).is_ok());
     }
 
     #[test]
@@ -341,7 +384,6 @@ mod tests {
             PegRule::Sequence(vec![])
         ];
         let mut parser = Parser::new(&rules);
-        assert_eq!(parser.left_rec, vec![false, false, false, false, false, false]);
         assert!(parser.parse(input, 0).is_ok());
     }
 }

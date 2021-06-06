@@ -1,3 +1,4 @@
-define {
-    test
-}
+define { a }
+define { b }
+a
+b
