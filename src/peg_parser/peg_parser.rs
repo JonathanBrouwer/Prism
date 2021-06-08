@@ -19,9 +19,6 @@ pub enum PegRule<TT: TokenType, T: Token<TT>> {
 
     ChooseFirst(Vec<usize>),
 
-    Repeat(usize, Option<usize>, Option<usize>),
-    Option(usize),
-
     LookaheadPositive(usize),
     LookaheadNegative(usize),
 }
@@ -206,35 +203,6 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                     }
                 }
                 Err(best_error.unwrap())
-            }
-            PegRule::Repeat(rule, min, max) => {
-                let mut rest = input;
-                let mut best_error: Option<ParseError<'a, TT, T>> = None;
-
-                //Do minimum amount of times
-                for _ in 0..(min.unwrap_or(0)) {
-                    let res = self.parse(input, *rule)?;
-                    rest = res.rest;
-                    best_error = combine_err(best_error, res.best_error);
-                }
-
-                //Do from minimum to maximum amount of times
-                for _ in (min.unwrap_or(0))..(max.unwrap_or(usize::MAX)) {
-                    let res = match self.parse(rest, *rule) {
-                        Ok(v) => v,
-                        Err(_) => return Ok(ParseSuccess { result: (), rest, best_error})
-                    };
-                    rest = res.rest;
-                    best_error = combine_err(best_error, res.best_error);
-                }
-
-                return Ok(ParseSuccess { result: (), rest, best_error})
-            }
-            PegRule::Option(rule) => {
-                match self.parse(input, *rule) {
-                    Ok(v) => Ok(v),
-                    Err(_) => return Ok(ParseSuccess { result: (), rest: input, best_error: None})
-                }
             }
             PegRule::LookaheadPositive(rule) => {
                 match self.parse(input, *rule) {

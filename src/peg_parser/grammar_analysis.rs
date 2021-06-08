@@ -31,8 +31,6 @@ pub fn leftrec_analysis<TT: TokenType, T: Token<TT>>(rules: &Vec<PegRule<TT, T>>
                 }
             }
             PegRule::ChooseFirst(seq) => {seq.iter().for_each(|to| { graph.add_edge(*from, nodes[*to], ()); }); }
-            PegRule::Repeat(to, _, _) => {graph.add_edge(*from, nodes[*to], ()); }
-            PegRule::Option(to) => {graph.add_edge(*from, nodes[*to], ());}
             PegRule::LookaheadPositive(to) => {graph.add_edge(*from, nodes[*to], ());}
             PegRule::LookaheadNegative(to) => {graph.add_edge(*from, nodes[*to], ());}
         }
@@ -72,8 +70,6 @@ pub fn empty_analysis<TT: TokenType, T: Token<TT>>(rules: &Vec<PegRule<TT, T>>) 
             PegRule::LiteralBind(_) => Never,
             PegRule::Sequence(_) => All,
             PegRule::ChooseFirst(_) => Any,
-            PegRule::Repeat(_, min, _) => if min.unwrap_or(0) == 0 { AllAny::Always } else { AllAny::All },
-            PegRule::Option(_) => Always,
             PegRule::LookaheadPositive(_) => Always,
             PegRule::LookaheadNegative(_) => Always,
         };
@@ -87,8 +83,6 @@ pub fn empty_analysis<TT: TokenType, T: Token<TT>>(rules: &Vec<PegRule<TT, T>>) 
            PegRule::LiteralBind(_) => {}
            PegRule::Sequence(seq) => {seq.iter().for_each(|to| { graph.add_edge(*from, nodes[*to], ()); }); }
            PegRule::ChooseFirst(seq) => {seq.iter().for_each(|to| { graph.add_edge(*from, nodes[*to], ()); }); }
-           PegRule::Repeat(to, _, _) => {graph.add_edge(*from, nodes[*to], ()); }
-           PegRule::Option(_) => {}
            PegRule::LookaheadPositive(_) => {}
            PegRule::LookaheadNegative(_) => {}
        }
