@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ParseSuccess<'a, TT: TokenType, T: Token<TT>> {
-    pub(crate) result: (),
+    pub(crate) result: ParseTree<T>,
     pub(crate) best_error: Option<ParseError<'a, TT, T>>,
     pub(crate) rest: &'a [T],
 }
@@ -50,3 +50,11 @@ pub fn combine_err<'a, TT: TokenType, T: Token<TT>>(a: Option<ParseError<'a, TT,
 }
 
 pub type ParseResult<'a, TT, T> = Result<ParseSuccess<'a, TT, T>, ParseError<'a, TT, T>>;
+
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub enum ParseTree<T> {
+    Value(T),
+    Sequence(Vec<ParseTree<T>>),
+    ChooseFirst(usize, Box<ParseTree<T>>),
+    Empty
+}

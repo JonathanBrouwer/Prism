@@ -16,7 +16,6 @@ pub enum PegRule<TT: TokenType, T: Token<TT>> {
     LiteralBind(TT),
 
     Sequence(Vec<usize>),
-
     ChooseFirst(Vec<usize>),
 
     LookaheadPositive(usize),
@@ -154,7 +153,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                     panic!("Somehow skipped passed EOF token!");
                 };
                 if *token == *expect {
-                    Ok(ParseSuccess { result: (), best_error: None, rest })
+                    Ok(ParseSuccess { result: ParseTree::Value(input[0]), best_error: None, rest })
                 } else {
                     Err(ParseError { on: &input[0], expect: vec![Expected::LiteralExact(*expect)], inv_priority: input.len()})
                 }
@@ -166,7 +165,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                     panic!("Somehow skipped passed EOF token!");
                 };
                 if token.to_type() == *expect {
-                    Ok(ParseSuccess { result: (), best_error: None, rest })
+                    Ok(ParseSuccess { result: ParseTree::Value(input[0]), best_error: None, rest })
                 } else {
                     Err(ParseError { on: &input[0], expect: vec![Expected::LiteralBind(*expect)], inv_priority: input.len() })
                 }
@@ -174,9 +173,11 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
             PegRule::Sequence(rules) => {
                 let mut rest = input;
                 let mut best_error: Option<ParseError<'a, TT, T>> = None;
+                let mut result = Vec::new();
                 for &rule in rules {
                     match self.parse(rest, rule) {
                         Ok(suc) => {
+                            result.push(suc.result);
                             rest = suc.rest;
                             best_error = combine_err(best_error, suc.best_error);
                         }
@@ -186,16 +187,15 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                         }
                     }
                 }
-                Ok(ParseSuccess { result: (), best_error, rest })
+                Ok(ParseSuccess { result: ParseTree::Sequence(result), best_error, rest })
             }
             PegRule::ChooseFirst(rules) => {
-                assert!(rules.len() > 0);
                 let mut best_error: Option<ParseError<'a, TT, T>> = None;
-                for &rule in rules {
+                for (ruleid, &rule) in rules.iter().enumerate() {
                     match self.parse(input, rule) {
                         Ok(suc) => {
                             best_error = combine_err(best_error, suc.best_error);
-                            return Ok(ParseSuccess { result: suc.result, rest: suc.rest, best_error });
+                            return Ok(ParseSuccess { result: ParseTree::ChooseFirst(ruleid, Box::new(suc.result)), rest: suc.rest, best_error });
                         }
                         Err(fail) => {
                             best_error = combine_err(best_error, Some(fail));
@@ -206,152 +206,16 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
             }
             PegRule::LookaheadPositive(rule) => {
                 match self.parse(input, *rule) {
-                    //TODO should we return best error?
-                    Ok(v) => Ok(ParseSuccess {result: v.result, best_error: v.best_error, rest: input}),
+                    Ok(v) => Ok(ParseSuccess {result: ParseTree::Empty, best_error: v.best_error, rest: input}),
                     Err(e) => return Err(e)
                 }
             }
             PegRule::LookaheadNegative(rule) => {
                 match self.parse(input, *rule) {
                     Ok(_) => Err(ParseError{ on: &input[0], expect: vec![], inv_priority: input.len()}),
-                    Err(_) => Ok(ParseSuccess {result: (), best_error: None, rest: input})
+                    Err(_) => Ok(ParseSuccess {result: ParseTree::Empty, best_error: None, rest: input})
                 }
             }
         }
-    }
-}
-
-
-
-#[cfg(test)]
-mod tests {
-    use crate::peg_parser::peg_parser::*;
-
-    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-    enum T {
-        A,
-        B,
-        C,
-    }
-
-    impl Token<TT> for T {
-        fn to_type(&self) -> TT {
-            match self {
-                T::A => TT::A,
-                T::B => TT::B,
-                T::C => TT::C,
-            }
-        }
-    }
-
-    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-    enum TT {
-        A,
-        B,
-        C,
-    }
-
-    impl TokenType for TT {}
-
-    #[test]
-    fn test_literal_exact_ok() {
-        let input = &[T::A];
-        let rules = vec![
-            PegRule::LiteralExact(T::A)
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_ok());
-    }
-
-    #[test]
-    fn test_literal_exact_err() {
-        let input = &[T::A];
-        let rules = vec![
-            PegRule::LiteralExact(T::B)
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_err());
-    }
-
-    #[test]
-    fn test_left_recursive1() {
-        let input = &[T::A, T::A, T::A, T::C];
-        let rules = vec![
-            PegRule::Sequence(vec![1, 4]), // S = XC
-            PegRule::ChooseFirst(vec![2, 5]), // X = Y | e
-            PegRule::Sequence(vec![1, 3]), // Y = XA
-            PegRule::LiteralExact(T::A),
-            PegRule::LiteralExact(T::C),
-            PegRule::Sequence(vec![])
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_ok());
-    }
-
-    #[test]
-    fn test_left_recursive2() {
-        let input = &[T::A, T::A, T::A, T::C];
-        let rules = vec![
-            PegRule::Sequence(vec![1, 4]), // S = XC
-            PegRule::ChooseFirst(vec![2, 3]), // X = Y | A
-            PegRule::Sequence(vec![1, 3]), // Y = XA
-            PegRule::LiteralExact(T::A),
-            PegRule::LiteralExact(T::C),
-            PegRule::Sequence(vec![])
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_ok());
-    }
-
-    #[test]
-    fn test_left_recursive3() {
-        let input = &[T::A, T::B, T::A, T::C];
-        let rules = vec![
-            PegRule::Sequence(vec![1, 5]), // S = XC
-            PegRule::ChooseFirst(vec![2, 3]), // X = Y | A
-            PegRule::Sequence(vec![1, 4, 1]), // Y = XBX
-            PegRule::LiteralExact(T::A),
-            PegRule::LiteralExact(T::B),
-            PegRule::LiteralExact(T::C),
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_ok());
-    }
-
-    #[test]
-    fn test_left_recursive4() {
-        let input = &[T::A, T::A, T::A, T::C];
-
-        let rules = vec![
-            PegRule::ChooseFirst(vec![1, 2, 8]), // S = XB | AS | e
-            PegRule::Sequence(vec![3, 6]), // XB
-            PegRule::Sequence(vec![5, 0]), // AS
-
-            PegRule::ChooseFirst(vec![4, 5]), // X = XA / A
-            PegRule::Sequence(vec![3, 5]), // XA
-
-            PegRule::LiteralExact(T::A),
-            PegRule::LiteralExact(T::B),
-            PegRule::LiteralExact(T::C),
-            PegRule::Sequence(vec![]),
-            PegRule::Sequence(vec![0, 7]),
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(&input[..], 0).is_ok());
-    }
-
-    #[test]
-    fn test_right_recursive() {
-        let input = &[T::A, T::A, T::A, T::C];
-        let rules = vec![
-            PegRule::Sequence(vec![1, 4]), // S = XC
-            PegRule::ChooseFirst(vec![2, 5]), // X = Y | e
-            PegRule::Sequence(vec![3, 1]), // Y = AX
-            PegRule::LiteralExact(T::A),
-            PegRule::LiteralExact(T::C),
-            PegRule::Sequence(vec![])
-        ];
-        let mut parser = Parser::new(&rules);
-        assert!(parser.parse(input, 0).is_ok());
     }
 }
