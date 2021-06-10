@@ -5,16 +5,17 @@ use crate::lexer::logos::LogosToken;
 use std::collections::VecDeque;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
+use crate::peg_parser::parser_token::*;
 
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct LexerItem<'a> {
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct LexerToken<'a> {
     pub span: Range<usize>,
-    pub token: LexerToken<'a>
+    pub token: LexerTokenValue<'a>
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum LexerToken<'a> {
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+pub enum LexerTokenValue<'a> {
     Name(&'a str),
     Control(&'a str),
     BlockStart,
@@ -24,21 +25,43 @@ pub enum LexerToken<'a> {
     Error(&'a str)
 }
 
-impl<'a> Display for LexerToken<'a> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LexerToken::Name(v) => write!(f, "( name: {} )", v),
-            LexerToken::Control(v) => write!(f, "( control: {} )", v),
-            LexerToken::BlockStart => write!(f, "start of a block"),
-            LexerToken::BlockEnd => write!(f, "end of a block"),
-            LexerToken::Line => write!(f, "new line"),
-            LexerToken::EOF => write!(f, "end of file"),
-            LexerToken::Error(_) => write!(f, "lexer error")
+impl<'a> TokenValue for LexerTokenValue<'a> {
+
+}
+
+impl<'a> Token<LexerTokenType, LexerTokenValue<'a>> for LexerToken<'a> {
+    fn to_val(&self) -> LexerTokenValue<'a> {
+        self.token
+    }
+
+    fn to_type(&self) -> LexerTokenType {
+        match self.token {
+            LexerTokenValue::Name(_) => LexerTokenType::Name,
+            LexerTokenValue::Control(_) => LexerTokenType::Control,
+            LexerTokenValue::BlockStart => LexerTokenType::BlockStart,
+            LexerTokenValue::BlockEnd => LexerTokenType::BlockEnd,
+            LexerTokenValue::Line => LexerTokenType::Line,
+            LexerTokenValue::EOF => LexerTokenType::EOF,
+            LexerTokenValue::Error(_) => LexerTokenType::Error
         }
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+impl<'a> Display for LexerTokenValue<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LexerTokenValue::Name(v) => write!(f, "( name: {} )", v),
+            LexerTokenValue::Control(v) => write!(f, "( control: {} )", v),
+            LexerTokenValue::BlockStart => write!(f, "start of a block"),
+            LexerTokenValue::BlockEnd => write!(f, "end of a block"),
+            LexerTokenValue::Line => write!(f, "new line"),
+            LexerTokenValue::EOF => write!(f, "end of file"),
+            LexerTokenValue::Error(_) => write!(f, "lexer error")
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum LexerTokenType {
     Name,
     Control,
@@ -47,6 +70,9 @@ pub enum LexerTokenType {
     Line,
     EOF,
     Error
+}
+
+impl TokenType for LexerTokenType {
 }
 
 impl Display for LexerTokenType {
@@ -63,29 +89,17 @@ impl Display for LexerTokenType {
     }
 }
 
-impl<'a> LexerToken<'a> {
-    pub fn to_type(&self) -> LexerTokenType {
-        match self {
-            LexerToken::Name(_) => LexerTokenType::Name,
-            LexerToken::Control(_) => LexerTokenType::Control,
-            LexerToken::BlockStart => LexerTokenType::BlockStart,
-            LexerToken::BlockEnd => LexerTokenType::BlockEnd,
-            LexerToken::Line => LexerTokenType::Line,
-            LexerToken::EOF => LexerTokenType::EOF,
-            LexerToken::Error(_) => LexerTokenType::Error
-        }
-    }
-
+impl<'a> LexerTokenValue<'a> {
     pub fn unwrap_name(&self) -> &'a str {
         match self {
-            LexerToken::Name(n) => n,
+            LexerTokenValue::Name(n) => n,
             _ => panic!("Expected name!")
         }
     }
 
     pub fn unwrap_control(&self) -> &'a str {
         match self {
-            LexerToken::Control(n) => n,
+            LexerTokenValue::Control(n) => n,
             _ => panic!("Expected control!")
         }
     }
@@ -99,7 +113,7 @@ pub struct ActualLexer<'a> {
 
     // Keep track of block information
     pub blocks: VecDeque<usize>,
-    pub queue: VecDeque<LexerItem<'a>>,
+    pub queue: VecDeque<LexerToken<'a>>,
 }
 
 impl<'a> ActualLexer<'a> {
@@ -114,7 +128,7 @@ impl<'a> ActualLexer<'a> {
 }
 
 impl<'a> Iterator for ActualLexer<'a> {
-    type Item = LexerItem<'a>;
+    type Item = LexerToken<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.queue.len() > 0 {
@@ -127,15 +141,15 @@ impl<'a> Iterator for ActualLexer<'a> {
 }
 
 impl<'a> ActualLexer<'a> {
-    fn next_multiple(&mut self) -> Vec<LexerItem<'a>> {
+    fn next_multiple(&mut self) -> Vec<LexerToken<'a>> {
         match self.logos.next() {
             None => {
                 if self.blocks.len() > 1 {
                     self.blocks.pop_back();
-                    vec![LexerToken::BlockEnd]
+                    vec![LexerTokenValue::BlockEnd]
                 } else if !self.eof {
                     self.eof = true;
-                    vec![LexerToken::EOF]
+                    vec![LexerTokenValue::EOF]
                 } else {
                     vec![]
                 }
@@ -147,30 +161,30 @@ impl<'a> ActualLexer<'a> {
                         self.blocks.pop_back();
                         // We went too far, this is not a legal structure.
                         if indent > *self.blocks.back().unwrap() {
-                            vec![LexerToken::BlockEnd, LexerToken::Error("Illegal indentation."), LexerToken::Line]
+                            vec![LexerTokenValue::BlockEnd, LexerTokenValue::Error("Illegal indentation."), LexerTokenValue::Line]
                         } else {
-                            vec![LexerToken::BlockEnd, LexerToken::Line]
+                            vec![LexerTokenValue::BlockEnd, LexerTokenValue::Line]
                         }
                     }
                     Ordering::Greater => {
                         self.blocks.push_back(indent);
-                        vec![LexerToken::Line, LexerToken::BlockStart]
+                        vec![LexerTokenValue::Line, LexerTokenValue::BlockStart]
                     }
                     Ordering::Equal => {
-                        vec![LexerToken::Line]
+                        vec![LexerTokenValue::Line]
                     }
                 }
 
             },
             Some(LogosToken::Name) => {
-                vec![LexerToken::Name(self.logos.slice())]
+                vec![LexerTokenValue::Name(self.logos.slice())]
             },
             Some(LogosToken::Control) => {
-                vec![LexerToken::Control(self.logos.slice())]
+                vec![LexerTokenValue::Control(self.logos.slice())]
             },
             Some(LogosToken::Error) => {
-                vec![LexerToken::Error("Illegal character.")]
+                vec![LexerTokenValue::Error("Illegal character.")]
             }
-        }.into_iter().map(|t| LexerItem { span: self.logos.span(), token: t }).collect()
+        }.into_iter().map(|t| LexerToken { span: self.logos.span(), token: t }).collect()
     }
 }

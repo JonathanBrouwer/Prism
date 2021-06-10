@@ -9,7 +9,7 @@ fn main() {
 
     // Lexer
     let lexer = ActualLexer::new(source);
-    let lexer_res: Vec<LexerItem> = lexer.collect();
+    let lexer_res: Vec<LexerToken> = lexer.collect();
 
     let print_lexer_result = true;
     if print_lexer_result {

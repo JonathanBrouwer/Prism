@@ -1,25 +1,23 @@
-use crate::peg_parser::peg_parser::{TokenType, Token, PegRule};
+use crate::peg_parser::peg_parser::{PegRule};
 use std::collections::HashMap;
 use crate::peg_parser::peg_parser::PegRule::Sequence;
+use crate::peg_parser::parser_token::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub enum NicePegRule<'a, TT: TokenType, T: Token<TT>> {
-    LiteralExact(T),
+pub enum NicePegRule<'a, TT: TokenType, TV: TokenValue> {
+    LiteralExact(TV),
     LiteralBind(TT),
 
-    Sequence(Vec<NicePegRule<'a, TT, T>>),
-    ChooseFirst(Vec<NicePegRule<'a, TT, T>>),
+    Sequence(Vec<NicePegRule<'a, TT, TV>>),
+    ChooseFirst(Vec<NicePegRule<'a, TT, TV>>),
 
-    // Repeat(Box<NicePegRule<'a, TT, T>>, Option<usize>, Option<usize>),
-    // Option(Box<NicePegRule<'a, TT, T>>),
-
-    LookaheadPositive(Box<NicePegRule<'a, TT, T>>),
-    LookaheadNegative(Box<NicePegRule<'a, TT, T>>),
+    LookaheadPositive(Box<NicePegRule<'a, TT, TV>>),
+    LookaheadNegative(Box<NicePegRule<'a, TT, TV>>),
 
     Rule(&'a str)
 }
 
-fn handle_rule<'a, TT: TokenType, T: Token<TT>>(name: &'a str, rule: NicePegRule<'a, TT, T>, at: Option<usize>, new_rules: &mut Vec<PegRule<TT, T>>, rule_index: &HashMap<&'a str, usize>) -> usize {
+fn handle_rule<'a, TT: TokenType, TV: TokenValue>(name: &'a str, rule: NicePegRule<'a, TT, TV>, at: Option<usize>, new_rules: &mut Vec<PegRule<TT, TV>>, rule_index: &HashMap<&'a str, usize>) -> usize {
     let v = match rule {
         NicePegRule::LiteralExact(v) =>
             PegRule::LiteralExact(v),
@@ -29,10 +27,6 @@ fn handle_rule<'a, TT: TokenType, T: Token<TT>>(name: &'a str, rule: NicePegRule
             PegRule::Sequence(vs.into_iter().map(|sub_rule| handle_rule(name, sub_rule, None, new_rules, rule_index)).collect()),
         NicePegRule::ChooseFirst(vs) =>
             PegRule::ChooseFirst(vs.into_iter().map(|sub_rule| handle_rule(name, sub_rule, None, new_rules, rule_index)).collect()),
-        // NicePegRule::Repeat(v, min, max) =>
-        //     PegRule::Repeat(handle_rule(name, *v, None, new_rules, rule_index), min, max),
-        // NicePegRule::Option(v) =>
-        //     PegRule::Option(handle_rule(name, *v, None, new_rules, rule_index)),
         NicePegRule::LookaheadPositive(v) =>
             PegRule::LookaheadPositive(handle_rule(name, *v, None, new_rules, rule_index)),
         NicePegRule::LookaheadNegative(v) =>
@@ -51,8 +45,8 @@ fn handle_rule<'a, TT: TokenType, T: Token<TT>>(name: &'a str, rule: NicePegRule
     }
 }
 
-pub fn nice_rules_to_peg<'a, TT: TokenType, T: Token<TT>>(rules: HashMap<&'a str, NicePegRule<'a, TT, T>>, start: &'a str) -> (Vec<PegRule<TT, T>>, usize) {
-    let mut new_rules: Vec<PegRule<TT, T>> = Vec::with_capacity(rules.len() * 20);
+pub fn nice_rules_to_peg<'a, TT: TokenType, TV: TokenValue>(rules: HashMap<&'a str, NicePegRule<'a, TT, TV>>, start: &'a str) -> (Vec<PegRule<TT, TV>>, usize) {
+    let mut new_rules: Vec<PegRule<TT, TV>> = Vec::with_capacity(rules.len() * 20);
     let mut rule_index : HashMap<&'a str, usize> = HashMap::new();
 
     for (i, (&name, _)) in rules.iter().enumerate() {

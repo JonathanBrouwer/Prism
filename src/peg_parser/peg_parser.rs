@@ -1,18 +1,11 @@
-use std::hash::Hash;
-
 use std::collections::{HashMap, VecDeque, HashSet};
-use crate::peg_parser::parse_result::*;
-use crate::peg_parser::grammar_analysis::{empty_analysis, analyse_grammar};
-
-pub trait Token<TT: TokenType>: Sized + Copy + Eq + Hash {
-    fn to_type(&self) -> TT;
-}
-
-pub trait TokenType: Sized + Copy + Eq + Hash {}
+use crate::peg_parser::parser_result::*;
+use crate::peg_parser::parser_token::*;
+use crate::peg_parser::parser_cache::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub enum PegRule<TT: TokenType, T: Token<TT>> {
-    LiteralExact(T),
+pub enum PegRule<TT: TokenType, TV: TokenValue> {
+    LiteralExact(TV),
     LiteralBind(TT),
 
     Sequence(Vec<usize>),
@@ -22,62 +15,13 @@ pub enum PegRule<TT: TokenType, T: Token<TT>> {
     LookaheadNegative(usize),
 }
 
-struct ParserCacheEntry<'a, TT: TokenType, T: Token<TT>> {
-    result: ParseResult<'a, TT, T>,
-    seen: bool,
+pub struct Parser<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> {
+    glb_rules: &'a Vec<PegRule<TT, TV>>,
+    cache: ParserCache<'a, TT, TV, T>,
 }
 
-struct ParserCache<'a, TT: TokenType, T: Token<TT>> {
-    cache: HashMap<(usize, usize) , ParserCacheEntry<'a, TT, T>>,
-    cache_layers: VecDeque<HashSet<(usize, usize)>>
-}
-
-impl<'a, TT: TokenType, T: Token<TT>> ParserCache<'a, TT, T> {
-    pub fn get(&mut self, key: &(usize, usize)) -> Option<&ParseResult<'a, TT, T>> {
-        self.cache.get_mut(key).unwrap().seen = true;
-        self.cache.get(key).map(|r| &r.result)
-    }
-
-    pub fn is_seen(&self, key: &(usize, usize)) -> Option<bool> {
-        self.cache.get(key).map(|r| r.seen)
-    }
-
-    pub fn remove(&mut self, key: &(usize, usize)) -> Option<ParseResult<'a, TT, T>> {
-        self.cache.remove(key).map(|r| r.result)
-    }
-
-    pub fn contains_key(&mut self, key: &(usize, usize)) -> bool {
-        self.cache.contains_key(key)
-    }
-
-    pub fn insert(&mut self, key: (usize, usize), result: ParseResult<'a, TT, T>) {
-        self.cache.insert(key, ParserCacheEntry { result, seen: false });
-        self.cache_layers.back_mut().unwrap().insert(key);
-    }
-
-    pub fn layer_incr(&mut self) {
-        self.cache_layers.push_back(HashSet::new());
-    }
-
-    pub fn layer_revert(&mut self) {
-        for key in self.cache_layers.pop_back().unwrap() {
-            self.cache.remove(&key);
-        }
-    }
-
-    pub fn layer_commit(&mut self) {
-        self.cache_layers.pop_back();
-    }
-}
-
-pub struct Parser<'a, TT: TokenType, T: Token<TT>> {
-    glb_rules: &'a Vec<PegRule<TT, T>>,
-
-    cache: ParserCache<'a, TT, T>,
-}
-
-impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
-    pub fn new(rules: &'a Vec<PegRule<TT, T>>) -> Self {
+impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> {
+    pub fn new(rules: &'a Vec<PegRule<TT, TV>>) -> Self {
         let mut s = Parser {
             glb_rules: rules,
             cache: ParserCache { cache: HashMap::new(), cache_layers: VecDeque::new() },
@@ -86,7 +30,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
         s
     }
 
-    pub fn parse(&mut self, input: &'a [T], rule: usize) -> ParseResult<'a, TT, T> {
+    pub fn parse(&mut self, input: &'a [T], rule: usize) -> ParseResult<'a, TT, TV, T> {
         //Check if result is in cache
         let key = (input.len(), rule);
         if self.cache.contains_key(&key) {
@@ -143,7 +87,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
         }
     }
 
-    fn parse_sub(&mut self, input: &'a [T], rule: usize) -> ParseResult<'a, TT, T> {
+    fn parse_sub(&mut self, input: &'a [T], rule: usize) -> ParseResult<'a, TT, TV, T> {
         let rule = &self.glb_rules[rule];
         match rule {
             PegRule::LiteralExact(expect) => {
@@ -152,8 +96,8 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                 } else {
                     panic!("Somehow skipped passed EOF token!");
                 };
-                if *token == *expect {
-                    Ok(ParseSuccess { result: ParseTree::Value(input[0]), best_error: None, rest })
+                if token.to_val() == *expect {
+                    Ok(ParseSuccess { result: ParseTree::Value(input[0].clone()), best_error: None, rest })
                 } else {
                     Err(ParseError { on: &input[0], expect: vec![Expected::LiteralExact(*expect)], inv_priority: input.len()})
                 }
@@ -165,14 +109,14 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                     panic!("Somehow skipped passed EOF token!");
                 };
                 if token.to_type() == *expect {
-                    Ok(ParseSuccess { result: ParseTree::Value(input[0]), best_error: None, rest })
+                    Ok(ParseSuccess { result: ParseTree::Value(input[0].clone()), best_error: None, rest })
                 } else {
                     Err(ParseError { on: &input[0], expect: vec![Expected::LiteralBind(*expect)], inv_priority: input.len() })
                 }
             }
             PegRule::Sequence(rules) => {
                 let mut rest = input;
-                let mut best_error: Option<ParseError<'a, TT, T>> = None;
+                let mut best_error: Option<ParseError<'a, TT, TV, T>> = None;
                 let mut result = Vec::new();
                 for &rule in rules {
                     match self.parse(rest, rule) {
@@ -190,7 +134,7 @@ impl<'a, TT: TokenType, T: Token<TT>> Parser<'a, TT, T> {
                 Ok(ParseSuccess { result: ParseTree::Sequence(result), best_error, rest })
             }
             PegRule::ChooseFirst(rules) => {
-                let mut best_error: Option<ParseError<'a, TT, T>> = None;
+                let mut best_error: Option<ParseError<'a, TT, TV, T>> = None;
                 for (ruleid, &rule) in rules.iter().enumerate() {
                     match self.parse(input, rule) {
                         Ok(suc) => {
