@@ -9,10 +9,25 @@ pub enum Expected<TT: TokenType, TV: TokenValue> {
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub struct ParseError<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> {
-    pub on: &'a T,
-    pub expect: Vec<Expected<TT, TV>>,
-    pub inv_priority: usize
+pub enum ParseError<TT: TokenType, TV: TokenValue, T: Token<TT, TV>> {
+    Expect { on: T, expect: Vec<Expected<TT, TV>>, inv_priority: usize },
+    Recursion
+}
+
+#[derive(Eq, PartialEq, Clone, Debug)]
+pub struct ParseErrors<TT: TokenType, TV: TokenValue, T: Token<TT, TV>> {
+    errors: Vec<ParseError<TT, TV, T>>
+}
+
+impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> ParseErrors<TT, TV, T> {
+    pub fn new(error: ParseError<TT, TV, T>) -> ParseErrors<TT, TV, T> {
+        Self { errors: vec![error] }
+    }
+
+    pub fn combine(mut self, mut other: ParseErrors<TT, TV, T>) -> ParseErrors<TT, TV, T> {
+        self.errors.append(&mut other.errors);
+        self
+    }
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -26,30 +41,13 @@ pub enum ParseTree<T> {
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ParseSuccess<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> {
     pub(crate) result: ParseTree<T>,
-    pub(crate) best_error: Option<ParseError<'a, TT, TV, T>>,
+    pub(crate) best_error: Option<ParseErrors<TT, TV, T>>,
     pub(crate) rest: &'a [T],
 }
 
-impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> ParseError<'a, TT, TV, T> {
-    pub fn combine(mut self, other: ParseError<'a, TT, TV, T>) -> ParseError<'a, TT, TV, T> {
-        match self.inv_priority.cmp(&other.inv_priority) {
-            // One has higher priority
-            Ordering::Less => self,
-            Ordering::Greater => other,
-            // Equal priority
-            Ordering::Equal => {
-                for ex in other.expect {
-                    if !self.expect.contains(&ex) {
-                        self.expect.push(ex)
-                    }
-                }
-                self
-            }
-        }
-    }
-}
 
-pub fn combine_err<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>>(a: Option<ParseError<'a, TT, TV, T>>, b: Option<ParseError<'a, TT, TV, T>>) -> Option<ParseError<'a, TT, TV, T>> {
+
+pub fn combine_err<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>>(a: Option<ParseErrors<TT, TV, T>>, b: Option<ParseErrors<TT, TV, T>>) -> Option<ParseErrors<TT, TV, T>> {
     match (a, b) {
         (None, None) => None,
         (Some(e), None) => Some(e),
@@ -58,4 +56,4 @@ pub fn combine_err<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>>(a: Optio
     }
 }
 
-pub type ParseResult<'a, TT, TV, T> = Result<ParseSuccess<'a, TT, TV, T>, ParseError<'a, TT, TV, T>>;
+pub type ParseResult<'a, TT, TV, T> = Result<ParseSuccess<'a, TT, TV, T>, ParseErrors<TT, TV, T>>;

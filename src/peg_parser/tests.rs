@@ -52,7 +52,8 @@ mod tests {
 
         let input = &[TV::B];
         let mut parser = Parser::new(&rules_raw.0);
-        assert!(parser.parse(input, rules_raw.1).is_err());
+        let res = parser.parse(input, rules_raw.1).err().unwrap();
+        let x = 5;
     }
 
     #[test]

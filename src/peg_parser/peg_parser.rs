@@ -38,8 +38,7 @@ impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> 
         }
 
         self.cache.layer_incr();
-        //TODO fix this error
-        self.cache.insert(key, Err(ParseError { on: &input[0], expect: vec![], inv_priority: 0 }));
+        self.cache.insert(key, Err(ParseErrors::new(ParseError::Recursion)));
 
         let res0 = self.parse_sub(input, rule);
 
@@ -99,7 +98,7 @@ impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> 
                 if token.to_val() == *expect {
                     Ok(ParseSuccess { result: ParseTree::Value(input[0].clone()), best_error: None, rest })
                 } else {
-                    Err(ParseError { on: &input[0], expect: vec![Expected::LiteralExact(*expect)], inv_priority: input.len()})
+                    Err(ParseErrors::new(ParseError::Expect{ on: input[0].clone(), expect: vec![Expected::LiteralExact(*expect)], inv_priority: input.len()}))
                 }
             }
             PegRule::LiteralBind(expect) => {
@@ -111,12 +110,12 @@ impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> 
                 if token.to_type() == *expect {
                     Ok(ParseSuccess { result: ParseTree::Value(input[0].clone()), best_error: None, rest })
                 } else {
-                    Err(ParseError { on: &input[0], expect: vec![Expected::LiteralBind(*expect)], inv_priority: input.len() })
+                    Err(ParseErrors::new(ParseError::Expect { on: input[0].clone(), expect: vec![Expected::LiteralBind(*expect)], inv_priority: input.len() }))
                 }
             }
             PegRule::Sequence(rules) => {
                 let mut rest = input;
-                let mut best_error: Option<ParseError<'a, TT, TV, T>> = None;
+                let mut best_error: Option<ParseErrors<TT, TV, T>> = None;
                 let mut result = Vec::new();
                 for &rule in rules {
                     match self.parse(rest, rule) {
@@ -134,7 +133,7 @@ impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> 
                 Ok(ParseSuccess { result: ParseTree::Sequence(result), best_error, rest })
             }
             PegRule::ChooseFirst(rules) => {
-                let mut best_error: Option<ParseError<'a, TT, TV, T>> = None;
+                let mut best_error: Option<ParseErrors<TT, TV, T>> = None;
                 for (ruleid, &rule) in rules.iter().enumerate() {
                     match self.parse(input, rule) {
                         Ok(suc) => {
@@ -156,7 +155,7 @@ impl<'a, TT: TokenType, TV: TokenValue, T: Token<TT, TV>> Parser<'a, TT, TV, T> 
             }
             PegRule::LookaheadNegative(rule) => {
                 match self.parse(input, *rule) {
-                    Ok(_) => Err(ParseError{ on: &input[0], expect: vec![], inv_priority: input.len()}),
+                    Ok(_) => Err(ParseErrors::new(ParseError::Expect { on: input[0].clone(), expect: vec![], inv_priority: input.len()})),
                     Err(_) => Ok(ParseSuccess {result: ParseTree::Empty, best_error: None, rest: input})
                 }
             }

@@ -1,3 +1,5 @@
+#![feature(bindings_after_at)]
+
 use crate::lexer::lexer::*;
 
 mod lexer;
