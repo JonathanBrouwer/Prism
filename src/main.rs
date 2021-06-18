@@ -5,6 +5,8 @@ use crate::lexer::lexer::*;
 mod lexer;
 pub mod util;
 pub mod peg_parser;
+pub mod ast;
+pub mod named_ast;
 
 fn main() {
     let source = include_str!("../resources/test.jnl");

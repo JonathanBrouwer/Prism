@@ -1,2 +1,1 @@
-x1 = syntax { a }
-x2 = syntax { b }
+test = function
