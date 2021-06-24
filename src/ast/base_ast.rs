@@ -1,75 +1,89 @@
-use crate::ast::abstract_ast::*;
+use crate::ast::ast::*;
 
+#[derive(Debug, PartialEq, Default, Clone, Copy)]
+pub struct SrcSpan {
+    start: usize,
+    end: usize,
+}
+
+#[derive(Clone)]
 pub struct Name {
-    name: String,
-    location: SrcSpan
+    pub name: String,
+    pub location: SrcSpan
 }
 
-pub struct NameType {
-    name: Name,
-    type_info: AstIndex
+#[derive(Clone)]
+pub struct Ast {
+    pub location: SrcSpan,
+    pub sub: AstSub
 }
 
-pub struct FnType {
-    inputs: Vec<NameType>,
-    output: NameType
-}
-
-pub enum BaseAst {
+#[derive(Clone)]
+pub enum AstSub {
     DefineId {
-        location: SrcSpan,
         name: Name,
         value: AstIndex,
     },
     RetrieveId {
-        location: SrcSpan,
         name: Name,
     },
-    FunctionType {
-        location: SrcSpan,
-        fn_type: FnType,
-    },
     Function {
-        location: SrcSpan,
-        fn_type: FnType,
+        inputs: Vec<Name>,
         body: AstIndex
     },
     Call {
-        location: SrcSpan,
         function: AstIndex,
-        args: AstIndex,
+        args: Vec<AstIndex>,
+    },
+    FunctionType {
+        inputs: Vec<AstIndex>,
+        output: AstIndex,
     },
     MultType {
-        location: SrcSpan,
-        values: Vec<NameType>
+        values: Vec<AstIndex>,
     },
     AddType {
-        location: SrcSpan,
-        values: Vec<NameType>
+        values: Vec<AstIndex>,
     },
     Case {
-        location: SrcSpan,
         value: AstIndex,
         name: Name,
         cases: Vec<AstIndex>
     },
     Sequence {
-        location: SrcSpan,
         expressions: Vec<AstIndex>,
     }
 }
 
-impl Ast for BaseAst {
-    fn location(&self) -> SrcSpan {
-        *match self {
-            BaseAst::DefineId { location, .. } => location,
-            BaseAst::RetrieveId { location, .. } => location,
-            BaseAst::Function { location, .. } => location,
-            BaseAst::Call { location, .. } => location,
-            BaseAst::MultType { location, .. } => location,
-            BaseAst::AddType { location, .. } => location,
-            BaseAst::Case { location, .. } => location,
-            BaseAst::Sequence { location, .. } => location
+impl AstSub {
+    pub fn children(&self) -> Vec<AstIndex> {
+        match self {
+            AstSub::DefineId { value, .. } => vec![*value],
+            AstSub::RetrieveId { .. } => vec![],
+            AstSub::Function { body, .. } => vec![*body],
+            AstSub::Call { function, args } => {
+                let mut res = vec![];
+                res.push(*function);
+                res.extend(args);
+                res
+            },
+            AstSub::FunctionType { inputs, output} => {
+                let mut res = vec![];
+                res.extend(inputs.iter().to_owned());
+                res.push(*output);
+                res
+            },
+            AstSub::MultType { values } => values.clone(),
+            AstSub::AddType { values } => values.clone(),
+            AstSub::Case { value, cases, .. } => {
+                let mut res = vec![];
+                res.extend(cases.iter().to_owned());
+                res.push(*value);
+                res
+            },
+            AstSub::Sequence { expressions } => expressions.clone(),
         }
     }
 }
+
+pub type BaseAstCollection = AstCollection<Ast>;
