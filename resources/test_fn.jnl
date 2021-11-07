@@ -1,1 +1,0 @@
-fn plus : (a : Nat) (b : Nat) -> Nat = zero

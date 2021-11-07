@@ -1,8 +1,4 @@
 [package]
 name = "jonla"
 version = "0.1.0"
-edition = "2018"
-
-[dependencies]
-logos = "0.12"
-petgraph = "0.5.1"
+edition = "2021"
