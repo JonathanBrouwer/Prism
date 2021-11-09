@@ -86,15 +86,29 @@ impl PegParser {
             location: index }), used: false });
 
         //Create seed
-        let res = self.parse_inner(state, index, rule);
+        let stack_len_before = state.changed_stack.len();
+        let mut res = self.parse_inner(state, index, rule);
 
         //Grow seed if needed
         let entry = state.memtable.get_mut(&(index, rule)).unwrap();
-        if entry.used {
-            panic!("Left recursion.");
+        if entry.used && res.is_ok() {
+            loop {
+                //Invariant: res is ok.
+
+                let old_rest = if let Ok(ok) = &res {ok.rest} else {unreachable!()};
+                state.changed_stack.drain(stack_len_before..).for_each(|x| {state.memtable.remove(&x);});
+                state.memtable.insert((index, rule), PegParserStateEntry { result: res.clone(), used: false });
+                let new_res = self.parse_inner(state, index, rule);
+
+                let new_rest = if let Ok(ok) = &new_res {ok.rest} else { break };
+                if new_rest <= old_rest { break }
+                res = new_res;
+            }
         }
 
         //Store result
+        let entry = state.memtable.get_mut(&(index, rule)).unwrap();
+        state.changed_stack.push((index, rule));
         entry.result = res.clone();
         res
     }
@@ -271,17 +285,16 @@ mod tests {
         let rules = vec![
             PegRule::Terminal(A),
             PegRule::Terminal(B),
-            PegRule::Sequence(vec![0, 4]),
-            PegRule::Sequence(vec![1]),
-            PegRule::Choice(vec![2, 3]),
+            PegRule::Sequence(vec![0, 3]),
+            PegRule::Choice(vec![2, 1]),
         ];
         assert_eq!(
             PegParser::new(rules.clone(), &[B]).parse_final(),
-            Ok(Choice(1, Box::new(Sequence(vec![Terminal])))),
+            Ok(Choice(1, Box::new(Terminal))),
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A, B]).parse_final(),
-            Ok(Choice(0, Box::new(Sequence(vec![Terminal, Choice(1, Box::new(Sequence(vec![Terminal])))]))))
+            Ok(Choice(0, Box::new(Sequence(vec![Terminal, Choice(1, Box::new(Terminal))]))))
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[B, A]).parse_final(),
@@ -298,25 +311,24 @@ mod tests {
         let rules = vec![
             PegRule::Terminal(A),
             PegRule::Terminal(B),
-            PegRule::Sequence(vec![4, 0]),
-            PegRule::Sequence(vec![1]),
-            PegRule::Choice(vec![2, 3]),
+            PegRule::Sequence(vec![3, 0]),
+            PegRule::Choice(vec![2, 1]),
         ];
         assert_eq!(
             PegParser::new(rules.clone(), &[B]).parse_final(),
-            Ok(Choice(1, Box::new(Sequence(vec![Terminal])))),
+            Ok(Choice(1, Box::new(Terminal))),
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[B, A]).parse_final(),
-            Ok(Choice(0, Box::new(Sequence(vec![Terminal, Choice(1, Box::new(Sequence(vec![Terminal])))]))))
+            Ok(Choice(0, Box::new(Sequence(vec![Choice(1, Box::new(Terminal)), Terminal]))))
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A, B]).parse_final(),
-            Err(ParseError { positives: vec![], customs: vec![], location: 1 })
+            Err(ParseError { positives: vec![B], customs: vec![String::from("Hit left recursion.")], location: 0 })
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
-            Err(ParseError { positives: vec![B, A], customs: vec![], location: 1 })
+            Err(ParseError { positives: vec![B], customs: vec![String::from("Hit left recursion.")], location: 0 })
         );
     }
 }
