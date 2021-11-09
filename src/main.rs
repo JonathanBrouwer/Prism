@@ -32,10 +32,11 @@ struct PegParser {
 
 struct PegParserStateEntry {
     result: Result<ParseSuccess, ParseError>,
-    leftrec_flag: bool
+    used: bool
 }
 struct PegParserState {
     memtable: HashMap<(usize, usize), PegParserStateEntry>,
+    changed_stack: Vec<(usize, usize)>
 }
 
 impl PegParser {
@@ -60,7 +61,7 @@ impl PegParser {
     }
 
     pub fn parse_final(self) -> Result<PegRuleResult, ParseError> {
-        let mut state = PegParserState { memtable: HashMap::new() };
+        let mut state = PegParserState { memtable: HashMap::new(), changed_stack: Vec::new() };
         let suc = self.parse(&mut state, 0, self.rules.len() - 1)?;
         if suc.rest < self.input.len() {
             return Err(ParseError {
@@ -72,19 +73,29 @@ impl PegParser {
     }
 
     pub fn parse(&self, state: &mut PegParserState, index: usize, rule: usize) -> Result<ParseSuccess, ParseError> {
-        if let Some(entry) = state.memtable.get(&(index, rule)) {
+        //Check memtable
+        if let Some(entry) = state.memtable.get_mut(&(index, rule)) {
+            entry.used = true;
             return entry.result.clone();
         }
 
+        //Insert temp entry
         state.memtable.insert((index, rule), PegParserStateEntry { result: Err(ParseError {
             positives: vec![],
             customs: vec![String::from("Hit left recursion.")],
-            location: index }), leftrec_flag: true });
+            location: index }), used: false });
 
+        //Create seed
         let res = self.parse_inner(state, index, rule);
 
-        state.memtable.insert((index, rule), PegParserStateEntry { result: res.clone(), leftrec_flag: false });
+        //Grow seed if needed
+        let entry = state.memtable.get_mut(&(index, rule)).unwrap();
+        if entry.used {
+            panic!("Left recursion.");
+        }
 
+        //Store result
+        entry.result = res.clone();
         res
     }
 
