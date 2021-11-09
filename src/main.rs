@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use crate::ParseErrorFlag::{Recursive, NotAllInput};
 
 fn main() {
 
@@ -66,7 +67,7 @@ impl PegParser {
         if suc.rest < self.input.len() {
             return Err(ParseError {
                 positives: vec![],
-                customs: vec![String::from("Did not parse full input.")],
+                customs: vec![NotAllInput],
                 location: suc.rest })
         }
         Ok(suc.result)
@@ -82,7 +83,7 @@ impl PegParser {
         //Insert temp entry
         state.memtable.insert((index, rule), PegParserStateEntry { result: Err(ParseError {
             positives: vec![],
-            customs: vec![String::from("Hit left recursion.")],
+            customs: vec![Recursive],
             location: index }), used: false });
 
         //Create seed
@@ -188,8 +189,14 @@ struct ParseSuccess {
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct ParseError {
     positives: Vec<Input>,
-    customs: Vec<String>,
+    customs: Vec<ParseErrorFlag>,
     location: usize,
+}
+
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+enum ParseErrorFlag {
+    Recursive,
+    NotAllInput
 }
 
 fn parse_error_combine_opt2(e1: Option<ParseError>, e2: Option<ParseError>) -> Option<ParseError> {
@@ -229,6 +236,7 @@ enum InputLocation {
 mod tests {
     use crate::{Input, ParseError, ParseSuccess, PegParser, PegRule, PegRuleResult};
     use crate::Input::{A, B, C};
+    use crate::ParseErrorFlag::{Recursive, NotAllInput};
     use crate::PegRuleResult::{Choice, Sequence, Terminal};
 
     #[test]
@@ -309,7 +317,7 @@ mod tests {
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[B, A]).parse_final(),
-            Err(ParseError { positives: vec![], customs: vec![String::from("Did not parse full input.")], location: 1 })
+            Err(ParseError { positives: vec![], customs: vec![NotAllInput], location: 1 })
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
@@ -335,11 +343,11 @@ mod tests {
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A, B]).parse_final(),
-            Err(ParseError { positives: vec![B], customs: vec![String::from("Hit left recursion.")], location: 0 })
+            Err(ParseError { positives: vec![B], customs: vec![Recursive], location: 0 })
         );
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
-            Err(ParseError { positives: vec![B], customs: vec![String::from("Hit left recursion.")], location: 0 })
+            Err(ParseError { positives: vec![B], customs: vec![Recursive], location: 0 })
         );
     }
 
@@ -350,7 +358,18 @@ mod tests {
         ];
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
-            Err(ParseError { positives: vec![], customs: vec![String::from("Hit left recursion.")], location: 0 })
+            Err(ParseError { positives: vec![], customs: vec![Recursive], location: 0 })
+        );
+    }
+
+    #[test]
+    fn test_notall() {
+        let rules = vec![
+            PegRule::Sequence(vec![])
+        ];
+        assert_eq!(
+            PegParser::new(rules.clone(), &[A]).parse_final(),
+            Err(ParseError { positives: vec![], customs: vec![NotAllInput], location: 0 })
         );
     }
 }
