@@ -95,15 +95,22 @@ impl PegParser {
             loop {
                 //Invariant: res is ok.
 
+                //Store old rest
                 let old_rest = if let Ok(ok) = &res {ok.rest} else {unreachable!()};
+
+                //Remove old memory, insert current seed into state
                 state.changed_stack.drain(stack_len_before..).for_each(|x| {state.memtable.remove(&x);});
                 state.memtable.insert((index, rule), PegParserStateEntry { result: res.clone(), used: false });
+
+                //Grow the seed
                 let new_res = self.parse_inner(state, index, rule);
 
+                //Check if it grew
                 let new_rest = if let Ok(ok) = &new_res {ok.rest} else { break };
                 if new_rest <= old_rest { break }
                 res = new_res;
             }
+            state.changed_stack.drain(stack_len_before..).for_each(|x| {state.memtable.remove(&x);});
         }
 
         //Store result
@@ -297,6 +304,10 @@ mod tests {
             Ok(Choice(0, Box::new(Sequence(vec![Terminal, Choice(1, Box::new(Terminal))]))))
         );
         assert_eq!(
+            PegParser::new(rules.clone(), &[A, A, B]).parse_final(),
+            Ok(Choice(0, Box::new(Sequence(vec![Terminal, Choice(0, Box::new(Sequence(vec![Terminal, Choice(1, Box::new(Terminal))])))]))))
+        );
+        assert_eq!(
             PegParser::new(rules.clone(), &[B, A]).parse_final(),
             Err(ParseError { positives: vec![], customs: vec![String::from("Did not parse full input.")], location: 1 })
         );
@@ -329,6 +340,17 @@ mod tests {
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
             Err(ParseError { positives: vec![B], customs: vec![String::from("Hit left recursion.")], location: 0 })
+        );
+    }
+
+    #[test]
+    fn test_leftrec_unavoidable() {
+        let rules = vec![
+            PegRule::Sequence(vec![0])
+        ];
+        assert_eq!(
+            PegParser::new(rules.clone(), &[A]).parse_final(),
+            Err(ParseError { positives: vec![], customs: vec![String::from("Hit left recursion.")], location: 0 })
         );
     }
 }
