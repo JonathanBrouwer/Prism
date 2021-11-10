@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
     use std::fmt::{Display, Formatter};
-    use std::rc::Rc;
     use crate::*;
     use crate::peg::parser::PegParser;
     use crate::peg::parser_result::*;
+    use crate::peg::parser_result::ParseErrorFlag::{NotAllInput, Recursive};
+    use crate::peg::rules::PegRule;
     use crate::peg::tests::tests::TestInput::*;
-    use crate::PegRuleResultInner::*;
 
     #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     enum TestInput {

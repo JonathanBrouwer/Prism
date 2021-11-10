@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::{Input, NotAllInput, ParseError, ParseSuccess, PegRule, PegRuleResult, PegRuleResultInner, Recursive};
+use crate::peg::input::*;
+use crate::peg::parser_result::*;
+use crate::peg::parser_result::ParseErrorFlag::*;
+use crate::peg::rules::*;
 
 pub struct PegParser<I: Input> {
     rules: Vec<PegRule<I::InputElement>>,

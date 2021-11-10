@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display};
-use crate::PegRuleResult;
+use crate::peg::rules::PegRuleResult;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ParseSuccess<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {
