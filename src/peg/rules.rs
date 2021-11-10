@@ -8,7 +8,7 @@ pub enum PegRule<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {
     Choice(Vec<usize>),
 }
 
-pub type PegRuleResult<IE: Debug + Display + PartialEq + Eq + Clone + Copy> = Rc<PegRuleResultInner<IE>>;
+pub type PegRuleResult<IE> = Rc<PegRuleResultInner<IE>>;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum PegRuleResultInner<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {

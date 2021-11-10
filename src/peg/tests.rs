@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use std::fmt::{Display, Formatter};
-    use crate::*;
     use crate::peg::parser::PegParser;
     use crate::peg::parser_result::*;
     use crate::peg::parser_result::ParseErrorFlag::{NotAllInput, Recursive};
