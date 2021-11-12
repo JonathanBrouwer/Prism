@@ -108,18 +108,18 @@ impl<I: Input> PegParser<I> {
 
     fn parse_inner(&self, state: &mut PegParserState<I>, index: usize, rule: usize) -> Result<ParseSuccess<I::InputElement>, ParseError<I::InputElement>> {
         match &self.rules[rule] {
-            &PegRule::Terminal(expect) => {
+            PegRule::Terminal(predicate) => {
                 match self.input.next(index) {
-                    Some((elem, next_index)) if elem == expect => {
+                    Some((elem, next_index)) if predicate.run(elem) => {
                         Ok(ParseSuccess {
-                            result: Rc::new(PegRuleResultInner::Terminal(expect)),
+                            result: Rc::new(PegRuleResultInner::Terminal(elem)),
                             best_error: None,
                             rest: next_index,
                         })
                     }
                     _ => {
                         Err(ParseError {
-                            positives: vec![expect],
+                            positives: vec![predicate.representitive()],
                             flags: vec![],
                             location: index,
                         })

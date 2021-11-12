@@ -4,7 +4,7 @@ mod tests {
     use crate::peg::parser::PegParser;
     use crate::peg::parser_result::*;
     use crate::peg::parser_result::ParseErrorFlag::{NotAllInput, Recursive};
-    use crate::peg::rules::PegRule;
+    use crate::peg::rules::{PegRule, Preds};
     use crate::peg::tests::tests::TestInput::*;
 
     #[derive(Eq, PartialEq, Debug, Copy, Clone)]
@@ -27,7 +27,7 @@ mod tests {
     #[test]
     fn test_terminal1() {
         let rules = vec![
-            PegRule::Terminal(A),
+            PegRule::Terminal(Preds::exact(A)),
         ];
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final().map(|ok| ok.to_string()),
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_sequence1() {
         let rules = vec![
-            PegRule::Terminal(A),
+            PegRule::Terminal(Preds::exact(A)),
             PegRule::Sequence(vec![0, 0]),
         ];
         assert_eq!(
@@ -66,8 +66,8 @@ mod tests {
     #[test]
     fn test_choice1() {
         let rules = vec![
-            PegRule::Terminal(A),
-            PegRule::Terminal(B),
+            PegRule::Terminal(Preds::exact(A)),
+            PegRule::Terminal(Preds::exact(B)),
             PegRule::Choice(vec![0, 1]),
         ];
         assert_eq!(
@@ -87,8 +87,8 @@ mod tests {
     #[test]
     fn test_rightrec() {
         let rules = vec![
-            PegRule::Terminal(A),
-            PegRule::Terminal(B),
+            PegRule::Terminal(Preds::exact(A)),
+            PegRule::Terminal(Preds::exact(B)),
             PegRule::Sequence(vec![0, 3]),
             PegRule::Choice(vec![2, 1]),
         ];
@@ -117,8 +117,8 @@ mod tests {
     #[test]
     fn test_leftrec() {
         let rules = vec![
-            PegRule::Terminal(A),
-            PegRule::Terminal(B),
+            PegRule::Terminal(Preds::exact(A)),
+            PegRule::Terminal(Preds::exact(B)),
             PegRule::Sequence(vec![3, 0]),
             PegRule::Choice(vec![2, 1]),
         ];
