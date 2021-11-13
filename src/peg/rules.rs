@@ -17,7 +17,7 @@ pub type PegRuleResult<IE> = Rc<PegRuleResultInner<IE>>;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum PegRuleResultInner<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {
-    Terminal(IE),
+    Terminal(usize, IE),
     Sequence(Vec<PegRuleResult<IE>>),
     Choice(usize, PegRuleResult<IE>),
 }
@@ -25,7 +25,7 @@ pub enum PegRuleResultInner<IE: Debug + Display + PartialEq + Eq + Clone + Copy>
 impl<IE: Debug + Display + PartialEq + Eq + Clone + Copy> Display for PegRuleResultInner<IE> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            PegRuleResultInner::Terminal(inp) => write!(f, "{}", inp),
+            PegRuleResultInner::Terminal(_, inp) => write!(f, "{}", inp),
             PegRuleResultInner::Sequence(seq) => {
                 write!(f, "[")?;
                 for (i, res) in seq.iter().enumerate() {

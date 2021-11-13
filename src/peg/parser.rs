@@ -113,7 +113,7 @@ impl<I: Input, ER: Debug + Display + PartialEq + Eq + Clone + Copy> PegParser<I,
                 match self.input.next(index) {
                     Some((elem, next_index)) if predicate.run(elem) => {
                         Ok(ParseSuccess {
-                            result: Rc::new(PegRuleResultInner::Terminal(elem)),
+                            result: Rc::new(PegRuleResultInner::Terminal(index, elem)),
                             best_error: None,
                             rest: next_index,
                         })
