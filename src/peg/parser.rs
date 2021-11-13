@@ -1,32 +1,33 @@
 use std::collections::HashMap;
+use std::fmt::{Debug, Display};
 use std::rc::Rc;
 use crate::peg::input::*;
 use crate::peg::parser_result::*;
 use crate::peg::parser_result::ParseErrorFlag::*;
 use crate::peg::rules::*;
 
-pub struct PegParser<I: Input> {
-    rules: Vec<PegRule<I::InputElement>>,
+pub struct PegParser<I: Input, ER: Debug + Display + PartialEq + Eq + Clone + Copy> {
+    rules: Vec<PegRule<I::InputElement, ER>>,
     input: I,
 }
 
-struct PegParserStateEntry<I: Input> {
-    result: Result<ParseSuccess<I::InputElement>, ParseError<I::InputElement>>,
+struct PegParserStateEntry<I: Input, ER: Debug + Display + PartialEq + Eq + Clone + Copy> {
+    result: Result<ParseSuccess<I::InputElement, ER>, ParseError<ER>>,
     used: bool,
 }
 
-struct PegParserState<I: Input> {
-    memtable: HashMap<(usize, usize), PegParserStateEntry<I>>,
+struct PegParserState<I: Input, ER: Debug + Display + PartialEq + Eq + Clone + Copy> {
+    memtable: HashMap<(usize, usize), PegParserStateEntry<I, ER>>,
     changed_stack: Vec<(usize, usize)>,
 }
 
-impl<I: Input> PegParser<I> {
-    pub fn new(rules: Vec<PegRule<I::InputElement>>, input: I) -> Self {
+impl<I: Input, ER: Debug + Display + PartialEq + Eq + Clone + Copy> PegParser<I, ER> {
+    pub fn new(rules: Vec<PegRule<I::InputElement, ER>>, input: I) -> Self {
         Self::validate_peg_rules(&rules);
         Self { rules, input }
     }
 
-    fn validate_peg_rules(rules: &Vec<PegRule<I::InputElement>>) {
+    fn validate_peg_rules(rules: &Vec<PegRule<I::InputElement, ER>>) {
         let validate_range = |num: usize| if num >= rules.len() { panic!("Invalid rules.") };
         let validate_not_empty = |num: &Vec<usize>| if num.is_empty() { panic!("Invalid rules.") };
         for rule in rules {
@@ -41,7 +42,7 @@ impl<I: Input> PegParser<I> {
         }
     }
 
-    pub fn parse_final(self) -> Result<PegRuleResult<I::InputElement>, ParseError<I::InputElement>> {
+    pub fn parse_final(self) -> Result<PegRuleResult<I::InputElement>, ParseError<ER>> {
         let mut state = PegParserState { memtable: HashMap::new(), changed_stack: Vec::new() };
         let suc = self.parse(&mut state, 0, self.rules.len() - 1)?;
         if self.input.next(suc.rest).is_some() {
@@ -54,7 +55,7 @@ impl<I: Input> PegParser<I> {
         Ok(suc.result)
     }
 
-    fn parse(&self, state: &mut PegParserState<I>, index: usize, rule: usize) -> Result<ParseSuccess<I::InputElement>, ParseError<I::InputElement>> {
+    fn parse(&self, state: &mut PegParserState<I, ER>, index: usize, rule: usize) -> Result<ParseSuccess<I::InputElement, ER>, ParseError<ER>> {
         //Check memtable
         if let Some(entry) = state.memtable.get_mut(&(index, rule)) {
             entry.used = true;
@@ -106,7 +107,7 @@ impl<I: Input> PegParser<I> {
         res
     }
 
-    fn parse_inner(&self, state: &mut PegParserState<I>, index: usize, rule: usize) -> Result<ParseSuccess<I::InputElement>, ParseError<I::InputElement>> {
+    fn parse_inner(&self, state: &mut PegParserState<I, ER>, index: usize, rule: usize) -> Result<ParseSuccess<I::InputElement, ER>, ParseError<ER>> {
         match &self.rules[rule] {
             PegRule::Terminal(predicate) => {
                 match self.input.next(index) {

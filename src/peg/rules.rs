@@ -1,36 +1,14 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
-pub trait TerminalPredicate<IE: Debug + Display + PartialEq + Eq + Clone + Copy> : Debug {
+pub trait TerminalPredicate<IE: Debug + Display + PartialEq + Eq + Clone + Copy, ER: Debug + Display + PartialEq + Eq + Clone + Copy> : Debug {
     fn run(&self, token: IE) -> bool;
-    fn representitive(&self) -> IE;
-}
-
-#[derive(Debug)]
-pub struct ExactPredicate<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {
-    token: IE
-}
-
-impl<IE: Debug + Display + PartialEq + Eq + Clone + Copy> TerminalPredicate<IE> for ExactPredicate<IE> {
-    fn run(&self, token: IE) -> bool {
-        self.token == token
-    }
-
-    fn representitive(&self) -> IE {
-        self.token
-    }
-}
-
-pub struct Preds;
-impl Preds {
-    pub fn exact<IE: 'static +  Debug + Display + PartialEq + Eq + Clone + Copy>(token: IE) -> Rc<dyn TerminalPredicate<IE>> {
-        Rc::new(ExactPredicate{ token })
-    }
+    fn representitive(&self) -> ER;
 }
 
 #[derive(Debug, Clone)]
-pub enum PegRule<IE: Debug + Display + PartialEq + Eq + Clone + Copy> {
-    Terminal(Rc<dyn TerminalPredicate<IE>>),
+pub enum PegRule<IE: Debug + Display + PartialEq + Eq + Clone + Copy, ER: Debug + Display + PartialEq + Eq + Clone + Copy> {
+    Terminal(Rc<dyn TerminalPredicate<IE, ER>>),
     Sequence(Vec<usize>),
     Choice(Vec<usize>),
 }

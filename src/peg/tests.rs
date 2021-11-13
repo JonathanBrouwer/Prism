@@ -1,10 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use std::fmt::{Display, Formatter};
+    use std::fmt::{Debug, Display, Formatter};
+    use std::rc::Rc;
+    use crate::peg::input::Input;
     use crate::peg::parser::PegParser;
     use crate::peg::parser_result::*;
     use crate::peg::parser_result::ParseErrorFlag::{NotAllInput, Recursive};
-    use crate::peg::rules::{PegRule, Preds};
+    use crate::peg::rules::{PegRule, TerminalPredicate};
     use crate::peg::tests::tests::TestInput::*;
 
     #[derive(Eq, PartialEq, Debug, Copy, Clone)]
@@ -21,6 +23,28 @@ mod tests {
                 TestInput::B => write!(f, "B"),
                 TestInput::C => write!(f, "C"),
             }
+        }
+    }
+
+    #[derive(Debug)]
+    struct ExactPredicate {
+        token: TestInput
+    }
+
+    impl TerminalPredicate<TestInput, TestInput> for ExactPredicate {
+        fn run(&self, token: TestInput) -> bool {
+            self.token == token
+        }
+
+        fn representitive(&self) -> TestInput {
+            self.token
+        }
+    }
+
+    struct Preds;
+    impl Preds {
+        pub fn exact(token: TestInput) -> Rc<dyn TerminalPredicate<TestInput, TestInput>> {
+            Rc::new(ExactPredicate{ token })
         }
     }
 
@@ -142,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_leftrec_unavoidable() {
-        let rules = vec![
+        let rules: Vec<PegRule<TestInput, TestInput>> = vec![
             PegRule::Sequence(vec![0])
         ];
         assert_eq!(
@@ -153,12 +177,53 @@ mod tests {
 
     #[test]
     fn test_notall() {
-        let rules = vec![
+        let rules: Vec<PegRule<TestInput, TestInput>> = vec![
             PegRule::Sequence(vec![])
         ];
         assert_eq!(
             PegParser::new(rules.clone(), &[A]).parse_final(),
             Err(ParseError { positives: vec![], flags: vec![NotAllInput], location: 0 })
         );
+    }
+
+    #[test]
+    fn test_complex_terminal() {
+
+        #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+        enum ErrorType {
+            AOrB
+        }
+        #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+        struct ParseAOrB;
+        impl Display for ErrorType {
+            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                write!(f, "a or b")
+            }
+        }
+        impl TerminalPredicate<TestInput, ErrorType> for ParseAOrB {
+            fn run(&self, token: TestInput) -> bool {
+                token == A || token == B
+            }
+
+            fn representitive(&self) -> ErrorType {
+                ErrorType::AOrB
+            }
+        }
+        let rules = vec![
+            PegRule::Terminal(Rc::new(ParseAOrB{})),
+        ];
+        assert_eq!(
+            PegParser::new(rules.clone(), &[A]).parse_final().map(|ok| ok.to_string()),
+            Ok(String::from("A"))
+        );
+        assert_eq!(
+            PegParser::new(rules.clone(), &[B]).parse_final().map(|ok| ok.to_string()),
+            Ok(String::from("B"))
+        );
+        assert_eq!(
+            PegParser::new(rules.clone(), &[C]).parse_final().map(|ok| ok.to_string()),
+            Err(ParseError { positives: vec![ErrorType::AOrB], flags: vec![], location: 0 })
+        );
+
     }
 }
