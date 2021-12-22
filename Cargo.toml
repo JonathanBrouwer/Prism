@@ -2,3 +2,8 @@
 name = "jonla"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+miette = { version = "3.2.0", features = ["fancy"] }
+thiserror = "1.0.30"
+itertools = "0.10.3"

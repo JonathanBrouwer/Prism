@@ -1,31 +1,37 @@
 use std::fmt::{Debug, Display};
+use itertools::Itertools;
 
-pub trait Input: Clone {
+pub trait Input: Clone + Debug {
     type InputElement: Debug + Display + PartialEq + Eq + Clone + Copy;
 
-    fn next(&self, from: usize) -> Option<(Self::InputElement, usize)>;
+    fn next(&self) -> Option<(Self::InputElement, Self)>;
+    fn pos(&self) -> usize;
+
+    fn src_str<'a>(&'a self) -> Box<dyn ToString + 'a>;
+    fn src_slice(&self) -> (usize, usize);
 }
 
-impl<T: Debug + Display + PartialEq + Eq + Clone + Copy> Input for &[T] {
-    type InputElement = T;
-
-    fn next(&self, from: usize) -> Option<(Self::InputElement, usize)> {
-        if from < self.len() { Some((self[from], from + 1)) } else { None }
-    }
-}
-
-impl<T: Debug + Display + PartialEq + Eq + Clone + Copy, const N: usize> Input for &[T; N] {
-    type InputElement = T;
-
-    fn next(&self, from: usize) -> Option<(Self::InputElement, usize)> {
-        if from < self.len() { Some((self[from], from + 1)) } else { None }
-    }
-}
-
-impl Input for &str {
+impl Input for (&str, usize) {
     type InputElement = char;
 
-    fn next(&self, from: usize) -> Option<(Self::InputElement, usize)> {
-        if from < self.len() { Some((self[from..].chars().next().unwrap(), self.char_indices().skip(1).next().map(|i| i.0).unwrap_or(self.len()))) } else { None }
+    fn next(&self) -> Option<(Self::InputElement, Self)> {
+        if self.1 < self.0.len() {
+            let c = self.0[self.1..].chars().next().unwrap();
+            Some((c, (self.0, self.1 + c.len_utf8())))
+        } else {
+            None
+        }
+    }
+
+    fn pos(&self) -> usize {
+        self.1
+    }
+
+    fn src_str<'a>(&'a self) -> Box<dyn ToString + 'a> {
+        Box::new(self.0)
+    }
+
+    fn src_slice(&self) -> (usize, usize) {
+        (self.1, 1)
     }
 }
