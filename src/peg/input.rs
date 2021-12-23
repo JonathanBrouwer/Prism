@@ -1,10 +1,11 @@
 use std::fmt::{Debug, Display};
-use itertools::Itertools;
+use miette::Severity;
+use crate::{ParseError, ParseErrorEntry, ParseErrorLabel, ParseSuccess};
 
-pub trait Input: Clone + Debug {
+pub trait Input: Sized + Clone {
     type InputElement: Debug + Display + PartialEq + Eq + Clone + Copy;
 
-    fn next(&self) -> Option<(Self::InputElement, Self)>;
+    fn next(&self) -> Result<ParseSuccess<Self, Self::InputElement>, ParseError<Self>>;
     fn pos(&self) -> usize;
 
     fn src_str<'a>(&'a self) -> Box<dyn ToString + 'a>;
@@ -14,12 +15,21 @@ pub trait Input: Clone + Debug {
 impl Input for (&str, usize) {
     type InputElement = char;
 
-    fn next(&self) -> Option<(Self::InputElement, Self)> {
+    fn next(&self) -> Result<ParseSuccess<Self, Self::InputElement>, ParseError<Self>> {
         if self.1 < self.0.len() {
             let c = self.0[self.1..].chars().next().unwrap();
-            Some((c, (self.0, self.1 + c.len_utf8())))
+            Ok(ParseSuccess {
+                result: c,
+                best_error: None,
+                pos: (self.0, self.1 + c.len_utf8())
+            })
         } else {
-            None
+            let label = ParseErrorLabel { msg: "Unexpected end of file".to_string(), at: self.pos() };
+            let entry = ParseErrorEntry { msg: "Parsing error".to_string(), severity: Severity::Error, labels: vec![label] };
+            Err(ParseError {
+                errors: vec![entry],
+                pos: *self
+            })
         }
     }
 
