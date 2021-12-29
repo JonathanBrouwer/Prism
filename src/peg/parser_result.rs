@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme, LabeledSpan, Severity, SourceCode};
+use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCode};
 use crate::peg::input::Input;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -33,7 +33,7 @@ pub struct ParseErrorLabel {
 impl<I: Input> ParseError<I> {
     pub(crate) fn parse_error_combine_opt2(e1: Option<ParseError<I>>, e2: Option<ParseError<I>>) -> Option<ParseError<I>> {
         match (e1, e2) {
-            (Some(e1), Some(e2)) => Some(Self::parse_error_combine(e1, e2)),
+            (Some(e1), Some(e2)) => Some(e1.combine_or(e2)),
             (Some(e1), None) => Some(e1),
             (None, Some(e2)) => Some(e2),
             (None, None) => None,
@@ -42,18 +42,18 @@ impl<I: Input> ParseError<I> {
 
     pub(crate) fn parse_error_combine_opt1(e1: ParseError<I>, e2: Option<ParseError<I>>) -> ParseError<I> {
         match e2 {
-            Some(e2) => Self::parse_error_combine(e1, e2),
+            Some(e2) => e1.combine_or(e2),
             None => e1
         }
     }
 
-    pub(crate) fn parse_error_combine(mut e1: ParseError<I>, mut e2: ParseError<I>) -> ParseError<I> {
-        match e1.pos.pos().cmp(&e2.pos.pos()) {
-            Ordering::Less => e2,
-            Ordering::Greater => e1,
+    pub fn combine_or(mut self, mut other: Self) -> Self {
+        match self.pos.pos().cmp(&other.pos.pos()) {
+            Ordering::Less => other,
+            Ordering::Greater => self,
             Ordering::Equal => {
-                e1.errors.append(&mut e2.errors);
-                e1
+                self.errors.append(&mut other.errors);
+                self
             }
         }
     }

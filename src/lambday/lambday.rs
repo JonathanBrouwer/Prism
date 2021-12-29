@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
-use Term::*;
+use LambdayTerm::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub enum Term<Sym: Eq + Hash + Clone> {
+pub enum LambdayTerm<Sym: Eq + Hash + Clone> {
     Var(Sym),
     TypeType(),
 
@@ -13,8 +13,8 @@ pub enum Term<Sym: Eq + Hash + Clone> {
     FunDestr(Rc<Self>, Rc<Self>),
 }
 
-impl<Sym: Eq + Hash + Clone> Term<Sym> {
-    fn type_check(&self, names: &mut HashMap<Sym, Term<Sym>>) -> Result<Term<Sym>, ()> {
+impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
+    fn type_check(&self, names: &mut HashMap<Sym, LambdayTerm<Sym>>) -> Result<LambdayTerm<Sym>, ()> {
         match self {
             Var(var) => names.get(var).map(|t| Ok(t.clone())).unwrap_or(Err(())),
             TypeType() => Ok(TypeType()), //TODO inconsistent
@@ -56,7 +56,7 @@ impl<Sym: Eq + Hash + Clone> Term<Sym> {
         }
     }
 
-    fn substitute(&self, name: &Sym, to: &Term<Sym>) -> Term<Sym> {
+    fn substitute(&self, name: &Sym, to: &LambdayTerm<Sym>) -> LambdayTerm<Sym> {
         match self {
             Var(sym) => {
                 if *sym == *name { to.clone() } else { (*self).clone() }
@@ -112,7 +112,7 @@ impl<Sym: Eq + Hash + Clone> Term<Sym> {
 mod tests {
     use std::collections::HashMap;
     use std::rc::Rc;
-    use crate::lambday::lambday::Term::{FunConstr, FunDestr, FunType, TypeType, Var};
+    use crate::lambday::lambday::LambdayTerm::{FunConstr, FunDestr, FunType, TypeType, Var};
 
     #[test]
     fn test_fun_type1() {
