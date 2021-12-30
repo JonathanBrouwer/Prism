@@ -1,1 +1,1 @@
-#fc (x : #ft(a -> b)) (x)
+#fd (#fc (x : #tt) (x)) (#tt)

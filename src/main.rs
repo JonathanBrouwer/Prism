@@ -11,15 +11,22 @@ use crate::peg::parser_result::*;
 fn main() {
     let input = include_str!("../resources/example.jnl");
     let parsed = parse_jonla_program().parse((input, 0));
-    match parsed {
-        Ok(ok) => {
-            for term in ok.result {
-                println!("{:?}", term)
-            }
-        }
+    let ok = match parsed {
+        Ok(ok) => { ok }
         Err(err) => {
             println!("{}", err);
             return
+        }
+    };
+
+    for term in ok.result {
+        match term.type_check() {
+            Ok(typ) => {
+                print!("{:?}   :   {:?}", &term, typ);
+            }
+            Err(_) => {
+                print!("{:?}   :   type error", &term);
+            }
         }
     }
 

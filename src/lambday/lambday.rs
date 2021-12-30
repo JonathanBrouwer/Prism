@@ -14,15 +14,19 @@ pub enum LambdayTerm<Sym: Eq + Hash + Clone> {
 }
 
 impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
-    fn type_check(&self, names: &mut HashMap<Sym, LambdayTerm<Sym>>) -> Result<LambdayTerm<Sym>, ()> {
+    pub fn type_check(&self) -> Result<LambdayTerm<Sym>, ()> {
+        self.type_check_internal(&mut HashMap::new())
+    }
+
+    fn type_check_internal(&self, names: &mut HashMap<Sym, LambdayTerm<Sym>>) -> Result<LambdayTerm<Sym>, ()> {
         match self {
             Var(var) => names.get(var).map(|t| Ok(t.clone())).unwrap_or(Err(())),
             TypeType() => Ok(TypeType()), //TODO inconsistent
             FunType(arg_type, body_type) => {
                 //Check if types are well formed
-                let att = arg_type.type_check(names)?;
+                let att = arg_type.type_check_internal(names)?;
                 if att != TypeType() { return Err(()); }
-                let abt = body_type.type_check(names)?;
+                let abt = body_type.type_check_internal(names)?;
                 if abt != TypeType() { return Err(()); }
 
                 //Type of type
@@ -30,20 +34,20 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
             }
             FunConstr(sym, arg_type, body) => {
                 //Check if types are well formed
-                let att = arg_type.type_check(names)?;
+                let att = arg_type.type_check_internal(names)?;
                 if att != TypeType() { return Err(()); }
 
                 //Calc body type
                 names.insert(sym.clone(), (**arg_type).clone());
-                let body_type = body.type_check(names)?;
+                let body_type = body.type_check_internal(names)?;
                 names.remove(&sym);
 
                 //Function type
                 Ok(FunType(Rc::new((**arg_type).clone()), Rc::new(body_type)))
             }
             FunDestr(fun, arg) => {
-                let fun_type = fun.type_check(names)?;
-                let arg_type1 = arg.type_check(names)?;
+                let fun_type = fun.type_check_internal(names)?;
+                let arg_type1 = arg.type_check_internal(names)?;
                 return if let FunType(arg_type2, body_type) = fun_type {
                     if !arg_type1.type_eq(&arg_type2) {
                         return Err(());
@@ -118,14 +122,14 @@ mod tests {
     fn test_fun_type1() {
         let term = FunConstr("a", Rc::new(TypeType()), Rc::new(Var("a")));
         let typ = FunType(Rc::new(TypeType()), Rc::new(TypeType()));
-        assert_eq!(typ, term.type_check(&mut HashMap::new()).unwrap());
+        assert_eq!(typ, term.type_check().unwrap());
     }
 
     #[test]
     fn test_fun_type2() {
         let term = FunDestr(Rc::new(FunConstr("a", Rc::new(TypeType()), Rc::new(Var("a")))), Rc::new(TypeType()));
         let typ = TypeType();
-        assert_eq!(typ, term.type_check(&mut HashMap::new()).unwrap());
+        assert_eq!(typ, term.type_check().unwrap());
     }
 }
 
