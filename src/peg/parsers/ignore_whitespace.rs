@@ -1,5 +1,4 @@
-use miette::Severity;
-use crate::{ParseError, ParseErrorEntry, ParseErrorLabel, Parser, ParseSuccess};
+use crate::{Parser};
 use crate::peg::input::Input;
 
 pub fn ignore_whitespace<I: Input<InputElement=char>, O, P: Parser<I, O>>(

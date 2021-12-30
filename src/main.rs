@@ -4,7 +4,7 @@ pub mod peg;
 mod lambday;
 mod jonla;
 
-use crate::jonla::jonla::{JonlaTerm, parse_jonla_program};
+use crate::jonla::jonla::{parse_jonla_program};
 use crate::peg::parser::*;
 use crate::peg::parser_result::*;
 

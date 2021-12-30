@@ -8,6 +8,7 @@ use crate::peg::parsers::complete_input::complete_input;
 use crate::peg::parsers::exact::exact;
 use crate::peg::parsers::ignore_whitespace::ignore_whitespace;
 use crate::peg::parsers::repeat_m_n::{repeat_m_n, repeat_m_n_matching};
+use crate::peg::parsers::seq::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum JonlaTerm<Sym: Eq + Hash + Clone> {
@@ -30,33 +31,39 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
         let parsers: Vec<Box<dyn Parser<I, LambdayTerm<String>>>> = vec![
             //Fun type
             Box::new(|pos: I| {
-                let ok = ignore_whitespace(exact("#ft".chars().collect())).parse(pos)?;
-                let ok = ignore_whitespace(exact("(".chars().collect())).parse(ok.pos)?;
-                let t1 = ignore_whitespace(parse_lamday_term()).parse(ok.pos)?;
-                let ok = ignore_whitespace(exact("->".chars().collect())).parse(t1.pos)?;
-                let t2 = ignore_whitespace(parse_lamday_term()).parse(ok.pos)?;
-                let ok = ignore_whitespace(exact(")".chars().collect())).parse(t2.pos)?;
+                let ok = seq6(
+                    ignore_whitespace(exact("#ft".chars().collect())),
+                    ignore_whitespace(exact("(".chars().collect())),
+                    ignore_whitespace(parse_lamday_term()),
+                    ignore_whitespace(exact("->".chars().collect())),
+                    ignore_whitespace(parse_lamday_term()),
+                    ignore_whitespace(exact(")".chars().collect()))
+                ).parse(pos)?;
+                let (_, _, t1, _, t2, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunType(Rc::new(t1.result), Rc::new(t2.result)),
+                    result: LambdayTerm::FunType(Rc::new(t1), Rc::new(t2)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Fun construct
             Box::new(|pos: I| {
-                let ok = ignore_whitespace(exact("#fc".chars().collect())).parse(pos)?;
-                let ok = ignore_whitespace(exact("(".chars().collect())).parse(ok.pos)?;
-                let t1 = ignore_whitespace(parse_name()).parse(ok.pos)?;
-                let ok = ignore_whitespace(exact(":".chars().collect())).parse(t1.pos)?;
-                let t2 = ignore_whitespace(parse_lamday_term()).parse(ok.pos)?;
-                let ok = ignore_whitespace(exact(")".chars().collect())).parse(t2.pos)?;
-                let ok = ignore_whitespace(exact("(".chars().collect())).parse(ok.pos)?;
-                let t3 = ignore_whitespace(parse_lamday_term()).parse(ok.pos)?;
-                let ok = ignore_whitespace(exact(")".chars().collect())).parse(t3.pos)?;
+                let ok = seq9(
+                    ignore_whitespace(exact("#fc".chars().collect())),
+                    ignore_whitespace(exact("(".chars().collect())),
+                    ignore_whitespace(parse_name()),
+                    ignore_whitespace(exact(":".chars().collect())),
+                    ignore_whitespace(parse_lamday_term()),
+                    ignore_whitespace(exact(")".chars().collect())),
+                    ignore_whitespace(exact("(".chars().collect())),
+                    ignore_whitespace(parse_lamday_term()),
+                    ignore_whitespace(exact(")".chars().collect()))
+                ).parse(pos)?;
+                let (_, _, t1, _, t2, _, _, t3, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunConstr(t1.result, Rc::new(t2.result), Rc::new(t3.result)),
+                    result: LambdayTerm::FunConstr(t1, Rc::new(t2), Rc::new(t3)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
