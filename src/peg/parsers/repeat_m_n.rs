@@ -19,12 +19,16 @@ pub fn repeat_m_n<I: Input, O, P: Parser<I, O>>(
         }
 
         for _ in min_count..max_count {
-            if let Ok(res) = parser.parse(pos.clone()) {
-                result.push(res.result);
-                pos = res.pos;
-                best_error = ParseError::parse_error_combine_opt2(best_error, res.best_error);
-            } else {
-                break
+            match parser.parse(pos.clone()) {
+                Ok(ok) => {
+                    result.push(ok.result);
+                    pos = ok.pos;
+                    best_error = ParseError::parse_error_combine_opt2(best_error, ok.best_error);
+                }
+                Err(err) => {
+                    best_error = Some(ParseError::parse_error_combine_opt1(err, best_error));
+                    break;
+                }
             }
         }
 

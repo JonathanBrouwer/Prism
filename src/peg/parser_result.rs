@@ -11,6 +11,12 @@ pub struct ParseSuccess<I: Input, O> {
     pub pos: I,
 }
 
+impl<I: Input, O> ParseSuccess<I, O> {
+    pub fn map<F, ON>(self, mapfn: F) -> ParseSuccess<I, ON> where F: Fn(O) -> ON {
+        ParseSuccess { result: mapfn(self.result), best_error: self.best_error, pos: self.pos }
+    }
+}
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct ParseError<I: Input> {
     pub errors: Vec<ParseErrorEntry>,
