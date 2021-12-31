@@ -4,40 +4,48 @@ use std::fmt::{Debug, Display, Formatter};
 use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCode};
 use crate::peg::input::Input;
 
+pub type Span = (usize, usize);
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct JError<I: Input> {
-    pub errors: Vec<JErrorEntry<I>>,
+    pub errors: Vec<JErrorEntry>,
     pub pos: I,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub enum JErrorEntry<I: Input> {
-    UnexpectedEOF(I, ),
-    UnexpectedChar(I, char),
-    UnexpectedStr(I, &'static str),
-    UnexpectedString(I, String),
+pub enum JErrorEntry {
+    UnexpectedEOF(Span, ),
+    UnexpectedChar(Span, char),
+    UnexpectedStr(Span, &'static str),
+    UnexpectedString(Span, String),
 }
 
-impl<I: Input> JErrorEntry<I> {
+impl JErrorEntry {
     pub fn message(&self) -> String {
         match self {
-            _ => unreachable!()
-        }
+            JErrorEntry::UnexpectedEOF(_) => "Parsing error",
+            JErrorEntry::UnexpectedChar(_, _) => "Parsing error",
+            JErrorEntry::UnexpectedStr(_, _) => "Parsing error",
+            JErrorEntry::UnexpectedString(_, _) => "Parsing error",
+        }.to_string()
     }
     pub fn severity(&self) -> Severity {
         Severity::Error
     }
     pub fn labels(&self) -> Vec<JErrorLabel> {
         match self {
-            _ => unreachable!()
+            JErrorEntry::UnexpectedEOF(span) => vec![JErrorLabel{ msg: Some(format!("Expected more input, but found end of file.")), span: *span }],
+            JErrorEntry::UnexpectedChar(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
+            JErrorEntry::UnexpectedStr(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
+            JErrorEntry::UnexpectedString(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
         }
     }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct JErrorLabel {
-    pub msg: String,
-    pub at: usize,
+    pub msg: Option<String>,
+    pub span: Span,
 }
 
 
@@ -126,7 +134,7 @@ impl<'b> Diagnostic for ParseDiagnostic<'b> {
     }
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = LabeledSpan> + '_>> {
-        Some(Box::new(self.labels.iter().map(|l| LabeledSpan::new(Some(l.msg.clone()), l.at, 1))))
+        Some(Box::new(self.labels.iter().map(|l| LabeledSpan::new(l.msg.clone(), l.span.0, l.span.1 - l.span.0))))
     }
 
     fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {

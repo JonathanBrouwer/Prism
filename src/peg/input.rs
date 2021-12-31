@@ -3,7 +3,7 @@ use miette::Severity;
 use crate::jonla::jerror::{JError, JErrorEntry, JErrorLabel};
 use crate::ParseSuccess;
 
-pub trait Input: Sized + Clone {
+pub trait Input: Sized + Clone + Copy {
     type InputElement: Debug + Display + PartialEq + Eq + Clone + Copy;
 
     fn next(&self) -> Result<ParseSuccess<Self, Self::InputElement>, JError<Self>>;
@@ -26,7 +26,7 @@ impl Input for (&str, usize) {
             })
         } else {
             Err(JError {
-                errors: vec![JErrorEntry::UnexpectedEOF(self.clone())],
+                errors: vec![JErrorEntry::UnexpectedEOF((self.clone().pos(), self.clone().pos() + 1))],
                 pos: *self
             })
         }

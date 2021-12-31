@@ -12,7 +12,7 @@ pub fn take_matching<I: Input>(
                 return Ok(ps)
             }
         }
-        return Err(JError{ errors: vec![JErrorEntry::UnexpectedString(pos.clone(), name.clone())], pos })
+        return Err(JError{ errors: vec![JErrorEntry::UnexpectedString((pos.pos(), pos.pos() + 1), name.clone())], pos })
     }
 }
 

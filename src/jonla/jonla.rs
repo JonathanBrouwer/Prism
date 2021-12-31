@@ -22,7 +22,7 @@ pub fn parse_jonla_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambday
 }
 
 pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {
-    move |pos: I| {
+    move |startpos: I| {
         let parsers: Vec<Box<dyn Parser<I, LambdayTerm<String>>>> = vec![
             //Prod type
             Box::new(|pos: I| {
@@ -35,7 +35,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, types, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdType(types.into_iter().map(|t| Rc::new(t)).collect()),
+                    result: LambdayTerm::ProdType((pos.pos(), ok.pos.pos()), types.into_iter().map(|t| Rc::new(t)).collect()),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -54,7 +54,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, typ, _, _, vals, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdConstr(Rc::new(typ), vals.into_iter().map(|t| Rc::new(t)).collect()),
+                    result: LambdayTerm::ProdConstr((pos.pos(), ok.pos.pos()), Rc::new(typ), vals.into_iter().map(|t| Rc::new(t)).collect()),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -71,7 +71,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, val, _, num) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdDestr(Rc::new(val), num),
+                    result: LambdayTerm::ProdDestr((pos.pos(), ok.pos.pos()), Rc::new(val), num),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -87,7 +87,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, types, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::SumType(types.into_iter().map(|t| Rc::new(t)).collect()),
+                    result: LambdayTerm::SumType((pos.pos(), ok.pos.pos()), types.into_iter().map(|t| Rc::new(t)).collect()),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -107,7 +107,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, typ, _, num, _, val, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::SumConstr(Rc::new(typ), num, Rc::new(val)),
+                    result: LambdayTerm::SumConstr((pos.pos(), ok.pos.pos()), Rc::new(typ), num, Rc::new(val)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -130,6 +130,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
 
                 Ok(ParseSuccess {
                     result: LambdayTerm::SumDestr(
+                        (pos.pos(), ok.pos.pos()),
                         Rc::new(val),
                         Rc::new(rt),
                         opts.into_iter().map(|t| Rc::new(t)).collect()
@@ -151,7 +152,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, t2, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunType(Rc::new(t1), Rc::new(t2)),
+                    result: LambdayTerm::FunType((pos.pos(), ok.pos.pos()), Rc::new(t1), Rc::new(t2)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -172,7 +173,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, t2, _, _, t3, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunConstr(t1, Rc::new(t2), Rc::new(t3)),
+                    result: LambdayTerm::FunConstr((pos.pos(), ok.pos.pos()), t1, Rc::new(t2), Rc::new(t3)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -191,26 +192,39 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, _, t2, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunDestr(Rc::new(t1), Rc::new(t2)),
+                    result: LambdayTerm::FunDestr((pos.pos(), ok.pos.pos()), Rc::new(t1), Rc::new(t2)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Type type
-            Box::new(|input: I| {
-                let ok = ignore_whitespace(exact_str("#tt")).parse(input)?;
+            Box::new(|pos: I| {
+                let ok = seq1ws(
+                    exact_str("#tt")
+                ).parse(pos)?;
+                let _ = ok.result;
+
                 Ok(ParseSuccess {
-                    result: LambdayTerm::TypeType(),
+                    result: LambdayTerm::TypeType((pos.pos(), ok.pos.pos())),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Var
-            Box::new(|input: I| {
-                ignore_whitespace(parse_name()).parse(input).map(|s| s.map(|r| LambdayTerm::Var(r)))
+            Box::new(|pos: I| {
+                let ok = seq1ws(
+                    parse_name()
+                ).parse(pos)?;
+                let name = ok.result;
+
+                Ok(ParseSuccess {
+                    result: LambdayTerm::Var((pos.pos(), ok.pos.pos()), name),
+                    best_error: ok.best_error,
+                    pos: ok.pos
+                })
             }),
         ];
-        alt(parsers).parse(pos.clone())
+        alt(parsers).parse(startpos.clone())
     }
 }
 

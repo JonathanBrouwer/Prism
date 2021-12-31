@@ -22,10 +22,10 @@ fn main() {
     for term in ok.result {
         match term.type_check() {
             Ok(typ) => {
-                print!("{:?}   :   {:?}", &term, typ);
+                println!("{:?}   :   {:?}", &term, typ);
             }
             Err(_) => {
-                print!("{:?}   :   type error", &term);
+                println!("{:?}   :   type error", &term);
             }
         }
     }
