@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
+use itertools::Itertools;
 use LambdayTerm::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -11,6 +12,14 @@ pub enum LambdayTerm<Sym: Eq + Hash + Clone> {
     FunType(Rc<Self>, Rc<Self>),
     FunConstr(Sym, Rc<Self>, Rc<Self>),
     FunDestr(Rc<Self>, Rc<Self>),
+
+    ProdType(Vec<Rc<Self>>),
+    ProdConstr(Rc<Self>, Vec<Rc<Self>>),
+    ProdDestr(Rc<Self>, usize),
+
+    SumType(Vec<Rc<Self>>),
+    SumConstr(Rc<Self>, usize, Rc<Self>),
+    SumDestr(Rc<Self>, Rc<Self>, Vec<Rc<Self>>)
 }
 
 impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
@@ -57,6 +66,123 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
                     Err(())
                 };
             }
+            ProdType(subs) => {
+                for sub in subs {
+                    let sub_type = sub.type_check()?;
+                    if sub_type != TypeType() { return Err(()); }
+                }
+                Ok(TypeType())
+            }
+            ProdConstr(typ, values) => {
+                typ.type_check()?;
+                match typ.normalize_head() {
+                    ProdType(subs) => {
+                        if values.len() != subs.len() { return Err(()) }
+                        for (val, sub) in values.into_iter().zip_eq(subs.into_iter()) {
+                            if !(val.type_check()?).type_eq(&*sub) { return Err(()) }
+                        }
+                        return Ok((**typ).clone())
+                    }
+                    _ => Err(())
+                }
+            }
+            ProdDestr(val, num) => {
+                match val.type_check()? {
+                    ProdType(types) => {
+                        if *num >= types.len() { return Err(()) }
+                        Ok((*types[*num]).clone())
+                    }
+                    _ => Err(())
+                }
+            }
+            SumType(subs) => {
+                for sub in subs {
+                    let sub_type = sub.type_check()?;
+                    if sub_type != TypeType() { return Err(()); }
+                }
+                Ok(TypeType())
+            }
+            SumConstr(typ, num, val) => {
+                typ.type_check()?;
+                match typ.normalize_head() {
+                    SumType(subs) => {
+                        if *num >= subs.len() { return Err(()) }
+                        if !(val.type_check()?).type_eq(&*subs[*num]) { return Err(()) }
+                        return Ok((**typ).clone())
+                    }
+                    _ => Err(())
+                }
+            }
+            SumDestr(val, into_type, opts) => {
+                let val_type = val.type_check()?;
+                let into_tt = into_type.type_check()?;
+                if into_tt != TypeType() { return Err(()) }
+                match val_type.normalize_head() {
+                    SumType(subs) => {
+                        if opts.len() != subs.len() { return Err(()) }
+
+                        for (opt, sub) in opts.into_iter().zip_eq(subs.into_iter()) {
+                            let opt_type = opt.type_check()?;
+                            let exp = FunType(sub, into_type.clone());
+                            if !exp.type_eq(&opt_type) { return Err(()) }
+                        }
+                        return Ok((**into_type).clone())
+                    }
+                    _ => Err(())
+                }
+            }
+        }
+    }
+
+    pub fn type_eq(&self, other: &Self) -> bool {
+        match (self.normalize_head(), other.normalize_head()) {
+            (Var(l1), Var(l2)) => l1 == l2,
+            (TypeType(), TypeType()) => true,
+            (FunType(a1, b1), FunType(a2, b2)) => a1.type_eq(&a2) && b1.type_eq(&b2),
+            (ProdType(vs1), ProdType(vs2)) => vs1 == vs2,
+            (SumType(vs1), SumType(vs2)) => vs1 == vs2,
+            (_, _) => unreachable!()
+        }
+    }
+
+    fn normalize_head(&self) -> Self {
+        match self {
+            Var(_) => self.clone(),
+            TypeType() => self.clone(),
+            FunType(_, _) => self.clone(),
+            FunConstr(_, _, _) => self.clone(),
+            FunDestr(fun, arg) => {
+                let fun = fun.normalize_head();
+                match &fun {
+                    FunConstr(sym, _arg_type, body) => {
+                        body.substitute(sym, arg).normalize_head()
+                    }
+                    _ => FunDestr(Rc::new(fun.clone()), arg.clone()),
+                }
+            }
+            ProdType(_) => self.clone(),
+            ProdConstr(_, _) => self.clone(),
+            ProdDestr(val, num) => {
+                let val = val.normalize_head();
+                match &val {
+                    ProdConstr(_typ, vals) => {
+                        vals[*num].normalize_head()
+                    },
+                    _ => ProdDestr(Rc::new(val.clone()), *num)
+                }
+            }
+            SumType(_) => self.clone(),
+            SumConstr(_, _, _) => self.clone(),
+            SumDestr(val, into_type, opts) => {
+                let val = val.normalize_head();
+                let into_type = into_type.normalize_head();
+                match &val {
+                    SumConstr(_typ, num, val) => {
+                        FunDestr(opts[*num].clone(), val.clone()).normalize_head()
+                    },
+                    _ => SumDestr(Rc::new(val.clone()), Rc::new(into_type.normalize_head()), opts.clone())
+                }
+            }
         }
     }
 
@@ -81,33 +207,24 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
             FunDestr(fun, arg) => {
                 FunDestr(Rc::new(fun.substitute(name, to)), Rc::new(arg.substitute(name, to)))
             }
-        }
-    }
-
-    fn normalize_head(&self) -> Self {
-        match self {
-            Var(_) => self.clone(),
-            TypeType() => self.clone(),
-            FunType(_, _) => self.clone(),
-            FunConstr(_, _, _) => self.clone(),
-            FunDestr(fun, arg) => {
-                let fun = fun.normalize_head();
-                match &fun {
-                    FunConstr(sym, _arg_type, body) => {
-                        body.substitute(sym, arg)
-                    }
-                    _ => FunDestr(Rc::new(fun.clone()), arg.clone()),
-                }
+            ProdType(types) => {
+                ProdType(types.into_iter().map(|l| Rc::new(l.substitute(name, to))).collect())
             }
-        }
-    }
-
-    pub fn type_eq(&self, other: &Self) -> bool {
-        match (self.normalize_head(), other.normalize_head()) {
-            (Var(l1), Var(l2)) => l1 == l2,
-            (TypeType(), TypeType()) => true,
-            (FunType(a1, b1), FunType(a2, b2)) => a1.type_eq(&a2) && b1.type_eq(&b2),
-            (_, _) => unreachable!()
+            ProdConstr(typ, values) => {
+                ProdConstr(Rc::new(typ.substitute(name, to)), values.into_iter().map(|l| Rc::new(l.substitute(name, to))).collect())
+            }
+            ProdDestr(val, num) => {
+                ProdDestr(Rc::new(val.substitute(name, to)), *num)
+            }
+            SumType(types) => {
+                SumType(types.into_iter().map(|l| Rc::new(l.substitute(name, to))).collect())
+            }
+            SumConstr(typ, num, val) => {
+                SumConstr(Rc::new(typ.substitute(name, to)), *num, Rc::new(val.substitute(name, to)))
+            }
+            SumDestr(val, into_type, options) => {
+                SumDestr(Rc::new(val.substitute(name, to)), Rc::new(into_type.substitute(name, to)), options.into_iter().map(|l| Rc::new(l.substitute(name, to))).collect())
+            }
         }
     }
 }

@@ -1,1 +1,1 @@
-#fd (#fc (x : #tt) (x)) (#tt)
+#sc (#st (#pt() #pt())) 0 (#pc (#pt()) ())
