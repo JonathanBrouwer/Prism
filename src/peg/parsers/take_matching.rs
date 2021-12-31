@@ -1,5 +1,5 @@
-use miette::Severity;
-use crate::{ParseError, ParseErrorEntry, ParseErrorLabel, Parser, ParseSuccess};
+use crate::{ Parser, ParseSuccess};
+use crate::jonla::jerror::{JError, JErrorEntry};
 use crate::peg::input::Input;
 
 pub fn take_matching<I: Input>(
@@ -12,9 +12,7 @@ pub fn take_matching<I: Input>(
                 return Ok(ps)
             }
         }
-        let label = ParseErrorLabel { msg: format!("Expected {} here", name), at: pos.pos() };
-        let entry = ParseErrorEntry { msg: "Parsing error".to_string(), severity: Severity::Error, labels: vec![label] };
-        return Err(ParseError{ errors: vec![entry], pos })
+        return Err(JError{ errors: vec![JErrorEntry::UnexpectedString(pos.clone(), name.clone())], pos })
     }
 }
 

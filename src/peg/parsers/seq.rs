@@ -1,6 +1,7 @@
-use crate::{ParseError, Parser, ParseSuccess};
+use crate::{Parser, ParseSuccess};
 use crate::peg::input::Input;
 use crate::peg::parsers::ignore_whitespace::ignore_whitespace;
+use crate::jonla::jerror::JError;
 
 macro_rules! generate_seq (
     ($fname:ident $($vr:ident $ok:ident $tp:ident)*) => {
@@ -9,7 +10,7 @@ macro_rules! generate_seq (
         pub fn $fname<I: Input<InputElement=IE>, IE, $($tp),*>($($vr: impl Parser<I, $tp>),*)
             -> impl Parser<I, ($($tp),*)> {
             move |mut pos: I| {
-                let mut best_error: Option<ParseError<I>> = None;
+                let mut best_error: Option<JError<I>> = None;
 
                 generate_seq!(__inner pos best_error : $($vr $ok)*);
 
@@ -25,7 +26,7 @@ macro_rules! generate_seq (
     (__inner $pos:ident $best_error:ident : $vr0:ident $ok0:ident $($vr:ident $ok:ident)*) => {
         let $ok0 = $vr0.parse($pos)?;
         $pos = $ok0.pos;
-        $best_error = ParseError::parse_error_combine_opt2($best_error, $ok0.best_error);
+        $best_error = JError::parse_error_combine_opt2($best_error, $ok0.best_error);
 
         generate_seq!(__inner $pos $best_error : $($vr $ok)*);
     }

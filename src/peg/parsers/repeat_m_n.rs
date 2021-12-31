@@ -1,4 +1,5 @@
-use crate::{ParseError, Parser, ParseSuccess};
+use crate::{Parser, ParseSuccess};
+use crate::jonla::jerror::JError;
 use crate::peg::input::Input;
 use crate::peg::parsers::take_matching::take_matching;
 
@@ -15,7 +16,7 @@ pub fn repeat_m_n<I: Input, O, P: Parser<I, O>>(
             let res = parser.parse(pos)?;
             result.push(res.result);
             pos = res.pos;
-            best_error = ParseError::parse_error_combine_opt2(best_error, res.best_error);
+            best_error = JError::parse_error_combine_opt2(best_error, res.best_error);
         }
 
         for _ in min_count..max_count {
@@ -23,10 +24,10 @@ pub fn repeat_m_n<I: Input, O, P: Parser<I, O>>(
                 Ok(ok) => {
                     result.push(ok.result);
                     pos = ok.pos;
-                    best_error = ParseError::parse_error_combine_opt2(best_error, ok.best_error);
+                    best_error = JError::parse_error_combine_opt2(best_error, ok.best_error);
                 }
                 Err(err) => {
-                    best_error = Some(ParseError::parse_error_combine_opt1(err, best_error));
+                    best_error = Some(JError::parse_error_combine_opt1(err, best_error));
                     break;
                 }
             }
@@ -48,7 +49,9 @@ pub fn repeat_m_n_matching<I: Input>(
 #[cfg(test)]
 mod tests {
     use miette::Severity;
-    use crate::{ParseError, ParseErrorEntry, ParseErrorLabel, ParseSuccess};
+    use crate::jonla::jerror::JError;
+    use crate::jonla::jerror::JErrorEntry::UnexpectedString;
+    use crate::ParseSuccess;
     use crate::peg::parsers::repeat_m_n::repeat_m_n_matching;
     use crate::peg::parser::Parser;
 
@@ -62,7 +65,7 @@ mod tests {
                 0,
                 usize::MAX
             ).parse((inp, 0)).unwrap(),
-            ParseSuccess { result: vec!['a', 'b', 'b', 'a', 'b'], best_error: None, pos: (inp, 5) }
+            ParseSuccess { result: vec!['a', 'b', 'b', 'a', 'b'], best_error: Some(JError { errors: vec![UnexpectedString((inp, 5), "a or b".to_string())], pos: ("abbabx", 5) }), pos: (inp, 5) }
         );
     }
 
@@ -76,7 +79,7 @@ mod tests {
                 6,
                 usize::MAX
             ).parse((inp, 0)).unwrap_err(),
-            ParseError { errors: vec![ParseErrorEntry { msg: "Parsing error".to_string(), severity: Severity::Error, labels: vec![ParseErrorLabel { msg: "Expected a or b here".to_string(), at: 5 }] }], pos: (inp, 5) }
+            JError { errors: vec![UnexpectedString((inp, 5), "a or b".to_string())], pos: (inp, 5) }
         );
     }
 

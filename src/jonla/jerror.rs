@@ -5,39 +5,45 @@ use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCo
 use crate::peg::input::Input;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseSuccess<I: Input, O> {
-    pub result: O,
-    pub best_error: Option<ParseError<I>>,
+pub struct JError<I: Input> {
+    pub errors: Vec<JErrorEntry<I>>,
     pub pos: I,
 }
 
-impl<I: Input, O> ParseSuccess<I, O> {
-    pub fn map<F, ON>(self, mapfn: F) -> ParseSuccess<I, ON> where F: Fn(O) -> ON {
-        ParseSuccess { result: mapfn(self.result), best_error: self.best_error, pos: self.pos }
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum JErrorEntry<I: Input> {
+    UnexpectedEOF(I, ),
+    UnexpectedChar(I, char),
+    UnexpectedStr(I, &'static str),
+    UnexpectedString(I, String),
+}
+
+impl<I: Input> JErrorEntry<I> {
+    pub fn message(&self) -> String {
+        match self {
+            _ => unreachable!()
+        }
+    }
+    pub fn severity(&self) -> Severity {
+        Severity::Error
+    }
+    pub fn labels(&self) -> Vec<JErrorLabel> {
+        match self {
+            _ => unreachable!()
+        }
     }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseError<I: Input> {
-    pub errors: Vec<ParseErrorEntry>,
-    pub pos: I,
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseErrorEntry {
-    pub msg: String,
-    pub severity: Severity,
-    pub labels: Vec<ParseErrorLabel>
-}
-
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseErrorLabel {
+pub struct JErrorLabel {
     pub msg: String,
     pub at: usize,
 }
 
-impl<I: Input> ParseError<I> {
-    pub(crate) fn parse_error_combine_opt2(e1: Option<ParseError<I>>, e2: Option<ParseError<I>>) -> Option<ParseError<I>> {
+
+
+impl<I: Input> JError<I> {
+    pub(crate) fn parse_error_combine_opt2(e1: Option<JError<I>>, e2: Option<JError<I>>) -> Option<JError<I>> {
         match (e1, e2) {
             (Some(e1), Some(e2)) => Some(e1.combine_or(e2)),
             (Some(e1), None) => Some(e1),
@@ -46,7 +52,7 @@ impl<I: Input> ParseError<I> {
         }
     }
 
-    pub(crate) fn parse_error_combine_opt1(e1: ParseError<I>, e2: Option<ParseError<I>>) -> ParseError<I> {
+    pub(crate) fn parse_error_combine_opt1(e1: JError<I>, e2: Option<JError<I>>) -> JError<I> {
         match e2 {
             Some(e2) => e1.combine_or(e2),
             None => e1
@@ -65,12 +71,12 @@ impl<I: Input> ParseError<I> {
     }
 }
 
-impl<I: Input> Display for ParseError<I> {
+impl<I: Input> Display for JError<I> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut src = self.pos.src_str().to_string();
         src += " "; //Allow to point to EOF
         for error in &self.errors {
-            let diag = ParseDiagnostic { src: &src, msg: error.msg.clone(), severity: error.severity, labels: error.labels.clone() };
+            let diag = ParseDiagnostic { src: &src, msg: error.message(), severity: error.severity(), labels: error.labels() };
             let mut s = String::new();
             GraphicalReportHandler::new()
                 .with_links(true)
@@ -83,11 +89,11 @@ impl<I: Input> Display for ParseError<I> {
 }
 
 #[derive(Debug, Clone)]
-pub struct ParseDiagnostic<'a> {
+struct ParseDiagnostic<'a> {
     pub(crate) src: &'a str,
     pub(crate) msg: String,
     pub(crate) severity: Severity,
-    pub(crate) labels: Vec<ParseErrorLabel>
+    pub(crate) labels: Vec<JErrorLabel>
 }
 
 impl<'a> Error for ParseDiagnostic<'a> {}

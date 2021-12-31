@@ -6,7 +6,7 @@ mod jonla;
 
 use crate::jonla::jonla::{parse_jonla_program};
 use crate::peg::parser::*;
-use crate::peg::parser_result::*;
+use crate::peg::parser_success::*;
 
 fn main() {
     let input = include_str!("../resources/example.jnl");
