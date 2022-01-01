@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::cmp::{min, Ordering};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCode};
@@ -35,9 +35,9 @@ impl JErrorEntry {
     pub fn labels(&self) -> Vec<JErrorLabel> {
         match self {
             JErrorEntry::UnexpectedEOF(span) => vec![JErrorLabel{ msg: Some(format!("Expected more input, but found end of file.")), span: *span }],
-            JErrorEntry::UnexpectedChar(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
-            JErrorEntry::UnexpectedStr(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
-            JErrorEntry::UnexpectedString(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {}, but found end of file.", msg)), span: *span }],
+            JErrorEntry::UnexpectedChar(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
+            JErrorEntry::UnexpectedStr(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
+            JErrorEntry::UnexpectedString(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
         }
     }
 }
@@ -134,7 +134,7 @@ impl<'b> Diagnostic for ParseDiagnostic<'b> {
     }
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = LabeledSpan> + '_>> {
-        Some(Box::new(self.labels.iter().map(|l| LabeledSpan::new(l.msg.clone(), l.span.0, l.span.1 - l.span.0))))
+        Some(Box::new(self.labels.iter().map(|l| LabeledSpan::new(l.msg.clone(), l.span.0, min(self.src.len() - 1, l.span.1) - l.span.0))))
     }
 
     fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {

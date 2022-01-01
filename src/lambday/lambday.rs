@@ -44,24 +44,24 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
         }
     }
 
+    fn check_is_type(&self, names: &mut HashMap<Sym, LambdayTerm<Sym>>) -> Result<(), ()> {
+        match self.type_check_internal(names)? {
+            TypeType(_) => Ok(()),
+            _ => Err(())
+        }
+    }
+
     fn type_check_internal(&self, names: &mut HashMap<Sym, LambdayTerm<Sym>>) -> Result<LambdayTerm<Sym>, ()> {
         match self {
             Var(_span, var) => names.get(var).map(|t| Ok(t.clone())).unwrap_or(Err(())),
             TypeType(span, ) => Ok(TypeType(*span)), //TODO inconsistent
             FunType(span, arg_type, body_type) => {
-                //Check if types are well formed
-                let att = arg_type.type_check_internal(names)?;
-                if !att.is_type_type() { return Err(()) }
-                let abt = body_type.type_check_internal(names)?;
-                if !abt.is_type_type() { return Err(()); }
-
-                //Type of type
+                arg_type.check_is_type(names)?;
+                body_type.check_is_type(names)?;
                 Ok(TypeType(*span))
             }
             FunConstr(span, sym, arg_type, body) => {
-                //Check if types are well formed
-                let att = arg_type.type_check_internal(names)?;
-                if !att.is_type_type() { return Err(()); }
+                arg_type.check_is_type(names)?;
 
                 //Calc body type
                 names.insert(sym.clone(), (**arg_type).clone());
@@ -85,8 +85,7 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
             }
             ProdType(span, subs) => {
                 for sub in subs {
-                    let sub_type = sub.type_check()?;
-                    if !sub_type.is_type_type() { return Err(()); }
+                    sub.check_is_type(names)?;
                 }
                 Ok(TypeType(*span))
             }
@@ -114,8 +113,7 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
             }
             SumType(span, subs) => {
                 for sub in subs {
-                    let sub_type = sub.type_check()?;
-                    if !sub_type.is_type_type() { return Err(()); }
+                    sub.check_is_type(names)?;
                 }
                 Ok(TypeType(*span))
             }
