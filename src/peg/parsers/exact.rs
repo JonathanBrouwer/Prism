@@ -1,4 +1,4 @@
-use crate::{Parser, ParseSuccess};
+use crate::{parse_error_combine_opt2, Parser, ParseSuccess};
 use crate::jonla::jerror::{JError, JErrorEntry};
 use crate::peg::input::Input;
 
@@ -13,11 +13,11 @@ pub fn exact<I: Input>(
         for elem in &elems {
             let res = pos.next()?;
             if res.result != *elem {
-                return Err(JError { errors: vec![JErrorEntry::UnexpectedString((startpos.pos(), startpos.pos() + elems.len()), elem.to_string())], pos })
+                return Err((JError { errors: vec![JErrorEntry::UnexpectedString((startpos.pos(), startpos.pos() + elems.len()), elem.to_string())]}, pos.pos()))
             }
             result.push(res.result);
             pos = res.pos;
-            best_error = JError::parse_error_combine_opt2(best_error, res.best_error);
+            best_error = parse_error_combine_opt2(best_error, res.best_error);
         }
 
         Ok(ParseSuccess { result, best_error, pos })
@@ -31,7 +31,7 @@ pub fn exact_str<I: Input<InputElement=char>>(
         match exact(str.chars().collect()).parse(startpos).map(|ok| ok.map(|r| r.into_iter().collect())) {
             Ok(ok) => Ok(ok),
             Err(err) => {
-                return Err(JError { errors: vec![JErrorEntry::UnexpectedStr((startpos.pos(), startpos.pos() + str.len()), str)], pos: err.pos })
+                return Err((JError { errors: vec![JErrorEntry::UnexpectedStr((startpos.pos(), startpos.pos() + str.len()), str)]}, err.1))
             }
         }
     }

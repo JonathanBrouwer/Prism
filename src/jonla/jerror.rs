@@ -7,9 +7,8 @@ use crate::peg::input::Input;
 pub type Span = (usize, usize);
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct JError<I: Input> {
-    pub errors: Vec<JErrorEntry>,
-    pub pos: I,
+pub struct JError {
+    pub errors: Vec<JErrorEntry>
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -18,6 +17,7 @@ pub enum JErrorEntry {
     UnexpectedChar(Span, char),
     UnexpectedStr(Span, &'static str),
     UnexpectedString(Span, String),
+    NameUndefined(Span)
 }
 
 impl JErrorEntry {
@@ -27,6 +27,7 @@ impl JErrorEntry {
             JErrorEntry::UnexpectedChar(_, _) => "Parsing error",
             JErrorEntry::UnexpectedStr(_, _) => "Parsing error",
             JErrorEntry::UnexpectedString(_, _) => "Parsing error",
+            JErrorEntry::NameUndefined(_) => "Name error",
         }.to_string()
     }
     pub fn severity(&self) -> Severity {
@@ -38,6 +39,7 @@ impl JErrorEntry {
             JErrorEntry::UnexpectedChar(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
             JErrorEntry::UnexpectedStr(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
             JErrorEntry::UnexpectedString(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
+            JErrorEntry::NameUndefined(span) => vec![JErrorLabel{ msg: Some(format!("This name is undefined.")), span: *span }],
         }
     }
 }
@@ -48,40 +50,8 @@ pub struct JErrorLabel {
     pub span: Span,
 }
 
-
-
-impl<I: Input> JError<I> {
-    pub(crate) fn parse_error_combine_opt2(e1: Option<JError<I>>, e2: Option<JError<I>>) -> Option<JError<I>> {
-        match (e1, e2) {
-            (Some(e1), Some(e2)) => Some(e1.combine_or(e2)),
-            (Some(e1), None) => Some(e1),
-            (None, Some(e2)) => Some(e2),
-            (None, None) => None,
-        }
-    }
-
-    pub(crate) fn parse_error_combine_opt1(e1: JError<I>, e2: Option<JError<I>>) -> JError<I> {
-        match e2 {
-            Some(e2) => e1.combine_or(e2),
-            None => e1
-        }
-    }
-
-    pub fn combine_or(mut self, mut other: Self) -> Self {
-        match self.pos.pos().cmp(&other.pos.pos()) {
-            Ordering::Less => other,
-            Ordering::Greater => self,
-            Ordering::Equal => {
-                self.errors.append(&mut other.errors);
-                self
-            }
-        }
-    }
-}
-
-impl<I: Input> Display for JError<I> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut src = self.pos.src_str().to_string();
+impl JError {
+    pub fn print(&self, mut src: String) {
         src += " "; //Allow to point to EOF
         for error in &self.errors {
             let diag = ParseDiagnostic { src: &src, msg: error.message(), severity: error.severity(), labels: error.labels() };
@@ -90,9 +60,8 @@ impl<I: Input> Display for JError<I> {
                 .with_links(true)
                 .render_report(&mut s, &diag)
                 .unwrap();
-            write!(f, "{}", s)?;
+            print!("{}", s);
         }
-        Ok(())
     }
 }
 
