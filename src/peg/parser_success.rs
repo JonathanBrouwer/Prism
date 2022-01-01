@@ -1,17 +1,16 @@
 use std::cmp::Ordering;
 use std::fmt::{Debug};
-use crate::peg::input::Input;
 use crate::jonla::jerror::JError;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct ParseSuccess<I: Input, O> {
+pub struct ParseSuccess<O> {
     pub result: O,
     pub best_error: Option<ParseError>,
-    pub pos: I,
+    pub pos: usize,
 }
 
-impl<I: Input, O> ParseSuccess<I, O> {
-    pub fn map<F, ON>(self, mapfn: F) -> ParseSuccess<I, ON> where F: Fn(O) -> ON {
+impl<O> ParseSuccess<O> {
+    pub fn map<F, ON>(self, mapfn: F) -> ParseSuccess<ON> where F: Fn(O) -> ON {
         ParseSuccess { result: mapfn(self.result), best_error: self.best_error, pos: self.pos }
     }
 }

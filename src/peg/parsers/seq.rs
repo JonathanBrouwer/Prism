@@ -1,16 +1,16 @@
 use crate::{Parser, ParseSuccess};
-use crate::peg::input::Input;
 use crate::peg::parsers::ignore_whitespace::ignore_whitespace;
 use crate::ParseError;
 use crate::parse_error_combine_opt2;
+use crate::peg::input::InputNew;
 
 macro_rules! generate_seq (
     ($fname:ident $($vr:ident $ok:ident $tp:ident)*) => {
         #[allow(unused_parens)]
         #[allow(unused_mut)]
-        pub fn $fname<I: Input<InputElement=IE>, IE, $($tp),*>($($vr: impl Parser<I, $tp>),*)
-            -> impl Parser<I, ($($tp),*)> {
-            move |mut pos: I| {
+        pub fn $fname<'a, $($tp: 'a),*>($($vr: impl 'a + Parser<'a, $tp>),*)
+            -> impl Parser<'a, ($($tp),*)> {
+            move |mut pos: InputNew<'a>| {
                 let mut best_error: Option<ParseError> = None;
 
                 generate_seq!(__inner pos best_error : $($vr $ok)*);
@@ -18,7 +18,7 @@ macro_rules! generate_seq (
                 Ok(ParseSuccess {
                   result: ($($ok.result),*),
                   best_error,
-                  pos
+                  pos: pos.pos
                 })
             }
         }
@@ -26,7 +26,7 @@ macro_rules! generate_seq (
     (__inner $pos:ident $best_error:ident : ) => {};
     (__inner $pos:ident $best_error:ident : $vr0:ident $ok0:ident $($vr:ident $ok:ident)*) => {
         let $ok0 = $vr0.parse($pos)?;
-        $pos = $ok0.pos;
+        $pos.pos = $ok0.pos;
         $best_error = parse_error_combine_opt2($best_error, $ok0.best_error);
 
         generate_seq!(__inner $pos $best_error : $($vr $ok)*);
@@ -37,8 +37,8 @@ macro_rules! generate_seq_ws {
     ($fname:ident $fname2:ident ::: $($vr: ident $tp: ident)*) => {
         #[allow(unused_parens)]
         #[allow(unused_mut)]
-        pub fn $fname2<I: Input<InputElement=char>, $($tp),*>($($vr: impl Parser<I, $tp>),*)
-            -> impl Parser<I, ($($tp),*)> {
+        pub fn $fname2<'a, $($tp: 'a),*>($($vr: impl 'a + Parser<'a, $tp>),*)
+            -> impl Parser<'a, ($($tp),*)> {
             $fname($(ignore_whitespace($vr)),*)
         }
     }

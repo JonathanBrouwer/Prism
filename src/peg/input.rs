@@ -1,43 +1,24 @@
-use std::fmt::{Debug, Display};
-use miette::Severity;
-use crate::jonla::jerror::{JError, JErrorEntry, JErrorLabel};
+use std::fmt::{Debug};
+use crate::jonla::jerror::{JError, JErrorEntry};
 use crate::{ParseError, ParseSuccess};
 
-pub trait Input: Sized + Clone + Copy {
-    type InputElement: Debug + Display + PartialEq + Eq + Clone + Copy;
-
-    fn next(&self) -> Result<ParseSuccess<Self, Self::InputElement>, ParseError>;
-    fn pos(&self) -> usize;
-
-    fn src_str<'a>(&'a self) -> Box<dyn ToString + 'a>;
-    fn src_slice(&self) -> (usize, usize);
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct InputNew<'a> {
+    pub src: &'a str,
+    pub pos: usize
 }
 
-impl Input for (&str, usize) {
-    type InputElement = char;
-
-    fn next(&self) -> Result<ParseSuccess<Self, Self::InputElement>, ParseError> {
-        if self.1 < self.0.len() {
-            let c = self.0[self.1..].chars().next().unwrap();
+impl<'a> InputNew<'a> {
+    pub fn next(&self) -> Result<ParseSuccess<char>, ParseError> {
+        if self.pos < self.src.len() {
+            let c = self.src[self.pos..].chars().next().unwrap();
             Ok(ParseSuccess {
                 result: c,
                 best_error: None,
-                pos: (self.0, self.1 + c.len_utf8())
+                pos: self.pos + c.len_utf8()
             })
         } else {
-            Err((JError { errors: vec![JErrorEntry::UnexpectedEOF((self.clone().pos(), self.clone().pos() + 1))]}, self.1))
+            Err((JError { errors: vec![JErrorEntry::UnexpectedEOF((self.clone().pos, self.clone().pos + 1))]}, self.pos))
         }
-    }
-
-    fn pos(&self) -> usize {
-        self.1
-    }
-
-    fn src_str<'a>(&'a self) -> Box<dyn ToString + 'a> {
-        Box::new(self.0)
-    }
-
-    fn src_slice(&self) -> (usize, usize) {
-        (self.1, 1)
     }
 }

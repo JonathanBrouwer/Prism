@@ -54,7 +54,7 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Span, Sym> {
                 SumDestr(span, t1, t2, t3) =>
                     SumDestr(span, t(t1, meta), t(t2, meta), ts(t3, meta))
             }
-        };
+        }
         let mut meta = Meta {
             new_names: HashMap::new(),
             new_names_rev: HashMap::new(),

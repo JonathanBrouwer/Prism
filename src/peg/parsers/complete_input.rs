@@ -1,12 +1,12 @@
 use crate::{Parser};
-use crate::peg::input::Input;
+use crate::peg::input::{InputNew};
 
-pub fn complete_input<I: Input, O, P: Parser<I, O>>(
+pub fn complete_input<'a, O, P: 'a + Parser<'a, O>>(
     parser: P,
-) -> impl Parser<I, O> {
-    move |pos: I| {
+) -> impl Parser<'a, O> {
+    move |pos: InputNew<'a>| {
         let ok = parser.parse(pos)?;
-        if ok.pos.next().is_err() {
+        if pos.src.len() == ok.pos {
             Ok(ok)
         } else {
             Err(ok.best_error.unwrap())

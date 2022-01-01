@@ -1,29 +1,29 @@
 use crate::lambday::lambday::LambdayTerm;
 use crate::{Parser, ParseSuccess};
 use crate::jonla::jerror::Span;
-use crate::peg::input::Input;
+use crate::peg::input::{InputNew};
 use crate::peg::parsers::alt::alt;
 use crate::peg::parsers::complete_input::complete_input;
 use crate::peg::parsers::exact::*;
 use crate::peg::parsers::repeat_m_n::{repeat_m_n, repeat_m_n_matching};
 use crate::peg::parsers::seq::*;
 
-pub fn parse_jonla_program<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
+pub fn parse_jonla_program<'a>() -> impl Parser<'a, LambdayTerm<Span, String>> {
     complete_input(parse_jonla_term())
 }
 
-pub fn parse_jonla_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
-    move |pos: I| {
+pub fn parse_jonla_term<'a>() -> impl Parser<'a, LambdayTerm<Span, String>> {
+    move |pos: InputNew| {
         let ok = parse_lamday_term().parse(pos)?;
         Ok(ok)
     }
 }
 
-pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
-    move |startpos: I| {
-        let parsers: Vec<Box<dyn Parser<I, LambdayTerm<Span, String>>>> = vec![
+pub fn parse_lamday_term<'a>() -> impl Parser<'a, LambdayTerm<Span, String>> {
+    move |startpos: InputNew<'a>| {
+        let parsers: Vec<Box<dyn Fn(_) -> _>> = vec![
             //Prod type
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew<'a>| {
                 let ok = seq4ws(
                     exact_str("#pt"),
                     exact_str("("),
@@ -33,13 +33,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, types, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdType((pos.pos(), ok.pos.pos()), types),
+                    result: LambdayTerm::ProdType((pos.pos, ok.pos), types),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Prod construct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew<'a>| {
                 let ok = seq7ws(
                     exact_str("#pc"),
                     exact_str("("),
@@ -52,13 +52,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, typ, _, _, vals, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdConstr((pos.pos(), ok.pos.pos()), Box::new(typ), vals),
+                    result: LambdayTerm::ProdConstr((pos.pos, ok.pos), Box::new(typ), vals),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Prod destruct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq5ws(
                     exact_str("#pd"),
                     exact_str("("),
@@ -69,13 +69,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, val, _, num) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::ProdDestr((pos.pos(), ok.pos.pos()), Box::new(val), num),
+                    result: LambdayTerm::ProdDestr((pos.pos, ok.pos), Box::new(val), num),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Sum type
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq4ws(
                     exact_str("#st"),
                     exact_str("("),
@@ -85,13 +85,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, types, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::SumType((pos.pos(), ok.pos.pos()), types),
+                    result: LambdayTerm::SumType((pos.pos, ok.pos), types),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Sum construct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq8ws(
                     exact_str("#sc"),
                     exact_str("("),
@@ -105,13 +105,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, typ, _, num, _, val, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::SumConstr((pos.pos(), ok.pos.pos()), Box::new(typ), num, Box::new(val)),
+                    result: LambdayTerm::SumConstr((pos.pos, ok.pos), Box::new(typ), num, Box::new(val)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Sum destruct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq10ws(
                     exact_str("#sd"),
                     exact_str("("),
@@ -128,7 +128,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
 
                 Ok(ParseSuccess {
                     result: LambdayTerm::SumDestr(
-                        (pos.pos(), ok.pos.pos()),
+                        (pos.pos, ok.pos),
                         Box::new(val),
                         Box::new(rt),
                         opts
@@ -138,7 +138,7 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 })
             }),
             //Fun type
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq6ws(
                     exact_str("#ft"),
                     exact_str("("),
@@ -150,13 +150,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, t2, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunType((pos.pos(), ok.pos.pos()), Box::new(t1), Box::new(t2)),
+                    result: LambdayTerm::FunType((pos.pos, ok.pos), Box::new(t1), Box::new(t2)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Fun construct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq9ws(
                     exact_str("#fc"),
                     exact_str("("),
@@ -171,13 +171,13 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, t2, _, _, t3, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunConstr((pos.pos(), ok.pos.pos()), t1, Box::new(t2), Box::new(t3)),
+                    result: LambdayTerm::FunConstr((pos.pos, ok.pos), t1, Box::new(t2), Box::new(t3)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Fun destruct
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq7ws(
                     exact_str("#fd"),
                     exact_str("("),
@@ -190,33 +190,33 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
                 let (_, _, t1, _, _, t2, _) = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::FunDestr((pos.pos(), ok.pos.pos()), Box::new(t1), Box::new(t2)),
+                    result: LambdayTerm::FunDestr((pos.pos, ok.pos), Box::new(t1), Box::new(t2)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Type type
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq1ws(
                     exact_str("#tt")
                 ).parse(pos)?;
                 let _ = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::TypeType((pos.pos(), ok.pos.pos())),
+                    result: LambdayTerm::TypeType((pos.pos, ok.pos)),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
             }),
             //Var
-            Box::new(|pos: I| {
+            Box::new(|pos: InputNew| {
                 let ok = seq1ws(
                     parse_name()
                 ).parse(pos)?;
                 let name = ok.result;
 
                 Ok(ParseSuccess {
-                    result: LambdayTerm::Var((pos.pos(), ok.pos.pos()), name),
+                    result: LambdayTerm::Var((pos.pos, ok.pos), name),
                     best_error: ok.best_error,
                     pos: ok.pos
                 })
@@ -226,8 +226,8 @@ pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, Lambda
     }
 }
 
-pub fn parse_name<I: Input<InputElement=char>>() -> impl Parser<I, String> {
-    move |pos: I| {
+pub fn parse_name<'a>() -> impl Parser<'a, String> {
+    move |pos: InputNew| {
         repeat_m_n_matching(
             "name".to_string(),
             Box::new(|c: char| c.is_alphabetic()),
@@ -236,8 +236,8 @@ pub fn parse_name<I: Input<InputElement=char>>() -> impl Parser<I, String> {
     }
 }
 
-pub fn parse_usize<I: Input<InputElement=char>>() -> impl Parser<I, usize> {
-    move |pos: I| {
+pub fn parse_usize<'a>() -> impl Parser<'a, usize> {
+    move |pos: InputNew| {
         repeat_m_n_matching(
             "number".to_string(),
             Box::new(|c: char| c.is_ascii_digit()),

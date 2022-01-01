@@ -1,13 +1,13 @@
 use crate::{Parser};
-use crate::peg::input::Input;
+use crate::peg::input::{InputNew};
 
-pub fn ignore_whitespace<I: Input<InputElement=char>, O, P: Parser<I, O>>(
+pub fn ignore_whitespace<'a, O, P: 'a + Parser<'a, O>>(
     parser: P,
-) -> impl Parser<I, O> {
-    move |mut pos: I| {
+) -> impl Parser<'a, O> {
+    move |mut pos: InputNew<'a>| {
         while let Ok(ok) = pos.next() {
             if ok.result.is_whitespace() {
-                pos = ok.pos;
+                pos.pos = ok.pos;
             } else {
                 break;
             }

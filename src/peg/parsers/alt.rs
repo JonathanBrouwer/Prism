@@ -1,11 +1,10 @@
 use crate::{parse_error_combine_opt1, parse_error_combine_opt2, Parser, ParseSuccess};
-use crate::jonla::jerror::JError;
-use crate::peg::input::Input;
+use crate::peg::input::{InputNew};
 
-pub fn alt<I: Input, O, P: Parser<I, O>>(
+pub fn alt<'a, O, P: 'a + Parser<'a, O>>(
     parsers: Vec<P>
-) -> impl Parser<I, O> {
-    move |pos: I| {
+) -> impl Parser<'a, O> {
+    move |pos: InputNew<'a>| {
         let mut best_error = None;
         for parser in &parsers {
             match parser.parse(pos.clone()) {

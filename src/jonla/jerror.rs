@@ -1,8 +1,7 @@
-use std::cmp::{min, Ordering};
+use std::cmp::{min};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCode};
-use crate::peg::input::Input;
 
 pub type Span = (usize, usize);
 

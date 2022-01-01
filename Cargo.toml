@@ -7,3 +7,4 @@ edition = "2021"
 miette = { version = "3.2.0", features = ["fancy"] }
 #thiserror = "1.0.30"
 itertools = "0.10.3"
+#nom = "7.1.0"
