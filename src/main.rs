@@ -26,6 +26,7 @@ fn main() {
             return
         }
     };
+    println!("{:?}", name_checked)
 
 
 

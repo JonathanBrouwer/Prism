@@ -1,5 +1,6 @@
 use crate::lambday::lambday::LambdayTerm;
 use crate::{Parser, ParseSuccess};
+use crate::jonla::jerror::Span;
 use crate::peg::input::Input;
 use crate::peg::parsers::alt::alt;
 use crate::peg::parsers::complete_input::complete_input;
@@ -7,20 +8,20 @@ use crate::peg::parsers::exact::*;
 use crate::peg::parsers::repeat_m_n::{repeat_m_n, repeat_m_n_matching};
 use crate::peg::parsers::seq::*;
 
-pub fn parse_jonla_program<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {
+pub fn parse_jonla_program<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
     complete_input(parse_jonla_term())
 }
 
-pub fn parse_jonla_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {
+pub fn parse_jonla_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
     move |pos: I| {
         let ok = parse_lamday_term().parse(pos)?;
         Ok(ok)
     }
 }
 
-pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {
+pub fn parse_lamday_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<Span, String>> {
     move |startpos: I| {
-        let parsers: Vec<Box<dyn Parser<I, LambdayTerm<String>>>> = vec![
+        let parsers: Vec<Box<dyn Parser<I, LambdayTerm<Span, String>>>> = vec![
             //Prod type
             Box::new(|pos: I| {
                 let ok = seq4ws(

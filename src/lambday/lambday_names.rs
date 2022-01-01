@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 use std::hash::Hash;
-use crate::jonla::jerror::{JError, JErrorEntry};
+use crate::jonla::jerror::{JError, JErrorEntry, Span};
 use crate::lambday::lambday::LambdayTerm;
 use crate::lambday::lambday::LambdayTerm::*;
 
-impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
-    pub fn transform_names(self) -> Result<(LambdayTerm<usize>, HashMap<usize, Sym>), JError> {
+impl<Sym: Eq + Hash + Clone> LambdayTerm<Span, Sym> {
+    pub fn transform_names(self) -> Result<(LambdayTerm<Span, usize>, HashMap<usize, Sym>), JError> {
         struct Meta<Sym: Eq + Hash + Clone> {
             new_names: HashMap<usize, Sym>,
             new_names_rev: HashMap<Sym, usize>,
             errors: Vec<JErrorEntry>
         }
-        fn transform_sub<Sym: Eq + Hash + Clone>(term: LambdayTerm<Sym>, meta: &mut Meta<Sym>) -> LambdayTerm<usize> {
-            let t = |l: Box<LambdayTerm<Sym>>, meta: &mut Meta<Sym>|
+        fn transform_sub<Sym: Eq + Hash + Clone>(term: LambdayTerm<Span, Sym>, meta: &mut Meta<Sym>) -> LambdayTerm<Span, usize> {
+            let t = |l: Box<LambdayTerm<Span, Sym>>, meta: &mut Meta<Sym>|
                 box transform_sub(*l, meta);
-            let ts = |l: Vec<LambdayTerm<Sym>>, meta: &mut Meta<Sym>|
+            let ts = |l: Vec<LambdayTerm<Span, Sym>>, meta: &mut Meta<Sym>|
                 l.into_iter().map(|v| transform_sub(v, meta)).collect();
             match term {
                 FunConstr(span, t1, t2, t3) => {

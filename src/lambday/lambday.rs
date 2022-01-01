@@ -1,23 +1,21 @@
 use std::hash::Hash;
-use crate::jonla::jerror::Span;
-use crate::lambday::lambday::LambdayTerm::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub enum LambdayTerm<Sym: Eq + Hash + Clone> {
-    Var(Span, Sym),
-    TypeType(Span),
+pub enum LambdayTerm<M, Sym: Eq + Hash + Clone> {
+    Var(M, Sym),
+    TypeType(M),
 
-    FunType(Span, Box<Self>, Box<Self>),
-    FunConstr(Span, Sym, Box<Self>, Box<Self>),
-    FunDestr(Span, Box<Self>, Box<Self>),
+    FunType(M, Box<Self>, Box<Self>),
+    FunConstr(M, Sym, Box<Self>, Box<Self>),
+    FunDestr(M, Box<Self>, Box<Self>),
 
-    ProdType(Span, Vec<Self>),
-    ProdConstr(Span, Box<Self>, Vec<Self>),
-    ProdDestr(Span, Box<Self>, usize),
+    ProdType(M, Vec<Self>),
+    ProdConstr(M, Box<Self>, Vec<Self>),
+    ProdDestr(M, Box<Self>, usize),
 
-    SumType(Span, Vec<Self>),
-    SumConstr(Span, Box<Self>, usize, Box<Self>),
-    SumDestr(Span, Box<Self>, Box<Self>, Vec<Self>)
+    SumType(M, Vec<Self>),
+    SumConstr(M, Box<Self>, usize, Box<Self>),
+    SumDestr(M, Box<Self>, Box<Self>, Vec<Self>)
 }
 
 // impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {

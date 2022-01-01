@@ -1,7 +1,5 @@
 use std::cmp::Ordering;
-use std::error::Error;
-use std::fmt::{Debug, Display, Formatter};
-use miette::{Diagnostic, GraphicalReportHandler, LabeledSpan, Severity, SourceCode};
+use std::fmt::{Debug};
 use crate::peg::input::Input;
 use crate::jonla::jerror::JError;
 
