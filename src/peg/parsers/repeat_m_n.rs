@@ -1,5 +1,5 @@
 use crate::{parse_error_combine_opt1, parse_error_combine_opt2, Parser, ParseSuccess};
-use crate::peg::input::InputNew;
+use crate::peg::input::Input;
 use crate::peg::parsers::take_matching::take_matching;
 
 pub fn repeat_m_n<'a, O, P: 'a + Parser<'a, O>>(
@@ -7,7 +7,7 @@ pub fn repeat_m_n<'a, O, P: 'a + Parser<'a, O>>(
     min_count: usize,
     max_count: usize
 ) -> impl Parser<'a, Vec<O>> {
-    move |mut pos: InputNew<'a>| {
+    move |mut pos: Input<'a>| {
         let mut result = vec![];
         let mut best_error = None;
 

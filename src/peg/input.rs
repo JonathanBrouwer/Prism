@@ -3,12 +3,12 @@ use crate::jonla::jerror::{JError, JErrorEntry};
 use crate::{ParseError, ParseSuccess};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct InputNew<'a> {
+pub struct Input<'a> {
     pub src: &'a str,
     pub pos: usize
 }
 
-impl<'a> InputNew<'a> {
+impl<'a> Input<'a> {
     pub fn next(&self) -> Result<ParseSuccess<char>, ParseError> {
         if self.pos < self.src.len() {
             let c = self.src[self.pos..].chars().next().unwrap();

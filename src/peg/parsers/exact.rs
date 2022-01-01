@@ -1,11 +1,11 @@
 use crate::{Parser, ParseSuccess};
 use crate::jonla::jerror::{JError, JErrorEntry};
-use crate::peg::input::InputNew;
+use crate::peg::input::Input;
 
 pub fn exact_str<'a>(
     str: &'static str
 ) -> impl Parser<'a, ()> {
-    move |startpos: InputNew<'a>| {
+    move |startpos: Input<'a>| {
         if startpos.src[startpos.pos..].starts_with(str) {
             Ok(ParseSuccess {
                 result: (),

@@ -21,8 +21,13 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Span, Sym> {
                     let t2 = t(t2, meta);
                     let id = meta.new_names.len();
                     meta.new_names.insert(id, t1.clone());
-                    meta.new_names_rev.insert(t1, id);
-                    FunConstr(span, id, t2, t(t3, meta))
+                    let old = meta.new_names_rev.get(&t1).map(|n| *n);
+                    meta.new_names_rev.insert(t1.clone(), id);
+                    let t3 = t(t3, meta);
+                    if old.is_some() { meta.new_names_rev.insert(t1, old.unwrap()); }
+                    else { meta.new_names_rev.remove(&t1); }
+
+                    FunConstr(span, id, t2, t3)
                 }
                 Var(span, name) => {
                     match meta.new_names_rev.get(&name) {

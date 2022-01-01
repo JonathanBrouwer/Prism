@@ -2,7 +2,7 @@ use crate::{Parser, ParseSuccess};
 use crate::peg::parsers::ignore_whitespace::ignore_whitespace;
 use crate::ParseError;
 use crate::parse_error_combine_opt2;
-use crate::peg::input::InputNew;
+use crate::peg::input::Input;
 
 macro_rules! generate_seq (
     ($fname:ident $($vr:ident $ok:ident $tp:ident)*) => {
@@ -10,7 +10,7 @@ macro_rules! generate_seq (
         #[allow(unused_mut)]
         pub fn $fname<'a, $($tp: 'a),*>($($vr: impl 'a + Parser<'a, $tp>),*)
             -> impl Parser<'a, ($($tp),*)> {
-            move |mut pos: InputNew<'a>| {
+            move |mut pos: Input<'a>| {
                 let mut best_error: Option<ParseError> = None;
 
                 generate_seq!(__inner pos best_error : $($vr $ok)*);

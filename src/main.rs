@@ -6,14 +6,14 @@ mod lambday;
 mod jonla;
 
 use crate::jonla::jonla::parse_jonla_program;
-use crate::peg::input::InputNew;
+use crate::peg::input::Input;
 // use crate::jonla::jonla::{parse_jonla_program};
 use crate::peg::parser::*;
 use crate::peg::parser_success::*;
 
 fn main() {
     let input = include_str!("../resources/example.jnl");
-    let parsed = match parse_jonla_program().parse(InputNew{ src: input, pos: 0 }) {
+    let parsed = match parse_jonla_program().parse(Input { src: input, pos: 0 }) {
         Ok(ok) => ok,
         Err(err) => {
             err.0.print(input.to_string());
