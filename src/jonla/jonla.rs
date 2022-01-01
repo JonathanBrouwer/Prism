@@ -7,8 +7,8 @@ use crate::peg::parsers::exact::*;
 use crate::peg::parsers::repeat_m_n::{repeat_m_n, repeat_m_n_matching};
 use crate::peg::parsers::seq::*;
 
-pub fn parse_jonla_program<I: Input<InputElement=char>>() -> impl Parser<I, Vec<LambdayTerm<String>>> {
-    complete_input(repeat_m_n(parse_jonla_term(), 0, usize::MAX))
+pub fn parse_jonla_program<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {
+    complete_input(parse_jonla_term())
 }
 
 pub fn parse_jonla_term<I: Input<InputElement=char>>() -> impl Parser<I, LambdayTerm<String>> {

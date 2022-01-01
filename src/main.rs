@@ -19,6 +19,13 @@ fn main() {
             return
         }
     };
+    let name_checked = match parsed.result.transform_names() {
+        Ok(ok) => ok,
+        Err(err) => {
+            err.print(input.to_string());
+            return
+        }
+    };
 
 
 
