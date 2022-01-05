@@ -1,4 +1,5 @@
 use std::hash::Hash;
+use crate::lambday::lambday::LambdayTerm::*;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum LambdayTerm<M, Sym: Eq + Hash + Clone> {
@@ -15,7 +16,25 @@ pub enum LambdayTerm<M, Sym: Eq + Hash + Clone> {
 
     SumType(M, Vec<Self>),
     SumConstr(M, Box<Self>, usize, Box<Self>),
-    SumDestr(M, Box<Self>, Box<Self>, Vec<Self>)
+    SumDestr(M, Box<Self>, Box<Self>, Vec<Self>),
+}
+
+impl<M, Sym: Eq+Hash+Clone> LambdayTerm<M, Sym> {
+    pub fn meta(&self) -> &M {
+        match self {
+            Var(span, _) => span,
+            TypeType(span) =>  span,
+            FunType(span, _, _) =>  span,
+            FunConstr(span, _, _, _) => span,
+            FunDestr(span, _, _) =>  span,
+            ProdType(span, _) =>  span,
+            ProdConstr(span, _, _) =>  span,
+            ProdDestr(span, _, _) =>  span,
+            SumType(span, _) => span,
+            SumConstr(span, _, _, _) => span,
+            SumDestr(span, _, _, _) => span,
+        }
+    }
 }
 
 // impl<Sym: Eq + Hash + Clone> LambdayTerm<Sym> {
@@ -117,7 +136,7 @@ pub enum LambdayTerm<M, Sym: Eq + Hash + Clone> {
 //                 match typ.normalize_head() {
 //                     SumType(_, subs) => {
 //                         if *num >= subs.len() { return Err(()) }
-//                         if !(val.type_check()?).type_eq(&*subs[*num]) { return Err(()) }
+//                         if !(val.type_check()?).t_eq(&*subs[*num]) { return Err(()) }
 //                         return Ok((**typ).clone())
 //                     }
 //                     _ => Err(())

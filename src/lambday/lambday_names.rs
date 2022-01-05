@@ -57,7 +57,7 @@ impl<Sym: Eq + Hash + Clone> LambdayTerm<Span, Sym> {
                 SumConstr(span, t1, t2, t3) =>
                     SumConstr(span, t(t1, meta), t2, t(t3, meta)),
                 SumDestr(span, t1, t2, t3) =>
-                    SumDestr(span, t(t1, meta), t(t2, meta), ts(t3, meta))
+                    SumDestr(span, t(t1, meta), t(t2, meta), ts(t3, meta)),
             }
         }
         let mut meta = Meta {

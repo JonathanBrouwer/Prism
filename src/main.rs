@@ -27,7 +27,14 @@ fn main() {
             return
         }
     };
-    println!("{:?}", name_checked)
+    let type_checked = match name_checked.0.type_check() {
+        Ok(ok) => ok,
+        Err(err) => {
+            err.print(input.to_string());
+            return
+        }
+    };
+    println!("{:?}", type_checked)
 
 
 

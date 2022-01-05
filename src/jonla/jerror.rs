@@ -16,7 +16,14 @@ pub enum JErrorEntry {
     UnexpectedChar(Span, char),
     UnexpectedStr(Span, &'static str),
     UnexpectedString(Span, String),
-    NameUndefined(Span)
+    NameUndefined(Span),
+    TypeExpectType(Span),
+    TypeExpectFunc(Span),
+    TypeExpectProd(Span),
+    TypeWrongArgumentCount(Span, usize, usize),
+    TypeInvalidNumber(Span),
+    TypeExpectSum(Span),
+
 }
 
 impl JErrorEntry {
@@ -27,6 +34,12 @@ impl JErrorEntry {
             JErrorEntry::UnexpectedStr(_, _) => "Parsing error",
             JErrorEntry::UnexpectedString(_, _) => "Parsing error",
             JErrorEntry::NameUndefined(_) => "Name error",
+            JErrorEntry::TypeExpectType(_) => "Type error",
+            JErrorEntry::TypeExpectFunc(_) => "Type error",
+            JErrorEntry::TypeExpectProd(_) => "Type error",
+            JErrorEntry::TypeWrongArgumentCount(_, _, _) => "Type error",
+            JErrorEntry::TypeInvalidNumber(_) => "Type error",
+            JErrorEntry::TypeExpectSum(_) => "Type error",
         }.to_string()
     }
     pub fn severity(&self) -> Severity {
@@ -39,6 +52,12 @@ impl JErrorEntry {
             JErrorEntry::UnexpectedStr(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
             JErrorEntry::UnexpectedString(span, msg) => vec![JErrorLabel{ msg: Some(format!("Expected {} here.", msg)), span: *span }],
             JErrorEntry::NameUndefined(span) => vec![JErrorLabel{ msg: Some(format!("This name is undefined.")), span: *span }],
+            JErrorEntry::TypeExpectType(span) => vec![JErrorLabel{ msg: Some(format!("This must be a type.")), span: *span }],
+            JErrorEntry::TypeExpectFunc(span) => vec![JErrorLabel{ msg: Some(format!("This must be a function.")), span: *span }],
+            JErrorEntry::TypeExpectProd(span) => vec![JErrorLabel{ msg: Some(format!("This must be a product type.")), span: *span }],
+            JErrorEntry::TypeWrongArgumentCount(span, exp, got) => vec![JErrorLabel{ msg: Some(format!("Expected {} arguments, but found {}.", exp, got)), span: *span }],
+            JErrorEntry::TypeInvalidNumber(span) => vec![JErrorLabel{ msg: Some(format!("This number does not exist.")), span: *span }],
+            JErrorEntry::TypeExpectSum(span) => vec![JErrorLabel{ msg: Some(format!("This must be a sum type.")), span: *span }],
         }
     }
 }
