@@ -23,7 +23,7 @@ pub enum JErrorEntry {
     TypeWrongArgumentCount(Span, usize, usize),
     TypeInvalidNumber(Span),
     TypeExpectSum(Span),
-
+    TypeExprHasType(Span, Span),
 }
 
 impl JErrorEntry {
@@ -40,6 +40,7 @@ impl JErrorEntry {
             JErrorEntry::TypeWrongArgumentCount(_, _, _) => "Type error",
             JErrorEntry::TypeInvalidNumber(_) => "Type error",
             JErrorEntry::TypeExpectSum(_) => "Type error",
+            JErrorEntry::TypeExprHasType(_, _) => "Type error",
         }.to_string()
     }
     pub fn severity(&self) -> Severity {
@@ -58,6 +59,10 @@ impl JErrorEntry {
             JErrorEntry::TypeWrongArgumentCount(span, exp, got) => vec![JErrorLabel{ msg: Some(format!("Expected {} arguments, but found {}.", exp, got)), span: *span }],
             JErrorEntry::TypeInvalidNumber(span) => vec![JErrorLabel{ msg: Some(format!("This number does not exist.")), span: *span }],
             JErrorEntry::TypeExpectSum(span) => vec![JErrorLabel{ msg: Some(format!("This must be a sum type.")), span: *span }],
+            JErrorEntry::TypeExprHasType(sa, sb) => vec![
+                JErrorLabel{ msg: Some(format!("Expected the type of this... ")), span: *sa },
+                JErrorLabel{ msg: Some(format!("... to be equal to this type ")), span: *sb },
+            ]
         }
     }
 }

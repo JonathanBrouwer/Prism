@@ -32,8 +32,8 @@ impl LambdayTerm<Span, usize> {
             FunType(span, arg_type, body_type) => {
                 let arg_type: LambdayTerm<TypeCheckMeta, usize> = arg_type.type_check_inner(names, errors);
                 let body_type: LambdayTerm<TypeCheckMeta, usize> = body_type.type_check_inner(names, errors);
-                if let Some(t) = &arg_type.meta().typ { t.check_is_type_type(names, errors); }
-                if let Some(t) = &body_type.meta().typ { t.check_is_type_type(names, errors); }
+                arg_type.check_is_type(names, errors);
+                body_type.check_is_type(names, errors);
 
                 FunType(TypeCheckMeta { span, typ: Some(TypeType(span)) }, box arg_type, box body_type)
             }
@@ -41,7 +41,7 @@ impl LambdayTerm<Span, usize> {
                 let arg_type_checked: LambdayTerm<TypeCheckMeta, usize> = arg_type.clone().type_check_inner(names, errors);
 
                 //Calc body type
-                if arg_type_checked.meta().typ.is_some() && arg_type_checked.meta().typ.as_ref().unwrap().check_is_type_type(names, errors) {
+                if arg_type_checked.check_is_type(names, errors) {
                     names.insert(sym, Some((*arg_type).clone()));
                 } else {
                     names.insert(sym, None);
@@ -65,7 +65,7 @@ impl LambdayTerm<Span, usize> {
                     return FunDestr(TypeCheckMeta { span, typ: None }, box fun, box arg);
                 }
                 return if let FunType(_, fun_arg_type, fun_body_type) = fun.meta().typ.clone().unwrap().normalize_head() {
-                    arg.meta().typ.as_ref().unwrap().check_is_type_eq_to(fun_arg_type.as_ref(), names, errors);
+                    arg.check_has_type(fun_arg_type.as_ref(), names, errors);
 
                     let typ: LambdayTerm<Span, usize> = *fun_body_type;
                     FunDestr(TypeCheckMeta { span, typ: Some(typ) }, box fun, box arg)
@@ -77,7 +77,7 @@ impl LambdayTerm<Span, usize> {
             ProdType(span, subtypes) => {
                 let subtypes = subtypes.into_iter().map(|subtype| {
                     let subtype: LambdayTerm<TypeCheckMeta, usize> = subtype.type_check_inner(names, errors);
-                    if let Some(t) = &subtype.meta().typ { t.check_is_type_type(names, errors); }
+                    subtype.check_is_type(names, errors);
                     subtype
                 }).collect();
 
@@ -95,7 +95,7 @@ impl LambdayTerm<Span, usize> {
                             errors.push(JErrorEntry::TypeWrongArgumentCount(span, subtypes.len(), values.len()))
                         } else {
                             for (val, sub) in values.iter().zip_eq(subtypes.iter()) {
-                                if let Some(t) = &val.meta().typ { t.check_is_type_eq_to(&sub, names, errors); }
+                                val.check_has_type(&sub, names, errors);
                             }
                         }
 
@@ -109,7 +109,7 @@ impl LambdayTerm<Span, usize> {
             }
             ProdDestr(span, val, num) => {
                 let val: LambdayTerm<TypeCheckMeta, usize> = val.type_check_inner(names, errors);
-                let typ: Option<LambdayTerm<Span, usize>> = match &val.meta().typ {
+                let typ: Option<LambdayTerm<Span, usize>> = match val.meta().typ.as_ref().map(|t| t.clone().normalize_head()) {
                     Some(ProdType(_, types)) => {
                         if num >= types.len() {
                             errors.push(JErrorEntry::TypeInvalidNumber(span));
@@ -131,7 +131,7 @@ impl LambdayTerm<Span, usize> {
             SumType(span, subtypes) => {
                 let subtypes = subtypes.into_iter().map(|subtype| {
                     let subtype: LambdayTerm<TypeCheckMeta, usize> = subtype.type_check_inner(names, errors);
-                    if let Some(t) = &subtype.meta().typ { t.check_is_type_type(names, errors); }
+                    subtype.check_is_type(names, errors);
                     subtype
                 }).collect();
 
@@ -147,7 +147,7 @@ impl LambdayTerm<Span, usize> {
                         if num >= subs.len() {
                             errors.push(JErrorEntry::TypeInvalidNumber(span))
                         }
-                        if let Some(t) = &val.meta().typ { t.check_is_type_eq_to(&subs[num], names, errors); }
+                        val.check_has_type(&subs[num], names, errors);
                         SumConstr(TypeCheckMeta { span, typ: Some((*typ).clone()) }, box typ_checked, num, box val)
                     }
                     _ => {
@@ -161,18 +161,18 @@ impl LambdayTerm<Span, usize> {
                 let val: LambdayTerm<TypeCheckMeta, usize> = val.type_check_inner(names, errors);
                 let opts: Vec<LambdayTerm<TypeCheckMeta, usize>> = opts.into_iter().map(|v| v.type_check_inner(names, errors)).collect();
 
-                if into_type_checked.meta().typ.is_none() || !into_type_checked.meta().typ.as_ref().unwrap().check_is_type_type(names, errors) {
+                if into_type_checked.meta().typ.is_none() || !into_type_checked.check_is_type(names, errors) {
                     return SumDestr(TypeCheckMeta { span, typ: None }, box val, box into_type_checked, opts);
                 }
 
-                match &val.meta().typ {
+                match val.meta().typ.as_ref().map(|t| t.clone().normalize_head()) {
                     Some(SumType(_, subtypes)) => {
                         if subtypes.len() != opts.len() {
                             errors.push(JErrorEntry::TypeWrongArgumentCount(span, subtypes.len(), opts.len()))
                         } else {
                             for (val, subtype) in opts.iter().zip_eq(subtypes.into_iter()) {
-                                let exp: LambdayTerm<Span, usize> = FunType(*subtype.meta(), box (*subtype).clone(), into_type.clone());
-                                if let Some(t) = &val.meta().typ { t.check_is_type_eq_to(&exp, names, errors); }
+                                let exp: LambdayTerm<Span, usize> = FunType(*subtype.meta(), box subtype.clone(), into_type.clone());
+                                val.check_has_type(&exp, names, errors);
                             }
                         }
 
@@ -187,12 +187,40 @@ impl LambdayTerm<Span, usize> {
         }
     }
 
-    fn check_is_type_eq_to(&self, other: &Self, _names: &mut HashMap<usize, Option<LambdayTerm<Span, usize>>>, errors: &mut Vec<JErrorEntry>) -> bool {
-        true
+    fn is_type_eq(&self, other: &Self, _names: &mut HashMap<usize, Option<LambdayTerm<Span, usize>>>) -> bool {
+        match (self.clone().normalize_head(), other.clone().normalize_head()) {
+            (Var(_, l1), Var(_, l2)) => l1 == l2, //TODO
+            (TypeType(_), TypeType(_)) => true,
+            (FunType(_, a1, b1), FunType(_, a2, b2)) =>
+                a1.is_type_eq(&a2, _names) && b1.is_type_eq(&b2,  _names),
+            (ProdType(_, vs1), ProdType(_, vs2)) => vs1 == vs2,
+            (SumType(_, vs1), SumType(_, vs2)) => vs1 == vs2,
+            (_, _) => false
+        }
+    }
+}
+
+impl LambdayTerm<TypeCheckMeta, usize> {
+    fn check_is_type(&self, _names: &mut HashMap<usize, Option<LambdayTerm<Span, usize>>>, errors: &mut Vec<JErrorEntry>) -> bool {
+        let norm = self.clone().normalize_head();
+        match norm.meta().typ {
+            Some(TypeType(_)) => true,
+            Some(_) => {
+                errors.push(JErrorEntry::TypeExpectType(self.meta().span));
+                false
+            },
+            None => false,
+        }
     }
 
-    fn check_is_type_type(&self, _names: &mut HashMap<usize, Option<LambdayTerm<Span, usize>>>, errors: &mut Vec<JErrorEntry>) -> bool {
-        true
+    fn check_has_type(&self, other: &LambdayTerm<Span, usize>, _names: &mut HashMap<usize, Option<LambdayTerm<Span, usize>>>, errors: &mut Vec<JErrorEntry>) -> bool {
+        if self.meta().typ.is_none() { return false; }
+        if self.meta().typ.as_ref().unwrap().is_type_eq(other, _names) {
+            true
+        } else {
+            errors.push(JErrorEntry::TypeExprHasType(self.meta().span, *other.meta()));
+            false
+        }
     }
 }
 
