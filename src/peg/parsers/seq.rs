@@ -2,6 +2,7 @@ use crate::{Parser, ParseSuccess};
 use crate::peg::parsers::ignore_whitespace::ignore_whitespace;
 use crate::ParseError;
 use crate::parse_error_combine_opt2;
+use crate::parse_error_combine_opt1;
 use crate::peg::input::Input;
 
 macro_rules! generate_seq (
@@ -25,7 +26,12 @@ macro_rules! generate_seq (
     };
     (__inner $pos:ident $best_error:ident : ) => {};
     (__inner $pos:ident $best_error:ident : $vr0:ident $ok0:ident $($vr:ident $ok:ident)*) => {
-        let $ok0 = $vr0.parse($pos)?;
+        let $ok0 = match $vr0.parse($pos) {
+            Ok(ok) => ok,
+            Err(err) => {
+                return Err(parse_error_combine_opt1(err, $best_error))
+            }
+        };
         $pos.pos = $ok0.pos;
         $best_error = parse_error_combine_opt2($best_error, $ok0.best_error);
 
