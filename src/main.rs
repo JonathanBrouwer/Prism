@@ -1,42 +1,22 @@
-#![feature(split_array)]
 #![feature(box_syntax)]
+#![allow(clippy::needless_lifetimes)]
 
-pub mod peg;
-mod lambday;
-mod jonla;
+pub mod beta_eq;
+pub mod env;
+pub mod parser;
+pub mod term;
+pub mod type_check;
 
-use crate::jonla::jonla::parse_jonla_program;
-use crate::peg::input::Input;
-// use crate::jonla::jonla::{parse_jonla_program};
-use crate::peg::parser::*;
-use crate::peg::parser_success::*;
+// use crate::env::{Env, RcEnv};
+// use crate::term::Term;
+// use crate::type_check::type_check;
+// use parser::term_parser;
 
 fn main() {
-    let input = include_str!("../resources/example.jnl");
-    let parsed = match parse_jonla_program().parse(Input { src: input, pos: 0 }) {
-        Ok(ok) => ok,
-        Err(err) => {
-            err.0.print(input.to_string());
-            return
-        }
-    }.result;
-    let name_checked = match parsed.transform_names() {
-        Ok(ok) => ok,
-        Err(err) => {
-            err.print(input.to_string());
-            return
-        }
-    };
-    let type_checked = match name_checked.0.type_check() {
-        Ok(ok) => ok,
-        Err(err) => {
-            err.print(input.to_string());
-            return
-        }
-    };
-    println!("{:?}", type_checked)
-
-
-
+    // let term: Term = term_parser::program(include_str!("../resources/program.dl")).unwrap();
+    // println!("Program:\n{:?}", term);
+    //
+    // let typ = type_check(&term, &Env::empty()).unwrap();
+    // println!("Type: {:?}", typ.0);
+    // println!("Type env: {}", typ.1.debug());
 }
-
