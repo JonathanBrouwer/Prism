@@ -9,3 +9,6 @@ edition = "2021"
 peg = "0.8.0"
 itertools = "0.10.3"
 typed-arena = "2.0.1"
+miette = "4.7.1"
+thiserror = "1.0.31"
+serde = { version = "1.0.137", features = ["derive", "rc"] }

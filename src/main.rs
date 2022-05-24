@@ -6,6 +6,7 @@ pub mod env;
 pub mod parser;
 pub mod term;
 pub mod type_check;
+pub mod core_parser;
 
 // use crate::env::{Env, RcEnv};
 // use crate::term::Term;
