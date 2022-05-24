@@ -1,0 +1,8 @@
+ast Term {
+    Type()
+    Var(name: Input)
+    Let(name: Input, arg_type: Term, arg_value: Term, body: Term)
+    FunType(name: Input, arg_type: Term, body_type: Term)
+    FunConstruct(name: Input, arg_type: Term, body: Term)
+    FunDestruct(func: Term, arg: Term)
+}

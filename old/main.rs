@@ -15,7 +15,7 @@ pub mod type_check;
 // use parser::term_parser;
 
 fn main() {
-    // let term: Term = term_parser::program(include_str!("../resources/program.dl")).unwrap();
+    // let term: Term = term_parser::program(include_str!("../resources/program.jl")).unwrap();
     // println!("Program:\n{:?}", term);
     //
     // let typ = type_check(&term, &Env::empty()).unwrap();

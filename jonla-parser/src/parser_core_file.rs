@@ -1,10 +1,10 @@
-use crate::core_parser::input::Input;
-use crate::core_parser::parse_error::{Expect, PEGParseError};
-use crate::core_parser::parse_result::ParseResult;
-use crate::core_parser::parser_core::{ParserContext, ParserState};
-use crate::core_parser::parser_core_ast::{CoreAst, ParsePairRaw};
-use crate::core_parser::parser_core_expression::parse_expression_name;
-use crate::core_parser::span::Span;
+use crate::input::Input;
+use crate::parse_error::{Expect, PEGParseError};
+use crate::parse_result::ParseResult;
+use crate::parser_core::{ParserContext, ParserState};
+use crate::parser_core_ast::{CoreAst, ParsePairRaw};
+use crate::parser_core_expression::parse_expression_name;
+use crate::span::Span;
 use std::collections::{HashMap, VecDeque};
 
 /// Parses a file, given the syntax to parse it with, and the file.

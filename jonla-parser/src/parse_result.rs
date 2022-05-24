@@ -1,4 +1,4 @@
-use crate::core_parser::input::Input;
+use crate::input::Input;
 
 /// Represents a parser that parsed its value successfully.
 /// It parsed the value of type `O`.

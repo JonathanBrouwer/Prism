@@ -1,7 +1,7 @@
-use crate::core_parser::input::Input;
-use crate::core_parser::parse_error::PEGParseError;
-use crate::core_parser::parse_result::ParseResult;
-use crate::core_parser::parser_core_ast::{CoreAst, ParsePairRaw};
+use crate::input::Input;
+use crate::parse_error::PEGParseError;
+use crate::parse_result::ParseResult;
+use crate::parser_core_ast::{CoreAst, ParsePairRaw};
 use std::collections::{HashMap, VecDeque};
 
 /// This stores the immutable data that is used during the parsing process.

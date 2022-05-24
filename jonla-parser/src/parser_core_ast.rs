@@ -1,5 +1,5 @@
-use crate::core_parser::character_class::CharacterClass;
-use crate::core_parser::span::Span;
+use crate::character_class::CharacterClass;
+use crate::span::Span;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]

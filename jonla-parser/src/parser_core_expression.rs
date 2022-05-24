@@ -1,11 +1,11 @@
 #![allow(clippy::result_unit_err)]
 
-use crate::core_parser::input::Input;
-use crate::core_parser::parse_error::{PEGParseError};
-use crate::core_parser::parse_result::ParseResult;
-use crate::core_parser::parser_core::{ParserContext, ParserState};
-use crate::core_parser::parser_core_ast::{CoreExpression, ParsePairRaw};
-use crate::core_parser::span::Span;
+use crate::input::Input;
+use crate::parse_error::{PEGParseError};
+use crate::parse_result::ParseResult;
+use crate::parser_core::{ParserContext, ParserState};
+use crate::parser_core_ast::{CoreExpression, ParsePairRaw};
+use crate::span::Span;
 
 /// Given an expression and the current position, attempts to parse this constructor.
 pub fn parse_expression_name<'src>(

@@ -1,4 +1,4 @@
-use crate::core_parser::span::Span;
+use crate::span::Span;
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 

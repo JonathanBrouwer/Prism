@@ -144,7 +144,7 @@ mod tests {
     #[test]
     fn church_wrapper() {
         assert_type(
-            include_str!("../resources/church_wrapper.dl"),
+            include_str!("../resources/church_wrapper.jl"),
             "(p:Type)->((a:(/p:(Type).((c:Type)->((_:(_:p)->(c))->(c))) p))->(p))",
         );
     }
@@ -154,7 +154,7 @@ mod tests {
         assert_type(
             &format!(
                 "{}{}",
-                include_str!("../resources/church_and.dl"),
+                include_str!("../resources/church_and.jl"),
                 "conj Type Type (Type -> Type) (Type -> Type -> Type)"
             ),
             "(c:Type)->((f:(_:Type)->((_:Type)->(c)))->(c))",
@@ -162,7 +162,7 @@ mod tests {
         assert_type(
             &format!(
                 "{}{}",
-                include_str!("../resources/church_and.dl"),
+                include_str!("../resources/church_and.jl"),
                 "proj1 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"
             ),
             "Type",
@@ -170,7 +170,7 @@ mod tests {
         assert_type(
             &format!(
                 "{}{}",
-                include_str!("../resources/church_and.dl"),
+                include_str!("../resources/church_and.jl"),
                 "proj2 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"
             ),
             "Type",
