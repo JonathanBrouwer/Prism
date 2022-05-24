@@ -152,15 +152,27 @@ mod tests {
     #[test]
     fn church_and() {
         assert_type(
-            &format!("{}{}", include_str!("../resources/church_and.dl"), "conj Type Type (Type -> Type) (Type -> Type -> Type)"),
+            &format!(
+                "{}{}",
+                include_str!("../resources/church_and.dl"),
+                "conj Type Type (Type -> Type) (Type -> Type -> Type)"
+            ),
             "(c:Type)->((f:(_:Type)->((_:Type)->(c)))->(c))",
         );
         assert_type(
-            &format!("{}{}", include_str!("../resources/church_and.dl"), "proj1 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"),
+            &format!(
+                "{}{}",
+                include_str!("../resources/church_and.dl"),
+                "proj1 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"
+            ),
             "Type",
         );
         assert_type(
-            &format!("{}{}", include_str!("../resources/church_and.dl"), "proj2 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"),
+            &format!(
+                "{}{}",
+                include_str!("../resources/church_and.dl"),
+                "proj2 Type Type (conj Type Type (Type -> Type) (Type -> Type -> Type))"
+            ),
             "Type",
         );
     }

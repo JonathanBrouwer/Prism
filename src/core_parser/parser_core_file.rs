@@ -1,11 +1,11 @@
-use std::collections::{HashMap, VecDeque};
+use crate::core_parser::input::Input;
 use crate::core_parser::parse_error::{Expect, PEGParseError};
 use crate::core_parser::parse_result::ParseResult;
 use crate::core_parser::parser_core::{ParserContext, ParserState};
 use crate::core_parser::parser_core_ast::{CoreAst, ParsePairRaw};
-use crate::core_parser::parser_core_expression::{parse_expression_name};
-use crate::core_parser::source_file::{SourceFile, SourceFileIterator};
+use crate::core_parser::parser_core_expression::parse_expression_name;
 use crate::core_parser::span::Span;
+use std::collections::{HashMap, VecDeque};
 
 /// Parses a file, given the syntax to parse it with, and the file.
 /// When successful, it returns a `ParsePairSort`.
@@ -13,8 +13,8 @@ use crate::core_parser::span::Span;
 #[allow(clippy::unnecessary_unwrap)] //Clippy gives a suggestion which makes code ugly
 pub fn parse_file<'src>(
     ast: &'src CoreAst<'src>,
-    file: &'src SourceFile,
-) -> (ParsePairRaw, Vec<PEGParseError>) {
+    file: Input<'src>,
+) -> (ParsePairRaw<'src>, Vec<PEGParseError<'src>>) {
     //Create a new parser state
     let mut state = ParserContext {
         file,
@@ -28,7 +28,7 @@ pub fn parse_file<'src>(
     let mut last_err_pos: Option<usize> = None;
     let mut last_err_offset = 0usize;
     loop {
-        let (res, err) = parse_file_sub(&state, state.ast.starting_sort, file.iter());
+        let (res, err) = parse_file_sub(&state, state.ast.starting_sort, file);
         if !res.ok {
             let err = err.expect("Not ok means an error happened.");
 
@@ -44,7 +44,7 @@ pub fn parse_file<'src>(
                 continue;
             } else {
                 //If the error now spans rest of file, we could not recover
-                let len_left = res.pos_err.clone().count();
+                let len_left = res.pos_err.position_end() - res.pos_err.position();
                 if last_err_offset >= len_left {
                     return (res.result, errors);
                 }
@@ -62,13 +62,15 @@ pub fn parse_file<'src>(
 pub fn parse_file_sub<'src>(
     state: &ParserContext<'src>,
     sort: &'src str,
-    pos: SourceFileIterator<'src>,
-) -> (ParseResult<'src, ParsePairRaw>, Option<PEGParseError>) {
+    pos: Input<'src>,
+) -> (
+    ParseResult<'src, ParsePairRaw<'src>>,
+    Option<PEGParseError<'src>>,
+) {
     let mut cache = ParserState {
         cache: HashMap::new(),
         cache_stack: VecDeque::new(),
         best_error: None,
-        no_errors_nest_count: 0usize,
     };
 
     let mut res = parse_expression_name(state, &mut cache, sort, pos);
@@ -87,8 +89,7 @@ pub fn parse_file_sub<'src>(
             Some(err) => (res, Some(err)),
             None => {
                 let curpos = res.pos.position();
-                while res.pos.next().is_some() {}
-                let endpos = res.pos.position();
+                let endpos = res.pos.position_end();
                 (
                     res,
                     Some(PEGParseError::expect(

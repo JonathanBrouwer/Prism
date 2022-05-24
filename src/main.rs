@@ -1,12 +1,13 @@
 #![feature(box_syntax)]
+#![feature(let_chains)]
 #![allow(clippy::needless_lifetimes)]
 
 pub mod beta_eq;
+pub mod core_parser;
 pub mod env;
 pub mod parser;
 pub mod term;
 pub mod type_check;
-pub mod core_parser;
 
 // use crate::env::{Env, RcEnv};
 // use crate::term::Term;

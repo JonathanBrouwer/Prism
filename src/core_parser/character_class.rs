@@ -1,11 +1,10 @@
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::ops::{Range, RangeInclusive};
 
 /// Represent a class of characters like in a regex
 /// such as [a-z] or [^0-9]
-#[derive(Clone, Debug, Serialize, Deserialize, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum CharacterClass {
     /// Inclusive range. Both `from` and `to` are inclusive
     RangeInclusive {

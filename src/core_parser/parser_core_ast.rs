@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::core_parser::character_class::CharacterClass;
 use crate::core_parser::span::Span;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum CoreExpression<'src> {
@@ -13,7 +13,6 @@ pub enum CoreExpression<'src> {
     },
     CharacterClass(CharacterClass),
     Choice(Vec<CoreExpression<'src>>),
-    FlagNoErrors(Box<CoreExpression<'src>>, String),
 }
 
 #[derive(Debug, Clone)]
@@ -23,17 +22,17 @@ pub struct CoreAst<'src> {
 }
 
 #[derive(Debug, Clone)]
-pub enum ParsePairRaw {
-    Name(Span, Box<ParsePairRaw>),
-    List(Span, Vec<ParsePairRaw>),
-    Choice(Span, usize, Box<ParsePairRaw>),
-    Empty(Span),
-    Error(Span),
+pub enum ParsePairRaw<'src> {
+    Name(Span<'src>, Box<ParsePairRaw<'src>>),
+    List(Span<'src>, Vec<ParsePairRaw<'src>>),
+    Choice(Span<'src>, usize, Box<ParsePairRaw<'src>>),
+    Empty(Span<'src>),
+    Error(Span<'src>),
 }
 
-impl ParsePairRaw {
+impl<'src> ParsePairRaw<'src> {
     /// What span does this parse pair occupy?
-    pub fn span(&self) -> Span {
+    pub fn span(&self) -> Span<'src> {
         match self {
             ParsePairRaw::Name(span, _) => span,
             ParsePairRaw::List(span, _) => span,

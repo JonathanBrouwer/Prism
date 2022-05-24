@@ -1,71 +1,23 @@
-use itertools::Itertools;
-use miette::{Diagnostic, LabeledSpan, Severity, SourceCode};
+use crate::core_parser::character_class::CharacterClass;
+use crate::core_parser::span::Span;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
-use crate::core_parser::character_class::CharacterClass;
-use crate::core_parser::span::Span;
 
 /// A parsing error represents a single error that occurred during parsing.
 /// The parsing error occurs at a certain position in a file, represented by the span.
 /// The parsing error consists of multiple `ParseErrorSub`, which each represent a single thing that went wrong at this position.
 #[derive(Debug, Clone, Error)]
 #[error("A parse error occured!")]
-pub struct PEGParseError {
-    pub span: Span,
+pub struct PEGParseError<'src> {
+    pub span: Span<'src>,
     pub expected: Vec<Expect>,
     pub fail_left_rec: bool,
     pub fail_loop: bool,
 }
 
-impl Diagnostic for PEGParseError {
-    /// Diagnostic severity. This may be used by [ReportHandler]s to change the
-    /// display format of this diagnostic.
-    ///
-    /// If `None`, reporters should treat this as [Severity::Error]
-    fn severity(&self) -> Option<Severity> {
-        Some(Severity::Error)
-    }
-
-    /// Source code to apply this Diagnostic's [Diagnostic::labels] to.
-    fn source_code(&self) -> Option<&dyn SourceCode> {
-        Some(&self.span)
-    }
-
-    /// Labels to apply to this Diagnostic's [Diagnostic::source_code]
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = LabeledSpan> + '_>> {
-        let expect_str = self.expected.iter().map(|exp| exp.to_string()).join(", ");
-        let mut labels = vec![];
-
-        //Leftrec label
-        if self.fail_left_rec {
-            labels.push(LabeledSpan::new_with_span(Some("Encountered left recursion here. This is a problem with the grammar, and may hide other errors.".to_string()), self.span.clone()));
-        }
-
-        //Loop label
-        if self.fail_loop {
-            labels.push(LabeledSpan::new_with_span(Some("Encountered an infinite loop here. This is a problem with the grammar, and may hide other errors.".to_string()), self.span.clone()));
-        }
-
-        //Expected label
-        match self.expected.len() {
-            0 => {}
-            1 => labels.push(LabeledSpan::new_with_span(
-                Some(format!("Expected {} here", expect_str)),
-                self.span.clone(),
-            )),
-            _ => labels.push(LabeledSpan::new_with_span(
-                Some(format!("Expected one of {} here", expect_str)),
-                self.span.clone(),
-            )),
-        }
-
-        Some(Box::new(labels.into_iter()))
-    }
-}
-
-impl PEGParseError {
-    pub fn expect(span: Span, expect: Expect) -> Self {
+impl<'src> PEGParseError<'src> {
+    pub fn expect(span: Span<'src>, expect: Expect) -> Self {
         PEGParseError {
             span,
             expected: vec![expect],
@@ -74,7 +26,7 @@ impl PEGParseError {
         }
     }
 
-    pub fn fail_left_recursion(span: Span) -> Self {
+    pub fn fail_left_recursion(span: Span<'src>) -> Self {
         PEGParseError {
             span,
             expected: vec![],
@@ -83,7 +35,7 @@ impl PEGParseError {
         }
     }
 
-    pub fn fail_loop(span: Span) -> Self {
+    pub fn fail_loop(span: Span<'src>) -> Self {
         PEGParseError {
             span,
             expected: vec![],
@@ -128,14 +80,14 @@ impl Display for Expect {
     }
 }
 
-impl PEGParseError {
+impl<'src> PEGParseError<'src> {
     /// Combine multiple parse errors. When one has precedence over
     /// another, the highest precedence error is kept and the other
     /// is discarded.
     ///
     /// Highest precedence is defined as furthest starting position for now. This might be changed later.
-    pub fn combine(mut self, mut other: PEGParseError) -> PEGParseError {
-        assert_eq!(self.span.source.name(), other.span.source.name());
+    pub fn combine(mut self, mut other: PEGParseError<'src>) -> PEGParseError<'src> {
+        assert_eq!(self.span.source.file_path(), other.span.source.file_path());
 
         //Compare the starting positions of the span
         match self.span.position.cmp(&other.span.position) {
@@ -157,9 +109,9 @@ impl PEGParseError {
     /// A helper that combines optional parse errors, and returns an optional parse error if either exists.
     /// If both exist, use `ParseError::combine` to combine the errors.
     pub fn combine_option_parse_error(
-        a: Option<PEGParseError>,
-        b: Option<PEGParseError>,
-    ) -> Option<PEGParseError> {
+        a: Option<PEGParseError<'src>>,
+        b: Option<PEGParseError<'src>>,
+    ) -> Option<PEGParseError<'src>> {
         match (a, b) {
             (None, None) => None,
             (None, Some(e)) => Some(e),

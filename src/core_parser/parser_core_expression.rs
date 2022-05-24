@@ -1,10 +1,10 @@
 #![allow(clippy::result_unit_err)]
 
-use crate::core_parser::parse_error::{Expect, PEGParseError};
+use crate::core_parser::input::Input;
+use crate::core_parser::parse_error::{PEGParseError};
 use crate::core_parser::parse_result::ParseResult;
 use crate::core_parser::parser_core::{ParserContext, ParserState};
 use crate::core_parser::parser_core_ast::{CoreExpression, ParsePairRaw};
-use crate::core_parser::source_file::SourceFileIterator;
 use crate::core_parser::span::Span;
 
 /// Given an expression and the current position, attempts to parse this constructor.
@@ -12,8 +12,8 @@ pub fn parse_expression_name<'src>(
     state: &ParserContext<'src>,
     cache: &mut ParserState<'src>,
     expr_name: &'src str,
-    pos: SourceFileIterator<'src>,
-) -> ParseResult<'src, ParsePairRaw> {
+    pos: Input<'src>,
+) -> ParseResult<'src, ParsePairRaw<'src>> {
     let expr: &'src CoreExpression = state
         .ast
         .sorts
@@ -93,27 +93,33 @@ pub fn parse_expression_name<'src>(
 pub fn parse_expression<'src>(
     state: &ParserContext<'src>,
     cache: &mut ParserState<'src>,
-    expr: &'src CoreExpression,
-    mut pos: SourceFileIterator<'src>,
-) -> ParseResult<'src, ParsePairRaw> {
+    expr: &'src CoreExpression<'src>,
+    mut pos: Input<'src>,
+) -> ParseResult<'src, ParsePairRaw<'src>> {
     match expr {
         //To parse a sort, call parse_sort recursively.
         CoreExpression::Name(sort_name) => {
             let res = parse_expression_name(state, cache, sort_name, pos);
-            res.map(|s| ParsePairRaw::Name(s.span(), Box::new(s)))
+            res.map(|s| ParsePairRaw::Name(s.span(), box s))
         }
         //To parse a character class, check if the character is accepted, and make an ok/error based on that.
         CoreExpression::CharacterClass(characters) => {
-            let span = Span::from_length(state.file, pos.position(), 1);
-            if pos.accept(characters) {
-                ParseResult::new_ok(ParsePairRaw::Empty(span), pos.clone(), pos, false)
-            } else {
-                cache.add_error(PEGParseError::expect(
-                    span.clone(),
-                    Expect::ExpectCharClass(characters.clone()),
-                ));
-                ParseResult::new_err(ParsePairRaw::Error(span), pos.clone(), pos)
+            if let Some(c) = pos.peek() && characters.contains(c) {
+
             }
+            todo!()
+
+
+            // let span = Span::from_length(state.file, pos.position(), 1);
+            // if pos.accept(characters) {
+            //     ParseResult::new_ok(ParsePairRaw::Empty(span), pos.clone(), pos, false)
+            // } else {
+            //     cache.add_error(PEGParseError::expect(
+            //         span.clone(),
+            //         Expect::ExpectCharClass(characters.clone()),
+            //     ));
+            //     ParseResult::new_err(ParsePairRaw::Error(span), pos.clone(), pos)
+            // }
         }
         //To parse a sequence, parse each constructor in the sequence.
         //The results are added to `results`, and the best error and position are updated each time.
@@ -121,31 +127,33 @@ pub fn parse_expression<'src>(
         CoreExpression::Sequence(subexprs) => {
             let mut results = vec![];
             let start_pos = pos.position();
-            let mut pos_err = pos.clone();
+            let mut pos_err = pos;
             let mut recovered = false;
 
             //Parse all subconstructors in sequence
             for (i, subexpr) in subexprs.iter().enumerate() {
                 let res = parse_expression(state, cache, subexpr, pos);
                 pos = res.pos;
-                pos_err.max_pos(res.pos_err.clone());
+                pos_err = pos_err.max(res.pos_err);
                 results.push(res.result);
                 recovered |= res.recovered;
                 if !res.ok {
                     if let Some(&offset) = state.errors.get(&res.pos_err.position()) {
                         //The first token of the sequence can not be skipped, otherwise we can just parse a lot of empty sequences, if a sequence happens in a repeat
-                        if i != 0 && cache.no_errors_nest_count == 0 {
+                        if i != 0 {
                             pos = res.pos_err;
                             //If we're at the end of the file, don't try
-                            if pos.peek().is_none() {
-                                let span = Span::from_end(state.file, start_pos, pos.position());
-                                return ParseResult::new_err(
-                                    ParsePairRaw::List(span, results),
-                                    pos,
-                                    pos_err,
-                                );
-                            }
-                            pos.skip_n(offset);
+                            pos = match pos.skip_n_chars(offset) {
+                                Some(pos) => pos,
+                                None => {
+                                    let span = Span::from_end(state.file, start_pos, pos.position());
+                                    return ParseResult::new_err(
+                                        ParsePairRaw::List(span, results),
+                                        pos,
+                                        pos_err,
+                                    );
+                                }
+                            };
                             recovered = true;
                             continue;
                         }
@@ -182,7 +190,7 @@ pub fn parse_expression<'src>(
             //Parse at most maximum times
             for i in 0..max.unwrap_or(u64::MAX) {
                 let res = parse_expression(state, cache, subexpr.as_ref(), pos.clone());
-                pos_err.max_pos(res.pos_err.clone());
+                pos_err = pos_err.max(res.pos_err.clone());
                 recovered |= res.recovered;
 
                 if res.ok {
@@ -193,20 +201,22 @@ pub fn parse_expression<'src>(
                     //Don't try to continue if we haven't made any progress (already failed on first character), since we will just fail again
                     //Also don't try to continue if we don't allow errors at the moment, since we don't want to try to recover inside of an no-errors segment
                     if let Some(&offset) = state.errors.get(&res.pos_err.position()) {
-                        if (offset > 0 || pos.position() != res.pos_err.position())
-                            && cache.no_errors_nest_count == 0
+                        if offset > 0 || pos.position() != res.pos_err.position()
                         {
                             pos = res.pos_err.clone();
                             //If we're at the end of the file, don't try
-                            if pos.peek().is_none() {
-                                let span = Span::from_end(state.file, start_pos, pos.position());
-                                return ParseResult::new_err(
-                                    ParsePairRaw::List(span, results),
-                                    pos,
-                                    pos_err,
-                                );
-                            }
-                            pos.skip_n(offset);
+                            pos = match pos.skip_n_chars(offset) {
+                                Some(pos) => pos,
+                                None => {
+                                    let span = Span::from_end(state.file, start_pos, pos.position());
+                                    return ParseResult::new_err(
+                                        ParsePairRaw::List(span, results),
+                                        pos,
+                                        pos_err,
+                                    );
+                                }
+                            };
+
                             results.push(res.result);
                             recovered = true;
                             continue;
@@ -287,22 +297,6 @@ pub fn parse_expression<'src>(
                 res.ok,
                 res.recovered,
             )
-        }
-        //No errors is parsed by setting the no errors flag during parsing
-        //After the block is completed, is not ok, produce an error.
-        CoreExpression::FlagNoErrors(subexpr, name) => {
-            cache.no_errors_nest_count += 1;
-            let start_pos = pos.position();
-            let res = parse_expression(state, cache, subexpr, pos.clone());
-            cache.no_errors_nest_count -= 1;
-            if !res.ok {
-                let mut next_pos = res.pos.clone();
-                next_pos.skip_n(1);
-                let span = Span::from_end(state.file, start_pos, next_pos.position());
-                let err = PEGParseError::expect(span, Expect::ExpectSort(name.to_string()));
-                cache.add_error(err);
-            }
-            res
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::core_parser::source_file::SourceFileIterator;
+use crate::core_parser::input::Input;
 
 /// Represents a parser that parsed its value successfully.
 /// It parsed the value of type `O`.
@@ -6,8 +6,8 @@ use crate::core_parser::source_file::SourceFileIterator;
 #[derive(Clone)]
 pub struct ParseResult<'src, O: Clone> {
     pub result: O,
-    pub pos: SourceFileIterator<'src>,
-    pub pos_err: SourceFileIterator<'src>,
+    pub pos: Input<'src>,
+    pub pos_err: Input<'src>,
     pub ok: bool,
     pub recovered: bool,
 }
@@ -29,8 +29,8 @@ impl<'src, O: Clone> ParseResult<'src, O> {
 
     pub fn new(
         result: O,
-        pos: SourceFileIterator<'src>,
-        pos_err: SourceFileIterator<'src>,
+        pos: Input<'src>,
+        pos_err: Input<'src>,
         ok: bool,
         recovered: bool,
     ) -> Self {
@@ -43,12 +43,7 @@ impl<'src, O: Clone> ParseResult<'src, O> {
         }
     }
 
-    pub fn new_ok(
-        result: O,
-        pos: SourceFileIterator<'src>,
-        pos_err: SourceFileIterator<'src>,
-        recovered: bool,
-    ) -> Self {
+    pub fn new_ok(result: O, pos: Input<'src>, pos_err: Input<'src>, recovered: bool) -> Self {
         ParseResult {
             result,
             pos,
@@ -58,11 +53,7 @@ impl<'src, O: Clone> ParseResult<'src, O> {
         }
     }
 
-    pub fn new_err(
-        result: O,
-        pos: SourceFileIterator<'src>,
-        pos_err: SourceFileIterator<'src>,
-    ) -> Self {
+    pub fn new_err(result: O, pos: Input<'src>, pos_err: Input<'src>) -> Self {
         ParseResult {
             result,
             pos,
