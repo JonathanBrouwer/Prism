@@ -6,3 +6,4 @@ ast Term {
     FunConstruct(name: Input, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
 }
+
