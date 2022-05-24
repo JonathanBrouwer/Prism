@@ -1,3 +1,7 @@
+#![feature(box_syntax)]
+#![feature(let_chains)]
+#![allow(clippy::needless_lifetimes)]
+
 pub mod character_class;
 pub mod input;
 pub mod parse_error;
