@@ -10,12 +10,12 @@ use crate::GrammarFile;
 mod codegen_ast;
 
 pub fn codegen(grammar: &GrammarFile) {
-    let [mod_file, ast_file] = verify_folder_structure();
+    let [mod_file, ast_file, parse_file] = verify_folder_structure();
     write_mod(mod_file);
     write_ast(ast_file, &grammar.asts);
 }
 
-fn verify_folder_structure() -> [FormattingFile; 2] {
+fn verify_folder_structure() -> [FormattingFile; 3] {
     let folder: PathBuf = "src/autogen".into();
     let _ = std::fs::remove_dir_all(&folder);
     std::fs::create_dir(&folder).unwrap();
@@ -27,7 +27,7 @@ fn verify_folder_structure() -> [FormattingFile; 2] {
         write_gitignore(file);
     }
 
-    ["mod.rs", "ast.rs"].map(| filename | {
+    ["mod.rs", "ast.rs", "parse.rs"].map(| filename | {
         let mut file = folder.clone();
         file.push(filename);
         FormattingFile::create(file).unwrap()
@@ -37,6 +37,7 @@ fn verify_folder_structure() -> [FormattingFile; 2] {
 fn write_mod(mut file: FormattingFile) {
     let tokens: TokenStream = quote! {
         pub mod ast;
+        pub mod parse;
     };
     write!(file, "{}", tokens).unwrap();
 }
