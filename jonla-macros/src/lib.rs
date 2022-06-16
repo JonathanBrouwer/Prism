@@ -6,6 +6,7 @@ use crate::grammar::GrammarFile;
 mod grammar;
 mod codegen;
 mod formatting_file;
+mod parser;
 
 pub fn handle_language(path: PathBuf) {
     let s = std::fs::read_to_string(path.clone()).unwrap();

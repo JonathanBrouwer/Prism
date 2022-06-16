@@ -7,6 +7,19 @@ ast Term {
     FunDestruct(func: Term, arg: Term)
 }
 
-rule identifier() -> Input {
+rule _ -> Input = [' ']*
+rule __ -> Input = [' ' | '\n']*
+
+rule identifier -> Input {
     [ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*
+}
+
+rule term -> Term {
+
+}
+rule term2 -> Term {
+
+}
+rule term3 -> Term {
+
 }
