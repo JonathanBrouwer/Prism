@@ -1,7 +1,7 @@
 #![allow(clippy::result_unit_err)]
 
 use crate::input::Input;
-use crate::parse_error::{PEGParseError};
+use crate::parse_error::PEGParseError;
 use crate::parse_result::ParseResult;
 use crate::parser_core::{ParserContext, ParserState};
 use crate::parser_core_ast::{CoreExpression, ParsePairRaw};
@@ -109,7 +109,6 @@ pub fn parse_expression<'src>(
             }
             todo!()
 
-
             // let span = Span::from_length(state.file, pos.position(), 1);
             // if pos.accept(characters) {
             //     ParseResult::new_ok(ParsePairRaw::Empty(span), pos.clone(), pos, false)
@@ -146,7 +145,8 @@ pub fn parse_expression<'src>(
                             pos = match pos.skip_n_chars(offset) {
                                 Some(pos) => pos,
                                 None => {
-                                    let span = Span::from_end(state.file, start_pos, pos.position());
+                                    let span =
+                                        Span::from_end(state.file, start_pos, pos.position());
                                     return ParseResult::new_err(
                                         ParsePairRaw::List(span, results),
                                         pos,
@@ -201,14 +201,14 @@ pub fn parse_expression<'src>(
                     //Don't try to continue if we haven't made any progress (already failed on first character), since we will just fail again
                     //Also don't try to continue if we don't allow errors at the moment, since we don't want to try to recover inside of an no-errors segment
                     if let Some(&offset) = state.errors.get(&res.pos_err.position()) {
-                        if offset > 0 || pos.position() != res.pos_err.position()
-                        {
+                        if offset > 0 || pos.position() != res.pos_err.position() {
                             pos = res.pos_err.clone();
                             //If we're at the end of the file, don't try
                             pos = match pos.skip_n_chars(offset) {
                                 Some(pos) => pos,
                                 None => {
-                                    let span = Span::from_end(state.file, start_pos, pos.position());
+                                    let span =
+                                        Span::from_end(state.file, start_pos, pos.position());
                                     return ParseResult::new_err(
                                         ParsePairRaw::List(span, results),
                                         pos,

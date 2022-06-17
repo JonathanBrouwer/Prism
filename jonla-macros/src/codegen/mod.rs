@@ -1,11 +1,11 @@
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
-use proc_macro2::TokenStream;
-use quote::quote;
 use crate::codegen::codegen_ast::write_ast;
 use crate::formatting_file::FormattingFile;
 use crate::GrammarFile;
+use proc_macro2::TokenStream;
+use quote::quote;
+use std::fs::File;
+use std::io::Write;
+use std::path::PathBuf;
 
 mod codegen_ast;
 
@@ -27,7 +27,7 @@ fn verify_folder_structure() -> [FormattingFile; 3] {
         write_gitignore(file);
     }
 
-    ["mod.rs", "ast.rs", "parse.rs"].map(| filename | {
+    ["mod.rs", "ast.rs", "parse.rs"].map(|filename| {
         let mut file = folder.clone();
         file.push(filename);
         FormattingFile::create(file).unwrap()

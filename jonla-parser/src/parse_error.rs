@@ -1,8 +1,8 @@
+use crate::character_class::CharacterClass;
+use crate::span::Span;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
-use crate::character_class::CharacterClass;
-use crate::span::Span;
 
 /// A parsing error represents a single error that occurred during parsing.
 /// The parsing error occurs at a certain position in a file, represented by the span.

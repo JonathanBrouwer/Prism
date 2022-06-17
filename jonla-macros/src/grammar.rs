@@ -13,7 +13,7 @@ pub struct Ast<'input> {
 #[derive(Debug)]
 pub struct AstConstructor<'input> {
     pub name: &'input str,
-    pub args: Vec<(&'input str, &'input str)>
+    pub args: Vec<(&'input str, &'input str)>,
 }
 
 #[derive(Debug)]
@@ -21,19 +21,18 @@ pub struct Rule<'input> {
     pub name: &'input str,
     pub rtrn: &'input str,
     pub body: RuleBody<'input>,
-
 }
 
 #[derive(Debug)]
 pub enum TrailingDelim {
     No,
     Maybe,
-    Yes
+    Yes,
 }
 
 #[derive(Debug)]
 pub struct CharClass {
-    ranges: Vec<(char, char)>
+    ranges: Vec<(char, char)>,
 }
 
 impl CharClass {
@@ -47,18 +46,24 @@ pub enum RuleBody<'input> {
     Rule(&'input str),
     CharClass(CharClass),
     Literal(&'input str),
-    Repeat{expr: Box<RuleBody<'input>>, min: u64, max: Option<u64>, delim: Box<RuleBody<'input>>, trailing_delim: TrailingDelim },
+    Repeat {
+        expr: Box<RuleBody<'input>>,
+        min: u64,
+        max: Option<u64>,
+        delim: Box<RuleBody<'input>>,
+        trailing_delim: TrailingDelim,
+    },
     Sequence(Vec<RuleBody<'input>>),
     Choice(Vec<RuleBody<'input>>),
     NameBind(&'input str, Box<RuleBody<'input>>),
-    Action(Box<RuleBody<'input>>, RuleAction<'input>)
+    Action(Box<RuleBody<'input>>, RuleAction<'input>),
 }
 
 #[derive(Debug)]
 pub enum RuleAction<'input> {
     Name(&'input str),
     InputLiteral(&'input str),
-    Construct(&'input str, Vec<RuleAction<'input>>)
+    Construct(&'input str, Vec<RuleAction<'input>>),
 }
 
 peg::parser! {

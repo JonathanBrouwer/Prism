@@ -2,9 +2,8 @@
 #[rustfmt::skip]
 mod autogen;
 
-use std::path::{Path, PathBuf};
-use jonla_macros::{grammar, handle_language};
 use jonla_macros::grammar::GrammarFile;
+use jonla_macros::{grammar};
 
 fn main() {
     let s = include_str!("../resources/grammar.jonla_peg");

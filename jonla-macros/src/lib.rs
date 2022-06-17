@@ -1,11 +1,11 @@
 #![feature(box_syntax)]
 
-use std::path::PathBuf;
 use crate::grammar::GrammarFile;
+use std::path::PathBuf;
 
-pub mod grammar;
 mod codegen;
 mod formatting_file;
+pub mod grammar;
 mod parser;
 
 pub fn handle_language(path: PathBuf) {
@@ -22,4 +22,3 @@ pub fn handle_language(path: PathBuf) {
     println!("cargo:rerun-if-changed={}", path.to_str().unwrap());
     println!("cargo:rerun-if-changed=src/autogen/");
 }
-
