@@ -1,0 +1,7 @@
+ast Test {
+    Thing()
+}
+
+rule test -> Test {
+    ['x'] { Thing() }
+}

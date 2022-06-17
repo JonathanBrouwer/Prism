@@ -1,29 +1,70 @@
-use crate::grammar::{CharClass, RuleBody};
+use std::collections::HashMap;
+use itertools::Itertools;
+use crate::grammar::{CharClass, RuleAction, RuleBody};
 use crate::parser::parser_core::ParserState;
+use crate::parser::parser_result::ParseResult;
 
 mod parser_core;
 mod parser_result;
 
+#[derive(Clone)]
+pub enum ActionResult<'grm> {
+    Value((usize, usize)),
+    Literal(&'grm str),
+    Construct(&'grm str, Vec<ActionResult<'grm>>),
+    Error
+}
+
 impl<'src> ParserState<'src> {
-    pub fn parse_expr<'grm>(&mut self, pos: usize, expr: &RuleBody<'grm>) {
+    pub fn parse_expr<'grm>(&mut self, pos: usize, expr: &RuleBody<'grm>) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
         match expr {
-            RuleBody::Rule(_) => {}
+            RuleBody::Rule(_) => {
+                todo!()
+            }
             RuleBody::CharClass(cc) => {
-
+                self.parse_charclass(pos, cc).map(|x| (HashMap::new(), ActionResult::Value(x)))
             }
-            RuleBody::Literal(_) => {}
-            RuleBody::Repeat { .. } => {}
+            RuleBody::Literal(_) => {
+                todo!()
+            }
+            RuleBody::Repeat { .. } => {
+                todo!()
+            }
             RuleBody::Sequence(_) => {
-                let mut state = ParserState::new("Hey");
-                state.parse_sequence(0, Box::new(|s, e| s.parse_charclass(e, &CharClass {
-                    ranges: vec![]
-                })));
-
+                todo!()
             }
-            RuleBody::Choice(_) => {}
-            RuleBody::NameBind(_, _) => {}
-            RuleBody::Action(_, _) => {}
+            RuleBody::Choice(_) => {
+                todo!()
+            }
+            RuleBody::NameBind(name, sub) => {
+                let mut res = self.parse_expr(pos, sub);
+                res.result.0.insert(name, res.result.1.clone());
+                res
+            }
+            RuleBody::Action(sub, action) => {
+                let mut res = self.parse_expr(pos, sub);
+                res.result.1 = apply_action(action, &res.result.0);
+                res
+            }
         }
     }
 }
 
+fn apply_action<'grm>(rule: &RuleAction<'grm>, map: &HashMap<&str, ActionResult<'grm>>) -> ActionResult<'grm> {
+    match rule {
+        RuleAction::Name(name) => {
+            if let Some(v) = map.get(name) {
+                v.clone()
+            } else {
+                ActionResult::Error
+            }
+        }
+        RuleAction::InputLiteral(lit) => {
+            ActionResult::Literal(lit)
+        }
+        RuleAction::Construct(name, args) => {
+            let args_vals = args.iter().map(|a| apply_action(a, map)).collect_vec();
+            ActionResult::Construct(name, args_vals)
+        }
+    }
+}

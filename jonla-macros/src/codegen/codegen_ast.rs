@@ -9,6 +9,7 @@ pub fn write_ast(mut file: FormattingFile, asts: &Vec<Ast>) {
     let asts: Vec<TokenStream> = asts
         .iter()
         .map(|ast| {
+            let mut used_input = false;
             let name = format_ident!("{}", ast.name);
             let constrs = ast
                 .constructors
@@ -20,7 +21,8 @@ pub fn write_ast(mut file: FormattingFile, asts: &Vec<Ast>) {
                         .iter()
                         .map(|(arg_name, arg_type)| {
                             let arg_name = format_ident!("{}", arg_name);
-                            let arg_type = process_type(arg_type);
+                            let (arg_type, l) = process_type(arg_type);
+                            used_input |= l;
                             quote!(
                                 #arg_name: #arg_type
                             )
@@ -31,9 +33,17 @@ pub fn write_ast(mut file: FormattingFile, asts: &Vec<Ast>) {
                     }
                 })
                 .collect_vec();
-            quote! {
-                pub enum #name<'input> {
-                    #(#constrs),*
+            if used_input {
+                quote! {
+                    pub enum #name<'input> {
+                        #(#constrs),*
+                    }
+                }
+            } else {
+                quote! {
+                    pub enum #name {
+                        #(#constrs),*
+                    }
                 }
             }
         })
@@ -41,11 +51,11 @@ pub fn write_ast(mut file: FormattingFile, asts: &Vec<Ast>) {
     write!(file, "{}", quote! { #(#asts)* }).unwrap();
 }
 
-fn process_type(name: &str) -> TokenStream {
+fn process_type(name: &str) -> (TokenStream, bool) {
     if name == "Input" {
-        quote! { &'input str }
+        (quote! { &'input str }, true)
     } else {
         let name = format_ident!("{}", name);
-        quote! { Box<#name<'input>> }
+        (quote! { Box<#name<'input>> }, false)
     }
 }
