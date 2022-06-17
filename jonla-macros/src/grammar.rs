@@ -32,7 +32,7 @@ pub enum TrailingDelim {
 
 #[derive(Debug)]
 pub struct CharClass {
-    ranges: Vec<(char, char)>,
+    pub ranges: Vec<(char, char)>,
 }
 
 impl CharClass {
