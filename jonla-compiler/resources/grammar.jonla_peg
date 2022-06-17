@@ -9,17 +9,33 @@ ast Term {
 
 rule _ -> Input = [' ']*
 rule __ -> Input = [' ' | '\n']*
+rule _w -> Input = [' ']+
+rule _n -> Input = ['\n' | ';' | '\r']+
 
 rule identifier -> Input {
     [ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*
 }
 
 rule term -> Term {
-
+    "let" _ n:identifier _ ":" _ t:term _ "=" _ v:term _ _n _ b:term { Let(n, t, v, b) } /
+    "/" _ x:identifier _ ":" _ t:term _ r:lambda_function_body { FunConstruct(x, t, r) } /
+    "(" _ n:identifier _ ":" _ at:term _ ")" _ "->" _ bt:term { FunType(n, at, bt) } /
+    at:subterm _ "->" _ bt:term { FunType("_", at, bt) } /
+    sub:subterm { sub }
 }
-rule term2 -> Term {
 
+rule lambda_function_body -> Term {
+    "," _ x:identifier _ ":" _ t:term _ r:lambda_function_body { FunConstruct(x, t, r) } /
+    "." _ b:term { b }
 }
-rule term3 -> Term {
 
+rule subterm -> Term {
+    f:subterm _w a:subsubterm { FunDestruct(f, a) } /
+    sub:subsubterm { sub }
+}
+
+rule subsubterm -> Term {
+    "Type" { Type() } /
+    n:identifier() { Var(n) } /
+    "(" _ t:term() _ ")" { t }
 }

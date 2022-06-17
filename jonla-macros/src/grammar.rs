@@ -50,6 +50,15 @@ pub enum RuleBody<'input> {
     Repeat{expr: Box<RuleBody<'input>>, min: u64, max: Option<u64>, delim: Box<RuleBody<'input>>, trailing_delim: TrailingDelim },
     Sequence(Vec<RuleBody<'input>>),
     Choice(Vec<RuleBody<'input>>),
+    NameBind(&'input str, Box<RuleBody<'input>>),
+    Action(Box<RuleBody<'input>>, RuleAction<'input>)
+}
+
+#[derive(Debug)]
+pub enum RuleAction<'input> {
+    Name(&'input str),
+    InputLiteral(&'input str),
+    Construct(&'input str, Vec<RuleAction<'input>>)
 }
 
 peg::parser! {
@@ -71,18 +80,30 @@ peg::parser! {
             "rule" _ name:identifier() _ "->" _ rtrn:identifier() _ "=" _ body:prule_body() { Rule{name, rtrn, body } }
 
         rule prule_body() -> RuleBody<'input> =
-            rs:(r:prule_body_1() {r})**<2,> (_ "/" _) { RuleBody::Sequence(rs) } /
+            rs:(r:prule_body_1a())**<2,>(__ "/" __) { RuleBody::Choice(rs) } /
+            r:prule_body_1a() { r }
+        rule prule_body_1a() -> RuleBody<'input> =
+            r:prule_body_1() _ "{" _ a:prule_action() _ "}" { RuleBody::Action(box r, a) } /
             r:prule_body_1() { r }
         rule prule_body_1() -> RuleBody<'input> =
-            rs:(r:prule_body_2() {r})**<0,> (_) { RuleBody::Sequence(rs) }
+            rs:(r:prule_body_2a() {r})**<0,> (_) { RuleBody::Sequence(rs) }
+        rule prule_body_2a() -> RuleBody<'input> =
+            n:identifier() _ ":" _ r:prule_body_2() { RuleBody::NameBind(n, box r) } /
+            r:prule_body_2() { r }
         rule prule_body_2() -> RuleBody<'input> =
             r:prule_body_3() "*" { RuleBody::Repeat{ expr: box r, min: 0, max: None, delim: box RuleBody::Sequence(vec![]), trailing_delim: TrailingDelim::No } } /
+            r:prule_body_3() "+" { RuleBody::Repeat{ expr: box r, min: 1, max: None, delim: box RuleBody::Sequence(vec![]), trailing_delim: TrailingDelim::No } } /
             r:prule_body_3() { r }
         rule prule_body_3() -> RuleBody<'input> =
             name:identifier() { RuleBody::Rule(name) } /
             "\"" n:$(str_char()*) "\"" { RuleBody::Literal(n) } /
             "[" c:charclass() "]" { RuleBody::CharClass(c) } /
             "(" _ r:prule_body() _ ")" { r }
+
+        rule prule_action() -> RuleAction<'input> =
+            n:identifier() _ "(" args:(prule_action()**(_ "," _)) ")" { RuleAction::Construct(n, args) } /
+            "\"" n:$(str_char()*) "\"" { RuleAction::InputLiteral(n) } /
+            n:identifier() { RuleAction::Name(n) }
 
         rule charclass() -> CharClass = rs:(_ r:charclass_part() _ {r})++"|" { CharClass { ranges: rs } }
 
