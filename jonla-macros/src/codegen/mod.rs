@@ -1,4 +1,5 @@
-use crate::codegen::codegen_ast::write_ast;
+use crate::codegen::codegen_ast::write_asts;
+use crate::codegen::codegen_parse::write_parsers;
 use crate::formatting_file::FormattingFile;
 use crate::GrammarFile;
 use proc_macro2::TokenStream;
@@ -8,11 +9,13 @@ use std::io::Write;
 use std::path::PathBuf;
 
 mod codegen_ast;
+mod codegen_parse;
 
 pub fn codegen(grammar: &GrammarFile) {
     let [mod_file, ast_file, parse_file] = verify_folder_structure();
     write_mod(mod_file);
-    write_ast(ast_file, &grammar.asts);
+    write_asts(ast_file, &grammar.asts);
+    write_parsers(parse_file, &grammar.rules);
 }
 
 fn verify_folder_structure() -> [FormattingFile; 3] {

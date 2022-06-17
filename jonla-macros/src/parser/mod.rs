@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use itertools::Itertools;
 use crate::grammar::{CharClass, RuleAction, RuleBody};
 use crate::parser::parser_core::ParserState;
 use crate::parser::parser_result::ParseResult;
+use itertools::Itertools;
+use std::collections::HashMap;
 
 mod parser_core;
 mod parser_result;
@@ -12,18 +12,22 @@ pub enum ActionResult<'grm> {
     Value((usize, usize)),
     Literal(&'grm str),
     Construct(&'grm str, Vec<ActionResult<'grm>>),
-    Error
+    Error,
 }
 
 impl<'src> ParserState<'src> {
-    pub fn parse_expr<'grm>(&mut self, pos: usize, expr: &RuleBody<'grm>) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
+    pub fn parse_expr<'grm>(
+        &mut self,
+        pos: usize,
+        expr: &RuleBody<'grm>,
+    ) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
         match expr {
             RuleBody::Rule(_) => {
                 todo!()
             }
-            RuleBody::CharClass(cc) => {
-                self.parse_charclass(pos, cc).map(|x| (HashMap::new(), ActionResult::Value(x)))
-            }
+            RuleBody::CharClass(cc) => self
+                .parse_charclass(pos, cc)
+                .map(|x| (HashMap::new(), ActionResult::Value(x))),
             RuleBody::Literal(_) => {
                 todo!()
             }
@@ -50,7 +54,10 @@ impl<'src> ParserState<'src> {
     }
 }
 
-fn apply_action<'grm>(rule: &RuleAction<'grm>, map: &HashMap<&str, ActionResult<'grm>>) -> ActionResult<'grm> {
+fn apply_action<'grm>(
+    rule: &RuleAction<'grm>,
+    map: &HashMap<&str, ActionResult<'grm>>,
+) -> ActionResult<'grm> {
     match rule {
         RuleAction::Name(name) => {
             if let Some(v) = map.get(name) {
@@ -59,9 +66,7 @@ fn apply_action<'grm>(rule: &RuleAction<'grm>, map: &HashMap<&str, ActionResult<
                 ActionResult::Error
             }
         }
-        RuleAction::InputLiteral(lit) => {
-            ActionResult::Literal(lit)
-        }
+        RuleAction::InputLiteral(lit) => ActionResult::Literal(lit),
         RuleAction::Construct(name, args) => {
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect_vec();
             ActionResult::Construct(name, args_vals)
