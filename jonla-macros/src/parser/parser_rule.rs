@@ -21,9 +21,11 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
         rule: &'grm str,
     ) -> ParseResult<PR<'grm>> {
-        self.parse_cache_recurse(pos, |s, p| {
-            s.parse_expr(p, rules, &rules.get(rule).unwrap())
-        }, rule)
+        self.parse_cache_recurse(
+            pos,
+            |s, p| s.parse_expr(p, rules, &rules.get(rule).unwrap()),
+            rule,
+        )
     }
 
     pub fn parse_expr(
@@ -33,11 +35,12 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
         expr: &RuleBody<'grm>,
     ) -> ParseResult<PR<'grm>> {
         match expr {
-            RuleBody::Rule(rule) => self.parse_rule(pos, rules, rule).map(|(_, v)| (HashMap::new(), v)),
+            RuleBody::Rule(rule) => self
+                .parse_rule(pos, rules, rule)
+                .map(|(_, v)| (HashMap::new(), v)),
             RuleBody::CharClass(cc) => {
                 let result = self.parse_charclass(pos, cc);
-                let new_pos = result.pos;
-                result.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+                result.map_with_pos(|_, new_pos| (HashMap::new(), ActionResult::Value((pos, new_pos))))
             }
             RuleBody::Literal(literal) => {
                 let mut state = ParseResult::new_ok((), pos);
@@ -53,8 +56,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                         })
                         .map(|_| ());
                 }
-                let new_pos = state.pos;
-                state.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+                state.map_with_pos(|_, new_pos| (HashMap::new(), ActionResult::Value((pos, new_pos))))
             }
             RuleBody::Repeat {
                 expr,
@@ -108,7 +110,8 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 state.map(|(map, _)| (map, ActionResult::Error))
             }
             RuleBody::Choice(subs) => {
-                let mut state = ParseResult::new_err(pos);
+                //TODO should empty choices be allowed? If so, what error should that give?
+                let mut state = ParseResult::new_err(pos, vec![]);
                 for sub in subs {
                     state = self.parse_choice(pos, state, |s, p| s.parse_expr(p, rules, sub));
                 }
@@ -130,7 +133,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
             }
             RuleBody::SliceInput(sub) => {
                 let res = self.parse_expr(pos, rules, sub);
-                let new_pos = res.pos;
+                let new_pos = res.pos();
                 res.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
             }
         }
