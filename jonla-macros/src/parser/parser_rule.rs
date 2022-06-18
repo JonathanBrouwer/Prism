@@ -14,14 +14,16 @@ pub enum ActionResult<'grm> {
     Error,
 }
 
-impl<'grm, 'src> ParserState<'grm, 'src> {
+impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
     pub fn parse_rule(
         &mut self,
         pos: usize,
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
-        rule: &str,
+        rule: &'grm str,
     ) -> ParseResult<PR<'grm>> {
-        self.parse_expr(pos, rules, &rules.get(rule).unwrap())
+        self.parse_cache_recurse(pos, |s, p| {
+            s.parse_expr(p, rules, &rules.get(rule).unwrap())
+        }, rule)
     }
 
     pub fn parse_expr(
@@ -68,14 +70,15 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
 
                     //Parse delim
                     if i != 0 {
-                        let res = self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, delim));
-                        state_new = res.map(|(l, _)| {
-                            l
-                        })
+                        let res = self.parse_sequence(state_new.clone(), |s, p| {
+                            s.parse_expr(p, rules, delim)
+                        });
+                        state_new = res.map(|(l, _)| l)
                     }
 
                     //Parse expr
-                    let res = self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
+                    let res =
+                        self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
 
                     //If we can stop, do so
                     if !res.is_ok() && i >= *min {
@@ -128,9 +131,7 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
             RuleBody::SliceInput(sub) => {
                 let res = self.parse_expr(pos, rules, sub);
                 let new_pos = res.pos;
-                res.map(|_| {
-                    (HashMap::new(), ActionResult::Value((pos, new_pos)))
-                })
+                res.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
             }
         }
     }

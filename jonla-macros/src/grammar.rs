@@ -51,7 +51,7 @@ pub enum RuleBody<'input> {
     Choice(Vec<RuleBody<'input>>),
     NameBind(&'input str, Box<RuleBody<'input>>),
     Action(Box<RuleBody<'input>>, RuleAction<'input>),
-    SliceInput(Box<RuleBody<'input>>)
+    SliceInput(Box<RuleBody<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
