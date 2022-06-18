@@ -59,27 +59,34 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
                 min,
                 max,
                 delim,
-                trailing_delim,
             } => {
                 let mut state = ParseResult::new_ok((HashMap::new(), ()), pos);
                 let mut results = vec![];
 
-                for _ in 0..*min {
+                for i in 0..max.unwrap_or(u64::MAX) {
+                    let mut state_new = state.clone();
+
+                    //Parse delim
+                    if i != 0 {
+                        let res = self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, delim));
+                        state_new = res.map(|(l, _)| {
+                            l
+                        })
+                    }
+
                     //Parse expr
-                    let res = self.parse_sequence(state, |s, p| s.parse_expr(p, rules, expr));
+                    let res = self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
+
+                    //If we can stop, do so
+                    if !res.is_ok() && i >= *min {
+                        break;
+                    }
+
+                    //Update state
                     state = res.map(|(l, r)| {
                         results.push(r.1);
                         l
-                    })
-                }
-                while state.is_ok() {
-                    //Parse expr
-                    let res = self.parse_sequence(state.clone(), |s, p| s.parse_expr(p, rules, expr));
-                    if !res.is_ok() { break; }
-                    state = res.map(|(l, r)| {
-                        results.push(r.1);
-                        l
-                    })
+                    });
                 }
 
                 state.map(|(map, _)| (map, ActionResult::Error))

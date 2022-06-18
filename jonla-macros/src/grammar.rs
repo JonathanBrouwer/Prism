@@ -26,13 +26,6 @@ pub struct Rule<'input> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TrailingDelim {
-    No,
-    Maybe,
-    Yes,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharClass {
     pub ranges: Vec<(char, char)>,
 }
@@ -53,7 +46,6 @@ pub enum RuleBody<'input> {
         min: u64,
         max: Option<u64>,
         delim: Box<RuleBody<'input>>,
-        trailing_delim: TrailingDelim,
     },
     Sequence(Vec<RuleBody<'input>>),
     Choice(Vec<RuleBody<'input>>),
@@ -101,8 +93,8 @@ peg::parser! {
             n:identifier() _ ":" _ r:prule_body_2() { RuleBody::NameBind(n, box r) } /
             r:prule_body_2() { r }
         rule prule_body_2() -> RuleBody<'input> =
-            r:prule_body_3() "*" { RuleBody::Repeat{ expr: box r, min: 0, max: None, delim: box RuleBody::Sequence(vec![]), trailing_delim: TrailingDelim::No } } /
-            r:prule_body_3() "+" { RuleBody::Repeat{ expr: box r, min: 1, max: None, delim: box RuleBody::Sequence(vec![]), trailing_delim: TrailingDelim::No } } /
+            r:prule_body_3() "*" { RuleBody::Repeat{ expr: box r, min: 0, max: None, delim: box RuleBody::Sequence(vec![]) } } /
+            r:prule_body_3() "+" { RuleBody::Repeat{ expr: box r, min: 1, max: None, delim: box RuleBody::Sequence(vec![]) } } /
             r:prule_body_3() { r }
         rule prule_body_3() -> RuleBody<'input> =
             name:identifier() { RuleBody::Rule(name) } /
