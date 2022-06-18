@@ -167,4 +167,23 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
             }
         }
     }
+
+    pub fn parse_full_input<T: Clone>(
+        &mut self,
+        sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<T>,
+    ) -> ParseResult<T> {
+        let res = sub(self, 0);
+        if !res.is_ok() {
+            return res
+        }
+
+        if res.pos == self.input.len() {
+            res
+        } else {
+            //TODO find best error
+            ParseResult::new_err(res.pos)
+        }
+    }
+
+
 }
