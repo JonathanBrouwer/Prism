@@ -17,8 +17,12 @@ pub fn write_from_tuples(mut file: FormattingFile, asts: &Vec<Ast>) {
             use std::collections::HashMap;
             use jonla_macros::grammar::*;
 
-            pub fn read_input<'src>(ar: &ActionResult, input: &'src str) -> &'src str {
-                if let ActionResult::Value((s, e)) = ar { &input[*s..*e] } else { unreachable!() }
+            pub fn read_input<'grm: 'src, 'src>(ar: &ActionResult<'grm>, input: &'src str) -> &'src str {
+                match ar {
+                    ActionResult::Value((s, e)) => &input[*s..*e],
+                    ActionResult::Literal(s) => s,
+                    _ => unreachable!(),
+                }
             }
         }
     )
@@ -40,7 +44,7 @@ fn write_from_tuple(file: &mut FormattingFile, ast: &Ast) {
         file,
         "{}",
         quote! {
-            pub fn #funcname<'grm, 'src: 'grm>(a: &ActionResult<'grm>, input: &'src str) -> #returnname<'src> {
+            pub fn #funcname<'grm: 'src, 'src>(a: &ActionResult<'grm>, input: &'src str) -> #returnname<'src> {
                 match a {
                     ActionResult::Construct(name, args) => {
                         match *name {

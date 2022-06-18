@@ -33,7 +33,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
         expr: &RuleBody<'grm>,
     ) -> ParseResult<PR<'grm>> {
         match expr {
-            RuleBody::Rule(rule) => self.parse_rule(pos, rules, rule),
+            RuleBody::Rule(rule) => self.parse_rule(pos, rules, rule).map(|(_, v)| (HashMap::new(), v)),
             RuleBody::CharClass(cc) => {
                 let result = self.parse_charclass(pos, cc);
                 let new_pos = result.pos;
@@ -112,7 +112,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 for sub in subs {
                     state = self.parse_choice(pos, state, |s, p| s.parse_expr(p, rules, sub));
                 }
-                state
+                state.map(|(_, v)| (HashMap::new(), v))
             }
             RuleBody::NameBind(name, sub) => {
                 let res = self.parse_expr(pos, rules, sub);
