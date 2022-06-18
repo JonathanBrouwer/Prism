@@ -2,10 +2,10 @@
 #[rustfmt::skip]
 mod autogen;
 
+use crate::autogen::ast::Term;
 use jonla_macros::grammar;
 use jonla_macros::grammar::GrammarFile;
 use jonla_macros::parser::ActionResult;
-use crate::autogen::ast::Term;
 
 // fn term_from_action_result<'grm, 'src: 'grm>(a: ActionResult<'grm>, input: &'src str) -> Term<'src> {
 //     match a {

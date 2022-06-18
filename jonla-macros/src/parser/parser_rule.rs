@@ -4,6 +4,8 @@ use crate::parser::parser_result::ParseResult;
 use itertools::Itertools;
 use std::collections::HashMap;
 
+pub type PR<'grm> = (HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>);
+
 #[derive(Clone)]
 pub enum ActionResult<'grm> {
     Value((usize, usize)),
@@ -18,7 +20,7 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
         pos: usize,
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
         rule: &'grm str,
-    ) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
+    ) -> ParseResult<PR> {
         self.parse_expr(pos, rules, &rules.get(rule).unwrap())
     }
 
@@ -27,35 +29,52 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
         pos: usize,
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
         expr: &RuleBody<'grm>,
-    ) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
+    ) -> ParseResult<PR<'grm>> {
         match expr {
             RuleBody::Rule(_) => {
                 todo!()
             }
-            RuleBody::CharClass(cc) => self
-                .parse_charclass(pos, cc)
-                .map(|x| (HashMap::new(), ActionResult::Value(x))),
+            RuleBody::CharClass(cc) => {
+                let result = self.parse_charclass(pos, cc);
+                let new_pos = result.pos;
+                result.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+            }
             RuleBody::Literal(_) => {
                 todo!()
             }
             RuleBody::Repeat { .. } => {
                 todo!()
             }
-            RuleBody::Sequence(_) => {
-                todo!()
+            RuleBody::Sequence(subs) => {
+                let mut state = ParseResult::new_ok((HashMap::new(), ActionResult::Error), pos);
+                for sub in subs {
+                    let res: ParseResult<(PR, PR)> =
+                        self.parse_sequence(state, |s, p| s.parse_expr(p, rules, sub));
+                    state = res.map(|(mut l, r)| {
+                        for (k, v) in r.0.into_iter() {
+                            l.0.insert(k, v);
+                        }
+                        l
+                    });
+                }
+                state
             }
             RuleBody::Choice(_) => {
                 todo!()
             }
             RuleBody::NameBind(name, sub) => {
-                let mut res = self.parse_expr(pos, rules, sub);
-                res.result.0.insert(name, res.result.1.clone());
-                res
+                let res = self.parse_expr(pos, rules, sub);
+                res.map(|mut res| {
+                    res.0.insert(name, res.1.clone());
+                    res
+                })
             }
             RuleBody::Action(sub, action) => {
-                let mut res = self.parse_expr(pos, rules, sub);
-                res.result.1 = apply_action(action, &res.result.0);
-                res
+                let res = self.parse_expr(pos, rules, sub);
+                res.map(|mut res| {
+                    res.1 = apply_action(action, &res.0);
+                    res
+                })
             }
         }
     }

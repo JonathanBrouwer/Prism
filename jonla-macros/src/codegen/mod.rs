@@ -1,5 +1,7 @@
 use crate::codegen::codegen_ast::write_asts;
+use crate::codegen::codegen_from_tuples::write_from_tuples;
 use crate::codegen::codegen_parse::write_parsers;
+use crate::codegen::codegen_rules::write_rules;
 use crate::formatting_file::FormattingFile;
 use crate::GrammarFile;
 use proc_macro2::TokenStream;
@@ -7,13 +9,11 @@ use quote::quote;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use crate::codegen::codegen_from_tuples::write_from_tuples;
-use crate::codegen::codegen_rules::write_rules;
 
 mod codegen_ast;
+mod codegen_from_tuples;
 mod codegen_parse;
 mod codegen_rules;
-mod codegen_from_tuples;
 
 pub fn codegen(grammar: &GrammarFile) {
     let [mod_file, ast_file, from_tuples_file, rules_file, parse_file] = verify_folder_structure();
@@ -36,12 +36,19 @@ fn verify_folder_structure() -> [FormattingFile; 5] {
         write_gitignore(file);
     }
 
-    ["mod.rs", "ast.rs", "from_tuples.rs", "rules.json", "parse.rs"].map(|filename| {
+    [
+        "mod.rs",
+        "ast.rs",
+        "from_tuples.rs",
+        "rules.json",
+        "parse.rs",
+    ]
+    .map(|filename| {
         let mut file = folder.clone();
         file.push(filename);
         if filename.ends_with(".rs") {
             FormattingFile::create_formatting(file).unwrap()
-        }else {
+        } else {
             FormattingFile::create_not_formatting(file).unwrap()
         }
     })

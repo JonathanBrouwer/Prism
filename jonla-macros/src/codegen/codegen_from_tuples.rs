@@ -21,7 +21,8 @@ pub fn write_from_tuples(mut file: FormattingFile, asts: &Vec<Ast>) {
                 if let ActionResult::Value((s, e)) = ar { &input[*s..*e] } else { unreachable!() }
             }
         }
-    ).unwrap();
+    )
+    .unwrap();
     asts.iter().for_each(|ast| write_from_tuple(&mut file, ast))
 }
 
@@ -29,13 +30,17 @@ fn write_from_tuple(file: &mut FormattingFile, ast: &Ast) {
     let funcname = format_ident!("{}_from_action_result", ast.name.to_lowercase());
     let returnname = format_ident!("{}", ast.name);
 
-    let constructors = ast.constructors.iter().map(|c| write_from_tuple_constructor(&returnname, c)).collect_vec();
+    let constructors = ast
+        .constructors
+        .iter()
+        .map(|c| write_from_tuple_constructor(&returnname, c))
+        .collect_vec();
 
     write!(
         file,
         "{}",
         quote! {
-            fn #funcname<'grm, 'src: 'grm>(a: &ActionResult<'grm>, input: &'src str) -> #returnname<'src> {
+            pub fn #funcname<'grm, 'src: 'grm>(a: &ActionResult<'grm>, input: &'src str) -> #returnname<'src> {
                 match a {
                     ActionResult::Construct(name, args) => {
                         match *name {
@@ -54,13 +59,18 @@ fn write_from_tuple_constructor(sort: &Ident, cons: &AstConstructor) -> TokenStr
     let cons_name_str = cons.name;
     let cons_name = format_ident!("{}", cons.name);
 
-    let args: Vec<TokenStream> = cons.args.iter().enumerate().map(|(i, (an, av))| {
-        let an = format_ident!("{}", an);
-        let av = write_from_tuple_arg(i,av);
-        quote! {
-            #an: #av
-        }
-    }).collect();
+    let args: Vec<TokenStream> = cons
+        .args
+        .iter()
+        .enumerate()
+        .map(|(i, (an, av))| {
+            let an = format_ident!("{}", an);
+            let av = write_from_tuple_arg(i, av);
+            quote! {
+                #an: #av
+            }
+        })
+        .collect();
 
     quote! {
         #cons_name_str => #sort::#cons_name{ #(#args),* }

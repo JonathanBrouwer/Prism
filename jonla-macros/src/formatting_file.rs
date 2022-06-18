@@ -9,10 +9,18 @@ pub struct FormattingFile(Option<File>, PathBuf, bool);
 
 impl FormattingFile {
     pub fn create_formatting(p: impl AsRef<Path>) -> io::Result<Self> {
-        Ok(Self(Some(File::create(&p)?), p.as_ref().to_path_buf(), true))
+        Ok(Self(
+            Some(File::create(&p)?),
+            p.as_ref().to_path_buf(),
+            true,
+        ))
     }
     pub fn create_not_formatting(p: impl AsRef<Path>) -> io::Result<Self> {
-        Ok(Self(Some(File::create(&p)?), p.as_ref().to_path_buf(), false))
+        Ok(Self(
+            Some(File::create(&p)?),
+            p.as_ref().to_path_buf(),
+            false,
+        ))
     }
 }
 
