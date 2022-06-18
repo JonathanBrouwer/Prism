@@ -1,6 +1,5 @@
-use crate::grammar::{CharClass, RuleBody};
+use crate::grammar::{CharClass};
 use crate::parser::parser_result::ParseResult;
-use std::collections::HashMap;
 use std::marker::PhantomData;
 
 pub struct ParserState<'grm, 'src> {

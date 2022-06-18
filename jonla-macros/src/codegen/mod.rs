@@ -49,8 +49,11 @@ fn verify_folder_structure() -> [FormattingFile; 5] {
 
 fn write_mod(mut file: FormattingFile) {
     let tokens: TokenStream = quote! {
+        #[allow(unused)]
         pub mod ast;
+        #[allow(unused)]
         pub mod from_tuples;
+        #[allow(unused)]
         pub mod parse;
     };
     write!(file, "{}", tokens).unwrap();

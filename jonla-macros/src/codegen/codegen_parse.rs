@@ -1,16 +1,9 @@
-use std::collections::HashMap;
 use quote::{format_ident, quote};
 use crate::formatting_file::FormattingFile;
-use crate::grammar::{Rule, RuleBody};
+use crate::grammar::{Rule};
 use std::io::Write;
-use lazy_static::lazy_static;
-use proc_macro2::TokenStream;
 
-// pub fn parse_term<'input>(s: &'input str) -> ParseResult<Term<'input>> {
-//     let mut state = ParserState::new()
-// }
-
-pub fn write_parsers<'input>(mut file: FormattingFile, rules: &Vec<Rule<'input>>) {
+pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
     write!(
         file,
         "{}",
@@ -50,13 +43,4 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
             }
         }
     ).unwrap()
-}
-
-fn process_return_type(name: &str) -> (TokenStream, bool) {
-    if name == "Input" {
-        (quote! { &'input str }, true)
-    } else {
-        let name = format_ident!("{}", name);
-        (quote! { #name<'input> }, false)
-    }
 }
