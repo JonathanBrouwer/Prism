@@ -39,7 +39,7 @@ pub struct CharClass {
 
 impl CharClass {
     pub fn contains(&self, c: char) -> bool {
-        self.ranges.iter().any(|range| range.0 >= c && range.1 <= c)
+        self.ranges.iter().any(|range| range.0 <= c && c <= range.1)
     }
 }
 
@@ -59,6 +59,7 @@ pub enum RuleBody<'input> {
     Choice(Vec<RuleBody<'input>>),
     NameBind(&'input str, Box<RuleBody<'input>>),
     Action(Box<RuleBody<'input>>, RuleAction<'input>),
+    SliceInput(Box<RuleBody<'input>>)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,7 +94,9 @@ peg::parser! {
             r:prule_body_1() _ "{" _ a:prule_action() _ "}" { RuleBody::Action(box r, a) } /
             r:prule_body_1() { r }
         rule prule_body_1() -> RuleBody<'input> =
-            rs:(r:prule_body_2a() {r})**<0,> (_) { RuleBody::Sequence(rs) }
+            rs:(r:prule_body_2a() {r})**<2,> (_) { RuleBody::Sequence(rs) } /
+            r:prule_body_2a() {r} /
+            { RuleBody::Sequence(vec![]) }
         rule prule_body_2a() -> RuleBody<'input> =
             n:identifier() _ ":" _ r:prule_body_2() { RuleBody::NameBind(n, box r) } /
             r:prule_body_2() { r }
@@ -105,6 +108,7 @@ peg::parser! {
             name:identifier() { RuleBody::Rule(name) } /
             "\"" n:$(str_char()*) "\"" { RuleBody::Literal(n) } /
             "[" c:charclass() "]" { RuleBody::CharClass(c) } /
+            "$" _ "(" _ r:prule_body() _ ")" { RuleBody::SliceInput(box r) } /
             "(" _ r:prule_body() _ ")" { r }
 
         rule prule_action() -> RuleAction<'input> =

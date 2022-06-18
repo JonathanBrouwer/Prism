@@ -36,7 +36,7 @@ fn write_ast(file: &mut FormattingFile, ast: &Ast) {
         file,
         "{}",
         quote! {
-            #[derive(Clone)]
+            #[derive(Clone, Debug)]
             pub enum #name<'input> {
                 #(#constrs),*
             }

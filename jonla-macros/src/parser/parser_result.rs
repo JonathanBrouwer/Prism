@@ -10,7 +10,7 @@ pub struct ParseResult<O: Clone> {
 impl<O: Clone> ParseResult<O> {
     pub fn map<F, ON: Clone>(self, mapfn: F) -> ParseResult<ON>
     where
-        F: Fn(O) -> ON,
+        F: FnOnce(O) -> ON,
     {
         ParseResult {
             result: self.result.map(mapfn),

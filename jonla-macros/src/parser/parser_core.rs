@@ -43,14 +43,25 @@ impl<'grm, 'src> ParserState<'grm, 'src> {
         }
     }
 
-    // pub fn parse_choice(
-    //     &mut self,
-    //     pos: usize,
-    //     left: Box<dyn Fn(&mut ParserState<'src>, usize) -> ParseResult<(usize, usize)>>,
-    //     right: Box<dyn Fn(&mut ParserState<'src>, usize) -> ParseResult<(usize, usize)>>,
-    // ) -> ParseResult<(usize, usize)> {
-    //
-    // }
+    pub fn parse_choice<T: Clone>(
+        &mut self,
+        pos: usize,
+        res_left: ParseResult<T>,
+        right: impl Fn(&mut ParserState<'grm, 'src>, usize) -> ParseResult<T>,
+    ) -> ParseResult<T> {
+        match res_left.result {
+            Some(_) => res_left,
+            None => {
+                let mut res_right: ParseResult<T> = right(self, pos);
+                if res_right.is_ok() {
+                    res_right
+                } else {
+                    res_right.pos = res_left.pos.max(res_right.pos);
+                    res_right
+                }
+            }
+        }
+    }
 
     // pub fn parse_cache_recurse(
     //     &mut self,

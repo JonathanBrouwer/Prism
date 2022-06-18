@@ -3,6 +3,6 @@ ast Test {
     Thong(x: Input)
 }
 
-rule test -> Test {
-    ['x'] { Thing() }
+rule identifier -> Input {
+    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 }

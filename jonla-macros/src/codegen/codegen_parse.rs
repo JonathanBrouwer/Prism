@@ -35,6 +35,11 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
     } else {
         quote! { #rtrn<'input> }
     };
+    let funcname = if rule.rtrn == "Input" {
+        format_ident!("read_input")
+    } else {
+        format_ident!("{}_from_action_result", rule.rtrn.to_lowercase())
+    };
 
     write!(
         file,
@@ -45,7 +50,7 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
                 let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(str).unwrap();
                 let mut state: ParserState = ParserState::new(inp);
                 let result: ParseResult<PR> = state.parse_rule(0, &rules, #name_str);
-                result.map(|pr| test_from_action_result(&pr.1, inp))
+                result.map(|pr| #funcname(&pr.1, inp))
             }
         }
     ).unwrap()

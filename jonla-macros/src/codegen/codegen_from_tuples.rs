@@ -17,7 +17,7 @@ pub fn write_from_tuples(mut file: FormattingFile, asts: &Vec<Ast>) {
             use std::collections::HashMap;
             use jonla_macros::grammar::*;
 
-            fn read_input<'src>(ar: &ActionResult, input: &'src str) -> &'src str {
+            pub fn read_input<'src>(ar: &ActionResult, input: &'src str) -> &'src str {
                 if let ActionResult::Value((s, e)) = ar { &input[*s..*e] } else { unreachable!() }
             }
         }
