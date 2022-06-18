@@ -1,36 +1,38 @@
-#[derive(Debug)]
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Clone)]
 pub struct GrammarFile<'input> {
     pub asts: Vec<Ast<'input>>,
     pub rules: Vec<Rule<'input>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ast<'input> {
     pub name: &'input str,
     pub constructors: Vec<AstConstructor<'input>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AstConstructor<'input> {
     pub name: &'input str,
     pub args: Vec<(&'input str, &'input str)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rule<'input> {
     pub name: &'input str,
     pub rtrn: &'input str,
     pub body: RuleBody<'input>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TrailingDelim {
     No,
     Maybe,
     Yes,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharClass {
     pub ranges: Vec<(char, char)>,
 }
@@ -41,7 +43,7 @@ impl CharClass {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleBody<'input> {
     Rule(&'input str),
     CharClass(CharClass),
@@ -59,7 +61,7 @@ pub enum RuleBody<'input> {
     Action(Box<RuleBody<'input>>, RuleAction<'input>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'input> {
     Name(&'input str),
     InputLiteral(&'input str),

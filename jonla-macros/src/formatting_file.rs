@@ -5,11 +5,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// Like a file, formats contents on closing
-pub struct FormattingFile(Option<File>, PathBuf);
+pub struct FormattingFile(Option<File>, PathBuf, bool);
 
 impl FormattingFile {
-    pub fn create(p: impl AsRef<Path>) -> io::Result<Self> {
-        Ok(Self(Some(File::create(&p)?), p.as_ref().to_path_buf()))
+    pub fn create_formatting(p: impl AsRef<Path>) -> io::Result<Self> {
+        Ok(Self(Some(File::create(&p)?), p.as_ref().to_path_buf(), true))
+    }
+    pub fn create_not_formatting(p: impl AsRef<Path>) -> io::Result<Self> {
+        Ok(Self(Some(File::create(&p)?), p.as_ref().to_path_buf(), false))
     }
 }
 
@@ -23,8 +26,10 @@ impl Drop for FormattingFile {
     fn drop(&mut self) {
         drop(self.0.take());
 
-        if let Err(e) = try_fmt(&self.1) {
-            eprintln!("{}", e);
+        if self.2 {
+            if let Err(e) = try_fmt(&self.1) {
+                eprintln!("{}", e);
+            }
         }
     }
 }

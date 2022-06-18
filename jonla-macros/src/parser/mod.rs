@@ -4,8 +4,8 @@ use crate::parser::parser_result::ParseResult;
 use itertools::Itertools;
 use std::collections::HashMap;
 
-mod parser_core;
-mod parser_result;
+pub mod parser_core;
+pub mod parser_result;
 
 #[derive(Clone)]
 pub enum ActionResult<'grm> {
@@ -15,10 +15,20 @@ pub enum ActionResult<'grm> {
     Error,
 }
 
-impl<'src> ParserState<'src> {
-    pub fn parse_expr<'grm>(
+impl<'grm, 'src> ParserState<'grm, 'src> {
+    pub fn parse_rule(
         &mut self,
         pos: usize,
+        rules: &HashMap<&'grm str, RuleBody<'grm>>,
+        rule: &'grm str,
+    ) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
+        self.parse_expr(pos, rules, &rules.get(rule).unwrap())
+    }
+
+    pub fn parse_expr(
+        &mut self,
+        pos: usize,
+        rules: &HashMap<&'grm str, RuleBody<'grm>>,
         expr: &RuleBody<'grm>,
     ) -> ParseResult<(HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>)> {
         match expr {
@@ -41,12 +51,12 @@ impl<'src> ParserState<'src> {
                 todo!()
             }
             RuleBody::NameBind(name, sub) => {
-                let mut res = self.parse_expr(pos, sub);
+                let mut res = self.parse_expr(pos, rules, sub);
                 res.result.0.insert(name, res.result.1.clone());
                 res
             }
             RuleBody::Action(sub, action) => {
-                let mut res = self.parse_expr(pos, sub);
+                let mut res = self.parse_expr(pos, rules, sub);
                 res.result.1 = apply_action(action, &res.result.0);
                 res
             }

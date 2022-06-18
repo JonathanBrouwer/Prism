@@ -1,5 +1,6 @@
 ast Test {
     Thing()
+    Thong(x: Input)
 }
 
 rule test -> Test {

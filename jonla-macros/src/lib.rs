@@ -3,10 +3,12 @@
 use crate::grammar::GrammarFile;
 use std::path::PathBuf;
 
+pub use serde_json::from_str as read_rules_json;
+
 mod codegen;
 mod formatting_file;
 pub mod grammar;
-mod parser;
+pub mod parser;
 
 pub fn handle_language(path: PathBuf) {
     let s = std::fs::read_to_string(path.clone()).unwrap();

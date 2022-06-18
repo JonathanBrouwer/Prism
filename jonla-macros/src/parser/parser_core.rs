@@ -1,17 +1,18 @@
-use crate::grammar::CharClass;
+use crate::grammar::{CharClass, RuleBody};
 use crate::parser::parser_result::ParseResult;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 
-pub struct ParserState<'src> {
+pub struct ParserState<'grm, 'src> {
     input: &'src str,
-    skips: HashMap<usize, usize>,
+    _ph: PhantomData<&'grm str>,
 }
 
-impl<'src> ParserState<'src> {
+impl<'grm, 'src> ParserState<'grm, 'src> {
     pub fn new(input: &'src str) -> Self {
         ParserState {
             input,
-            skips: HashMap::new(),
+            _ph: PhantomData::default(),
         }
     }
     pub fn parse_charclass(&mut self, pos: usize, cc: &CharClass) -> ParseResult<(usize, usize)> {
@@ -30,8 +31,8 @@ impl<'src> ParserState<'src> {
     pub fn parse_sequence(
         &mut self,
         pos: usize,
-        left: Box<dyn Fn(&mut ParserState<'src>, usize) -> ParseResult<(usize, usize)>>,
-        right: Box<dyn Fn(&mut ParserState<'src>, usize) -> ParseResult<(usize, usize)>>,
+        left: Box<dyn Fn(&mut ParserState<'grm, 'src>, usize) -> ParseResult<(usize, usize)>>,
+        right: Box<dyn Fn(&mut ParserState<'grm, 'src>, usize) -> ParseResult<(usize, usize)>>,
     ) -> ParseResult<(usize, usize)> {
         let res_left: ParseResult<(usize, usize)> = left(self, pos);
         if res_left.ok {
