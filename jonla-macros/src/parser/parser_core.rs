@@ -3,16 +3,17 @@ use crate::parser::parser_result::{ParseError, ParseErrorLabel, ParseResult};
 use std::collections::HashMap;
 use crate::parser::parser_result::ParseErrorLabel::{LeftRecursionWarning, RemainingInputNotParsed};
 
+
 pub struct ParserState<'grm, 'src, CT: Clone> {
     input: &'src str,
 
-    cache: HashMap<(usize, &'grm str), ParserCacheEntry<CT>>,
+    cache: HashMap<(usize, &'grm str), ParserCacheEntry<'grm, CT>>,
     cache_stack: Vec<(usize, &'grm str)>,
 }
 
-pub struct ParserCacheEntry<CT: Clone> {
+pub struct ParserCacheEntry<'grm, CT: Clone> {
     read: bool,
-    value: ParseResult<CT>,
+    value: ParseResult<'grm, CT>,
 }
 
 impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
@@ -24,7 +25,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         }
     }
 
-    pub fn parse_charclass(&mut self, pos: usize, cc: &CharClass) -> ParseResult<()> {
+    pub fn parse_charclass(&mut self, pos: usize, cc: &CharClass) -> ParseResult<'grm, ()> {
         match self.input[pos..].chars().next() {
             Some(c) if cc.contains(c) => ParseResult::new_ok((), pos + c.len_utf8()),
             _ => ParseResult::new_err(pos, vec![ParseErrorLabel::CharClass(cc.clone())]),
@@ -37,9 +38,9 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
     /// - If left matched some amount, try to continue and match more
     pub fn parse_sequence<S: Clone, T: Clone>(
         &mut self,
-        res_left: ParseResult<S>,
-        right: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<T>,
-    ) -> ParseResult<(S, T)> {
+        res_left: ParseResult<'grm, S>,
+        right: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
+    ) -> ParseResult<'grm, (S, T)> {
         match res_left.inner {
             Ok(ok_left) => {
                 let res_right: ParseResult<T> = right(self, ok_left.pos);
@@ -59,9 +60,9 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
     pub fn parse_choice<T: Clone>(
         &mut self,
         pos: usize,
-        res_left: ParseResult<T>,
-        right: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<T>,
-    ) -> ParseResult<T> {
+        res_left: ParseResult<'grm, T>,
+        right: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
+    ) -> ParseResult<'grm, T> {
         match res_left.inner {
             Ok(ok_left) => {
                 //TODO in case left terminated early, we should run right side and add to best error
@@ -86,7 +87,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         self.cache.get(&key).map(|v| v.read)
     }
 
-    fn cache_get(&mut self, key: (usize, &'grm str)) -> Option<&ParseResult<CT>> {
+    fn cache_get(&mut self, key: (usize, &'grm str)) -> Option<&ParseResult<'grm, CT>> {
         if let Some(v) = self.cache.get_mut(&key) {
             v.read = true;
             Some(&v.value)
@@ -95,7 +96,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         }
     }
 
-    fn cache_insert(&mut self, key: (usize, &'grm str), value: ParseResult<CT>) {
+    fn cache_insert(&mut self, key: (usize, &'grm str), value: ParseResult<'grm, CT>) {
         self.cache
             .insert(key, ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -114,9 +115,9 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
     pub fn parse_cache_recurse(
         &mut self,
         pos: usize,
-        sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<CT>,
+        sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, CT>,
         id: &'grm str,
-    ) -> ParseResult<CT> {
+    ) -> ParseResult<'grm, CT> {
         //Check if this result is cached
         let key = (pos, id);
         if let Some(cached) = self.cache_get(key) {
@@ -186,8 +187,8 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
 
     pub fn parse_full_input<T: Clone>(
         &mut self,
-        sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<T>,
-    ) -> ParseResult<T> {
+        sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
+    ) -> ParseResult<'grm, T> {
         let res = sub(self, 0);
         match res.inner {
             Ok(ok) if res.pos() == self.input.len() => {

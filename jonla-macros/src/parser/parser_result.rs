@@ -5,12 +5,12 @@ use crate::grammar::CharClass;
 /// It parsed the value of type `O`.
 /// It also stores the best error encountered during parsing, and the position AFTER the parsed value in `pos`.
 #[derive(Clone, Debug)]
-pub struct ParseResult<O: Clone> {
-    pub inner: Result<ParseOk<O>, ParseError>,
+pub struct ParseResult<'grm, O: Clone> {
+    pub inner: Result<ParseOk<'grm, O>, ParseError<'grm>>,
 }
 
-impl<O: Clone> ParseResult<O> {
-    pub fn map<F, ON: Clone>(self, mapfn: F) -> ParseResult<ON>
+impl<'grm, O: Clone> ParseResult<'grm, O> {
+    pub fn map<F, ON: Clone>(self, mapfn: F) -> ParseResult<'grm, ON>
     where
         F: FnOnce(O) -> ON,
     {
@@ -23,7 +23,7 @@ impl<O: Clone> ParseResult<O> {
         }
     }
 
-    pub fn map_with_pos<F, ON: Clone>(self, mapfn: F) -> ParseResult<ON>
+    pub fn map_with_pos<F, ON: Clone>(self, mapfn: F) -> ParseResult<'grm, ON>
         where
             F: FnOnce(O, usize) -> ON,
     {
@@ -41,25 +41,25 @@ impl<O: Clone> ParseResult<O> {
             inner: Ok(ParseOk { result, best_error: None, pos }),
         }
     }
-    pub fn new_ok_with_err(result: O, pos: usize, best_error: Option<ParseError>) -> Self {
+    pub fn new_ok_with_err(result: O, pos: usize, best_error: Option<ParseError<'grm>>) -> Self {
         ParseResult {
             inner: Ok(ParseOk { result, best_error, pos }),
         }
     }
 
-    pub fn new_err(pos: usize, labels: Vec<ParseErrorLabel>) -> Self {
+    pub fn new_err(pos: usize, labels: Vec<ParseErrorLabel<'grm>>) -> Self {
         ParseResult {
             inner: Err(ParseError { labels, pos }),
         }
     }
 
-    pub fn from_ok(ok: ParseOk<O>) -> Self {
+    pub fn from_ok(ok: ParseOk<'grm, O>) -> Self {
         ParseResult {
             inner: Ok(ok),
         }
     }
 
-    pub fn from_err(err: ParseError) -> Self {
+    pub fn from_err(err: ParseError<'grm>) -> Self {
         ParseResult {
             inner: Err(err),
         }
@@ -78,20 +78,20 @@ impl<O: Clone> ParseResult<O> {
 }
 
 #[derive(Clone, Debug)]
-pub struct ParseOk<O: Clone> {
+pub struct ParseOk<'grm, O: Clone> {
     pub result: O,
-    pub best_error: Option<ParseError>,
+    pub best_error: Option<ParseError<'grm>>,
     pub pos: usize,
 }
 
 #[derive(Clone, Debug)]
-pub struct ParseError {
-    pub labels: Vec<ParseErrorLabel>,
+pub struct ParseError<'grm> {
+    pub labels: Vec<ParseErrorLabel<'grm>>,
     pub pos: usize,
 }
 
-impl ParseError {
-    pub fn combine(mut self, mut other: ParseError) -> ParseError {
+impl<'grm> ParseError<'grm> {
+    pub fn combine(mut self, mut other: ParseError<'grm>) -> ParseError<'grm> {
         match self.pos.cmp(&other.pos) {
             Ordering::Less => other,
             Ordering::Greater => self,
@@ -103,9 +103,9 @@ impl ParseError {
     }
 
     pub fn combine_option_parse_error(
-        a: Option<ParseError>,
-        b: Option<ParseError>,
-    ) -> Option<ParseError> {
+        a: Option<ParseError<'grm>>,
+        b: Option<ParseError<'grm>>,
+    ) -> Option<ParseError<'grm>> {
         match (a, b) {
             (None, None) => None,
             (None, Some(e)) => Some(e),
@@ -116,9 +116,10 @@ impl ParseError {
 }
 
 #[derive(Clone, Debug)]
-pub enum ParseErrorLabel {
+pub enum ParseErrorLabel<'grm> {
     CharClass(CharClass),
     LeftRecursionWarning,
     /// No attempt was even made
     RemainingInputNotParsed,
+    Error(&'grm str)
 }

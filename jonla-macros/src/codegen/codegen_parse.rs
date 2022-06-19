@@ -45,11 +45,11 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
         file,
         "{}",
         quote! {
-            pub fn #name<'input>(inp: &'input str) -> ParseResult<#rtrn> {
+            pub fn #name<'input>(inp: &'input str) -> ParseResult<'static, #rtrn> {
                 let str: &'static str = include_str!("rules.json");
                 let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(str).unwrap();
-                let mut state: ParserState<PR> = ParserState::new(inp);
-                let result: ParseResult<PR> = state.parse_full_input(|s, p| s.parse_rule(p, &rules, #name_str));
+                let mut state: ParserState<'static, 'input, PR<'static>> = ParserState::new(inp);
+                let result: ParseResult<'static, PR<'static>> = state.parse_full_input(|s, p| s.parse_rule(p, &rules, #name_str));
                 result.map(|pr| #funcname(&pr.1, inp))
             }
         }

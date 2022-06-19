@@ -20,7 +20,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
         pos: usize,
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
         rule: &'grm str,
-    ) -> ParseResult<PR<'grm>> {
+    ) -> ParseResult<'grm, PR<'grm>> {
         self.parse_cache_recurse(
             pos,
             |s, p| s.parse_expr(p, rules, &rules.get(rule).unwrap()),
@@ -33,7 +33,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
         pos: usize,
         rules: &HashMap<&'grm str, RuleBody<'grm>>,
         expr: &RuleBody<'grm>,
-    ) -> ParseResult<PR<'grm>> {
+    ) -> ParseResult<'grm, PR<'grm>> {
         match expr {
             RuleBody::Rule(rule) => self
                 .parse_rule(pos, rules, rule)
