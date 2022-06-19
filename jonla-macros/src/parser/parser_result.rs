@@ -1,5 +1,7 @@
-use std::cmp::Ordering;
 use crate::grammar::CharClass;
+use itertools::Itertools;
+use std::cmp::Ordering;
+use std::fmt::{Display, Formatter};
 
 /// Represents a parser that parsed its value successfully.
 /// It parsed the value of type `O`.
@@ -10,6 +12,18 @@ pub struct ParseResult<'grm, O: Clone> {
 }
 
 impl<'grm, O: Clone> ParseResult<'grm, O> {
+    pub fn add_error_info(&mut self, error: ParseError<'grm>) {
+        match &mut self.inner {
+            Ok(ok) => match &mut ok.best_error {
+                n @ None => *n = Some(error),
+                Some(err) => err.combine_mut(error),
+            },
+            Err(err) => {
+                err.combine_mut(error);
+            }
+        }
+    }
+
     pub fn map<F, ON: Clone>(self, mapfn: F) -> ParseResult<'grm, ON>
     where
         F: FnOnce(O) -> ON,
@@ -24,8 +38,8 @@ impl<'grm, O: Clone> ParseResult<'grm, O> {
     }
 
     pub fn map_with_pos<F, ON: Clone>(self, mapfn: F) -> ParseResult<'grm, ON>
-        where
-            F: FnOnce(O, usize) -> ON,
+    where
+        F: FnOnce(O, usize) -> ON,
     {
         ParseResult {
             inner: self.inner.map(|ok| ParseOk {
@@ -37,8 +51,8 @@ impl<'grm, O: Clone> ParseResult<'grm, O> {
     }
 
     pub fn map_errs<F>(self, mapfn: F) -> ParseResult<'grm, O>
-        where
-            F: FnOnce(ParseError<'grm>) -> ParseError<'grm>,
+    where
+        F: FnOnce(ParseError<'grm>) -> ParseError<'grm>,
     {
         ParseResult {
             inner: self.inner.map_err(|err| mapfn(err)),
@@ -47,31 +61,51 @@ impl<'grm, O: Clone> ParseResult<'grm, O> {
 
     pub fn new_ok(result: O, pos: usize) -> Self {
         ParseResult {
-            inner: Ok(ParseOk { result, best_error: None, pos }),
+            inner: Ok(ParseOk {
+                result,
+                best_error: None,
+                pos,
+            }),
         }
     }
     pub fn new_ok_with_err(result: O, pos: usize, best_error: Option<ParseError<'grm>>) -> Self {
         ParseResult {
-            inner: Ok(ParseOk { result, best_error, pos }),
+            inner: Ok(ParseOk {
+                result,
+                best_error,
+                pos,
+            }),
         }
     }
 
     pub fn new_err(pos: usize, labels: Vec<ParseErrorLabel<'grm>>) -> Self {
         ParseResult {
-            inner: Err(ParseError { labels, pos, start: None }),
+            inner: Err(ParseError {
+                labels,
+                pos,
+                start: None,
+                left_recursion_warning: false,
+            }),
+        }
+    }
+
+    pub fn new_err_leftrec(pos: usize) -> Self {
+        ParseResult {
+            inner: Err(ParseError {
+                labels: vec![],
+                pos,
+                start: None,
+                left_recursion_warning: true,
+            }),
         }
     }
 
     pub fn from_ok(ok: ParseOk<'grm, O>) -> Self {
-        ParseResult {
-            inner: Ok(ok),
-        }
+        ParseResult { inner: Ok(ok) }
     }
 
     pub fn from_err(err: ParseError<'grm>) -> Self {
-        ParseResult {
-            inner: Err(err),
-        }
+        ParseResult { inner: Err(err) }
     }
 
     pub fn is_ok(&self) -> bool {
@@ -98,18 +132,23 @@ pub struct ParseError<'grm> {
     pub labels: Vec<ParseErrorLabel<'grm>>,
     pub pos: usize,
     pub start: Option<usize>,
+    pub left_recursion_warning: bool,
 }
 
 impl<'grm> ParseError<'grm> {
-    pub fn combine(mut self, mut other: ParseError<'grm>) -> ParseError<'grm> {
+    pub fn combine_mut(&mut self, mut other: ParseError<'grm>) {
         match self.pos.cmp(&other.pos) {
-            Ordering::Less => other,
-            Ordering::Greater => self,
+            Ordering::Less => *self = other,
+            Ordering::Greater => {}
             Ordering::Equal => {
                 self.labels.append(&mut other.labels);
-                self
             }
         }
+    }
+
+    pub fn combine(mut self, mut other: ParseError<'grm>) -> ParseError<'grm> {
+        self.combine_mut(other);
+        self
     }
 
     pub fn combine_option_parse_error(
@@ -128,8 +167,73 @@ impl<'grm> ParseError<'grm> {
 #[derive(Clone, Debug)]
 pub enum ParseErrorLabel<'grm> {
     CharClass(CharClass),
-    LeftRecursionWarning(&'grm str),
     /// No attempt was even made
     RemainingInputNotParsed,
-    Error(&'grm str)
+    Error(&'grm str),
+}
+
+impl Display for ParseErrorLabel<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParseErrorLabel::CharClass(cc) => {
+                write!(
+                    f,
+                    "[{}]",
+                    cc.ranges
+                        .iter()
+                        .map(|(s, e)| {
+                            if *s == *e {
+                                format!("{}", *s)
+                            } else {
+                                format!("{}-{}", *s, *e)
+                            }
+                        })
+                        .format(" ")
+                )
+            }
+            ParseErrorLabel::RemainingInputNotParsed => {
+                write!(f, "No Parse Attempt")
+            }
+            ParseErrorLabel::Error(err) => {
+                write!(f, "{}", err)
+            }
+        }
+    }
+}
+
+impl<'grm> ParseError<'grm> {
+    pub fn display(&self, src: &str) {
+        let start = self.start.unwrap_or(self.pos);
+        let mut start_nl = start;
+        while let Some(c) = src[..start_nl].chars().rev().next() {
+            if c == '\n' {
+                break;
+            }
+            start_nl -= c.len_utf8();
+        }
+
+        let (end_excl, end_excl_nl) = if let Some(c) = src[self.pos..].chars().next() {
+            let end_excl = self.pos + c.len_utf8();
+            let mut end_excl_nl = end_excl;
+            while let Some(c) = src[end_excl_nl..].chars().next() {
+                if c == '\n' {
+                    break;
+                }
+                end_excl_nl += c.len_utf8();
+            }
+            (end_excl, end_excl_nl)
+        } else {
+            (self.pos + 1, self.pos)
+        };
+
+        println!("{}", &src[start_nl..end_excl_nl]);
+        print!("{: <1$}", "", start - start_nl);
+        println!("{:^<1$}", "", end_excl - start);
+
+        if self.labels.len() > 0 {
+            println!("Expected: {}", self.labels.iter().format(", "))
+        } else if self.left_recursion_warning {
+            println!("Warning: Left recursion failed here.")
+        }
+    }
 }

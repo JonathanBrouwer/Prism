@@ -1,8 +1,7 @@
 use crate::grammar::CharClass;
+use crate::parser::parser_result::ParseErrorLabel::RemainingInputNotParsed;
 use crate::parser::parser_result::{ParseError, ParseErrorLabel, ParseResult};
 use std::collections::HashMap;
-use crate::parser::parser_result::ParseErrorLabel::{LeftRecursionWarning, RemainingInputNotParsed};
-
 
 pub struct ParserState<'grm, 'src, CT: Clone> {
     input: &'src str,
@@ -45,12 +44,15 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
             Ok(ok_left) => {
                 let res_right: ParseResult<T> = right(self, ok_left.pos);
                 match res_right.inner {
-                    Ok(ok_right) => {
-                        ParseResult::new_ok_with_err((ok_left.result, ok_right.result), ok_right.pos, ok_right.best_error)
-                    },
-                    Err(err_right) => {
-                        ParseResult::from_err(ParseError::combine_option_parse_error(ok_left.best_error, Some(err_right)).unwrap())
-                    }
+                    Ok(ok_right) => ParseResult::new_ok_with_err(
+                        (ok_left.result, ok_right.result),
+                        ok_right.pos,
+                        ok_right.best_error,
+                    ),
+                    Err(err_right) => ParseResult::from_err(
+                        ParseError::combine_option_parse_error(ok_left.best_error, Some(err_right))
+                            .unwrap(),
+                    ),
                 }
             }
             Err(err_left) => ParseResult::from_err(err_left),
@@ -67,17 +69,18 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
             Ok(ok_left) => {
                 //TODO in case left terminated early, we should run right side and add to best error
                 ParseResult::from_ok(ok_left)
-            },
+            }
             Err(err_left) => {
                 let res_right: ParseResult<T> = right(self, pos);
                 match res_right.inner {
                     Ok(mut ok_right) => {
-                        ok_right.best_error = ParseError::combine_option_parse_error(Some(err_left), ok_right.best_error);
+                        ok_right.best_error = ParseError::combine_option_parse_error(
+                            Some(err_left),
+                            ok_right.best_error,
+                        );
                         ParseResult::from_ok(ok_right)
                     }
-                    Err(err_right) => {
-                        ParseResult::from_err(err_left.combine(err_right))
-                    }
+                    Err(err_right) => ParseResult::from_err(err_left.combine(err_right)),
                 }
             }
         }
@@ -127,7 +130,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
         let cache_state = self.cache_state_get();
-        self.cache_insert(key, ParseResult::new_err(pos, vec![LeftRecursionWarning(id)]));
+        self.cache_insert(key, ParseResult::new_err_leftrec(pos));
 
         //Now execute the actual rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -173,7 +176,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
                 // Left recursion value was used, but did not make a seed.
                 // This is an illegal grammar!
                 if self.cache_is_read(key).unwrap() {
-                    return ParseResult::new_err(pos, vec![LeftRecursionWarning(id)]);
+                    return ParseResult::new_err_leftrec(pos);
                 } else {
                     //Not ok, but seed was not used. This is just normal error.
                     //Insert into cache then return
@@ -191,15 +194,12 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
     ) -> ParseResult<'grm, T> {
         let res = sub(self, 0);
         match res.inner {
-            Ok(ok) if res.pos() == self.input.len() => {
-                ParseResult::from_ok(ok)
-            }
-            Ok(ok) => {
-                ok.best_error.map(ParseResult::from_err).unwrap_or(ParseResult::new_err(ok.pos, vec![RemainingInputNotParsed]))
-            }
-            Err(err) => {
-                ParseResult::from_err(err)
-            }
+            Ok(ok) if res.pos() == self.input.len() => ParseResult::from_ok(ok),
+            Ok(ok) => ok
+                .best_error
+                .map(ParseResult::from_err)
+                .unwrap_or(ParseResult::new_err(ok.pos, vec![RemainingInputNotParsed])),
+            Err(err) => ParseResult::from_err(err),
         }
     }
 }

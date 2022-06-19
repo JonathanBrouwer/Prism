@@ -1,6 +1,6 @@
 use crate::grammar::{CharClass, RuleAction, RuleBody};
 use crate::parser::parser_core::ParserState;
-use crate::parser::parser_result::{ParseErrorLabel, ParseResult};
+use crate::parser::parser_result::{ParseErrorLabel, ParseOk, ParseResult};
 use itertools::Itertools;
 use std::collections::HashMap;
 
@@ -40,7 +40,9 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 .map(|(_, v)| (HashMap::new(), v)),
             RuleBody::CharClass(cc) => {
                 let result = self.parse_charclass(pos, cc);
-                result.map_with_pos(|_, new_pos| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+                result.map_with_pos(|_, new_pos| {
+                    (HashMap::new(), ActionResult::Value((pos, new_pos)))
+                })
             }
             RuleBody::Literal(literal) => {
                 let mut state = ParseResult::new_ok((), pos);
@@ -56,7 +58,9 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                         })
                         .map(|_| ());
                 }
-                state.map_with_pos(|_, new_pos| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+                state.map_with_pos(|_, new_pos| {
+                    (HashMap::new(), ActionResult::Value((pos, new_pos)))
+                })
             }
             RuleBody::Repeat {
                 expr,
@@ -82,16 +86,20 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                     let res =
                         self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
 
-                    //If we can stop, do so
-                    if !res.is_ok() && i >= *min {
-                        break;
+                    match res.inner {
+                        //If we can stop, do so
+                        Err(err) if i >= *min => {
+                            state.add_error_info(err);
+                            break;
+                        }
+                        _ => {
+                            //Update state
+                            state = res.map(|(l, r)| {
+                                results.push(r.1);
+                                l
+                            });
+                        }
                     }
-
-                    //Update state
-                    state = res.map(|(l, r)| {
-                        results.push(r.1);
-                        l
-                    });
                 }
 
                 state.map(|(map, _)| (map, ActionResult::Error))
@@ -143,7 +151,6 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                     err.start = Some(pos);
                     err
                 })
-
             }
         }
     }
