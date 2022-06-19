@@ -52,6 +52,7 @@ pub enum RuleBody<'input> {
     NameBind(&'input str, Box<RuleBody<'input>>),
     Action(Box<RuleBody<'input>>, RuleAction<'input>),
     SliceInput(Box<RuleBody<'input>>),
+    Error(Box<RuleBody<'input>>, &'input str),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,6 +84,8 @@ peg::parser! {
             rs:(r:prule_body_1a())**<2,>(__ "/" __) { RuleBody::Choice(rs) } /
             r:prule_body_1a() { r }
         rule prule_body_1a() -> RuleBody<'input> =
+            r:prule_body_1() _ "{" _ a:prule_action() _ "/" _ "\"" _ err:$(str_char()*) _ "\"" _ "}" { RuleBody::Error(box RuleBody::Action(box r, a), err) } /
+            r:prule_body_1() _ "{" _ "/" _ "\"" _ err:$(str_char()*) _ "\"" _ "}" { RuleBody::Error(box r, err) } /
             r:prule_body_1() _ "{" _ a:prule_action() _ "}" { RuleBody::Action(box r, a) } /
             r:prule_body_1() { r }
         rule prule_body_1() -> RuleBody<'input> =

@@ -1,6 +1,6 @@
 use crate::grammar::{CharClass, RuleAction, RuleBody};
 use crate::parser::parser_core::ParserState;
-use crate::parser::parser_result::ParseResult;
+use crate::parser::parser_result::{ParseErrorLabel, ParseResult};
 use itertools::Itertools;
 use std::collections::HashMap;
 
@@ -135,6 +135,15 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 let res = self.parse_expr(pos, rules, sub);
                 let new_pos = res.pos();
                 res.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+            }
+            RuleBody::Error(sub, err_label) => {
+                let res = self.parse_expr(pos, rules, sub);
+                res.map_errs(|mut err| {
+                    err.labels = vec![ParseErrorLabel::Error(err_label)];
+                    err.start = Some(pos);
+                    err
+                })
+
             }
         }
     }

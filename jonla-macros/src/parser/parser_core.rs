@@ -127,7 +127,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
         let cache_state = self.cache_state_get();
-        self.cache_insert(key, ParseResult::new_err(pos, vec![LeftRecursionWarning]));
+        self.cache_insert(key, ParseResult::new_err(pos, vec![LeftRecursionWarning(id)]));
 
         //Now execute the actual rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -173,7 +173,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
                 // Left recursion value was used, but did not make a seed.
                 // This is an illegal grammar!
                 if self.cache_is_read(key).unwrap() {
-                    return ParseResult::new_err(pos, vec![LeftRecursionWarning]);
+                    return ParseResult::new_err(pos, vec![LeftRecursionWarning(id)]);
                 } else {
                     //Not ok, but seed was not used. This is just normal error.
                     //Insert into cache then return
@@ -195,7 +195,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
                 ParseResult::from_ok(ok)
             }
             Ok(ok) => {
-                ParseResult::from_err(ok.best_error.unwrap_or(ParseError { labels: vec![RemainingInputNotParsed], pos: ok.pos }))
+                ok.best_error.map(ParseResult::from_err).unwrap_or(ParseResult::new_err(ok.pos, vec![RemainingInputNotParsed]))
             }
             Err(err) => {
                 ParseResult::from_err(err)

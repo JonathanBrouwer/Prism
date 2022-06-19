@@ -36,6 +36,15 @@ impl<'grm, O: Clone> ParseResult<'grm, O> {
         }
     }
 
+    pub fn map_errs<F>(self, mapfn: F) -> ParseResult<'grm, O>
+        where
+            F: FnOnce(ParseError<'grm>) -> ParseError<'grm>,
+    {
+        ParseResult {
+            inner: self.inner.map_err(|err| mapfn(err)),
+        }
+    }
+
     pub fn new_ok(result: O, pos: usize) -> Self {
         ParseResult {
             inner: Ok(ParseOk { result, best_error: None, pos }),
@@ -49,7 +58,7 @@ impl<'grm, O: Clone> ParseResult<'grm, O> {
 
     pub fn new_err(pos: usize, labels: Vec<ParseErrorLabel<'grm>>) -> Self {
         ParseResult {
-            inner: Err(ParseError { labels, pos }),
+            inner: Err(ParseError { labels, pos, start: None }),
         }
     }
 
@@ -88,6 +97,7 @@ pub struct ParseOk<'grm, O: Clone> {
 pub struct ParseError<'grm> {
     pub labels: Vec<ParseErrorLabel<'grm>>,
     pub pos: usize,
+    pub start: Option<usize>,
 }
 
 impl<'grm> ParseError<'grm> {
@@ -118,7 +128,7 @@ impl<'grm> ParseError<'grm> {
 #[derive(Clone, Debug)]
 pub enum ParseErrorLabel<'grm> {
     CharClass(CharClass),
-    LeftRecursionWarning,
+    LeftRecursionWarning(&'grm str),
     /// No attempt was even made
     RemainingInputNotParsed,
     Error(&'grm str)
