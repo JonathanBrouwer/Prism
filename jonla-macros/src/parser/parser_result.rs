@@ -146,7 +146,7 @@ impl<'grm> ParseError<'grm> {
         }
     }
 
-    pub fn combine(mut self, mut other: ParseError<'grm>) -> ParseError<'grm> {
+    pub fn combine(mut self, other: ParseError<'grm>) -> ParseError<'grm> {
         self.combine_mut(other);
         self
     }

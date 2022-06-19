@@ -1,3 +1,3 @@
 [workspace]
-members = ["jonla-compiler", "jonla-macros", "test-lang"]
-default-members = ["jonla-compiler", "jonla-macros", "test-lang"]
+members = ["jonla-compiler", "jonla-macros"]
+default-members = ["jonla-compiler", "jonla-macros"]

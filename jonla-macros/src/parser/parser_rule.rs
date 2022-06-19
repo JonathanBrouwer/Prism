@@ -1,6 +1,6 @@
 use crate::grammar::{CharClass, RuleAction, RuleBody};
 use crate::parser::parser_core::ParserState;
-use crate::parser::parser_result::{ParseErrorLabel, ParseOk, ParseResult};
+use crate::parser::parser_result::{ParseErrorLabel, ParseResult};
 use itertools::Itertools;
 use std::collections::HashMap;
 
