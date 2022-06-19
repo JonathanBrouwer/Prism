@@ -176,16 +176,24 @@ impl Display for ParseErrorLabel<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             ParseErrorLabel::CharClass(cc) => {
+                fn show_char(c: char) -> String {
+                    match c {
+                        '\t' => "\\t".to_string(),
+                        '\n' => "\\n".to_string(),
+                        ' ' => "' '".to_string(),
+                        c => c.to_string()
+                    }
+                }
                 write!(
                     f,
-                    "[{}]",
+                    "{}",
                     cc.ranges
                         .iter()
                         .map(|(s, e)| {
                             if *s == *e {
-                                format!("{}", *s)
+                                format!("{}", show_char(*s))
                             } else {
-                                format!("{}-{}", *s, *e)
+                                format!("{}-{}", show_char(*s), show_char(*e))
                             }
                         })
                         .format(" ")

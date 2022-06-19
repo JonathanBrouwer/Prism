@@ -60,6 +60,10 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 }
                 state.map_with_pos(|_, new_pos| {
                     (HashMap::new(), ActionResult::Value((pos, new_pos)))
+                }).map_errs(|mut err| {
+                    err.labels = vec![ParseErrorLabel::Error(literal)];
+                    err.start = Some(pos);
+                    err
                 })
             }
             RuleBody::Repeat {
