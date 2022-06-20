@@ -14,6 +14,17 @@ pub enum ActionResult<'grm> {
     Error,
 }
 
+impl<'grm> ActionResult<'grm> {
+    pub fn to_string<'src>(&self, src: &'src str) -> String {
+        match self {
+            ActionResult::Value((s, e)) => format!("\'{}\'", &src[*s..*e]),
+            ActionResult::Literal(lit) => format!("\'{}\'", lit.to_string()),
+            ActionResult::Construct(c, es) => format!("{}({})", c, es.iter().map(|e| e.to_string(src)).format(", ")),
+            ActionResult::Error => format!("ERROR"),
+        }
+    }
+}
+
 impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
     pub fn parse_rule(
         &mut self,

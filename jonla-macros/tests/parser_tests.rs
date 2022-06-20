@@ -6,7 +6,7 @@ use jonla_macros::parser::parser_result::ParseResult;
 use jonla_macros::parser::parser_rule::PR;
 
 macro_rules! parse_test {
-    (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal)* failing tests: $($input_fail:literal)*) => {
+    (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
         #[test]
         fn $name() {
             let syntax: &'static str = $syntax;
@@ -25,7 +25,16 @@ macro_rules! parse_test {
             let mut state: ParserState<'static, 'static, PR<'static>> = ParserState::new(input);
             let result: ParseResult<'static, PR<'static>> =
                 state.parse_full_input(|s, p| s.parse_rule(p, &rules, "start"));
-            assert!(result.is_ok());
+            match result.inner {
+                Ok(ok) => {
+                    let got = ok.result.1.to_string(input);
+                    assert_eq!($expected, got);
+                }
+                Err(err) => {
+                    err.display(input);
+                    panic!();
+                }
+            }
             )*
 
             $(
@@ -48,7 +57,7 @@ syntax: r#"
     }
     "#
 passing tests:
-    "lol"
+    "lol" => "'lol'"
 failing tests:
     "lolz"
     "loll"
@@ -71,7 +80,7 @@ syntax: r#"
     }
     "#
 passing tests:
-    "lol"
+    "lol" => "'lol'"
 failing tests:
     "lolz"
     "loll"
@@ -91,13 +100,13 @@ syntax: r#"
     }
     "#
 passing tests:
-    "8"
-    "w"
-    "x"
-    "y"
-    "z"
-    "p"
-    "q"
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
 
 failing tests:
     "a"
@@ -120,17 +129,17 @@ syntax: r#"
     }
     "#
 passing tests:
-    "8"
-    "w"
-    "x"
-    "y"
-    "z"
-    "p"
-    "q"
-    ""
-    "8w"
-    "w8"
-    "wxyz8pqpq8wz"
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
+    "" => "''"
+    "8w"  => "'8w'"
+    "w8" => "'w8'"
+    "wxyz8pqpq8wz" => "'wxyz8pqpq8wz'"
 
 failing tests:
     "a"
@@ -149,13 +158,13 @@ parse_test! {
 name: sequence
 syntax: r#"
     rule start -> Input {
-        "a" ['w'-'y'] "q"
+        $("a" ['w'-'y'] "q")
     }
     "#
 passing tests:
-    "awq"
-    "axq"
-    "ayq"
+    "awq" => "'awq'"
+    "axq" => "'axq'"
+    "ayq" => "'ayq'"
 
 failing tests:
     "a"
@@ -177,10 +186,10 @@ syntax: r#"
     }
     "#
 passing tests:
-    "a"
-    "w"
-    "y"
-    "q"
+    "a" => "'a'"
+    "w" => "'w'"
+    "y" => "'y'"
+    "q" => "'q'"
 
 failing tests:
     "aw"
@@ -194,14 +203,18 @@ failing tests:
 parse_test! {
 name: action
 syntax: r#"
+    ast Test {
+        TestC(left: Input, right: Input)
+    }
+
     rule start -> Input {
-        "a" c:['w'-'y'] d:"q" { c }
+        "a" c:['w'-'y'] d:"q" { TestC(c, d) }
     }
     "#
 passing tests:
-    "awq"
-    "axq"
-    "ayq"
+    "awq" => "TestC('w', 'q')"
+    "axq" => "TestC('x', 'q')"
+    "ayq" => "TestC('y', 'q')"
 
 failing tests:
     "a"
