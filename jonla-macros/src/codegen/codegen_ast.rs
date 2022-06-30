@@ -1,5 +1,5 @@
 use crate::formatting_file::FormattingFile;
-use crate::grammar::Ast;
+use crate::grammar::{Ast, AstType};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -21,7 +21,7 @@ fn write_ast(file: &mut FormattingFile, ast: &Ast) {
                 .iter()
                 .map(|(arg_name, arg_type)| {
                     let arg_name = format_ident!("{}", arg_name);
-                    let arg_type = process_type(arg_type);
+                    let arg_type = process_type(arg_type, true);
                     quote!(
                         #arg_name: #arg_type
                     )
@@ -45,11 +45,22 @@ fn write_ast(file: &mut FormattingFile, ast: &Ast) {
     .unwrap();
 }
 
-fn process_type(name: &str) -> TokenStream {
-    if name == "Input" {
-        quote! { &'input str }
-    } else {
-        let name = format_ident!("{}", name);
-        quote! { Box<#name<'input>> }
+fn process_type(typ: &AstType, need_box: bool) -> TokenStream {
+    match typ {
+        AstType::Input => {
+            quote! { &'input str }
+        }
+        AstType::Rule(name) => {
+            let name = format_ident!("{}", name);
+            if need_box {
+                quote! { Box<#name<'input>> }
+            } else {
+                quote! { #name<'input> }
+            }
+        }
+        AstType::List(typ) => {
+            let typ = process_type(typ, false);
+            quote! { Vec<#typ> }
+        }
     }
 }

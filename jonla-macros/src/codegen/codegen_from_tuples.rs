@@ -1,5 +1,5 @@
 use crate::formatting_file::FormattingFile;
-use crate::grammar::{Ast, AstConstructor};
+use crate::grammar::{Ast, AstConstructor, AstType};
 use itertools::Itertools;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
@@ -81,15 +81,28 @@ fn write_from_tuple_constructor(sort: &Ident, cons: &AstConstructor) -> TokenStr
     }
 }
 
-fn write_from_tuple_arg(i: usize, arg: &str) -> TokenStream {
-    if arg == "Input" {
-        quote! {
+fn write_from_tuple_arg(i: usize, arg: &AstType) -> TokenStream {
+    match arg {
+        AstType::Input => {
+            quote! {
             read_input(&args[#i], input)
         }
-    } else {
-        let funcname = format_ident!("{}_from_action_result", arg.to_lowercase());
-        quote! {
-            Box::new(#funcname(&args[#i], input))
+        }
+        AstType::Rule(rule) => {
+            let funcname = format_ident!("{}_from_action_result", rule.to_lowercase());
+            quote! {
+                Box::new(#funcname(&args[#i], input))
+            }
+        }
+        AstType::List(vals) => {
+            quote! {
+                match &args[#i] {
+                    ActionResult::List(args) => {
+                        todo!()
+                    },
+                    _ => unreachable!(),
+                }
+            }
         }
     }
 }

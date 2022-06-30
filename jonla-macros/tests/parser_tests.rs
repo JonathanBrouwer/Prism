@@ -188,6 +188,39 @@ failing tests:
 }
 
 parse_test! {
+name: repeat_option
+syntax: r#"
+    rule start -> Input {
+        $([ 'w'-'z' | '8' | 'p'-'q' ]?)
+    }
+    "#
+passing tests:
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
+    "" => "''"
+
+failing tests:
+    "a"
+    "b"
+    "v"
+    "7"
+    "9"
+    "o"
+    "r"
+    " "
+    "wxya"
+    "w8 "
+    "8w"
+    "w8"
+    "wxyz8pqpq8wz"
+}
+
+parse_test! {
 name: sequence
 syntax: r#"
     rule start -> Input {
@@ -242,6 +275,36 @@ syntax: r#"
 
     rule start -> Input {
         "a" c:['w'-'y'] d:"q" { TestC(c, d) }
+    }
+    "#
+passing tests:
+    "awq" => "TestC('w', 'q')"
+    "axq" => "TestC('x', 'q')"
+    "ayq" => "TestC('y', 'q')"
+
+failing tests:
+    "a"
+    "aw"
+    "ax"
+    "ay"
+    "aqq"
+    "aaq"
+    "bwq"
+    ""
+    "awqq"
+}
+
+parse_test! {
+name: list
+syntax: r#"
+    ast Test {
+        Leaf(v: Input)
+        Nodes(nodes: [Input])
+    }
+
+    rule start -> Input {
+        "(" ns:start* ")" { Nodes(ns) } /
+        v:$("x") { Leaf(v) }
     }
     "#
 passing tests:

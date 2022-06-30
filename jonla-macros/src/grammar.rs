@@ -15,13 +15,20 @@ pub struct Ast<'input> {
 #[derive(Debug, Clone)]
 pub struct AstConstructor<'input> {
     pub name: &'input str,
-    pub args: Vec<(&'input str, &'input str)>,
+    pub args: Vec<(&'input str, AstType<'input>)>,
+}
+
+#[derive(Debug, Clone)]
+pub enum AstType<'input> {
+    Input,
+    Rule(&'input str),
+    List(Box<AstType<'input>>)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rule<'input> {
     pub name: &'input str,
-    pub rtrn: &'input str,
+    pub rtrn: AstType<'input>,
     pub body: RuleBody<'input>,
 }
 
@@ -74,11 +81,15 @@ peg::parser! {
 
         rule ast() -> Ast<'input> = "ast" _ name:identifier() _ "{" constructors:(__ c:ast_constructor() {c})* __ "}" { Ast { name, constructors } }
         rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _ "\n" { AstConstructor{ name, args } }
-        rule ast_constructor_arg() -> (&'input str, &'input str) = _ name:identifier() _ ":" _ typ:identifier() _ { (name, typ) }
+        rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
+        rule ast_constructor_type() -> AstType<'input> =
+            "Input" { AstType::Input } /
+            "[" _ t:ast_constructor_type() _ "]" { AstType::List(box t) } /
+            r:identifier() { AstType::Rule(r) }
 
         rule prule() -> Rule<'input> =
-            "rule" _ name:identifier() _ "->" _ rtrn:identifier() _ "{" __ body:prule_body() __ "}" { Rule{name, rtrn, body } } /
-            "rule" _ name:identifier() _ "->" _ rtrn:identifier() _ "=" _ body:prule_body() { Rule{name, rtrn, body } }
+            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "{" __ body:prule_body() __ "}" { Rule{name, rtrn, body } } /
+            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ body:prule_body() { Rule{name, rtrn, body } }
 
         rule prule_body() -> RuleBody<'input> =
             rs:(r:prule_body_1a())**<2,>(__ "/" __) { RuleBody::Choice(rs) } /

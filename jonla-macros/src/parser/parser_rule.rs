@@ -11,6 +11,7 @@ pub enum ActionResult<'grm> {
     Value((usize, usize)),
     Literal(&'grm str),
     Construct(&'grm str, Vec<ActionResult<'grm>>),
+    List(Vec<ActionResult<'grm>>),
     Error,
 }
 
@@ -20,6 +21,7 @@ impl<'grm> ActionResult<'grm> {
             ActionResult::Value((s, e)) => format!("\'{}\'", &src[*s..*e]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit.to_string()),
             ActionResult::Construct(c, es) => format!("{}({})", c, es.iter().map(|e| e.to_string(src)).format(", ")),
+            ActionResult::List(es) => format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", ")),
             ActionResult::Error => format!("ERROR"),
         }
     }
@@ -142,7 +144,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                     }
                 }
 
-                state.map(|(map, _)| (map, ActionResult::Error))
+                state.map(|(map, _)| (map, ActionResult::List(results)))
             }
             RuleBody::Sequence(subs) => {
                 let mut state = ParseResult::new_ok((HashMap::new(), ()), pos);
