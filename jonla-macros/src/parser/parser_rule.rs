@@ -86,33 +86,58 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 let mut state = ParseResult::new_ok((HashMap::new(), ()), pos);
                 let mut results = vec![];
 
-                for i in 0..max.unwrap_or(u64::MAX) {
-                    let mut state_new = state.clone();
-
+                //Parse minimum amount, this is mandatory so just make it a sequence
+                for i in 0..*min {
                     //Parse delim
                     if i != 0 {
-                        let res = self.parse_sequence(state_new.clone(), |s, p| {
+                        let res = self.parse_sequence(state, |s, p| {
                             s.parse_expr(p, rules, delim)
                         });
-                        state_new = res.map(|(l, _)| l)
+                        state = res.map(|(l, _)| l)
                     }
 
                     //Parse expr
                     let res =
-                        self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
+                        self.parse_sequence(state.clone(), |s, p| s.parse_expr(p, rules, expr));
+                    state = res.map(|(l, r)| {
+                        results.push(r.1);
+                        l
+                    });
+                }
 
-                    match res.inner {
-                        //If we can stop, do so
-                        Err(err) if i >= *min => {
-                            state.add_error_info(err);
-                            break;
-                        }
-                        _ => {
-                            //Update state
-                            state = res.map(|(l, r)| {
-                                results.push(r.1);
-                                l
+                if state.is_ok() {
+                    for i in *min..max.unwrap_or(u64::MAX) {
+                        let mut state_new = state.clone();
+
+                        //Parse delim
+                        if i != 0 {
+                            let res = self.parse_sequence(state_new.clone(), |s, p| {
+                                s.parse_expr(p, rules, delim)
                             });
+                            state_new = res.map(|(l, _)| l)
+                        }
+
+                        //Parse expr
+                        let state_new =
+                            self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
+
+                        //Update results
+                        let state_new = state_new.map(|(l, r)| {
+                            results.push(r.1);
+                            l
+                        });
+
+                        //Update state
+                        let old_pos = state.pos();
+                        state = self.parse_choice(old_pos, state_new, |_, p| {
+                            assert_eq!(p, old_pos);
+                            state
+                        });
+
+                        //If no progress was made, stop.
+                        //TODO: More complicated notion of progress?
+                        if state.pos() == old_pos {
+                            break;
                         }
                     }
                 }

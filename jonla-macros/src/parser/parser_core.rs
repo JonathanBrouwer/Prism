@@ -63,7 +63,7 @@ impl<'grm, 'src, CT: Clone> ParserState<'grm, 'src, CT> {
         &mut self,
         pos: usize,
         res_left: ParseResult<'grm, T>,
-        right: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
+        right: impl FnOnce(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
     ) -> ParseResult<'grm, T> {
         match res_left.inner {
             Ok(ok_left) => {

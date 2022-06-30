@@ -98,6 +98,7 @@ peg::parser! {
         rule prule_body_2() -> RuleBody<'input> =
             r:prule_body_3() "*" { RuleBody::Repeat{ expr: box r, min: 0, max: None, delim: box RuleBody::Sequence(vec![]) } } /
             r:prule_body_3() "+" { RuleBody::Repeat{ expr: box r, min: 1, max: None, delim: box RuleBody::Sequence(vec![]) } } /
+            r:prule_body_3() "?" { RuleBody::Repeat{ expr: box r, min: 0, max: Some(1), delim: box RuleBody::Sequence(vec![]) } } /
             r:prule_body_3() { r }
         rule prule_body_3() -> RuleBody<'input> =
             name:identifier() { RuleBody::Rule(name) } /
