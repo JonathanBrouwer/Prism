@@ -295,33 +295,67 @@ failing tests:
 }
 
 parse_test! {
-name: list
+name: list_ast
 syntax: r#"
     ast Test {
-        Leaf(v: Input)
+        Leaf()
         Nodes(nodes: [Input])
     }
 
-    rule start -> Input {
+    rule start -> Test {
         "(" ns:start* ")" { Nodes(ns) } /
-        v:$("x") { Leaf(v) }
+        "x" { Leaf() }
     }
     "#
 passing tests:
-    "awq" => "TestC('w', 'q')"
-    "axq" => "TestC('x', 'q')"
-    "ayq" => "TestC('y', 'q')"
+    "x" => "Leaf()"
+    "()" => "Nodes([])"
+    "(x)" => "Nodes([Leaf()])"
+    "(xx)" => "Nodes([Leaf(), Leaf()])"
+    "((x))" => "Nodes([Nodes([Leaf()])])"
 
 failing tests:
-    "a"
-    "aw"
-    "ax"
-    "ay"
-    "aqq"
-    "aaq"
-    "bwq"
+    "xx"
+    "(x"
+    "x)"
+    "(y)"
+    "(x))"
+    "((x)"
     ""
-    "awqq"
+}
+
+parse_test! {
+name: list_rule
+syntax: r#"
+    ast Test {
+        Leaf()
+        Nodes(nodes: [Input])
+    }
+
+    rule start -> [Test] {
+        other*
+    }
+
+    rule other -> Test {
+        "(" ns:other* ")" { Nodes(ns) } /
+        "x" { Leaf() }
+    }
+    "#
+passing tests:
+    "x" => "[Leaf()]"
+    "()" => "[Nodes([])]"
+    "(x)" => "[Nodes([Leaf()])]"
+    "(xx)" => "[Nodes([Leaf(), Leaf()])]"
+    "((x))" => "[Nodes([Nodes([Leaf()])])]"
+    "xx" => "[Leaf(), Leaf()]"
+    "" => "[]"
+
+failing tests:
+    "(x"
+    "x)"
+    "(y)"
+    "(x))"
+    "((x)"
 }
 
 parse_test! {
