@@ -69,7 +69,7 @@ fn write_from_tuple_constructor(sort: &Ident, cons: &AstConstructor) -> TokenStr
         .enumerate()
         .map(|(i, (an, av))| {
             let an = format_ident!("{}", an);
-            let av = write_from_tuple_arg(i, av);
+            let av = write_from_tuple_arg(av, quote!(&args[#i]), true);
             quote! {
                 #an: #av
             }
@@ -81,24 +81,31 @@ fn write_from_tuple_constructor(sort: &Ident, cons: &AstConstructor) -> TokenStr
     }
 }
 
-fn write_from_tuple_arg(i: usize, arg: &AstType) -> TokenStream {
+fn write_from_tuple_arg(arg: &AstType, val: TokenStream, box_needed: bool) -> TokenStream {
     match arg {
         AstType::Input => {
             quote! {
-            read_input(&args[#i], input)
-        }
-        }
-        AstType::Rule(rule) => {
-            let funcname = format_ident!("{}_from_action_result", rule.to_lowercase());
-            quote! {
-                Box::new(#funcname(&args[#i], input))
+                read_input(#val, input)
             }
         }
-        AstType::List(vals) => {
+        AstType::Ast(rule) => {
+            let funcname = format_ident!("{}_from_action_result", rule.to_lowercase());
+            if box_needed {
+                quote! {
+                    Box::new(#funcname(#val, input))
+                }
+            } else {
+                quote! {
+                    #funcname(#val, input)
+                }
+            }
+        }
+        AstType::List(subarg) => {
+            let subres = write_from_tuple_arg(subarg, quote!(arg), false);
             quote! {
-                match &args[#i] {
+                match #val {
                     ActionResult::List(args) => {
-                        todo!()
+                        args.iter().map(|arg| #subres).collect::<Vec<_>>()
                     },
                     _ => unreachable!(),
                 }

@@ -18,11 +18,11 @@ pub struct AstConstructor<'input> {
     pub args: Vec<(&'input str, AstType<'input>)>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AstType<'input> {
     Input,
-    Rule(&'input str),
-    List(Box<AstType<'input>>)
+    Ast(&'input str),
+    List(Box<AstType<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,7 +85,7 @@ peg::parser! {
         rule ast_constructor_type() -> AstType<'input> =
             "Input" { AstType::Input } /
             "[" _ t:ast_constructor_type() _ "]" { AstType::List(box t) } /
-            r:identifier() { AstType::Rule(r) }
+            r:identifier() { AstType::Ast(r) }
 
         rule prule() -> Rule<'input> =
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "{" __ body:prule_body() __ "}" { Rule{name, rtrn, body } } /

@@ -20,8 +20,14 @@ impl<'grm> ActionResult<'grm> {
         match self {
             ActionResult::Value((s, e)) => format!("\'{}\'", &src[*s..*e]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit.to_string()),
-            ActionResult::Construct(c, es) => format!("{}({})", c, es.iter().map(|e| e.to_string(src)).format(", ")),
-            ActionResult::List(es) => format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", ")),
+            ActionResult::Construct(c, es) => format!(
+                "{}({})",
+                c,
+                es.iter().map(|e| e.to_string(src)).format(", ")
+            ),
+            ActionResult::List(es) => {
+                format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
+            }
             ActionResult::Error => format!("ERROR"),
         }
     }
@@ -71,13 +77,15 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                         })
                         .map(|_| ());
                 }
-                state.map_with_pos(|_, new_pos| {
-                    (HashMap::new(), ActionResult::Value((pos, new_pos)))
-                }).map_errs(|mut err| {
-                    err.labels = vec![ParseErrorLabel::Error(literal)];
-                    err.start = Some(pos);
-                    err
-                })
+                state
+                    .map_with_pos(|_, new_pos| {
+                        (HashMap::new(), ActionResult::Value((pos, new_pos)))
+                    })
+                    .map_errs(|mut err| {
+                        err.labels = vec![ParseErrorLabel::Error(literal)];
+                        err.start = Some(pos);
+                        err
+                    })
             }
             RuleBody::Repeat {
                 expr,
@@ -92,9 +100,7 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 for i in 0..*min {
                     //Parse delim
                     if i != 0 {
-                        let res = self.parse_sequence(state, |s, p| {
-                            s.parse_expr(p, rules, delim)
-                        });
+                        let res = self.parse_sequence(state, |s, p| s.parse_expr(p, rules, delim));
                         state = res.map(|(l, _)| l)
                     }
 
@@ -120,8 +126,8 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                         }
 
                         //Parse expr
-                        let state_new =
-                            self.parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
+                        let state_new = self
+                            .parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
 
                         //Update results
                         let state_new = state_new.map(|(l, r)| {

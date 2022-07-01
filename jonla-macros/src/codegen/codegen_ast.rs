@@ -45,12 +45,12 @@ fn write_ast(file: &mut FormattingFile, ast: &Ast) {
     .unwrap();
 }
 
-fn process_type(typ: &AstType, need_box: bool) -> TokenStream {
+pub(crate) fn process_type(typ: &AstType, need_box: bool) -> TokenStream {
     match typ {
         AstType::Input => {
             quote! { &'input str }
         }
-        AstType::Rule(name) => {
+        AstType::Ast(name) => {
             let name = format_ident!("{}", name);
             if need_box {
                 quote! { Box<#name<'input>> }

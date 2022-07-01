@@ -1,9 +1,9 @@
-use std::collections::HashMap;
 use jonla_macros::grammar;
 use jonla_macros::grammar::{GrammarFile, RuleBody};
 use jonla_macros::parser::parser_core::ParserState;
 use jonla_macros::parser::parser_result::ParseResult;
 use jonla_macros::parser::parser_rule::PR;
+use std::collections::HashMap;
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {

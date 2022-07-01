@@ -1,5 +1,6 @@
+use crate::codegen::codegen_ast::process_type;
 use crate::formatting_file::FormattingFile;
-use crate::grammar::Rule;
+use crate::grammar::{AstType, Rule};
 use quote::{format_ident, quote};
 use std::io::Write;
 
@@ -29,16 +30,11 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
 
     let name_str = rule.name;
     let name = format_ident!("parse_{}", rule.name);
-    let rtrn = format_ident!("{}", rule.rtrn);
-    let rtrn = if rule.rtrn == "Input" {
-        quote! { &'input str }
-    } else {
-        quote! { #rtrn<'input> }
-    };
-    let funcname = if rule.rtrn == "Input" {
-        format_ident!("read_input")
-    } else {
-        format_ident!("{}_from_action_result", rule.rtrn.to_lowercase())
+    let rtrn = process_type(&rule.rtrn, false);
+    let from_action_result_name = match &rule.rtrn {
+        AstType::Input => format_ident!("read_input"),
+        AstType::Ast(ast) => format_ident!("{}_from_action_result", ast.to_lowercase()),
+        AstType::List(sub) => todo!(),
     };
 
     write!(
@@ -50,7 +46,7 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
                 let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(str).unwrap();
                 let mut state: ParserState<'static, 'input, PR<'static>> = ParserState::new(inp);
                 let result: ParseResult<'static, PR<'static>> = state.parse_full_input(|s, p| s.parse_rule(p, &rules, #name_str));
-                result.map(|pr| #funcname(&pr.1, inp))
+                result.map(|pr| #from_action_result_name(&pr.1, inp))
             }
         }
     ).unwrap()

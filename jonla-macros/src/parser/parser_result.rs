@@ -181,7 +181,7 @@ impl Display for ParseErrorLabel<'_> {
                         '\t' => "\\t".to_string(),
                         '\n' => "\\n".to_string(),
                         ' ' => "' '".to_string(),
-                        c => c.to_string()
+                        c => c.to_string(),
                     }
                 }
                 write!(
