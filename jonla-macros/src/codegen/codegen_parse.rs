@@ -1,8 +1,9 @@
 use crate::codegen::codegen_ast::process_type;
 use crate::formatting_file::FormattingFile;
-use crate::grammar::{AstType, Rule};
+use crate::grammar::{Rule};
 use quote::{format_ident, quote};
 use std::io::Write;
+use crate::codegen::codegen_from_tuples::write_from_tuple_arg;
 
 pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
     write!(
@@ -16,6 +17,8 @@ pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
             use jonla_macros::parser::parser_rule::*;
             use std::collections::HashMap;
             use jonla_macros::grammar::*;
+
+            const RULES_STR: &'static str = include_str!("rules.json");
         }
     )
     .unwrap();
@@ -31,22 +34,17 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
     let name_str = rule.name;
     let name = format_ident!("parse_{}", rule.name);
     let rtrn = process_type(&rule.rtrn, false);
-    let from_action_result_name = match &rule.rtrn {
-        AstType::Input => format_ident!("read_input"),
-        AstType::Ast(ast) => format_ident!("{}_from_action_result", ast.to_lowercase()),
-        AstType::List(sub) => todo!(),
-    };
+    let from_action_result = write_from_tuple_arg(&rule.rtrn, quote!(&pr.1), false);
 
     write!(
         file,
         "{}",
         quote! {
-            pub fn #name<'input>(inp: &'input str) -> ParseResult<'static, #rtrn> {
-                let str: &'static str = include_str!("rules.json");
-                let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(str).unwrap();
-                let mut state: ParserState<'static, 'input, PR<'static>> = ParserState::new(inp);
+            pub fn #name<'input>(input: &'input str) -> ParseResult<'static, #rtrn> {
+                let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(RULES_STR).unwrap();
+                let mut state: ParserState<'static, 'input, PR<'static>> = ParserState::new(input);
                 let result: ParseResult<'static, PR<'static>> = state.parse_full_input(|s, p| s.parse_rule(p, &rules, #name_str));
-                result.map(|pr| #from_action_result_name(&pr.1, inp))
+                result.map(|pr| #from_action_result)
             }
         }
     ).unwrap()

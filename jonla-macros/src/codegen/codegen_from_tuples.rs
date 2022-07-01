@@ -81,7 +81,7 @@ fn write_from_tuple_constructor(sort: &Ident, cons: &AstConstructor) -> TokenStr
     }
 }
 
-fn write_from_tuple_arg(arg: &AstType, val: TokenStream, box_needed: bool) -> TokenStream {
+pub(crate) fn write_from_tuple_arg(arg: &AstType, val: TokenStream, box_needed: bool) -> TokenStream {
     match arg {
         AstType::Input => {
             quote! {

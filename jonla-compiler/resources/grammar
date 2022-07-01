@@ -5,7 +5,6 @@ ast Term {
     FunType(name: Input, arg_type: Term, body_type: Term)
     FunConstruct(name: Input, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
-    Test(list: [Term])
 }
 
 rule _ -> Input = [' ']*
