@@ -18,15 +18,10 @@ rule identifier -> Input {
 
 rule term -> Term {
     "let" _ n:identifier _ ":" _ t:term _ "=" _ v:term _ _n _ b:term { Let(n, t, v, b) } /
-    "/" _ x:identifier _ ":" _ t:term _ r:lambda_function_body { FunConstruct(x, t, r) } /
-    "(" _ n:identifier _ ":" _ at:term _ ")" _ "->" _ bt:term { FunType(n, at, bt) } /
+    x:identifier _ ":" _ t:term _ "." _ r:term { FunConstruct(x, t, r) } /
+    n:identifier _ ":" _ at:term _ "->" _ bt:term { FunType(n, at, bt) } /
     at:subterm _ "->" _ bt:term { FunType("_", at, bt) } /
     sub:subterm { sub }
-}
-
-rule lambda_function_body -> Term {
-    "," _ x:identifier _ ":" _ t:term _ r:lambda_function_body { FunConstruct(x, t, r) } /
-    "." _ b:term { b }
 }
 
 rule subterm -> Term {
