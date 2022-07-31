@@ -141,7 +141,11 @@ impl<'grm> ParseError<'grm> {
             Ordering::Less => *self = other,
             Ordering::Greater => {}
             Ordering::Equal => {
-                self.labels.append(&mut other.labels);
+                for label in other.labels {
+                    if !self.labels.contains(&label) {
+                        self.labels.push(label);
+                    }
+                }
             }
         }
     }
@@ -164,7 +168,7 @@ impl<'grm> ParseError<'grm> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseErrorLabel<'grm> {
     CharClass(CharClass),
     /// No attempt was even made

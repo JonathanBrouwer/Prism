@@ -32,7 +32,7 @@ pub struct Rule<'input> {
     pub body: RuleBody<'input>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CharClass {
     pub ranges: Vec<(char, char)>,
 }
