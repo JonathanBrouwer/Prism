@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 peg = "0.8.0"
 itertools = "0.10.3"
-typed-arena = "2.0.1"
 thiserror = "1.0.31"
 quote = "1.0.18"
 proc-macro2 = "1.0.39"

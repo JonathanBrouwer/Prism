@@ -1,91 +1,49 @@
-use crate::grammar::{CharClass, RuleAction, RuleBody};
-use crate::parser::parser_core::ParserState;
-use crate::parser::parser_result::{ParseErrorLabel, ParseResult};
+use crate::grammar::{RuleAction, RuleBody};
+use crate::parser::action_result::ActionResult;
+use crate::parser::core::error::ParseError;
+use crate::parser::core::parser::Parser;
+use crate::parser::core::presult::PResult;
+use crate::parser::core::primitives::{repeat_delim, single};
+use crate::parser::core::stream::Stream;
+use crate::parser::parser_state::ParserState;
 use itertools::Itertools;
 use std::collections::HashMap;
 
 pub type PR<'grm> = (HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>);
 
-#[derive(Clone)]
-pub enum ActionResult<'grm> {
-    Value((usize, usize)),
-    Literal(&'grm str),
-    Construct(&'grm str, Vec<ActionResult<'grm>>),
-    List(Vec<ActionResult<'grm>>),
-    Error,
-}
-
-impl<'grm> ActionResult<'grm> {
-    pub fn to_string<'src>(&self, src: &'src str) -> String {
-        match self {
-            ActionResult::Value((s, e)) => format!("\'{}\'", &src[*s..*e]),
-            ActionResult::Literal(lit) => format!("\'{}\'", lit.to_string()),
-            ActionResult::Construct(c, es) => format!(
-                "{}({})",
-                c,
-                es.iter().map(|e| e.to_string(src)).format(", ")
-            ),
-            ActionResult::List(es) => {
-                format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
-            }
-            ActionResult::Error => format!("ERROR"),
-        }
+pub fn parser_rule<'grm, S: Stream<I = char>, E: ParseError>(
+    rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
+    rule: &'grm str,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {
+    move |stream: S,
+          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          -> PResult<PR<'grm>, E, S> {
+        //TODO wrap in cache_recurse
+        parser_expr(rules, &rules.get(rule).unwrap()).parse(stream, state)
     }
 }
 
-impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
-    pub fn parse_rule(
-        &mut self,
-        pos: usize,
-        rules: &HashMap<&'grm str, RuleBody<'grm>>,
-        rule: &'grm str,
-    ) -> ParseResult<'grm, PR<'grm>> {
-        self.parse_cache_recurse(
-            pos,
-            |s, p| s.parse_expr(p, rules, &rules.get(rule).unwrap()),
-            rule,
-        )
-    }
-
-    pub fn parse_expr(
-        &mut self,
-        pos: usize,
-        rules: &HashMap<&'grm str, RuleBody<'grm>>,
-        expr: &RuleBody<'grm>,
-    ) -> ParseResult<'grm, PR<'grm>> {
+fn parser_expr<'grm, S: Stream<I = char>, E: ParseError>(
+    rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
+    expr: &'grm RuleBody<'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {
+    move |stream: S,
+          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          -> PResult<PR<'grm>, E, S> {
         match expr {
-            RuleBody::Rule(rule) => self
-                .parse_rule(pos, rules, rule)
+            RuleBody::Rule(rule) => parser_rule(rules, rule)
+                .parse(stream, state)
                 .map(|(_, v)| (HashMap::new(), v)),
-            RuleBody::CharClass(cc) => {
-                let result = self.parse_charclass(pos, cc);
-                result.map_with_pos(|_, new_pos| {
-                    (HashMap::new(), ActionResult::Value((pos, new_pos)))
-                })
-            }
+            RuleBody::CharClass(cc) => single(|c| cc.contains(*c))
+                .parse(stream, state)
+                .map(|(span, _)| (HashMap::new(), ActionResult::Value(span))),
             RuleBody::Literal(literal) => {
-                let mut state = ParseResult::new_ok((), pos);
+                let mut res = PResult::new_ok((), stream);
                 for char in literal.chars() {
-                    state = self
-                        .parse_sequence(state, |s, p| {
-                            s.parse_charclass(
-                                p,
-                                &CharClass {
-                                    ranges: vec![(char, char)],
-                                },
-                            )
-                        })
-                        .map(|_| ());
+                    res = res.merge_seq(&single(|c| *c == char), state).map(|_| ());
                 }
-                state
-                    .map_with_pos(|_, new_pos| {
-                        (HashMap::new(), ActionResult::Value((pos, new_pos)))
-                    })
-                    .map_errs(|mut err| {
-                        err.labels = vec![ParseErrorLabel::Error(literal)];
-                        err.start = Some(pos);
-                        err
-                    })
+                let span = stream.span_to(res.get_stream());
+                res.map(|_| (HashMap::new(), ActionResult::Value(span)))
             }
             RuleBody::Repeat {
                 expr,
@@ -93,112 +51,60 @@ impl<'grm, 'src> ParserState<'grm, 'src, PR<'grm>> {
                 max,
                 delim,
             } => {
-                let mut state = ParseResult::new_ok((HashMap::new(), ()), pos);
-                let mut results = vec![];
-
-                //Parse minimum amount, this is mandatory so just make it a sequence
-                for i in 0..*min {
-                    //Parse delim
-                    if i != 0 {
-                        let res = self.parse_sequence(state, |s, p| s.parse_expr(p, rules, delim));
-                        state = res.map(|(l, _)| l)
-                    }
-
-                    //Parse expr
-                    let res =
-                        self.parse_sequence(state.clone(), |s, p| s.parse_expr(p, rules, expr));
-                    state = res.map(|(l, r)| {
-                        results.push(r.1);
-                        l
-                    });
-                }
-
-                if state.is_ok() {
-                    for i in *min..max.unwrap_or(u64::MAX) {
-                        let mut state_new = state.clone();
-
-                        //Parse delim
-                        if i != 0 {
-                            let res = self.parse_sequence(state_new.clone(), |s, p| {
-                                s.parse_expr(p, rules, delim)
-                            });
-                            state_new = res.map(|(l, _)| l)
-                        }
-
-                        //Parse expr
-                        let state_new = self
-                            .parse_sequence(state_new.clone(), |s, p| s.parse_expr(p, rules, expr));
-
-                        //Update results
-                        let state_new = state_new.map(|(l, r)| {
-                            results.push(r.1);
-                            l
-                        });
-
-                        //Update state
-                        let old_pos = state.pos();
-                        state = self.parse_choice(old_pos, state_new, |_, p| {
-                            assert_eq!(p, old_pos);
-                            state
-                        });
-
-                        //If no progress was made, stop.
-                        //TODO: More complicated notion of progress?
-                        if state.pos() == old_pos {
-                            break;
-                        }
-                    }
-                }
-
-                state.map(|(map, _)| (map, ActionResult::List(results)))
+                repeat_delim(
+                    parser_expr(rules, expr),
+                    parser_expr(rules, delim),
+                    *min as usize,
+                    max.map(|max| max as usize)
+                )
+                    .parse(stream, state)
+                    .map(|list| (HashMap::new(), ActionResult::List(list.into_iter().map(|pr| pr.1).collect_vec())))
             }
             RuleBody::Sequence(subs) => {
-                let mut state = ParseResult::new_ok((HashMap::new(), ()), pos);
+                let mut res = PResult::new_ok(HashMap::new(), stream);
                 for sub in subs {
-                    let res = self.parse_sequence(state, |s, p| s.parse_expr(p, rules, sub));
-                    state = res.map(|(mut l, r)| {
-                        for (k, v) in r.0.into_iter() {
-                            l.0.insert(k, v);
-                        }
+                    res = res.merge_seq(&parser_expr(rules, sub), state).map(|(mut l, r)| {
+                        l.extend(r.0);
                         l
                     });
                 }
-                state.map(|(map, _)| (map, ActionResult::Error))
+                res.map(|map| (map, ActionResult::Error))
             }
             RuleBody::Choice(subs) => {
-                //TODO should empty choices be allowed? If so, what error should that give?
-                let mut state = ParseResult::new_err(pos, vec![]);
-                for sub in subs {
-                    state = self.parse_choice(pos, state, |s, p| s.parse_expr(p, rules, sub));
+                let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
+                for sub in &subs[1..] {
+                    res = res.merge_choice(&parser_expr(rules, &sub), stream, state);
                 }
-                state.map(|(_, v)| (HashMap::new(), v))
+                res.map(|(_, v)| (HashMap::new(), v))
             }
             RuleBody::NameBind(name, sub) => {
-                let res = self.parse_expr(pos, rules, sub);
+                let res = parser_expr(rules, sub).parse(stream, state);
                 res.map(|mut res| {
                     res.0.insert(name, res.1.clone());
                     res
                 })
             }
             RuleBody::Action(sub, action) => {
-                let res = self.parse_expr(pos, rules, sub);
+                let res = parser_expr(rules, sub).parse(stream, state);
                 res.map(|mut res| {
                     res.1 = apply_action(action, &res.0);
                     res
                 })
             }
             RuleBody::SliceInput(sub) => {
-                let res = self.parse_expr(pos, rules, sub);
-                let new_pos = res.pos();
-                res.map(|_| (HashMap::new(), ActionResult::Value((pos, new_pos))))
+                let res = parser_expr(rules, sub).parse(stream, state);
+                let span = stream.span_to(res.get_stream());
+                res.map(|_| (HashMap::new(), ActionResult::Value(span)))
             }
-            RuleBody::Error(sub, err_label) => {
-                let res = self.parse_expr(pos, rules, sub);
-                res.map_errs(|mut err| {
-                    err.labels = vec![ParseErrorLabel::Error(err_label)];
-                    err.start = Some(pos);
-                    err
-                })
+            RuleBody::Error(sub, _err_label) => {
+                let res = parser_expr(rules, sub).parse(stream, state);
+                //TODO implement
+                // res.map_errs(|mut err| {
+                //     err.labels = vec![ParseErrorLabel::Error(err_label)];
+                //     err.start = Some(pos);
+                //     err
+                // })
+                res
             }
         }
     }
@@ -223,3 +129,18 @@ fn apply_action<'grm>(
         }
     }
 }
+
+// pub fn parser_full_input<T: Clone>(
+//     input: &str,
+//     sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
+// ) -> PResult<_, _, _> {
+//     let res = sub(self, 0);
+//     match res.inner {
+//         Ok(ok) if res.pos() == self.input.len() => ParseResult::from_ok(ok),
+//         Ok(ok) => ok
+//             .best_error
+//             .map(ParseResult::from_err)
+//             .unwrap_or(ParseResult::new_err(ok.pos, vec![RemainingInputNotParsed])),
+//         Err(err) => ParseResult::from_err(err),
+//     }
+// }
