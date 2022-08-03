@@ -5,13 +5,13 @@ use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::{repeat_delim, single};
 use crate::parser::core::stream::Stream;
-use crate::parser::parser_state::ParserState;
+use crate::parser::parser_state::{parser_cache_recurse, ParserState};
 use itertools::Itertools;
 use std::collections::HashMap;
 
 pub type PR<'grm> = (HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>);
 
-pub fn parser_rule<'grm, S: Stream<I = char>, E: ParseError>(
+pub fn parser_rule<'grm, S: Stream<I = char>, E: ParseError + Clone>(
     rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
     rule: &'grm str,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {
@@ -19,11 +19,14 @@ pub fn parser_rule<'grm, S: Stream<I = char>, E: ParseError>(
           state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         //TODO wrap in cache_recurse
-        parser_expr(rules, &rules.get(rule).unwrap()).parse(stream, state)
+        parser_cache_recurse(
+        &parser_expr(rules, &rules.get(rule).unwrap()),
+            rule
+        ).parse(stream, state)
     }
 }
 
-fn parser_expr<'grm, S: Stream<I = char>, E: ParseError>(
+fn parser_expr<'grm, S: Stream<I = char>, E: ParseError + Clone>(
     rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
     expr: &'grm RuleBody<'grm>,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {

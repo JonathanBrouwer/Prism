@@ -2,7 +2,6 @@ use jonla_macros::grammar;
 use jonla_macros::grammar::{GrammarFile, RuleBody};
 use jonla_macros::parser::parser_state::ParserState;
 use jonla_macros::parser::core::presult::PResult;
-use jonla_macros::parser::parser_rule::PR;
 use std::collections::HashMap;
 use jonla_macros::parser::core::error::FullError;
 use jonla_macros::parser::core::stream::StringStream;
@@ -367,61 +366,61 @@ failing tests:
     "((x)"
 }
 
-// parse_test! {
-// name: arith
-// syntax: r#"
-//     ast Expr {
-//         Add(l: Expr, r: Expr)
-//         Sub(l: Expr, r: Expr)
-//         Mul(l: Expr, r: Expr)
-//         Div(l: Expr, r: Expr)
-//         Pow(l: Expr, r: Expr)
-//         Neg(e: Expr)
-//         Num(n: Input)
-//     }
-//
-//     rule _ -> Input = [' ']*
-//
-//     rule num -> Input {
-//         $(['0'-'9']+)
-//     }
-//
-//     rule start -> Expr {
-//         _ e:expr _ {e}
-//     }
-//
-//     rule expr -> Expr {
-//         l:expr2 _ "+" _ r:expr { Add(l, r) } /
-//         l:expr2 _ "-" _ r:expr { Sub(l, r) } /
-//         s:expr2 { s }
-//     }
-//     rule expr2 -> Expr {
-//         l:expr3 _ "*" _ r:expr2 { Mul(l, r) } /
-//         l:expr3 _ "/" _ r:expr2 { Div(l, r) } /
-//         s:expr3 { s }
-//     }
-//     rule expr3 -> Expr {
-//         l:expr3 _ "^" _ r:expr4 { Pow(l, r) } /
-//         s:expr4 { s }
-//     }
-//     rule expr4 -> Expr {
-//         "-" _ e:expr4 { Neg(e) } /
-//         e:num { Num(e) }
-//     }
-//     "#
-// passing tests:
-//     "123" => "Num('123')"
-//     "5 * 4 + 20 * 4 - 50" => "Add(Mul(Num('5'), Num('4')), Sub(Mul(Num('20'), Num('4')), Num('50')))"
-//     "5 * 4 - 20 * 4 + 50" => "Sub(Mul(Num('5'), Num('4')), Add(Mul(Num('20'), Num('4')), Num('50')))"
-//     "-5 * -4 - -20 * -4 + -50" => "Sub(Mul(Neg(Num('5')), Neg(Num('4'))), Add(Mul(Neg(Num('20')), Neg(Num('4'))), Neg(Num('50'))))"
-//     "1 + 2 * 3" => "Add(Num('1'), Mul(Num('2'), Num('3')))"
-//     "1 * 2 + 3" => "Add(Mul(Num('1'), Num('2')), Num('3'))"
-//     "1 - 2 / 3" => "Sub(Num('1'), Div(Num('2'), Num('3')))"
-//     "1 / 2 - 3" => "Sub(Div(Num('1'), Num('2')), Num('3'))"
-//     "-8" => "Neg(Num('8'))"
-//
-// failing tests:
-//     ""
-//     "1+"
-//     "+1"
-// }
+parse_test! {
+name: arith
+syntax: r#"
+    ast Expr {
+        Add(l: Expr, r: Expr)
+        Sub(l: Expr, r: Expr)
+        Mul(l: Expr, r: Expr)
+        Div(l: Expr, r: Expr)
+        Pow(l: Expr, r: Expr)
+        Neg(e: Expr)
+        Num(n: Input)
+    }
+
+    rule _ -> Input = [' ']*
+
+    rule num -> Input {
+        $(['0'-'9']+)
+    }
+
+    rule start -> Expr {
+        _ e:expr _ {e}
+    }
+
+    rule expr -> Expr {
+        l:expr2 _ "+" _ r:expr { Add(l, r) } /
+        l:expr2 _ "-" _ r:expr { Sub(l, r) } /
+        s:expr2 { s }
+    }
+    rule expr2 -> Expr {
+        l:expr3 _ "*" _ r:expr2 { Mul(l, r) } /
+        l:expr3 _ "/" _ r:expr2 { Div(l, r) } /
+        s:expr3 { s }
+    }
+    rule expr3 -> Expr {
+        l:expr3 _ "^" _ r:expr4 { Pow(l, r) } /
+        s:expr4 { s }
+    }
+    rule expr4 -> Expr {
+        "-" _ e:expr4 { Neg(e) } /
+        e:num { Num(e) }
+    }
+    "#
+passing tests:
+    "123" => "Num('123')"
+    "5 * 4 + 20 * 4 - 50" => "Add(Mul(Num('5'), Num('4')), Sub(Mul(Num('20'), Num('4')), Num('50')))"
+    "5 * 4 - 20 * 4 + 50" => "Sub(Mul(Num('5'), Num('4')), Add(Mul(Num('20'), Num('4')), Num('50')))"
+    "-5 * -4 - -20 * -4 + -50" => "Sub(Mul(Neg(Num('5')), Neg(Num('4'))), Add(Mul(Neg(Num('20')), Neg(Num('4'))), Neg(Num('50'))))"
+    "1 + 2 * 3" => "Add(Num('1'), Mul(Num('2'), Num('3')))"
+    "1 * 2 + 3" => "Add(Mul(Num('1'), Num('2')), Num('3'))"
+    "1 - 2 / 3" => "Sub(Num('1'), Div(Num('2'), Num('3')))"
+    "1 / 2 - 3" => "Sub(Div(Num('1'), Num('2')), Num('3'))"
+    "-8" => "Neg(Num('8'))"
+
+failing tests:
+    ""
+    "1+"
+    "+1"
+}

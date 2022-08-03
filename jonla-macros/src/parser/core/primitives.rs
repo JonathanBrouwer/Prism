@@ -11,7 +11,7 @@ pub fn single<I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q, F: Fn(&I) -> bo
     move |pos: S, _: &mut Q| -> PResult<(Span, I), E, S> {
         match pos.next() {
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
-            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos_new),
+            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
         }
     }
 }
