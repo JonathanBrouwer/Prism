@@ -6,10 +6,11 @@ use jonla_macros::parser::error_printer::*;
 mod autogen;
 
 fn main() {
+    let filename = "program.jnl";
     let input = include_str!("../resources/program.jnl");
 
     match parse_term(input).collapse() {
         Ok(o) => println!("Result: {:?}", o),
-        Err(e) => print_set_error(e, input),
+        Err(e) => print_set_error(e, filename, input),
     }
 }

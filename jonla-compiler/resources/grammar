@@ -13,7 +13,7 @@ rule _w -> Input = [' ']+
 rule _n -> Input = ['\n' | ';' | '\r']+
 
 rule identifier -> Input {
-    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "An Identifier"}
+    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "Identifier"}
 }
 
 rule term -> Term {
