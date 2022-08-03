@@ -1,5 +1,5 @@
-use jonla_macros::parser::error_printer::print_error;
 use crate::autogen::parse::parse_term;
+use jonla_macros::parser::error_printer::*;
 
 #[allow(unused)]
 #[rustfmt::skip]
@@ -10,6 +10,6 @@ fn main() {
 
     match parse_term(input).collapse() {
         Ok(o) => println!("Result: {:?}", o),
-        Err(e) => print_error(e, input),
+        Err(e) => print_set_error(e, input),
     }
 }

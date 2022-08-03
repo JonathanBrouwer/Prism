@@ -1,6 +1,6 @@
 use jonla_macros::grammar;
 use jonla_macros::grammar::{GrammarFile, RuleBody};
-use jonla_macros::parser::core::error::FullError;
+use jonla_macros::parser::core::error::empty_error::*;
 use jonla_macros::parser::core::parser::Parser;
 use jonla_macros::parser::core::presult::PResult;
 use jonla_macros::parser::core::presult::PResult::*;
@@ -30,14 +30,14 @@ macro_rules! parse_test {
 
             let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, FullError<()>>(&rules, "start")).parse(stream, &mut state);
+            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start")).parse(stream, &mut state);
 
             match result {
-                POk(o, _) => {
+                POk(o, _, _) => {
                     let got = o.1.to_string(input);
                     assert_eq!($expected, got);
                 }
-                PRec(_, _, _) | PErr(_, _, _) => {
+                PErr(_, _) => {
                     panic!();
                 }
             }
@@ -49,7 +49,7 @@ macro_rules! parse_test {
 
             let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, FullError<()>>(&rules, "start")).parse(stream, &mut state);
+            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start")).parse(stream, &mut state);
 
             assert!(!result.is_ok());
             )*

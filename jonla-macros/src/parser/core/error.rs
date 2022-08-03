@@ -1,12 +1,13 @@
+pub mod empty_error;
+pub mod set_error;
+pub mod tree_error;
+
 use crate::parser::core::span::Span;
 use crate::parser::core::stream::Stream;
-use std::cmp::{max, Ordering};
-use std::collections::HashSet;
-use std::hash::Hash;
-use std::marker::PhantomData;
+use std::cmp::Ordering;
 
-pub trait ParseError: Sized {
-    type L: Eq + Hash;
+pub trait ParseError: Sized + Clone {
+    type L;
 
     fn new(span: Span) -> Self;
     fn add_label(&mut self, label: Self::L);
@@ -30,54 +31,5 @@ pub fn err_combine_opt<E: ParseError, S: Stream>(
         (Some(x), None) => Some(x),
         (None, Some(y)) => Some(y),
         (None, None) => None,
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct FullError<L: Eq + Hash> {
-    pub span: Span,
-    pub labels: HashSet<L>,
-}
-
-impl<L: Eq + Hash> ParseError for FullError<L> {
-    type L = L;
-
-    fn new(span: Span) -> Self {
-        Self {
-            span,
-            labels: HashSet::new(),
-        }
-    }
-
-    fn add_label(&mut self, label: L) {
-        self.labels.insert(label);
-    }
-
-    fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.span.start, other.span.start);
-        for e in other.labels {
-            self.labels.insert(e);
-        }
-        Self {
-            span: Span::new(self.span.start, max(self.span.end, other.span.end)),
-            labels: self.labels,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct EmptyError<L>(PhantomData<L>);
-
-impl<L: Eq + Hash> ParseError for EmptyError<L> {
-    type L = L;
-
-    fn new(_: Span) -> Self {
-        Self(PhantomData)
-    }
-
-    fn add_label(&mut self, _: Self::L) {}
-
-    fn merge(self, _: Self) -> Self {
-        Self(PhantomData)
     }
 }
