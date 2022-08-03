@@ -22,5 +22,5 @@ pub fn handle_language(path: PathBuf) {
     codegen::codegen(&grammar);
 
     println!("cargo:rerun-if-changed={}", path.to_str().unwrap());
-    println!("cargo:rerun-if-changed=src/autogen/");
+    // println!("cargo:rerun-if-changed=src/autogen/");
 }

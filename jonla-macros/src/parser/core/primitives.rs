@@ -81,12 +81,16 @@ pub fn repeat_delim<
             if i == 0 {
                 let (res, should_continue) = last_res.merge_seq_opt(&item, state);
                 last_res = res.map(push_opt);
-                if !should_continue { break }
+                if !should_continue {
+                    break;
+                }
             } else {
-                let (res, should_continue) = last_res.merge_seq_opt(&seq2(&delimiter, &item), state);
-                last_res = res.map(|(x, o)| (x, o.map(|(_, o)| o)))
-                    .map(push_opt);
-                if !should_continue { break }
+                let (res, should_continue) =
+                    last_res.merge_seq_opt(&seq2(&delimiter, &item), state);
+                last_res = res.map(|(x, o)| (x, o.map(|(_, o)| o))).map(push_opt);
+                if !should_continue {
+                    break;
+                }
             }
         }
 
@@ -106,7 +110,7 @@ pub fn full_input<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
                     (Some(_), None) => PErr(E::new(rest.span_rest()), rest), //TODO explain what happened
                 }
             }
-            err@PErr(_, _) => err,
+            err @ PErr(_, _) => err,
         }
     }
 }

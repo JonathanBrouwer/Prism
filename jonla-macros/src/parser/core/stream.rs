@@ -31,7 +31,7 @@ impl Stream for StringStream<'_> {
 
     fn next(self) -> (Self, Option<(Span, Self::I)>) {
         match self.0[self.1..].chars().next() {
-            None => (self.clone(), None),
+            None => (self, None),
             Some(c) => (
                 StringStream(self.0, self.1 + c.len_utf8()),
                 Some((Span::new(self.1, self.1 + c.len_utf8()), c)),

@@ -25,6 +25,17 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    pub fn add_label(&mut self, l: E::L) {
+        match self {
+            POk(_, _, e) => {
+                e.as_mut().map(|(e, _)| e.add_label(l));
+            }
+            PErr(e, _) => {
+                e.add_label(l);
+            }
+        }
+    }
+
     pub fn collapse(self) -> Result<O, E> {
         match self {
             POk(o, _, _) => Ok(o),
@@ -72,14 +83,12 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
 
         let other = other.parse(stream, state);
-        match (self,  other) {
+        match (self, other) {
             // Left ok (unreachable because of quick out)
             (POk(_, _, _), _) => unreachable!(),
 
             // Right ok
-            (PErr(ne, ns), POk(s, o, be)) => {
-                POk(s, o, err_combine_opt(Some((ne, ns)), be))
-            }
+            (PErr(ne, ns), POk(s, o, be)) => POk(s, o, err_combine_opt(Some((ne, ns)), be)),
 
             // If either parsed more input, prioritise that
             (PErr(e1, s1), PErr(e2, s2)) => {
@@ -102,10 +111,10 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         let stream = self.get_stream();
         match (self, other.parse(stream, state)) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, o2), s2, err_combine_opt(e1, e2)),
-            (POk(_, _, e1), PErr( e2, s2)) => {
+            (POk(_, _, e1), PErr(e2, s2)) => {
                 let (e, s) = err_combine_opt(e1, Some((e2, s2))).unwrap();
                 PErr(e, s)
-            },
+            }
             (PErr(_, _), _) => unreachable!(),
         }
     }
@@ -122,8 +131,13 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
 
         let stream = self.get_stream();
         match (self, other.parse(stream, state)) {
-            (POk(o1, _, e1), POk(o2, s2, e2)) => (POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)), true),
-            (POk(o1, s1, e1), PErr(e2, s2)) => (POk((o1, None), s1, err_combine_opt(e1, Some((e2, s2)))), false),
+            (POk(o1, _, e1), POk(o2, s2, e2)) => {
+                (POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)), true)
+            }
+            (POk(o1, s1, e1), PErr(e2, s2)) => (
+                POk((o1, None), s1, err_combine_opt(e1, Some((e2, s2)))),
+                false,
+            ),
             (PErr(_, _), _) => unreachable!(),
         }
     }

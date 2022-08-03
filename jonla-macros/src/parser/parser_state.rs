@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
 use crate::parser::parser_rule::PR;
+use std::collections::HashMap;
 
 pub struct ParserState<'grm, PR> {
     cache: HashMap<(usize, &'grm str), ParserCacheEntry<PR>>,
@@ -54,13 +54,19 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
     }
 }
 
-
-
-pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError + Clone>(
+pub fn parser_cache_recurse<
+    'grm: 'a,
+    'a,
+    I: Clone + Eq,
+    S: Stream<I = I>,
+    E: ParseError + Clone,
+>(
     sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
     id: &'grm str,
 ) -> impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+    move |stream: S,
+          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          -> PResult<PR<'grm>, E, S> {
         //Check if this result is cached
         let key = (stream.pos(), id);
         if let Some(cached) = state.cache_get(key) {
@@ -70,7 +76,10 @@ pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: Pa
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
         let cache_state = state.cache_state_get();
-        state.cache_insert(key, PResult::new_err(E::new(stream.span_to(stream)), stream));
+        state.cache_insert(
+            key,
+            PResult::new_err(E::new(stream.span_to(stream)), stream),
+        );
 
         //Now execute the actual rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -119,10 +128,10 @@ pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: Pa
                     POk(o, pos, be)
                 }
             }
-            res@PErr(_, _) => {
+            res @ PErr(_, _) => {
                 state.cache_insert(key, res.clone());
                 res
-            },
+            }
         }
     }
 }

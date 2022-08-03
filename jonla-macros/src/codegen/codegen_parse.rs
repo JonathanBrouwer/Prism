@@ -1,9 +1,9 @@
 use crate::codegen::codegen_ast::process_type;
+use crate::codegen::codegen_from_tuples::write_from_tuple_arg;
 use crate::formatting_file::FormattingFile;
 use crate::grammar::Rule;
 use quote::{format_ident, quote};
 use std::io::Write;
-use crate::codegen::codegen_from_tuples::write_from_tuple_arg;
 
 pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
     write!(
@@ -22,6 +22,7 @@ pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
             use std::collections::HashMap;
             use jonla_macros::grammar::*;
             use jonla_macros::parser::core::parser::Parser;
+            use jonla_macros::parser::error_printer::ErrorLabel;
 
             const RULES_STR: &'static str = include_str!("rules.json");
         }
@@ -45,7 +46,7 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
         file,
         "{}",
         quote! {
-            pub fn #name<'input>(input: &'input str) -> PResult<#rtrn, FullError<()>, StringStream<'input>> {
+            pub fn #name<'input>(input: &'input str) -> PResult<#rtrn, FullError<ErrorLabel<'_>>, StringStream<'input>> {
                 let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(RULES_STR).unwrap();
 
                 let mut state = ParserState::new();
