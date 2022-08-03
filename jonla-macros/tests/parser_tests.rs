@@ -58,77 +58,77 @@ macro_rules! parse_test {
     }
 }
 
-// parse_test! {
-// name: literal
-// syntax: r#"
-//     rule start -> Input {
-//         "lol"
-//     }
-//     "#
-// passing tests:
-//     "lol" => "'lol'"
-// failing tests:
-//     "lolz"
-//     "loll"
-//     "lol "
-//     ""
-//     "l"
-//     "lo"
-//     " lol"
-//     "lo\nn"
-// }
-//
-// parse_test! {
-// name: literal_indirect
-// syntax: r#"
-//     rule start -> Input {
-//         lol
-//     }
-//     rule lol -> Input {
-//         "lol"
-//     }
-//     "#
-// passing tests:
-//     "lol" => "'lol'"
-// failing tests:
-//     "lolz"
-//     "loll"
-//     "lol "
-//     ""
-//     "l"
-//     "lo"
-//     " lol"
-//     "lo\nn"
-// }
-//
-// parse_test! {
-// name: charclass
-// syntax: r#"
-//     rule start -> Input {
-//         $([ 'w'-'z' | '8' | 'p'-'q' ])
-//     }
-//     "#
-// passing tests:
-//     "8" => "'8'"
-//     "w" => "'w'"
-//     "x" => "'x'"
-//     "y" => "'y'"
-//     "z" => "'z'"
-//     "p" => "'p'"
-//     "q" => "'q'"
-//
-// failing tests:
-//     "a"
-//     "b"
-//     "v"
-//     "7"
-//     "9"
-//     "o"
-//     "r"
-//     " "
-//     "w8"
-//     "8w"
-// }
+parse_test! {
+name: literal
+syntax: r#"
+    rule start -> Input {
+        "lol"
+    }
+    "#
+passing tests:
+    "lol" => "'lol'"
+failing tests:
+    "lolz"
+    "loll"
+    "lol "
+    ""
+    "l"
+    "lo"
+    " lol"
+    "lo\nn"
+}
+
+parse_test! {
+name: literal_indirect
+syntax: r#"
+    rule start -> Input {
+        lol
+    }
+    rule lol -> Input {
+        "lol"
+    }
+    "#
+passing tests:
+    "lol" => "'lol'"
+failing tests:
+    "lolz"
+    "loll"
+    "lol "
+    ""
+    "l"
+    "lo"
+    " lol"
+    "lo\nn"
+}
+
+parse_test! {
+name: charclass
+syntax: r#"
+    rule start -> Input {
+        $([ 'w'-'z' | '8' | 'p'-'q' ])
+    }
+    "#
+passing tests:
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
+
+failing tests:
+    "a"
+    "b"
+    "v"
+    "7"
+    "9"
+    "o"
+    "r"
+    " "
+    "w8"
+    "8w"
+}
 
 parse_test! {
 name: repeat_star
@@ -138,235 +138,235 @@ syntax: r#"
     }
     "#
 passing tests:
-    // "8" => "'8'"
-    // "w" => "'w'"
-    // "x" => "'x'"
-    // "y" => "'y'"
-    // "z" => "'z'"
-    // "p" => "'p'"
-    // "q" => "'q'"
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
     "" => "''"
-    // "8w"  => "'8w'"
-    // "w8" => "'w8'"
-    // "wxyz8pqpq8wz" => "'wxyz8pqpq8wz'"
+    "8w"  => "'8w'"
+    "w8" => "'w8'"
+    "wxyz8pqpq8wz" => "'wxyz8pqpq8wz'"
 
 failing tests:
-    // "a"
-    // "b"
-    // "v"
-    // "7"
-    // "9"
-    // "o"
-    // "r"
-    // " "
-    // "wxya"
-    // "w8 "
+    "a"
+    "b"
+    "v"
+    "7"
+    "9"
+    "o"
+    "r"
+    " "
+    "wxya"
+    "w8 "
 }
 //
-// parse_test! {
-// name: repeat_plus
-// syntax: r#"
-//     rule start -> Input {
-//         $([ 'w'-'z' | '8' | 'p'-'q' ]+)
-//     }
-//     "#
-// passing tests:
-//     "8" => "'8'"
-//     "w" => "'w'"
-//     "x" => "'x'"
-//     "y" => "'y'"
-//     "z" => "'z'"
-//     "p" => "'p'"
-//     "q" => "'q'"
-//     "8w"  => "'8w'"
-//     "w8" => "'w8'"
-//     "wxyz8pqpq8wz" => "'wxyz8pqpq8wz'"
-//
-// failing tests:
-//     "a"
-//     "b"
-//     "v"
-//     "7"
-//     "9"
-//     "o"
-//     "r"
-//     " "
-//     "wxya"
-//     "w8 "
-//     ""
-// }
-//
-// parse_test! {
-// name: repeat_option
-// syntax: r#"
-//     rule start -> Input {
-//         $([ 'w'-'z' | '8' | 'p'-'q' ]?)
-//     }
-//     "#
-// passing tests:
-//     "8" => "'8'"
-//     "w" => "'w'"
-//     "x" => "'x'"
-//     "y" => "'y'"
-//     "z" => "'z'"
-//     "p" => "'p'"
-//     "q" => "'q'"
-//     "" => "''"
-//
-// failing tests:
-//     "a"
-//     "b"
-//     "v"
-//     "7"
-//     "9"
-//     "o"
-//     "r"
-//     " "
-//     "wxya"
-//     "w8 "
-//     "8w"
-//     "w8"
-//     "wxyz8pqpq8wz"
-// }
-//
-// parse_test! {
-// name: sequence
-// syntax: r#"
-//     rule start -> Input {
-//         $("a" ['w'-'y'] "q")
-//     }
-//     "#
-// passing tests:
-//     "awq" => "'awq'"
-//     "axq" => "'axq'"
-//     "ayq" => "'ayq'"
-//
-// failing tests:
-//     "a"
-//     "aw"
-//     "ax"
-//     "ay"
-//     "aqq"
-//     "aaq"
-//     "bwq"
-//     ""
-//     "awqq"
-// }
-//
-// parse_test! {
-// name: choice
-// syntax: r#"
-//     rule start -> Input {
-//         "a" / ['w'-'y'] / "q"
-//     }
-//     "#
-// passing tests:
-//     "a" => "'a'"
-//     "w" => "'w'"
-//     "y" => "'y'"
-//     "q" => "'q'"
-//
-// failing tests:
-//     "aw"
-//     ""
-//     "b"
-//     "z"
-//     "wy"
-//     "wq"
-// }
-//
-// parse_test! {
-// name: action
-// syntax: r#"
-//     ast Test {
-//         TestC(left: Input, right: Input)
-//     }
-//
-//     rule start -> Input {
-//         "a" c:['w'-'y'] d:"q" { TestC(c, d) }
-//     }
-//     "#
-// passing tests:
-//     "awq" => "TestC('w', 'q')"
-//     "axq" => "TestC('x', 'q')"
-//     "ayq" => "TestC('y', 'q')"
-//
-// failing tests:
-//     "a"
-//     "aw"
-//     "ax"
-//     "ay"
-//     "aqq"
-//     "aaq"
-//     "bwq"
-//     ""
-//     "awqq"
-// }
-//
-// parse_test! {
-// name: list_ast
-// syntax: r#"
-//     ast Test {
-//         Leaf()
-//         Nodes(nodes: [Input])
-//     }
-//
-//     rule start -> Test {
-//         "(" ns:start* ")" { Nodes(ns) } /
-//         "x" { Leaf() }
-//     }
-//     "#
-// passing tests:
-//     "x" => "Leaf()"
-//     "()" => "Nodes([])"
-//     "(x)" => "Nodes([Leaf()])"
-//     "(xx)" => "Nodes([Leaf(), Leaf()])"
-//     "((x))" => "Nodes([Nodes([Leaf()])])"
-//
-// failing tests:
-//     "xx"
-//     "(x"
-//     "x)"
-//     "(y)"
-//     "(x))"
-//     "((x)"
-//     ""
-// }
-//
-// parse_test! {
-// name: list_rule
-// syntax: r#"
-//     ast Test {
-//         Leaf()
-//         Nodes(nodes: [Input])
-//     }
-//
-//     rule start -> [Test] {
-//         other*
-//     }
-//
-//     rule other -> Test {
-//         "(" ns:other* ")" { Nodes(ns) } /
-//         "x" { Leaf() }
-//     }
-//     "#
-// passing tests:
-//     "x" => "[Leaf()]"
-//     "()" => "[Nodes([])]"
-//     "(x)" => "[Nodes([Leaf()])]"
-//     "(xx)" => "[Nodes([Leaf(), Leaf()])]"
-//     "((x))" => "[Nodes([Nodes([Leaf()])])]"
-//     "xx" => "[Leaf(), Leaf()]"
-//     "" => "[]"
-//
-// failing tests:
-//     "(x"
-//     "x)"
-//     "(y)"
-//     "(x))"
-//     "((x)"
-// }
-//
+parse_test! {
+name: repeat_plus
+syntax: r#"
+    rule start -> Input {
+        $([ 'w'-'z' | '8' | 'p'-'q' ]+)
+    }
+    "#
+passing tests:
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
+    "8w"  => "'8w'"
+    "w8" => "'w8'"
+    "wxyz8pqpq8wz" => "'wxyz8pqpq8wz'"
+
+failing tests:
+    "a"
+    "b"
+    "v"
+    "7"
+    "9"
+    "o"
+    "r"
+    " "
+    "wxya"
+    "w8 "
+    ""
+}
+
+parse_test! {
+name: repeat_option
+syntax: r#"
+    rule start -> Input {
+        $([ 'w'-'z' | '8' | 'p'-'q' ]?)
+    }
+    "#
+passing tests:
+    "8" => "'8'"
+    "w" => "'w'"
+    "x" => "'x'"
+    "y" => "'y'"
+    "z" => "'z'"
+    "p" => "'p'"
+    "q" => "'q'"
+    "" => "''"
+
+failing tests:
+    "a"
+    "b"
+    "v"
+    "7"
+    "9"
+    "o"
+    "r"
+    " "
+    "wxya"
+    "w8 "
+    "8w"
+    "w8"
+    "wxyz8pqpq8wz"
+}
+
+parse_test! {
+name: sequence
+syntax: r#"
+    rule start -> Input {
+        $("a" ['w'-'y'] "q")
+    }
+    "#
+passing tests:
+    "awq" => "'awq'"
+    "axq" => "'axq'"
+    "ayq" => "'ayq'"
+
+failing tests:
+    "a"
+    "aw"
+    "ax"
+    "ay"
+    "aqq"
+    "aaq"
+    "bwq"
+    ""
+    "awqq"
+}
+
+parse_test! {
+name: choice
+syntax: r#"
+    rule start -> Input {
+        "a" / ['w'-'y'] / "q"
+    }
+    "#
+passing tests:
+    "a" => "'a'"
+    "w" => "'w'"
+    "y" => "'y'"
+    "q" => "'q'"
+
+failing tests:
+    "aw"
+    ""
+    "b"
+    "z"
+    "wy"
+    "wq"
+}
+
+parse_test! {
+name: action
+syntax: r#"
+    ast Test {
+        TestC(left: Input, right: Input)
+    }
+
+    rule start -> Input {
+        "a" c:['w'-'y'] d:"q" { TestC(c, d) }
+    }
+    "#
+passing tests:
+    "awq" => "TestC('w', 'q')"
+    "axq" => "TestC('x', 'q')"
+    "ayq" => "TestC('y', 'q')"
+
+failing tests:
+    "a"
+    "aw"
+    "ax"
+    "ay"
+    "aqq"
+    "aaq"
+    "bwq"
+    ""
+    "awqq"
+}
+
+parse_test! {
+name: list_ast
+syntax: r#"
+    ast Test {
+        Leaf()
+        Nodes(nodes: [Input])
+    }
+
+    rule start -> Test {
+        "(" ns:start* ")" { Nodes(ns) } /
+        "x" { Leaf() }
+    }
+    "#
+passing tests:
+    "x" => "Leaf()"
+    "()" => "Nodes([])"
+    "(x)" => "Nodes([Leaf()])"
+    "(xx)" => "Nodes([Leaf(), Leaf()])"
+    "((x))" => "Nodes([Nodes([Leaf()])])"
+
+failing tests:
+    "xx"
+    "(x"
+    "x)"
+    "(y)"
+    "(x))"
+    "((x)"
+    ""
+}
+
+parse_test! {
+name: list_rule
+syntax: r#"
+    ast Test {
+        Leaf()
+        Nodes(nodes: [Input])
+    }
+
+    rule start -> [Test] {
+        other*
+    }
+
+    rule other -> Test {
+        "(" ns:other* ")" { Nodes(ns) } /
+        "x" { Leaf() }
+    }
+    "#
+passing tests:
+    "x" => "[Leaf()]"
+    "()" => "[Nodes([])]"
+    "(x)" => "[Nodes([Leaf()])]"
+    "(xx)" => "[Nodes([Leaf(), Leaf()])]"
+    "((x))" => "[Nodes([Nodes([Leaf()])])]"
+    "xx" => "[Leaf(), Leaf()]"
+    "" => "[]"
+
+failing tests:
+    "(x"
+    "x)"
+    "(y)"
+    "(x))"
+    "((x)"
+}
+
 // parse_test! {
 // name: arith
 // syntax: r#"

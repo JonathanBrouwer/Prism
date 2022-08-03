@@ -72,25 +72,21 @@ pub fn repeat_delim<
                     .map(|(x, (_, z))| (x, z))
                     .map(push);
             }
-            if !last_res.should_continue_loop() {
+            if last_res.is_err() {
                 return last_res;
             }
         }
 
         for i in min..max.unwrap_or(usize::MAX) {
             if i == 0 {
-                last_res = last_res.merge_seq_opt(&item, state).map(push_opt);
+                let (res, should_continue) = last_res.merge_seq_opt(&item, state);
+                last_res = res.map(push_opt);
+                if !should_continue { break }
             } else {
-                last_res = last_res
-                    .merge_seq_opt(&seq2(&delimiter, &item), state)
-                    .map(|(x, o)| (x, o.map(|(_, o)| o)))
+                let (res, should_continue) = last_res.merge_seq_opt(&seq2(&delimiter, &item), state);
+                last_res = res.map(|(x, o)| (x, o.map(|(_, o)| o)))
                     .map(push_opt);
-            }
-            xxx
-            //TODO This check is NOT correct
-            //Because it will never stop being OK
-            if !last_res.should_continue_loop() {
-                return last_res;
+                if !should_continue { break }
             }
         }
 

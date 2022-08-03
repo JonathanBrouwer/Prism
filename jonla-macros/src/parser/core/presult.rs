@@ -52,10 +52,6 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn should_continue_loop(&self) -> bool {
-        !self.is_err()
-    }
-
     pub fn get_stream(&self) -> S {
         match self {
             POk(_, s) => *s,
@@ -129,7 +125,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         self,
         other: &P2,
         state: &mut Q,
-    ) -> PResult<(O, Option<O2>), E, S> {
+    ) -> (PResult<(O, Option<O2>), E, S>, bool) {
         fn conc<E>(mut vec1: Vec<E>, mut vec2: Vec<E>) -> Vec<E> {
             vec1.append(&mut vec2);
             vec1
@@ -137,18 +133,18 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
 
         //Quick out
         if self.is_err() {
-            return self.map(|_| unreachable!());
+            return (self.map(|_| unreachable!()), false);
         }
 
         let stream = self.get_stream();
         match (self, other.parse(stream, state)) {
-            (POk(o1, _), POk(o2, s2)) => POk((o1, Some(o2)), s2),
-            (POk(o1, s1), _) => POk((o1, None), s1),
-            (PRec(errs1, o1, _), POk(o2, s2)) => PRec(errs1, (o1, Some(o2)), s2),
+            (POk(o1, _), POk(o2, s2)) => (POk((o1, Some(o2)), s2), true),
+            (POk(o1, s1), _) => (POk((o1, None), s1), false),
+            (PRec(errs1, o1, _), POk(o2, s2)) => (PRec(errs1, (o1, Some(o2)), s2), true),
             (PRec(errs1, o1, _), PRec(errs2, o2, s2)) => {
-                PRec(conc(errs1, errs2), (o1, Some(o2)), s2)
+                (PRec(conc(errs1, errs2), (o1, Some(o2)), s2), true)
             }
-            (PRec(errs1, _, _), PErr(errs2, err2, s2)) => PErr(conc(errs1, errs2), err2, s2),
+            (PRec(errs1, _, _), PErr(errs2, err2, s2)) => (PErr(conc(errs1, errs2), err2, s2), false),
             (PErr(_, _, _), _) => unreachable!(),
         }
     }
