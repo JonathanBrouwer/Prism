@@ -1,4 +1,4 @@
-use jonla_macros::parser::core::presult::PResult::*;
+use jonla_macros::parser::core::error::display;
 use crate::autogen::parse::parse_term;
 
 #[allow(unused)]
@@ -8,23 +8,11 @@ mod autogen;
 fn main() {
     let input = include_str!("../resources/program.jnl");
     let result = parse_term(input);
-    match result {
-        POk(o, _) => {
-            println!("{:?}", o);
-        }
-        PRec(errs, o, _) => {
-            for err in errs {
-                println!("{:?}", err);
-            }
 
-            println!("Recovered result: ");
-            println!("{:?}", o);
-        }
-        PErr(errs, err, _) => {
-            for err in errs {
-                println!("{:?}", err);
-            }
-            println!("{:?}", err);
-        }
+    let (errs, o) = result.collapse();
+
+    for err in errs {
+        display(err, input);
     }
+    println!("Result: {:?}", o);
 }

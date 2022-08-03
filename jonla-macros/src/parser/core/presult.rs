@@ -28,6 +28,17 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    pub fn collapse(self) -> (Vec<E>, Option<O>) {
+        match self {
+            POk(o, _) => (vec![], Some(o)),
+            PRec(es, o, _) => (es, Some(o)),
+            PErr(mut es, e, _) => {
+                es.push(e);
+                (es, None)
+            }
+        }
+    }
+
     pub fn is_ok(&self) -> bool {
         match self {
             POk(_, _) => true,

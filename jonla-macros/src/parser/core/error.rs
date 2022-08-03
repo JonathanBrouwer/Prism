@@ -3,6 +3,7 @@ use std::cmp::max;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::marker::PhantomData;
+use ariadne::{Label, Report, ReportKind, Source};
 
 pub trait ParseError: Sized {
     type L: Eq + Hash;
@@ -42,6 +43,17 @@ impl<L: Eq + Hash> ParseError for FullError<L> {
             labels: self.labels,
         }
     }
+}
+
+//Into<String> +
+pub fn display<L:  Clone + Hash + Eq>(error: FullError<L>, input: &str) {
+    Report::build(ReportKind::Error, (), 0)
+        .with_message("Parsing error")
+        .with_label(Label::new(error.span.start..error.span.end).with_message("This is of type Nat"))
+        // .with_label(Label::new(42..45).with_message("This is of type Str"))
+        .finish()
+        .print(Source::from(input))
+        .unwrap();
 }
 
 #[derive(Clone)]
