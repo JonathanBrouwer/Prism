@@ -90,7 +90,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 for sub in &subs[1..] {
                     res = res.merge_choice(&parser_expr(rules, &sub), stream, state);
                 }
-                res.map(|(_, v)| (HashMap::new(), v))
+                res
             }
             RuleBody::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub).parse(stream, state);
