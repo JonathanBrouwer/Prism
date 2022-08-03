@@ -22,9 +22,9 @@ pub fn parser_rule<
     rule: &'grm str,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
     |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
-        let psub = parser_expr::<'_, 'grm, S, E>(rules, &rules.get(rule).unwrap());
-        let psub2 = parser_cache_recurse(&psub, rule);
-        psub2.parse(stream, state)
+        let mut res = parser_cache_recurse(&parser_expr::<'_, 'grm, S, E>(rules, &rules.get(rule).unwrap()), rule).parse(stream, state);
+        res.add_label(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
+        res
     }
 }
 

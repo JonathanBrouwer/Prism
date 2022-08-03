@@ -5,6 +5,8 @@ use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
 use crate::parser::parser_rule::PR;
 use std::collections::HashMap;
+use crate::parser::error_printer::ErrorLabel;
+use crate::parser::error_printer::ErrorLabel::Debug;
 
 pub struct ParserState<'grm, PR> {
     cache: HashMap<(usize, &'grm str), ParserCacheEntry<PR>>,
@@ -59,7 +61,7 @@ pub fn parser_cache_recurse<
     'a,
     I: Clone + Eq,
     S: Stream<I = I>,
-    E: ParseError + Clone,
+    E: ParseError<L=ErrorLabel<'grm>> + Clone,
 >(
     sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
     id: &'grm str,
@@ -75,10 +77,13 @@ pub fn parser_cache_recurse<
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
+        let mut res_recursive = PResult::new_err(E::new(stream.span_to(stream)), stream);
+        res_recursive.add_label(Debug(stream.span_to(stream), "LEFTREC"));
+
         let cache_state = state.cache_state_get();
         state.cache_insert(
             key,
-            PResult::new_err(E::new(stream.span_to(stream)), stream),
+            res_recursive,
         );
 
         //Now execute the actual rule, taking into account left recursion

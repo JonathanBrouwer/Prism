@@ -21,6 +21,14 @@ impl ErrorLabel<'_> {
             ErrorLabel::Debug(s, _) => *s,
         }
     }
+
+    fn is_debug(&self) -> bool {
+        match self {
+            ErrorLabel::Explicit(_, _) => false,
+            ErrorLabel::Literal(_, _) => false,
+            ErrorLabel::Debug(_, _) => true,
+        }
+    }
 }
 
 impl Display for ErrorLabel<'_> {
@@ -53,11 +61,11 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
         )
 }
 
-pub fn print_set_error(error: SetError<ErrorLabel>, filename: &str, input: &str) {
+pub fn print_set_error(error: SetError<ErrorLabel>, filename: &str, input: &str, enable_debug: bool) {
     let mut report = print_base(error.span, filename);
 
     //Add labels
-    for (start, labels) in error.labels.into_iter().into_group_map_by(|l| l.span().start).into_iter() {
+    for (start, labels) in error.labels.into_iter().filter(|l| enable_debug || !l.is_debug()).into_group_map_by(|l| l.span().start).into_iter() {
         report = report.with_label(
             Label::new((filename, start..error.span.end))
                 .with_message(format!("{}", labels.into_iter().format(" / ")))
@@ -78,7 +86,7 @@ pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &st
 
         report = report.with_label(
             Label::new((filename, label.span().start..label.span().end))
-                .with_message(format!("{}", label))
+                .with_message(format!("{}", path.iter().format(" <- ")))
                 .with_order(-(label.span().start as i32)),
         );
     }

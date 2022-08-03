@@ -31,6 +31,6 @@ rule subterm -> Term {
 
 rule subsubterm -> Term {
     "Type" { Type() } /
-    n:identifier() { Var(n) } /
+    n:identifier { Var(n) } /
     "(" _ t:term() _ ")" { t }
 }
