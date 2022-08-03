@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use crate::parser::core::error::ParseError;
+use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
-use crate::parser::core::presult::PResult::{PErr, POk, PRec};
+use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
 use crate::parser::parser_rule::PR;
 
@@ -81,11 +81,11 @@ pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: Pa
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
         let res = sub.parse(stream, state);
         match res {
-            POk(mut o, mut pos) => {
+            POk(mut o, mut pos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !state.cache_is_read(key).unwrap() {
                     //No leftrec, cache and return
-                    let res = POk(o, pos);
+                    let res = POk(o, pos, be);
                     state.cache_insert(key, res.clone());
                     res
                 } else {
@@ -93,24 +93,22 @@ pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: Pa
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(key, POk(o.clone(), pos));
+                        state.cache_insert(key, POk(o.clone(), pos, be.clone()));
 
                         //Grow the seed
                         let new_res = sub.parse(pos, state);
                         match new_res {
-                            POk(new_o, new_pos) if new_pos.cmp(pos).is_gt() => {
+                            POk(new_o, new_pos, new_be) if new_pos.cmp(pos).is_gt() => {
                                 o = new_o;
                                 pos = new_pos;
+                                be = new_be;
                             }
-                            POk(_, _) => {
+                            POk(_, _, new_be) => {
+                                be = err_combine_opt(be, new_be);
                                 break;
                             }
-                            PRec(_, _, _) => {
-                                //TODO handle recovery
-                                todo!()
-                            },
-                            PErr(_, _, _) => {
-                                //TODO add error
+                            PErr(new_e, new_s) => {
+                                be = err_combine_opt(be, Some((new_e, new_s)));
                                 break;
                             }
                         }
@@ -118,11 +116,10 @@ pub fn parser_cache_recurse<'grm: 'a, 'a, I: Clone + Eq, S: Stream<I = I>, E: Pa
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, pos)
+                    POk(o, pos, be)
                 }
             }
-            PRec(_, _, _) => todo!(),
-            res@PErr(_, _, _) => {
+            res@PErr(_, _) => {
                 state.cache_insert(key, res.clone());
                 res
             },

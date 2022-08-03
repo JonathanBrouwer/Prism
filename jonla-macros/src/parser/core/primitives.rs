@@ -1,7 +1,7 @@
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
-use crate::parser::core::presult::PResult::{PErr, POk, PRec};
+use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::span::Span;
 use crate::parser::core::stream::Stream;
 
@@ -99,19 +99,14 @@ pub fn full_input<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
 ) -> impl Parser<I, O, S, E, Q> + 'a {
     move |stream: S, state: &mut Q| {
         match p1.parse(stream, state) {
-            POk(o, rest) => {
-                match rest.next().1 {
-                    None => POk(o, rest),
-                    Some(_) => PErr(vec![], E::new(rest.span_rest()), rest), //TODO best error
+            POk(o, rest, be) => {
+                match (rest.next().1, be) {
+                    (None, be) => POk(o, rest, be),
+                    (Some(_), Some((be, bs))) => PErr(be, bs),
+                    (Some(_), None) => PErr(E::new(rest.span_rest()), rest), //TODO explain what happened
                 }
             }
-            PRec(errs, o, rest) => {
-                match rest.next().1 {
-                    None => PRec(errs, o, rest),
-                    Some(_) => PErr(vec![], E::new(rest.span_rest()), rest), //TODO best error
-                }
-            }
-            err@PErr(_, _, _) => err,
+            err@PErr(_, _) => err,
         }
     }
 }

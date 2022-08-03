@@ -1,9 +1,10 @@
 use crate::parser::core::span::Span;
-use std::cmp::max;
+use std::cmp::{max, Ordering};
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::marker::PhantomData;
 use ariadne::{Label, Report, ReportKind, Source};
+use crate::parser::core::stream::Stream;
 
 pub trait ParseError: Sized {
     type L: Eq + Hash;
@@ -11,6 +12,25 @@ pub trait ParseError: Sized {
     fn new(span: Span) -> Self;
     fn add_label(&mut self, label: Self::L);
     fn merge(self, other: Self) -> Self;
+}
+
+pub fn err_combine<E: ParseError, S: Stream>((xe, xs): (E, S), (ye, ys): (E, S)) -> (E, S) {
+    match xs.cmp(ys) {
+        Ordering::Less => (ye, ys),
+        Ordering::Equal => (xe.merge(ye), xs),
+        Ordering::Greater => (xe, xs),
+    }
+}
+
+pub fn err_combine_opt<E: ParseError, S: Stream>(x: Option<(E, S)>, y: Option<(E, S)>) -> Option<(E, S)> {
+    match (x, y) {
+        (Some(x), Some(y)) => {
+            Some(err_combine(x, y))
+        },
+        (Some(x), None) => Some(x),
+        (None, Some(y)) => Some(y),
+        (None, None) => None,
+    }
 }
 
 #[derive(Clone, Debug)]

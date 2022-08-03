@@ -7,12 +7,9 @@ mod autogen;
 
 fn main() {
     let input = include_str!("../resources/program.jnl");
-    let result = parse_term(input);
 
-    let (errs, o) = result.collapse();
-
-    for err in errs {
-        display(err, input);
+    match parse_term(input).collapse() {
+        Ok(o) => println!("Result: {:?}", o),
+        Err(e) => display(e, input),
     }
-    println!("Result: {:?}", o);
 }
