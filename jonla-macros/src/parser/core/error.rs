@@ -12,7 +12,7 @@ pub trait ParseError: Sized {
     fn merge(self, other: Self) -> Self;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct FullError<L: Eq + Hash> {
     span: Span,
     labels: HashSet<L>,

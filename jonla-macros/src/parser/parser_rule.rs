@@ -11,25 +11,21 @@ use std::collections::HashMap;
 
 pub type PR<'grm> = (HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>);
 
-pub fn parser_rule<'grm, S: Stream<I = char>, E: ParseError + Clone>(
-    rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
+pub fn parser_rule<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L=()> + Clone>(
+    rules: &'a HashMap<&'grm str, RuleBody<'grm>>,
     rule: &'grm str,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {
-    move |stream: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
-          -> PResult<PR<'grm>, E, S> {
-        //TODO wrap in cache_recurse
-        parser_cache_recurse(
-        &parser_expr(rules, &rules.get(rule).unwrap()),
-            rule
-        ).parse(stream, state)
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+        let psub = parser_expr::<'_, 'grm, S, E>(rules, &rules.get(rule).unwrap());
+        let psub2 = parser_cache_recurse(&psub, rule);
+        psub2.parse(stream, state)
     }
 }
 
-fn parser_expr<'grm, S: Stream<I = char>, E: ParseError + Clone>(
-    rules: &'grm HashMap<&'grm str, RuleBody<'grm>>,
-    expr: &'grm RuleBody<'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> {
+fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L=()> + Clone>(
+    rules: &'b HashMap<&'grm str, RuleBody<'grm>>,
+    expr: &'b RuleBody<'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'b {
     move |stream: S,
           state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
@@ -132,18 +128,3 @@ fn apply_action<'grm>(
         }
     }
 }
-
-// pub fn parser_full_input<T: Clone>(
-//     input: &str,
-//     sub: impl Fn(&mut ParserState<'grm, 'src, CT>, usize) -> ParseResult<'grm, T>,
-// ) -> PResult<_, _, _> {
-//     let res = sub(self, 0);
-//     match res.inner {
-//         Ok(ok) if res.pos() == self.input.len() => ParseResult::from_ok(ok),
-//         Ok(ok) => ok
-//             .best_error
-//             .map(ParseResult::from_err)
-//             .unwrap_or(ParseResult::new_err(ok.pos, vec![RemainingInputNotParsed])),
-//         Err(err) => ParseResult::from_err(err),
-//     }
-// }
