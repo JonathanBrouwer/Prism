@@ -21,7 +21,9 @@ pub fn seq2<'a, I: Clone + Eq, O1, O2, S: Stream<I = I>, E: ParseError, Q>(
     p2: &'a impl Parser<I, O2, S, E, Q>,
 ) -> impl Parser<I, (O1, O2), S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<(O1, O2), E, S> {
-        p1.parse(stream, state).merge_seq(p2, state)
+        let res1 = p1.parse(stream, state);
+        let stream = res1.get_stream();
+        res1.merge_seq(p2.parse(stream, state))
     }
 }
 
@@ -30,7 +32,7 @@ pub fn choice2<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
     p2: &'a impl Parser<I, O, S, E, Q>,
 ) -> impl Parser<I, O, S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<O, E, S> {
-        p1.parse(stream, state).merge_choice(p2, stream, state)
+        p1.parse(stream, state).merge_choice(p2.parse(stream, state))
     }
 }
 
@@ -52,46 +54,30 @@ pub fn repeat_delim<
     move |stream: S, state: &mut Q| -> PResult<Vec<OP>, E, S> {
         let mut last_res: PResult<Vec<OP>, E, S> = PResult::new_ok(vec![], stream);
 
-        fn push<T>((mut vec, item): (Vec<T>, T)) -> Vec<T> {
-            vec.push(item);
-            vec
-        }
-        fn push_opt<T>((mut vec, item): (Vec<T>, Option<T>)) -> Vec<T> {
-            if let Some(item) = item {
-                vec.push(item);
-            }
-            vec
-        }
-
-        for i in 0..min {
-            if i == 0 {
-                last_res = last_res.merge_seq(&item, state).map(push);
+        for i in 0..max.unwrap_or(usize::MAX) {
+            let pos = last_res.get_stream();
+            let part = if i == 0 {
+                item.parse(pos, state)
             } else {
-                last_res = last_res
-                    .merge_seq(&seq2(&delimiter, &item), state)
-                    .map(|(x, (_, z))| (x, z))
-                    .map(push);
-            }
-            if last_res.is_err() {
-                return last_res;
-            }
-        }
+                seq2(&delimiter, &item).parse(pos, state).map(|x| x.1)
+            };
+            let should_continue = part.is_ok();
 
-        for i in min..max.unwrap_or(usize::MAX) {
-            if i == 0 {
-                let (res, should_continue) = last_res.merge_seq_opt(&item, state);
-                last_res = res.map(push_opt);
-                if !should_continue {
-                    break;
-                }
+            if i < min {
+                last_res = last_res.merge_seq(part).map(|(mut vec, item)| {
+                    vec.push(item);
+                    vec
+                });
             } else {
-                let (res, should_continue) =
-                    last_res.merge_seq_opt(&seq2(&delimiter, &item), state);
-                last_res = res.map(|(x, o)| (x, o.map(|(_, o)| o))).map(push_opt);
-                if !should_continue {
-                    break;
-                }
+                last_res = last_res.merge_seq_opt(part).map(|(mut vec, item)| {
+                    if let Some(item) = item {
+                        vec.push(item);
+                    }
+                    vec
+                });
             }
+
+            if !should_continue {break};
         }
 
         last_res

@@ -3,14 +3,13 @@ use crate::parser::action_result::ActionResult;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
-use crate::parser::core::primitives::{repeat_delim, seq2, single};
+use crate::parser::core::primitives::{repeat_delim, single};
 use crate::parser::core::stream::Stream;
 use crate::parser::error_printer::ErrorLabel;
 use crate::parser::parser_state::{parser_cache_recurse, ParserState};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::parser::core::presult::PResult::PErr;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -54,7 +53,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBody::Literal(literal) => {
                 let mut res = PResult::new_ok((), stream);
                 for char in literal.chars() {
-                    res = res.merge_seq(&single(|c| *c == char), state).map(|_| ());
+                    res = res.merge_seq_parser(&single(|c| *c == char), state).map(|_| ());
                 }
                 let span = stream.span_to(res.get_stream());
                 let mut res = res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
@@ -88,7 +87,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 let mut res = PResult::new_ok(HashMap::new(), stream);
                 for sub in subs {
                     res = res
-                        .merge_seq(&parser_expr(rules, sub), state)
+                        .merge_seq_parser(&parser_expr(rules, sub), state)
                         .map(|(mut l, r)| {
                             l.extend(r.0);
                             l
@@ -102,7 +101,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBody::Choice(subs) => {
                 let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
                 for sub in &subs[1..] {
-                    res = res.merge_choice(&parser_expr(rules, &sub), stream, state);
+                    res = res.merge_choice_parser(&parser_expr(rules, &sub), stream, state);
                     if res.is_ok() {
                         break;
                     }
