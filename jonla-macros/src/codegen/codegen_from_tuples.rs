@@ -107,7 +107,7 @@ pub(crate) fn write_from_tuple_arg(
         AstType::List(subarg) => {
             let subres = write_from_tuple_arg(subarg, quote!(arg), false);
             quote! {
-                match #val {
+                match #val.as_ref() {
                     ActionResult::List(args) => {
                         args.iter().map(|arg| #subres).collect::<Vec<_>>()
                     },

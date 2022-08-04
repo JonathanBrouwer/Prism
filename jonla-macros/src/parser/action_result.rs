@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::parser::core::span::Span;
 use itertools::Itertools;
 
@@ -5,8 +6,8 @@ use itertools::Itertools;
 pub enum ActionResult<'grm> {
     Value(Span),
     Literal(&'grm str),
-    Construct(&'grm str, Vec<ActionResult<'grm>>),
-    List(Vec<ActionResult<'grm>>),
+    Construct(&'grm str, Vec<Rc<ActionResult<'grm>>>),
+    List(Vec<Rc<ActionResult<'grm>>>),
     Error,
 }
 

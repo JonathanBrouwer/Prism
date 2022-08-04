@@ -9,8 +9,9 @@ use crate::parser::error_printer::ErrorLabel;
 use crate::parser::parser_state::{parser_cache_recurse, ParserState};
 use itertools::Itertools;
 use std::collections::HashMap;
+use std::rc::Rc;
 
-pub type PR<'grm> = (HashMap<&'grm str, ActionResult<'grm>>, ActionResult<'grm>);
+pub type PR<'grm> = (HashMap<&'grm str, Rc<ActionResult<'grm>>>, Rc<ActionResult<'grm>>);
 
 pub fn parser_rule<
     'a,
@@ -41,14 +42,14 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 .map(|(_, v)| (HashMap::new(), v)),
             RuleBody::CharClass(cc) => single(|c| cc.contains(*c))
                 .parse(stream, state)
-                .map(|(span, _)| (HashMap::new(), ActionResult::Value(span))),
+                .map(|(span, _)| (HashMap::new(), Rc::new(ActionResult::Value(span)))),
             RuleBody::Literal(literal) => {
                 let mut res = PResult::new_ok((), stream);
                 for char in literal.chars() {
                     res = res.merge_seq(&single(|c| *c == char), state).map(|_| ());
                 }
                 let span = stream.span_to(res.get_stream());
-                let mut res = res.map(|_| (HashMap::new(), ActionResult::Value(span)));
+                let mut res = res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
                 res.add_label(ErrorLabel::Literal(
                     stream.span_to(res.get_stream().next().0),
                     literal,
@@ -60,19 +61,21 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 min,
                 max,
                 delim,
-            } => repeat_delim(
-                parser_expr(rules, expr),
-                parser_expr(rules, delim),
-                *min as usize,
-                max.map(|max| max as usize),
-            )
-            .parse(stream, state)
-            .map(|list| {
-                (
-                    HashMap::new(),
-                    ActionResult::List(list.into_iter().map(|pr| pr.1).collect_vec()),
+            } => {
+                repeat_delim(
+                    parser_expr(rules, expr),
+                    parser_expr(rules, delim),
+                    *min as usize,
+                    max.map(|max| max as usize),
                 )
-            }),
+                    .parse(stream, state)
+                    .map(|list| {
+                        (
+                            HashMap::new(),
+                            Rc::new(ActionResult::List(list.into_iter().map(|pr| pr.1).collect_vec())),
+                        )
+                    })
+            },
             RuleBody::Sequence(subs) => {
                 let mut res = PResult::new_ok(HashMap::new(), stream);
                 for sub in subs {
@@ -84,7 +87,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                         });
                     if res.is_err() {break }
                 }
-                res.map(|map| (map, ActionResult::Error))
+                res.map(|map| (map, Rc::new(ActionResult::Error)))
             }
             RuleBody::Choice(subs) => {
                 let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
@@ -111,7 +114,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBody::SliceInput(sub) => {
                 let res = parser_expr(rules, sub).parse(stream, state);
                 let span = stream.span_to(res.get_stream());
-                res.map(|_| (HashMap::new(), ActionResult::Value(span)))
+                res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
             RuleBody::Error(sub, err_label) => {
                 let mut res = parser_expr(rules, sub).parse(stream, state);
@@ -127,20 +130,20 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
 
 fn apply_action<'grm>(
     rule: &RuleAction<'grm>,
-    map: &HashMap<&str, ActionResult<'grm>>,
-) -> ActionResult<'grm> {
+    map: &HashMap<&str, Rc<ActionResult<'grm>>>,
+) -> Rc<ActionResult<'grm>> {
     match rule {
         RuleAction::Name(name) => {
             if let Some(v) = map.get(name) {
                 v.clone()
             } else {
-                ActionResult::Error
+                Rc::new(ActionResult::Error)
             }
         }
-        RuleAction::InputLiteral(lit) => ActionResult::Literal(lit),
+        RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),
         RuleAction::Construct(name, args) => {
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect_vec();
-            ActionResult::Construct(name, args_vals)
+            Rc::new(ActionResult::Construct(name, args_vals))
         }
     }
 }
