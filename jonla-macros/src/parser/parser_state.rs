@@ -66,19 +66,19 @@ pub fn parser_cache_recurse<
     sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
     id: &'grm str,
 ) -> impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S,
+    move |pos_start: S,
           state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         //Check if this result is cached
-        let key = (stream.pos(), id);
+        let key = (pos_start.pos(), id);
         if let Some(cached) = state.cache_get(key) {
             return cached.clone();
         }
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
-        let mut res_recursive = PResult::new_err(E::new(stream.span_to(stream)), stream);
-        res_recursive.add_label(Debug(stream.span_to(stream), "LEFTREC"));
+        let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
+        res_recursive.add_label(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = state.cache_state_get();
         state.cache_insert(
@@ -93,7 +93,7 @@ pub fn parser_cache_recurse<
         //- Try to parse the current (rule, position). If this fails, there is definitely no left recursion. Otherwise, we now have a seed.
         //- Put the new seed in the cache, and rerun on the current (rule, position). Make sure to revert the cache to the previous state.
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
-        let res = sub.parse(stream, state);
+        let res = sub.parse(pos_start, state);
         match res {
             POk(mut o, mut pos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
@@ -110,7 +110,7 @@ pub fn parser_cache_recurse<
                         state.cache_insert(key, POk(o.clone(), pos, be.clone()));
 
                         //Grow the seed
-                        let new_res = sub.parse(pos, state);
+                        let new_res = sub.parse(pos_start, state);
                         match new_res {
                             POk(new_o, new_pos, new_be) if new_pos.cmp(pos).is_gt() => {
                                 o = new_o;
