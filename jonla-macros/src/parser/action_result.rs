@@ -8,7 +8,7 @@ pub enum ActionResult<'grm> {
     Literal(&'grm str),
     Construct(&'grm str, Vec<Rc<ActionResult<'grm>>>),
     List(Vec<Rc<ActionResult<'grm>>>),
-    Error,
+    Error(&'static str),
 }
 
 impl<'grm> ActionResult<'grm> {
@@ -24,7 +24,7 @@ impl<'grm> ActionResult<'grm> {
             ActionResult::List(es) => {
                 format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
             }
-            ActionResult::Error => format!("ERROR"),
+            ActionResult::Error(s) => format!("ERROR[{s}]"),
         }
     }
 }

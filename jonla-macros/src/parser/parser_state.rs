@@ -27,7 +27,7 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
-            layout_disable: 0
+            layout_disable: 0,
         }
     }
 
@@ -68,7 +68,7 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         self.layout_disable += 1;
     }
 
-    pub fn layout_enable(&mut self){
+    pub fn layout_enable(&mut self) {
         self.layout_disable -= 1;
     }
 }

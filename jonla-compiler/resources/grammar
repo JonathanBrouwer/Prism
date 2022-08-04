@@ -7,29 +7,27 @@ ast Term {
     FunDestruct(func: Term, arg: Term)
 }
 
-rule _ -> Input = [' ']*
-rule __ -> Input = [' ' | '\n']*
-rule _w -> Input = [' ']+
+rule layout -> Input = [' ' | '\n']
 
 rule identifier -> Input {
-    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "Identifier"}
+    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "Identifier"} {nolayout}
 }
 
 rule term -> Term {
-    "let" _ n:identifier _ ":" _ t:term _ "=" _ v:term _ ";" _ b:term { Let(n, t, v, b) } /
-    x:identifier _ ":" _ t:term _ "." _ r:term { FunConstruct(x, t, r) } /
-    n:identifier _ ":" _ at:term _ "->" _ bt:term { FunType(n, at, bt) } /
-    at:subterm _ "->" _ bt:term { FunType("_", at, bt) } /
+    "let" n:identifier ":" t:term "=" v:term ";" b:term { Let(n, t, v, b) } /
+    x:identifier ":" t:term "." r:term { FunConstruct(x, t, r) } /
+    n:identifier ":" at:term "->" bt:term { FunType(n, at, bt) } /
+    at:subterm "->" bt:term { FunType("_", at, bt) } /
     sub:subterm { sub }
 }
 
 rule subterm -> Term {
-    f:subterm _w a:subsubterm { FunDestruct(f, a) } /
+    f:subterm " " a:subsubterm { FunDestruct(f, a) } /
     sub:subsubterm { sub }
 }
 
 rule subsubterm -> Term {
     "Type" { Type() } /
     n:identifier { Var(n) } /
-    "(" _ t:term() _ ")" { t }
+    "(" t:term() ")" { t }
 }

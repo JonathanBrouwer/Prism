@@ -47,20 +47,32 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBody::Rule(rule) => parser_rule(rules, rule)
                 .parse(stream, state)
                 .map(|(_, v)| (HashMap::new(), v)),
-            RuleBody::CharClass(cc) => single(|c| cc.contains(*c))
+            RuleBody::CharClass(cc) => parser_with_layout(rules, &single(|c| cc.contains(*c)))
                 .parse(stream, state)
                 .map(|(span, _)| (HashMap::new(), Rc::new(ActionResult::Value(span)))),
             RuleBody::Literal(literal) => {
-                let mut res = PResult::new_ok((), stream);
-                for char in literal.chars() {
-                    res = res.merge_seq_parser(&single(|c| *c == char), state).map(|_| ());
-                }
-                let span = stream.span_to(res.get_stream());
-                let mut res = res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
-                res.add_label(ErrorLabel::Literal(
-                    stream.span_to(res.get_stream().next().0),
-                    literal,
-                ));
+                //First construct the literal parser
+                let parser_literal =
+                    move |stream: S,
+                          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+                          -> PResult<PR<'grm>, E, S> {
+                        let mut res = PResult::new_ok((), stream);
+                        for char in literal.chars() {
+                            res = res
+                                .merge_seq_parser(&single(|c| *c == char), state)
+                                .map(|_| ());
+                        }
+                        let span = stream.span_to(res.get_stream());
+                        let mut res =
+                            res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
+                        res.add_label(ErrorLabel::Literal(
+                            stream.span_to(res.get_stream().next().0),
+                            literal,
+                        ));
+                        res
+                    };
+                //Next, allow there to be layout before the literal
+                let res = parser_with_layout(rules, &parser_literal).parse(stream, state);
                 res
             }
             RuleBody::Repeat {
@@ -86,17 +98,17 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBody::Sequence(subs) => {
                 let mut res = PResult::new_ok(HashMap::new(), stream);
                 for sub in subs {
-                    res = res
-                        .merge_seq_parser(&parser_expr(rules, sub), state)
-                        .map(|(mut l, r)| {
-                            l.extend(r.0);
-                            l
-                        });
+                    res =
+                        res.merge_seq_parser(&parser_expr(rules, sub), state)
+                            .map(|(mut l, r)| {
+                                l.extend(r.0);
+                                l
+                            });
                     if res.is_err() {
                         break;
                     }
                 }
-                res.map(|map| (map, Rc::new(ActionResult::Error)))
+                res.map(|map| (map, Rc::new(ActionResult::Error("sequence"))))
             }
             RuleBody::Choice(subs) => {
                 let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
@@ -135,6 +147,14 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 ));
                 res
             }
+            RuleBody::NoLayout(sub) => {
+                parser_with_layout(rules, &move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<_, E, S> {
+                    state.layout_disable();
+                    let res = parser_expr(rules, sub).parse(stream, state);
+                    state.layout_enable();
+                    res
+                }).parse(stream, state)
+            }
         }
     }
 }
@@ -142,28 +162,35 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
 pub fn parser_with_layout<
     'grm: 'a,
     'a,
-    I: Clone + Eq,
-    S: Stream<I = I>,
+    O,
+    S: Stream<I = char>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'a HashMap<&'grm str, RuleBody<'grm>>,
-    sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
-) -> impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
-          -> PResult<PR<'grm>, E, S> {
-        let mut res = sub.parse(pos, state);
+    sub: &'a impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
+) -> impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    move |pos: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
         if state.is_layout_disabled() || !rules.contains_key("layout") {
-            return res;
+            return sub.parse(pos, state);
         }
 
         //Start attemping to parse layout
-        while res.is_err() {
+        let mut res = PResult::new_ok((), pos);
+        loop {
+            let (new_res, success) = res.merge_seq_opt_parser(sub, state);
+            if success {
+                return new_res.map(|(_, o)| o.unwrap());
+            }
 
-            // res = res.merge_choice(seq2(&parser_rule(rules, "layout"), &sub), pos, state);
+            state.layout_disable();
+            res = new_res
+                .merge_seq_parser(&parser_rule(rules, "layout"), state)
+                .map(|_| ());
+            state.layout_enable();
+            if res.is_err() {
+                return res.map(|_| unreachable!());
+            }
         }
-
-        todo!()
     }
 }
 
@@ -176,7 +203,7 @@ fn apply_action<'grm>(
             if let Some(v) = map.get(name) {
                 v.clone()
             } else {
-                Rc::new(ActionResult::Error)
+                panic!("Name not in context")
             }
         }
         RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),

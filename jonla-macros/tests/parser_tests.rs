@@ -1,14 +1,15 @@
 use jonla_macros::grammar;
 use jonla_macros::grammar::{GrammarFile, RuleBody};
-use jonla_macros::parser::core::error::empty_error::*;
 use jonla_macros::parser::core::parser::Parser;
 use jonla_macros::parser::core::presult::PResult;
 use jonla_macros::parser::core::presult::PResult::*;
 use jonla_macros::parser::core::primitives::full_input;
 use jonla_macros::parser::core::stream::StringStream;
+use jonla_macros::parser::error_printer::*;
 use jonla_macros::parser::parser_rule::parser_rule;
 use jonla_macros::parser::parser_state::ParserState;
 use std::collections::HashMap;
+use jonla_macros::parser::core::error::empty_error::EmptyError;
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
@@ -30,14 +31,16 @@ macro_rules! parse_test {
 
             let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start")).parse(stream, &mut state);
+            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, _>(&rules, "start")).parse(stream, &mut state);
 
             match result {
                 POk(o, _, _) => {
                     let got = o.1.to_string(input);
                     assert_eq!($expected, got);
                 }
-                PErr(_, _) => {
+                PErr(e, _) => {
+                    // print_set_error(e, "test", input, true);
+                    print_tree_error(e, "test", input);
                     panic!();
                 }
             }
@@ -423,4 +426,94 @@ failing tests:
     ""
     "1+"
     "+1"
+}
+
+parse_test! {
+name: arith_layout
+syntax: r#"
+    ast Expr {
+        Add(l: Expr, r: Expr)
+        Sub(l: Expr, r: Expr)
+        Mul(l: Expr, r: Expr)
+        Div(l: Expr, r: Expr)
+        Pow(l: Expr, r: Expr)
+        Neg(e: Expr)
+        Num(n: Input)
+    }
+
+    rule layout -> Input = " "
+
+    rule num -> Input {
+        $(['0'-'9']+) {nolayout}
+    }
+
+    rule start -> Expr {
+        e:expr {e}
+    }
+
+    rule expr -> Expr {
+        l:expr2 "+" r:expr { Add(l, r) } /
+        l:expr2 "-" r:expr { Sub(l, r) } /
+        s:expr2 { s }
+    }
+    rule expr2 -> Expr {
+        l:expr3 "*" r:expr2 { Mul(l, r) } /
+        l:expr3 "/" r:expr2 { Div(l, r) } /
+        s:expr3 { s }
+    }
+    rule expr3 -> Expr {
+        l:expr3 "^" r:expr4 { Pow(l, r) } /
+        s:expr4 { s }
+    }
+    rule expr4 -> Expr {
+        "-" e:expr4 { Neg(e) } /
+        e:num { Num(e) }
+    }
+    "#
+passing tests:
+    "123" => "Num('123')"
+    "5 * 4 + 20 * 4 - 50" => "Add(Mul(Num('5'), Num('4')), Sub(Mul(Num('20'), Num('4')), Num('50')))"
+    "5 * 4 - 20 * 4 + 50" => "Sub(Mul(Num('5'), Num('4')), Add(Mul(Num('20'), Num('4')), Num('50')))"
+    "-5 * -4 - -20 * -4 + -50" => "Sub(Mul(Neg(Num('5')), Neg(Num('4'))), Add(Mul(Neg(Num('20')), Neg(Num('4'))), Neg(Num('50'))))"
+    "1 + 2 * 3" => "Add(Num('1'), Mul(Num('2'), Num('3')))"
+    "1 * 2 + 3" => "Add(Mul(Num('1'), Num('2')), Num('3'))"
+    "1 - 2 / 3" => "Sub(Num('1'), Div(Num('2'), Num('3')))"
+    "1 / 2 - 3" => "Sub(Div(Num('1'), Num('2')), Num('3'))"
+    "-8" => "Neg(Num('8'))"
+
+failing tests:
+    ""
+    "1+"
+    "+1"
+}
+
+parse_test! {
+name: num_layout
+syntax: r#"
+    ast Expr {
+        Add(l: Expr, r: Expr)
+        Sub(l: Expr, r: Expr)
+        Mul(l: Expr, r: Expr)
+        Div(l: Expr, r: Expr)
+        Pow(l: Expr, r: Expr)
+        Neg(e: Expr)
+        Num(n: Input)
+    }
+
+    rule layout -> Input = " "
+
+    rule num -> Input {
+        $(['0'-'9']+) {nolayout}
+    }
+
+    rule start -> Expr {
+        "-" e:start { Neg(e) } /
+        e:num { Num(e) }
+    }
+    "#
+passing tests:
+    "123" => "Num('123')"
+    "- 8" => "Neg(Num('8'))"
+
+failing tests:
 }

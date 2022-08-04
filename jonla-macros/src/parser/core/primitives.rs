@@ -32,7 +32,8 @@ pub fn choice2<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
     p2: &'a impl Parser<I, O, S, E, Q>,
 ) -> impl Parser<I, O, S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<O, E, S> {
-        p1.parse(stream, state).merge_choice(p2.parse(stream, state))
+        p1.parse(stream, state)
+            .merge_choice(p2.parse(stream, state))
     }
 }
 
@@ -77,7 +78,9 @@ pub fn repeat_delim<
                 });
             }
 
-            if !should_continue {break};
+            if !should_continue {
+                break;
+            };
         }
 
         last_res

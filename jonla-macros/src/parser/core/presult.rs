@@ -64,13 +64,10 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn merge_choice(
-        self,
-        other: Self,
-    ) -> Self {
+    pub fn merge_choice(self, other: Self) -> Self {
         match (self, other) {
             // Left ok
-            (ok@POk(_, _, _), _) => ok,
+            (ok @ POk(_, _, _), _) => ok,
 
             // Right ok
             (PErr(ne, ns), POk(s, o, be)) => POk(s, o, err_combine_opt(Some((ne, ns)), be)),
@@ -83,32 +80,24 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn merge_seq<O2>(
-        self,
-        other: PResult<O2, E, S>,
-    ) -> PResult<(O, O2), E, S> {
+    pub fn merge_seq<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, O2), E, S> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, o2), s2, err_combine_opt(e1, e2)),
             (POk(_, _, e1), PErr(e2, s2)) => {
                 let (e, s) = err_combine_opt(e1, Some((e2, s2))).unwrap();
                 PErr(e, s)
             }
-            (err@PErr(_, _), _) => err.map(|_| unreachable!()),
+            (err @ PErr(_, _), _) => err.map(|_| unreachable!()),
         }
     }
 
-    pub fn merge_seq_opt<O2>(
-        self,
-        other: PResult<O2, E, S>,
-    ) -> PResult<(O, Option<O2>), E, S> {
+    pub fn merge_seq_opt<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, Option<O2>), E, S> {
         match (self, other) {
-            (POk(o1, _, e1), POk(o2, s2, e2)) => {
-                POk((o1, Some(o2)), s2, err_combine_opt(e1, e2))
-            }
-            (POk(o1, s1, e1), PErr(e2, s2)) =>
+            (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
+            (POk(o1, s1, e1), PErr(e2, s2)) => {
                 POk((o1, None), s1, err_combine_opt(e1, Some((e2, s2))))
-            ,
-            (err@PErr(_, _), _) => err.map(|_| unreachable!()),
+            }
+            (err @ PErr(_, _), _) => err.map(|_| unreachable!()),
         }
     }
 
@@ -123,7 +112,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
             return self;
         }
 
-         self.merge_choice(other.parse(stream, state))
+        self.merge_choice(other.parse(stream, state))
     }
 
     pub fn merge_seq_parser<O2, Q, P2: Parser<S::I, O2, S, E, Q>>(
@@ -152,7 +141,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
 
         let pos = self.get_stream();
         let other_res = other.parse(pos, state);
-        let is_err = other_res.is_err();
-        (self.merge_seq_opt(other_res), is_err)
+        let should_continue = other_res.is_ok();
+        (self.merge_seq_opt(other_res), should_continue)
     }
 }

@@ -1,1 +1,2 @@
-{xxxx}{xx}{x}{xxxxxx}
+let x: Int = hello;
+x
