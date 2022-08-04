@@ -1,0 +1,8 @@
+ast Term {
+    X(x: Input)
+}
+
+rule x -> Term = x:"x" { X(x) }
+rule xs -> [Term] = "{" xs:x+ "}" { xs }
+
+rule ys -> [[Term]] = ys:xs* {ys}

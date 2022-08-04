@@ -82,6 +82,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                             l.extend(r.0);
                             l
                         });
+                    if res.is_err() {break }
                 }
                 res.map(|map| (map, ActionResult::Error))
             }
@@ -89,6 +90,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
                 for sub in &subs[1..] {
                     res = res.merge_choice(&parser_expr(rules, &sub), stream, state);
+                    if res.is_ok() {break }
                 }
                 res
             }

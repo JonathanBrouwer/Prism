@@ -50,13 +50,6 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn is_rec(&self) -> bool {
-        match self {
-            POk(_, _, _) => false,
-            PErr(_, _) => false,
-        }
-    }
-
     pub fn is_err(&self) -> bool {
         match self {
             POk(_, _, _) => false,
