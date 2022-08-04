@@ -3,14 +3,18 @@ use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
-use crate::parser::parser_rule::PR;
-use std::collections::HashMap;
 use crate::parser::error_printer::ErrorLabel;
 use crate::parser::error_printer::ErrorLabel::Debug;
+use crate::parser::parser_rule::PR;
+use std::collections::HashMap;
 
 pub struct ParserState<'grm, PR> {
+    //Cache for parser_cache_recurse
     cache: HashMap<(usize, &'grm str), ParserCacheEntry<PR>>,
     cache_stack: Vec<(usize, &'grm str)>,
+
+    //Flags
+    layout_disable: usize,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -23,6 +27,7 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
+            layout_disable: 0
         }
     }
 
@@ -54,6 +59,18 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
             self.cache.remove(&key);
         })
     }
+
+    pub fn is_layout_disabled(&self) -> bool {
+        self.layout_disable > 0
+    }
+
+    pub fn layout_disable(&mut self) {
+        self.layout_disable += 1;
+    }
+
+    pub fn layout_enable(&mut self){
+        self.layout_disable -= 1;
+    }
 }
 
 pub fn parser_cache_recurse<
@@ -61,7 +78,7 @@ pub fn parser_cache_recurse<
     'a,
     I: Clone + Eq,
     S: Stream<I = I>,
-    E: ParseError<L=ErrorLabel<'grm>> + Clone,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
     id: &'grm str,
@@ -81,10 +98,7 @@ pub fn parser_cache_recurse<
         res_recursive.add_label(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = state.cache_state_get();
-        state.cache_insert(
-            key,
-            res_recursive,
-        );
+        state.cache_insert(key, res_recursive);
 
         //Now execute the actual rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf

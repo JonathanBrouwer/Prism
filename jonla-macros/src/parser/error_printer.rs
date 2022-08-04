@@ -2,9 +2,9 @@ use crate::parser::core::error::set_error::SetError;
 use crate::parser::core::error::tree_error::TreeError;
 use crate::parser::core::span::Span;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind, Source};
+use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::ops::Range;
-use itertools::Itertools;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
@@ -61,11 +61,22 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
         )
 }
 
-pub fn print_set_error(error: SetError<ErrorLabel>, filename: &str, input: &str, enable_debug: bool) {
+pub fn print_set_error(
+    error: SetError<ErrorLabel>,
+    filename: &str,
+    input: &str,
+    enable_debug: bool,
+) {
     let mut report = print_base(error.span, filename);
 
     //Add labels
-    for (start, labels) in error.labels.into_iter().filter(|l| enable_debug || !l.is_debug()).into_group_map_by(|l| l.span().start).into_iter() {
+    for (start, labels) in error
+        .labels
+        .into_iter()
+        .filter(|l| enable_debug || !l.is_debug())
+        .into_group_map_by(|l| l.span().start)
+        .into_iter()
+    {
         report = report.with_label(
             Label::new((filename, start..error.span.end))
                 .with_message(format!("{}", labels.into_iter().format(" / ")))
@@ -73,7 +84,10 @@ pub fn print_set_error(error: SetError<ErrorLabel>, filename: &str, input: &str,
         );
     }
 
-    report.finish().eprint((filename, Source::from(input))).unwrap();
+    report
+        .finish()
+        .eprint((filename, Source::from(input)))
+        .unwrap();
 }
 
 pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &str) {
@@ -81,7 +95,9 @@ pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &st
 
     //Add labels
     for path in error.labels.into_paths() {
-        if path.is_empty() { continue; }
+        if path.is_empty() {
+            continue;
+        }
         let label = &path[0];
 
         report = report.with_label(
@@ -91,5 +107,8 @@ pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &st
         );
     }
 
-    report.finish().eprint((filename, Source::from(input))).unwrap();
+    report
+        .finish()
+        .eprint((filename, Source::from(input)))
+        .unwrap();
 }

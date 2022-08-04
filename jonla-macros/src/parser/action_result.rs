@@ -1,6 +1,6 @@
-use std::rc::Rc;
 use crate::parser::core::span::Span;
 use itertools::Itertools;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum ActionResult<'grm> {

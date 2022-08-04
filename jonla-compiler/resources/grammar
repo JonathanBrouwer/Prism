@@ -10,14 +10,13 @@ ast Term {
 rule _ -> Input = [' ']*
 rule __ -> Input = [' ' | '\n']*
 rule _w -> Input = [' ']+
-rule _n -> Input = ['\n' | ';' | '\r']+
 
 rule identifier -> Input {
     $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "Identifier"}
 }
 
 rule term -> Term {
-    "let" _ n:identifier _ ":" _ t:term _ "=" _ v:term _ _n _ b:term { Let(n, t, v, b) } /
+    "let" _ n:identifier _ ":" _ t:term _ "=" _ v:term _ ";" _ b:term { Let(n, t, v, b) } /
     x:identifier _ ":" _ t:term _ "." _ r:term { FunConstruct(x, t, r) } /
     n:identifier _ ":" _ at:term _ "->" _ bt:term { FunType(n, at, bt) } /
     at:subterm _ "->" _ bt:term { FunType("_", at, bt) } /
