@@ -5,17 +5,17 @@ ast Term:
     FunType(name: Input, arg_type: Term, body_type: Term)
     FunConstruct(name: Input, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
-end
+
 
 rule layout -> Input:
     [' ' | '\n']
-end
+
 
 rule identifier -> Input:
     @error("Identifier")
     @nolayout
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
-end
+
 
 rule term -> Term:
     Let(n, t, v, b) <- "let" n:identifier ":" t:term "=" v:term ";" b:term
@@ -23,15 +23,14 @@ rule term -> Term:
     FunType(n, at, bt) <- n:identifier ":" at:term "->" bt:term
     FunType("_", at, bt) <- at:subterm "->" bt:term
     sub <- sub:subterm
-end
+
 
 rule subterm -> Term:
     FunDestruct(f, a) <- f:subterm " " a:subsubterm
     sub <- sub:subsubterm
-end
+
 
 rule subsubterm -> Term:
     Type() <- "Type"
     Var(n) <- n:identifier
     t <- "(" t:term ")"
-end

@@ -66,7 +66,7 @@ name: literal
 syntax: r#"
     rule start -> Input:
         "lol"
-    end
+    
     "#
 passing tests:
     "lol" => "'lol'"
@@ -86,10 +86,10 @@ name: literal_indirect
 syntax: r#"
     rule start -> Input:
         lol
-    end
+    
     rule lol -> Input:
         "lol"
-    end
+    
     "#
 passing tests:
     "lol" => "'lol'"
@@ -109,7 +109,7 @@ name: charclass
 syntax: r#"
     rule start -> Input:
         str([ 'w'-'z' | '8' | 'p'-'q' ])
-    end
+    
     "#
 passing tests:
     "8" => "'8'"
@@ -138,7 +138,7 @@ name: repeat_star
 syntax: r#"
     rule start -> Input:
         str([ 'w'-'z' | '8' | 'p'-'q' ]*)
-    end
+    
     "#
 passing tests:
     "8" => "'8'"
@@ -171,7 +171,7 @@ name: repeat_plus
 syntax: r#"
     rule start -> Input:
         str([ 'w'-'z' | '8' | 'p'-'q' ]+)
-    end
+    
     "#
 passing tests:
     "8" => "'8'"
@@ -204,7 +204,7 @@ name: repeat_option
 syntax: r#"
     rule start -> Input:
         str([ 'w'-'z' | '8' | 'p'-'q' ]?)
-    end
+    
     "#
 passing tests:
     "8" => "'8'"
@@ -237,7 +237,7 @@ name: sequence
 syntax: r#"
     rule start -> Input:
         str("a" ['w'-'y'] "q")
-    end
+    
     "#
 passing tests:
     "awq" => "'awq'"
@@ -261,7 +261,7 @@ name: choice
 syntax: r#"
     rule start -> Input:
         "a" / ['w'-'y'] / "q"
-    end
+    
     "#
 passing tests:
     "a" => "'a'"
@@ -283,11 +283,11 @@ name: action
 syntax: r#"
     ast Test:
         TestC(left: Input, right: Input)
-    end
+    
 
     rule start -> Input:
         TestC(c, d) <- "a" c:['w'-'y'] d:"q"
-    end
+    
     "#
 passing tests:
     "awq" => "TestC('w', 'q')"
@@ -312,12 +312,12 @@ syntax: r#"
     ast Test:
         Leaf()
         Nodes(nodes: [Input])
-    end
+    
 
     rule start -> Test:
         Nodes(ns) <- "(" ns:start* ")"
         Leaf() <- "x"
-    end
+    
     "#
 passing tests:
     "x" => "Leaf()"
@@ -342,16 +342,16 @@ syntax: r#"
     ast Test:
         Leaf()
         Nodes(nodes: [Input])
-    end
+    
 
     rule start -> [Test]:
         other*
-    end
+    
 
     rule other -> Test:
         Nodes(ns) <- "(" ns:other* ")"
         Leaf() <- "x"
-    end
+    
     "#
 passing tests:
     "x" => "[Leaf()]"
@@ -381,39 +381,39 @@ syntax: r#"
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
         Num(n: Input)
-    end
+    
 
     rule _ -> Input = [' ']*
 
     rule num -> Input:
         str(['0'-'9']+)
-    end
+    
 
     rule start -> Expr:
         e <- _ e:expr _
-    end
+    
 
     rule expr -> Expr:
         Add(l, r) <- l:expr2 _ "+" _ r:expr
         Sub(l, r) <- l:expr2 _ "-" _ r:expr
         expr2
-    end
+    
 
     rule expr2 -> Expr:
         Mul(l, r) <- l:expr3 _ "*" _ r:expr2
         Div(l, r) <- l:expr3 _ "/" _ r:expr2
         expr3
-    end
+    
 
     rule expr3 -> Expr:
         Pow(l, r) <- l:expr3 _ "^" _ r:expr4
         expr4
-    end
+    
 
     rule expr4 -> Expr:
         Neg(e) <- "-" _ e:expr4
         Num(e) <- e:num
-    end
+    
     "#
 passing tests:
     "123" => "Num('123')"
@@ -443,40 +443,40 @@ syntax: r#"
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
         Num(n: Input)
-    end
+    
 
     rule layout -> Input = " "
 
     rule num -> Input:
         @nolayout
         str(['0'-'9']+)
-    end
+    
 
     rule start -> Expr:
         e <- e:expr
-    end
+    
 
     rule expr -> Expr:
         Add(l, r) <- l:expr2 "+" r:expr
         Sub(l, r) <- l:expr2 "-" r:expr
         expr2
-    end
+    
 
     rule expr2 -> Expr:
         Mul(l, r) <- l:expr3 "*" r:expr2
         Div(l, r) <- l:expr3 "/" r:expr2
         expr3
-    end
+    
 
     rule expr3 -> Expr:
         Pow(l, r) <- l:expr3 "^" r:expr4
         expr4
-    end
+    
 
     rule expr4 -> Expr:
         Neg(e) <- "-" e:expr4
         Num(e) <- e:num
-    end
+    
     "#
 passing tests:
     "123" => "Num('123')"
@@ -501,19 +501,19 @@ syntax: r#"
     ast Expr:
         Neg(e: Expr)
         Num(n: Input)
-    end
+    
 
     rule layout -> Input = " "
 
     rule num -> Input:
         @nolayout
         str(['0'-'9']+)
-    end
+    
 
     rule start -> Expr:
         Neg(e) <- "-" e:start
         Num(e) <- e:num
-    end
+    
     "#
 passing tests:
     "123" => "Num('123')"

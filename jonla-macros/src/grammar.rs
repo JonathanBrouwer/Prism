@@ -87,7 +87,7 @@ peg::parser! {
         rule identifier() -> &'input str
             = !reserved() s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
 
-        rule reserved() = "end" / "str"
+        rule reserved() = "end" / "str" / "rule" / "ast"
 
         rule _ = [' ']*
         rule _w() = [' ']+
@@ -97,7 +97,7 @@ peg::parser! {
         pub rule toplevel() -> GrammarFile<'input> = asts:(__ a:ast() __ {a})* __ rules:(__ r:prule() __ {r})* { GrammarFile{ asts, rules } }
 
         //Ast
-        rule ast() -> Ast<'input> = "ast" _ name:identifier() _ ":" _n() constructors:(c:ast_constructor() {c})* "end" { Ast { name, constructors } }
+        rule ast() -> Ast<'input> = "ast" _ name:identifier() _ ":" _n() constructors:(c:ast_constructor() {c})* { Ast { name, constructors } }
         rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _n() { AstConstructor{ name, args } }
         rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
         rule ast_constructor_type() -> AstType<'input> =
@@ -107,7 +107,7 @@ peg::parser! {
 
         //Rule
         rule prule() -> Rule<'input> =
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ ":" _n() body:prule_body() "end" { Rule{name, rtrn, body } } /
+            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ ":" _n() body:prule_body() { Rule{name, rtrn, body } } /
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: vec![RuleBody{annotations: vec![], expr}] } }
 
         rule prule_body() -> Vec<RuleBody<'input>> = cs:prule_body_constr()* { cs }
