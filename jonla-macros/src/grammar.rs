@@ -34,6 +34,7 @@ pub struct Rule<'input> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuleBody<'input> {
+    #[serde(borrow)]
     pub annotations: Vec<RuleAnnotation<'input>>,
     pub expr: RuleExpr<'input>
 }
@@ -52,6 +53,7 @@ impl CharClass {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleAnnotation<'input> {
     Error(&'input str),
+    NoLayout
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,8 +72,6 @@ pub enum RuleExpr<'input> {
     NameBind(&'input str, Box<RuleExpr<'input>>),
     Action(Box<RuleExpr<'input>>, RuleAction<'input>),
     SliceInput(Box<RuleExpr<'input>>),
-    Error(Box<RuleExpr<'input>>, &'input str),
-    NoLayout(Box<RuleExpr<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -85,9 +85,10 @@ peg::parser! {
     pub grammar grammar_def() for str {
         // Generic
         rule identifier() -> &'input str
-            = !"end" s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
+            = !"end" !"str" s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
 
         rule _ = [' ']*
+        rule _w() = [' ']+
         rule __ = [' ' | '\n']*
         rule _n() = [' ']* ("\n" [' ']*)+
 
@@ -112,7 +113,8 @@ peg::parser! {
         rule prule_body_constr() -> RuleBody<'input> = annotations:prule_annotation()* expr:prule_expr() _n() { RuleBody{annotations, expr} }
 
         rule prule_annotation() -> RuleAnnotation<'input> = precedence! {
-            "@" "error" "(" "\"" err:$(str_char()*) "\"" ")" _n() { RuleAnnotation::Error(err) }
+            "@" _ "error" _ "(" _ "\"" err:$(str_char()*) "\"" _ ")" _n() { RuleAnnotation::Error(err) }
+            "@" _ "nolayout" _n() { RuleAnnotation::NoLayout }
         }
 
         rule prule_expr() -> RuleExpr<'input> = precedence! {

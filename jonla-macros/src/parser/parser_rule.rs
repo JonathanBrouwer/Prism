@@ -1,4 +1,4 @@
-use crate::grammar::{RuleAction, RuleBody, RuleExpr};
+use crate::grammar::{RuleAction, RuleAnnotation, RuleBody, RuleExpr};
 use crate::parser::action_result::ActionResult;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
@@ -25,7 +25,7 @@ pub fn parser_rule<
     rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
     rule: &'grm str,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+    move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
         let mut res = parser_cache_recurse(
             &parser_body::<'_, 'grm, S, E>(rules, rules.get(rule).as_ref().unwrap()),
             rule,
@@ -45,15 +45,62 @@ pub fn parser_body<
     rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
     body: &'a Vec<RuleBody<'grm>>,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
-        todo!()
+    move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+        let mut res: PResult<PR, E, S> = PResult::PErr(E::new(stream.span_to(stream)), stream);
+        for body in body {
+            res = res.merge_choice_parser(&parser_body_annots(rules, &body.annotations, &body.expr), stream, state);
+            if res.is_ok() {
+                break;
+            }
+        }
+        res
     }
 }
 
-fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, Vec<RuleBody<'grm>>>,
-    expr: &'b RuleExpr<'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'b {
+fn parser_body_annots<
+    'a,
+    'grm: 'a,
+    S: Stream<I = char>,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
+    annots: &'a [RuleAnnotation<'grm>],
+    expr: &'a RuleExpr<'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+        match annots.get(0) {
+            Some(att) => {
+                let sub = parser_body_annots(rules, &annots[1..], expr);
+                match att {
+                    RuleAnnotation::Error(err_label) => {
+                        let mut res = sub.parse(stream, state);
+                        res.add_label(ErrorLabel::Explicit(
+                            stream.span_to(res.get_stream().next().0),
+                            err_label,
+                        ));
+                        res
+                    }
+                    RuleAnnotation::NoLayout => {
+                        parser_with_layout(rules, &move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<_, E, S> {
+                            state.layout_disable();
+                            let res = sub.parse(stream, state);
+                            state.layout_enable();
+                            res
+                        }).parse(stream, state)
+                    }
+                }
+            }
+            None => {
+                parser_expr(rules, expr).parse(stream, state)
+            }
+        }
+    }
+}
+
+fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+    rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
+    expr: &'a RuleExpr<'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
@@ -125,8 +172,8 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 res.map(|map| (map, Rc::new(ActionResult::Error("sequence"))))
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
-                for sub in &subs[1..] {
+                let mut res: PResult<PR, E, S> = PResult::PErr(E::new(stream.span_to(stream)), stream);
+                for sub in subs {
                     res = res.merge_choice_parser(&parser_expr(rules, &sub), stream, state);
                     if res.is_ok() {
                         break;
@@ -152,22 +199,6 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 let res = parser_expr(rules, sub).parse(stream, state);
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
-            }
-            RuleExpr::Error(sub, err_label) => {
-                let mut res = parser_expr(rules, sub).parse(stream, state);
-                res.add_label(ErrorLabel::Explicit(
-                    stream.span_to(res.get_stream().next().0),
-                    err_label,
-                ));
-                res
-            }
-            RuleExpr::NoLayout(sub) => {
-                parser_with_layout(rules, &move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<_, E, S> {
-                    state.layout_disable();
-                    let res = parser_expr(rules, sub).parse(stream, state);
-                    state.layout_enable();
-                    res
-                }).parse(stream, state)
             }
         }
     }
