@@ -90,11 +90,12 @@ pub fn print_set_error(
         .unwrap();
 }
 
-pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &str) {
+pub fn print_tree_error(error: TreeError<ErrorLabel>, filename: &str, input: &str, enable_debug: bool) {
     let mut report = print_base(error.span, filename);
 
     //Add labels
     for path in error.labels.into_paths() {
+        let path = path.iter().filter(|l| enable_debug || !l.is_debug()).collect_vec();
         if path.is_empty() {
             continue;
         }

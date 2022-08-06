@@ -1,4 +1,4 @@
-use crate::grammar::{RuleAction, RuleBody};
+use crate::grammar::{RuleAction, RuleBody, RuleExpr};
 use crate::parser::action_result::ActionResult;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
@@ -22,12 +22,12 @@ pub fn parser_rule<
     S: Stream<I = char>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'a HashMap<&'grm str, RuleBody<'grm>>,
+    rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
     rule: &'grm str,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
     |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
         let mut res = parser_cache_recurse(
-            &parser_expr::<'_, 'grm, S, E>(rules, &rules.get(rule).unwrap()),
+            &parser_body::<'_, 'grm, S, E>(rules, rules.get(rule).as_ref().unwrap()),
             rule,
         )
         .parse(stream, state);
@@ -36,21 +36,35 @@ pub fn parser_rule<
     }
 }
 
+pub fn parser_body<
+    'a,
+    'grm: 'a,
+    S: Stream<I = char>,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
+    body: &'a Vec<RuleBody<'grm>>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<PR<'grm>, E, S> {
+        todo!()
+    }
+}
+
 fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, RuleBody<'grm>>,
-    expr: &'b RuleBody<'grm>,
+    rules: &'b HashMap<&'grm str, Vec<RuleBody<'grm>>>,
+    expr: &'b RuleExpr<'grm>,
 ) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'b {
     move |stream: S,
           state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match expr {
-            RuleBody::Rule(rule) => parser_rule(rules, rule)
+            RuleExpr::Rule(rule) => parser_rule(rules, rule)
                 .parse(stream, state)
                 .map(|(_, v)| (HashMap::new(), v)),
-            RuleBody::CharClass(cc) => parser_with_layout(rules, &single(|c| cc.contains(*c)))
+            RuleExpr::CharClass(cc) => parser_with_layout(rules, &single(|c| cc.contains(*c)))
                 .parse(stream, state)
                 .map(|(span, _)| (HashMap::new(), Rc::new(ActionResult::Value(span)))),
-            RuleBody::Literal(literal) => {
+            RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let parser_literal =
                     move |stream: S,
@@ -75,7 +89,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 let res = parser_with_layout(rules, &parser_literal).parse(stream, state);
                 res
             }
-            RuleBody::Repeat {
+            RuleExpr::Repeat {
                 expr,
                 min,
                 max,
@@ -95,7 +109,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                     )),
                 )
             }),
-            RuleBody::Sequence(subs) => {
+            RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_ok(HashMap::new(), stream);
                 for sub in subs {
                     res =
@@ -110,7 +124,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 }
                 res.map(|map| (map, Rc::new(ActionResult::Error("sequence"))))
             }
-            RuleBody::Choice(subs) => {
+            RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E, S> = parser_expr(rules, &subs[0]).parse(stream, state);
                 for sub in &subs[1..] {
                     res = res.merge_choice_parser(&parser_expr(rules, &sub), stream, state);
@@ -120,26 +134,26 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 }
                 res
             }
-            RuleBody::NameBind(name, sub) => {
+            RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub).parse(stream, state);
                 res.map(|mut res| {
                     res.0.insert(name, res.1.clone());
                     res
                 })
             }
-            RuleBody::Action(sub, action) => {
+            RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub).parse(stream, state);
                 res.map(|mut res| {
                     res.1 = apply_action(action, &res.0);
                     res
                 })
             }
-            RuleBody::SliceInput(sub) => {
+            RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub).parse(stream, state);
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
-            RuleBody::Error(sub, err_label) => {
+            RuleExpr::Error(sub, err_label) => {
                 let mut res = parser_expr(rules, sub).parse(stream, state);
                 res.add_label(ErrorLabel::Explicit(
                     stream.span_to(res.get_stream().next().0),
@@ -147,7 +161,7 @@ fn parser_expr<'b, 'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 ));
                 res
             }
-            RuleBody::NoLayout(sub) => {
+            RuleExpr::NoLayout(sub) => {
                 parser_with_layout(rules, &move |stream: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<_, E, S> {
                     state.layout_disable();
                     let res = parser_expr(rules, sub).parse(stream, state);
@@ -166,7 +180,7 @@ pub fn parser_with_layout<
     S: Stream<I = char>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'a HashMap<&'grm str, RuleBody<'grm>>,
+    rules: &'a HashMap<&'grm str, Vec<RuleBody<'grm>>>,
     sub: &'a impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
 ) -> impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {

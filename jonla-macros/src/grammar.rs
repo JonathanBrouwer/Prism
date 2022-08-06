@@ -25,11 +25,17 @@ pub enum AstType<'input> {
     List(Box<AstType<'input>>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Rule<'input> {
     pub name: &'input str,
     pub rtrn: AstType<'input>,
-    pub body: RuleBody<'input>,
+    pub body: Vec<RuleBody<'input>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleBody<'input> {
+    pub annotations: Vec<RuleAnnotation<'input>>,
+    pub expr: RuleExpr<'input>
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -44,23 +50,28 @@ impl CharClass {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RuleBody<'input> {
+pub enum RuleAnnotation<'input> {
+    Error(&'input str),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RuleExpr<'input> {
     Rule(&'input str),
     CharClass(CharClass),
     Literal(&'input str),
     Repeat {
-        expr: Box<RuleBody<'input>>,
+        expr: Box<RuleExpr<'input>>,
         min: u64,
         max: Option<u64>,
-        delim: Box<RuleBody<'input>>,
+        delim: Box<RuleExpr<'input>>,
     },
-    Sequence(Vec<RuleBody<'input>>),
-    Choice(Vec<RuleBody<'input>>),
-    NameBind(&'input str, Box<RuleBody<'input>>),
-    Action(Box<RuleBody<'input>>, RuleAction<'input>),
-    SliceInput(Box<RuleBody<'input>>),
-    Error(Box<RuleBody<'input>>, &'input str),
-    NoLayout(Box<RuleBody<'input>>),
+    Sequence(Vec<RuleExpr<'input>>),
+    Choice(Vec<RuleExpr<'input>>),
+    NameBind(&'input str, Box<RuleExpr<'input>>),
+    Action(Box<RuleExpr<'input>>, RuleAction<'input>),
+    SliceInput(Box<RuleExpr<'input>>),
+    Error(Box<RuleExpr<'input>>, &'input str),
+    NoLayout(Box<RuleExpr<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,56 +83,57 @@ pub enum RuleAction<'input> {
 
 peg::parser! {
     pub grammar grammar_def() for str {
+        // Generic
+        rule identifier() -> &'input str
+            = !"end" s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
+
         rule _ = [' ']*
         rule __ = [' ' | '\n']*
-
-        rule identifier() -> &'input str
-            = x: quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} / expected!("identifier")
+        rule _n() = [' ']* ("\n" [' ']*)+
 
         pub rule toplevel() -> GrammarFile<'input> = asts:(__ a:ast() __ {a})* __ rules:(__ r:prule() __ {r})* { GrammarFile{ asts, rules } }
 
-        rule ast() -> Ast<'input> = "ast" _ name:identifier() _ "{" constructors:(__ c:ast_constructor() {c})* __ "}" { Ast { name, constructors } }
-        rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _ "\n" { AstConstructor{ name, args } }
+        //Ast
+        rule ast() -> Ast<'input> = "ast" _ name:identifier() _ ":" _n() constructors:(c:ast_constructor() {c})* "end" { Ast { name, constructors } }
+        rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _n() { AstConstructor{ name, args } }
         rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
         rule ast_constructor_type() -> AstType<'input> =
             "Input" { AstType::Input } /
             "[" _ t:ast_constructor_type() _ "]" { AstType::List(box t) } /
             r:identifier() { AstType::Ast(r) }
 
+        //Rule
         rule prule() -> Rule<'input> =
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "{" __ body:prule_body() __ "}" { Rule{name, rtrn, body } } /
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ body:prule_body() { Rule{name, rtrn, body } }
+            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ ":" _n() body:prule_body() "end" { Rule{name, rtrn, body } }
+            // "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ body:prule_body() { Rule{name, rtrn, body } }
 
-        rule prule_body() -> RuleBody<'input> =
-            rs:(r:prule_body_1a())**<2,>(__ "/" __) { RuleBody::Choice(rs) } /
-            r:prule_body_1a() { r }
-        rule prule_body_1a() -> RuleBody<'input> =
-            r:prule_body_1b() _ "{" "nolayout" "}" { RuleBody::NoLayout(box r) } /
-            r:prule_body_1b() { r }
-        rule prule_body_1b() -> RuleBody<'input> =
-            r:prule_body_1() _ "{" "nolayout" "}" { RuleBody::NoLayout(box r) } /
-            r:prule_body_1() _ "{" _ a:prule_action() _ "/" _ "\"" _ err:$(str_char()*) _ "\"" _ "}" { RuleBody::Error(box RuleBody::Action(box r, a), err) } /
-            r:prule_body_1() _ "{" _ "/" _ "\"" _ err:$(str_char()*) _ "\"" _ "}" { RuleBody::Error(box r, err) } /
-            r:prule_body_1() _ "{" _ a:prule_action() _ "}" { RuleBody::Action(box r, a) } /
-            r:prule_body_1() { r }
-        rule prule_body_1() -> RuleBody<'input> =
-            rs:(r:prule_body_2a() {r})**<2,> (_) { RuleBody::Sequence(rs) } /
-            r:prule_body_2a() {r} /
-            { RuleBody::Sequence(vec![]) }
-        rule prule_body_2a() -> RuleBody<'input> =
-            n:identifier() _ ":" _ r:prule_body_2() { RuleBody::NameBind(n, box r) } /
-            r:prule_body_2() { r }
-        rule prule_body_2() -> RuleBody<'input> =
-            r:prule_body_3() "*" { RuleBody::Repeat{ expr: box r, min: 0, max: None, delim: box RuleBody::Sequence(vec![]) } } /
-            r:prule_body_3() "+" { RuleBody::Repeat{ expr: box r, min: 1, max: None, delim: box RuleBody::Sequence(vec![]) } } /
-            r:prule_body_3() "?" { RuleBody::Repeat{ expr: box r, min: 0, max: Some(1), delim: box RuleBody::Sequence(vec![]) } } /
-            r:prule_body_3() { r }
-        rule prule_body_3() -> RuleBody<'input> =
-            name:identifier() { RuleBody::Rule(name) } /
-            "\"" n:$(str_char()*) "\"" { RuleBody::Literal(n) } /
-            "[" c:charclass() "]" { RuleBody::CharClass(c) } /
-            "$" _ "(" _ r:prule_body() _ ")" { RuleBody::SliceInput(box r) } /
-            "(" _ r:prule_body() _ ")" { r }
+        rule prule_body() -> Vec<RuleBody<'input>> = cs:prule_body_constr()* { cs }
+
+        rule prule_body_constr() -> RuleBody<'input> = annotations:prule_annotation()* expr:prule_expr() _n() { RuleBody{annotations, expr} }
+
+        rule prule_annotation() -> RuleAnnotation<'input> = precedence! {
+            "@" "error" "(" "\"" err:$(str_char()*) "\"" ")" _n() { RuleAnnotation::Error(err) }
+        }
+
+        rule prule_expr() -> RuleExpr<'input> = precedence! {
+            a:prule_action() _ "<-" _ r:(@) { RuleExpr::Action(box r, a) }
+            --
+            x:(@) _ "/" _ y:@ { RuleExpr::Choice(vec![x, y]) }
+            --
+            x:(@) _ y:@ { RuleExpr::Sequence(vec![x,y]) }
+            --
+            n:identifier() _ ":" _ e:(@) { RuleExpr::NameBind(n, box e) }
+            --
+            r:(@) "*" { RuleExpr::Repeat{ expr: box r, min: 0, max: None, delim: box RuleExpr::Sequence(vec![]) } }
+            r:(@) "+" { RuleExpr::Repeat{ expr: box r, min: 1, max: None, delim: box RuleExpr::Sequence(vec![]) } }
+            r:(@) "?" { RuleExpr::Repeat{ expr: box r, min: 0, max: Some(1), delim: box RuleExpr::Sequence(vec![]) } }
+            --
+            name:identifier() { RuleExpr::Rule(name) }
+            "\"" n:$(str_char()*) "\"" { RuleExpr::Literal(n) }
+            "[" c:charclass() "]" { RuleExpr::CharClass(c) }
+            "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(box r) }
+            "(" _ r:prule_expr() _ ")" { r }
+        }
 
         rule prule_action() -> RuleAction<'input> =
             n:identifier() _ "(" args:(prule_action()**(_ "," _)) ")" { RuleAction::Construct(n, args) } /

@@ -1,5 +1,5 @@
 use jonla_macros::grammar;
-use jonla_macros::grammar::{GrammarFile, RuleBody};
+use jonla_macros::grammar::{GrammarFile, RuleExpr};
 use jonla_macros::parser::core::parser::Parser;
 use jonla_macros::parser::core::presult::PResult;
 use jonla_macros::parser::core::presult::PResult::*;

@@ -48,7 +48,7 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
         quote! {
             pub fn #name<'input, E: ParseError<L=ErrorLabel<'static>>>(input: &'input str)
                     -> PResult<#rtrn, E, StringStream<'input>> {
-                let rules: HashMap<&'static str, RuleBody<'static>> = jonla_macros::read_rules_json(RULES_STR).unwrap();
+                let rules: HashMap<&'static str, Vec<RuleBody<'static>>> = jonla_macros::read_rules_json(RULES_STR).unwrap();
 
                 let mut state = ParserState::new();
                 let stream: StringStream = input.into();
