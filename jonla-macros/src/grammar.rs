@@ -85,7 +85,9 @@ peg::parser! {
     pub grammar grammar_def() for str {
         // Generic
         rule identifier() -> &'input str
-            = !"end" !"str" s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
+            = !reserved() s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
+
+        rule reserved() = "end" / "str"
 
         rule _ = [' ']*
         rule _w() = [' ']+

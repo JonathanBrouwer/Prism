@@ -36,7 +36,7 @@ pub fn parser_rule<
     }
 }
 
-pub fn parser_body<
+fn parser_body<
     'a,
     'grm: 'a,
     S: Stream<I = char>,
@@ -204,7 +204,7 @@ fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
     }
 }
 
-pub fn parser_with_layout<
+fn parser_with_layout<
     'grm: 'a,
     'a,
     O,
