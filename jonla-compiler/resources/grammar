@@ -1,33 +1,37 @@
-ast Term {
+ast Term:
     Type()
     Var(name: Input)
     Let(name: Input, arg_type: Term, arg_value: Term, body: Term)
     FunType(name: Input, arg_type: Term, body_type: Term)
     FunConstruct(name: Input, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
-}
+end
 
-rule layout -> Input = [' ' | '\n']
+rule layout -> Input:
+    [' ' | '\n']
+end
 
-rule identifier -> Input {
-    $([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) {/ "Identifier"} {nolayout}
-}
+rule identifier -> Input:
+    @error("Identifier")
+    @nolayout
+    str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+end
 
-rule term -> Term {
-    "let" n:identifier ":" t:term "=" v:term ";" b:term { Let(n, t, v, b) } /
-    x:identifier ":" t:term "." r:term { FunConstruct(x, t, r) } /
-    n:identifier ":" at:term "->" bt:term { FunType(n, at, bt) } /
-    at:subterm "->" bt:term { FunType("_", at, bt) } /
-    sub:subterm { sub }
-}
+rule term -> Term:
+    Let(n, t, v, b) <- "let" n:identifier ":" t:term "=" v:term ";" b:term
+    FunConstruct(x, t, r) <- x:identifier ":" t:term "." r:term
+    FunType(n, at, bt) <- n:identifier ":" at:term "->" bt:term
+    FunType("_", at, bt) <- at:subterm "->" bt:term
+    sub <- sub:subterm
+end
 
-rule subterm -> Term {
-    f:subterm " " a:subsubterm { FunDestruct(f, a) } /
-    sub:subsubterm { sub }
-}
+rule subterm -> Term:
+    FunDestruct(f, a) <- f:subterm " " a:subsubterm
+    sub <- sub:subsubterm
+end
 
-rule subsubterm -> Term {
-    "Type" { Type() } /
-    n:identifier { Var(n) } /
-    "(" t:term() ")" { t }
-}
+rule subsubterm -> Term:
+    Type() <- "Type"
+    Var(n) <- n:identifier
+    t <- "(" t:term ")"
+end

@@ -1,5 +1,5 @@
 use jonla_macros::grammar;
-use jonla_macros::grammar::{GrammarFile, RuleExpr};
+use jonla_macros::grammar::{GrammarFile};
 use jonla_macros::parser::core::parser::Parser;
 use jonla_macros::parser::core::presult::PResult;
 use jonla_macros::parser::core::presult::PResult::*;
@@ -10,6 +10,7 @@ use jonla_macros::parser::parser_rule::parser_rule;
 use jonla_macros::parser::parser_state::ParserState;
 use std::collections::HashMap;
 use jonla_macros::parser::core::error::empty_error::EmptyError;
+use jonla_macros::grammar::RuleBody;
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
@@ -22,7 +23,7 @@ macro_rules! parse_test {
                     panic!("{}", err);
                 }
             };
-            let rules: HashMap<&'static str, RuleBody<'static>> =
+            let rules: HashMap<&'static str, Vec<RuleBody<'static>>> =
                 grammar.rules.iter().map(|r| (r.name, r.body.clone())).collect();
 
             $(
@@ -40,7 +41,7 @@ macro_rules! parse_test {
                 }
                 PErr(e, _) => {
                     // print_set_error(e, "test", input, true);
-                    print_tree_error(e, "test", input);
+                    print_tree_error(e, "test", input, true);
                     panic!();
                 }
             }
@@ -63,9 +64,9 @@ macro_rules! parse_test {
 parse_test! {
 name: literal
 syntax: r#"
-    rule start -> Input {
+    rule start -> Input:
         "lol"
-    }
+    end
     "#
 passing tests:
     "lol" => "'lol'"
@@ -83,12 +84,12 @@ failing tests:
 parse_test! {
 name: literal_indirect
 syntax: r#"
-    rule start -> Input {
+    rule start -> Input:
         lol
-    }
-    rule lol -> Input {
+    end
+    rule lol -> Input:
         "lol"
-    }
+    end
     "#
 passing tests:
     "lol" => "'lol'"
@@ -106,9 +107,9 @@ failing tests:
 parse_test! {
 name: charclass
 syntax: r#"
-    rule start -> Input {
-        $([ 'w'-'z' | '8' | 'p'-'q' ])
-    }
+    rule start -> Input:
+        str([ 'w'-'z' | '8' | 'p'-'q' ])
+    end
     "#
 passing tests:
     "8" => "'8'"
@@ -135,9 +136,9 @@ failing tests:
 parse_test! {
 name: repeat_star
 syntax: r#"
-    rule start -> Input {
-        $([ 'w'-'z' | '8' | 'p'-'q' ]*)
-    }
+    rule start -> Input:
+        str([ 'w'-'z' | '8' | 'p'-'q' ]*)
+    end
     "#
 passing tests:
     "8" => "'8'"
@@ -168,9 +169,9 @@ failing tests:
 parse_test! {
 name: repeat_plus
 syntax: r#"
-    rule start -> Input {
-        $([ 'w'-'z' | '8' | 'p'-'q' ]+)
-    }
+    rule start -> Input:
+        str([ 'w'-'z' | '8' | 'p'-'q' ]+)
+    end
     "#
 passing tests:
     "8" => "'8'"
@@ -201,9 +202,9 @@ failing tests:
 parse_test! {
 name: repeat_option
 syntax: r#"
-    rule start -> Input {
-        $([ 'w'-'z' | '8' | 'p'-'q' ]?)
-    }
+    rule start -> Input:
+        str([ 'w'-'z' | '8' | 'p'-'q' ]?)
+    end
     "#
 passing tests:
     "8" => "'8'"
@@ -234,9 +235,9 @@ failing tests:
 parse_test! {
 name: sequence
 syntax: r#"
-    rule start -> Input {
-        $("a" ['w'-'y'] "q")
-    }
+    rule start -> Input:
+        str("a" ['w'-'y'] "q")
+    end
     "#
 passing tests:
     "awq" => "'awq'"
@@ -258,9 +259,9 @@ failing tests:
 parse_test! {
 name: choice
 syntax: r#"
-    rule start -> Input {
+    rule start -> Input:
         "a" / ['w'-'y'] / "q"
-    }
+    end
     "#
 passing tests:
     "a" => "'a'"
@@ -280,13 +281,13 @@ failing tests:
 parse_test! {
 name: action
 syntax: r#"
-    ast Test {
+    ast Test:
         TestC(left: Input, right: Input)
-    }
+    end
 
-    rule start -> Input {
-        "a" c:['w'-'y'] d:"q" { TestC(c, d) }
-    }
+    rule start -> Input:
+        TestC(c, d) <- "a" c:['w'-'y'] d:"q"
+    end
     "#
 passing tests:
     "awq" => "TestC('w', 'q')"
@@ -308,15 +309,15 @@ failing tests:
 parse_test! {
 name: list_ast
 syntax: r#"
-    ast Test {
+    ast Test:
         Leaf()
         Nodes(nodes: [Input])
-    }
+    end
 
-    rule start -> Test {
-        "(" ns:start* ")" { Nodes(ns) } /
-        "x" { Leaf() }
-    }
+    rule start -> Test:
+        Nodes(ns) <- "(" ns:start* ")"
+        Leaf() <- "x"
+    end
     "#
 passing tests:
     "x" => "Leaf()"
@@ -338,19 +339,19 @@ failing tests:
 parse_test! {
 name: list_rule
 syntax: r#"
-    ast Test {
+    ast Test:
         Leaf()
         Nodes(nodes: [Input])
-    }
+    end
 
-    rule start -> [Test] {
+    rule start -> [Test]:
         other*
-    }
+    end
 
-    rule other -> Test {
-        "(" ns:other* ")" { Nodes(ns) } /
-        "x" { Leaf() }
-    }
+    rule other -> Test:
+        Nodes(ns) <- "(" ns:other* ")"
+        Leaf() <- "x"
+    end
     "#
 passing tests:
     "x" => "[Leaf()]"
@@ -372,7 +373,7 @@ failing tests:
 parse_test! {
 name: arith
 syntax: r#"
-    ast Expr {
+    ast Expr:
         Add(l: Expr, r: Expr)
         Sub(l: Expr, r: Expr)
         Mul(l: Expr, r: Expr)
@@ -380,36 +381,39 @@ syntax: r#"
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
         Num(n: Input)
-    }
+    end
 
     rule _ -> Input = [' ']*
 
-    rule num -> Input {
-        $(['0'-'9']+)
-    }
+    rule num -> Input:
+        str(['0'-'9']+)
+    end
 
-    rule start -> Expr {
-        _ e:expr _ {e}
-    }
+    rule start -> Expr:
+        e <- _ e:expr _
+    end
 
-    rule expr -> Expr {
-        l:expr2 _ "+" _ r:expr { Add(l, r) } /
-        l:expr2 _ "-" _ r:expr { Sub(l, r) } /
-        s:expr2 { s }
-    }
-    rule expr2 -> Expr {
-        l:expr3 _ "*" _ r:expr2 { Mul(l, r) } /
-        l:expr3 _ "/" _ r:expr2 { Div(l, r) } /
-        s:expr3 { s }
-    }
-    rule expr3 -> Expr {
-        l:expr3 _ "^" _ r:expr4 { Pow(l, r) } /
-        s:expr4 { s }
-    }
-    rule expr4 -> Expr {
-        "-" _ e:expr4 { Neg(e) } /
-        e:num { Num(e) }
-    }
+    rule expr -> Expr:
+        Add(l, r) <- l:expr2 _ "+" _ r:expr
+        Sub(l, r) <- l:expr2 _ "-" _ r:expr
+        expr2
+    end
+
+    rule expr2 -> Expr:
+        Mul(l, r) <- l:expr3 _ "*" _ r:expr2
+        Div(l, r) <- l:expr3 _ "/" _ r:expr2
+        expr3
+    end
+
+    rule expr3 -> Expr:
+        Pow(l, r) <- l:expr3 _ "^" _ r:expr4
+        expr4
+    end
+
+    rule expr4 -> Expr:
+        Neg(e) <- "-" _ e:expr4
+        Num(e) <- e:num
+    end
     "#
 passing tests:
     "123" => "Num('123')"
@@ -431,7 +435,7 @@ failing tests:
 parse_test! {
 name: arith_layout
 syntax: r#"
-    ast Expr {
+    ast Expr:
         Add(l: Expr, r: Expr)
         Sub(l: Expr, r: Expr)
         Mul(l: Expr, r: Expr)
@@ -439,36 +443,40 @@ syntax: r#"
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
         Num(n: Input)
-    }
+    end
 
     rule layout -> Input = " "
 
-    rule num -> Input {
-        $(['0'-'9']+) {nolayout}
-    }
+    rule num -> Input:
+        @nolayout
+        str(['0'-'9']+)
+    end
 
-    rule start -> Expr {
-        e:expr {e}
-    }
+    rule start -> Expr:
+        e <- e:expr
+    end
 
-    rule expr -> Expr {
-        l:expr2 "+" r:expr { Add(l, r) } /
-        l:expr2 "-" r:expr { Sub(l, r) } /
-        s:expr2 { s }
-    }
-    rule expr2 -> Expr {
-        l:expr3 "*" r:expr2 { Mul(l, r) } /
-        l:expr3 "/" r:expr2 { Div(l, r) } /
-        s:expr3 { s }
-    }
-    rule expr3 -> Expr {
-        l:expr3 "^" r:expr4 { Pow(l, r) } /
-        s:expr4 { s }
-    }
-    rule expr4 -> Expr {
-        "-" e:expr4 { Neg(e) } /
-        e:num { Num(e) }
-    }
+    rule expr -> Expr:
+        Add(l, r) <- l:expr2 "+" r:expr
+        Sub(l, r) <- l:expr2 "-" r:expr
+        expr2
+    end
+
+    rule expr2 -> Expr:
+        Mul(l, r) <- l:expr3 "*" r:expr2
+        Div(l, r) <- l:expr3 "/" r:expr2
+        expr3
+    end
+
+    rule expr3 -> Expr:
+        Pow(l, r) <- l:expr3 "^" r:expr4
+        expr4
+    end
+
+    rule expr4 -> Expr:
+        Neg(e) <- "-" e:expr4
+        Num(e) <- e:num
+    end
     "#
 passing tests:
     "123" => "Num('123')"
@@ -490,26 +498,22 @@ failing tests:
 parse_test! {
 name: num_layout
 syntax: r#"
-    ast Expr {
-        Add(l: Expr, r: Expr)
-        Sub(l: Expr, r: Expr)
-        Mul(l: Expr, r: Expr)
-        Div(l: Expr, r: Expr)
-        Pow(l: Expr, r: Expr)
+    ast Expr:
         Neg(e: Expr)
         Num(n: Input)
-    }
+    end
 
     rule layout -> Input = " "
 
-    rule num -> Input {
-        $(['0'-'9']+) {nolayout}
-    }
+    rule num -> Input:
+        @nolayout
+        str(['0'-'9']+)
+    end
 
-    rule start -> Expr {
-        "-" e:start { Neg(e) } /
-        e:num { Num(e) }
-    }
+    rule start -> Expr:
+        Neg(e) <- "-" e:start
+        Num(e) <- e:num
+    end
     "#
 passing tests:
     "123" => "Num('123')"
