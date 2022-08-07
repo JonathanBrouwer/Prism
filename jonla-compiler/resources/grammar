@@ -17,8 +17,8 @@ rule identifier -> Input:
 
 
 rule term -> Term:
-    FunType("_", at, bt) <- at:@next "->" bt:@this
+    Let(n, t, v, b) <- "let" n:identifier ":" t:@this "=" v:@this ";" b:@this
     --
-    FunDestruct(f, a) <- f:@this " " a:@next
+    FunDestruct(f, a) <- f:@next " " a:@this
     --
     Type() <- "Type"

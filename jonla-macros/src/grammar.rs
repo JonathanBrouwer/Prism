@@ -115,9 +115,9 @@ peg::parser! {
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: RuleBodyExpr::Body(expr) } }
 
         rule prule_body() -> RuleBodyExpr<'input> = precedence!{
-            c1:(@) "--" _n() c2:@ { RuleBodyExpr::PrecedenceClimbBlock(box c1, box c2) }
+            c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(box c1, box c2) }
             --
-            c1:(@) __ c2:@ { RuleBodyExpr::Constructors(box c1, box c2) }
+            c1:@ __ c2:(@) { RuleBodyExpr::Constructors(box c1, box c2) }
             --
             annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, box rest) }
             expr:prule_expr() _n() { RuleBodyExpr::Body(expr) }
@@ -131,9 +131,9 @@ peg::parser! {
         rule prule_expr() -> RuleExpr<'input> = precedence! {
             a:prule_action() _ "<-" _ r:(@) { RuleExpr::Action(box r, a) }
             --
-            x:(@) _ "/" _ y:@ { RuleExpr::Choice(vec![x, y]) }
+            x:@ _ "/" _ y:(@) { RuleExpr::Choice(vec![x, y]) }
             --
-            x:(@) _ y:@ { RuleExpr::Sequence(vec![x,y]) }
+            x:@ _ y:(@) { RuleExpr::Sequence(vec![x,y]) }
             --
             n:identifier() _ ":" _ e:(@) { RuleExpr::NameBind(n, box e) }
             --

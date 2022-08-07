@@ -10,16 +10,17 @@ use crate::parser::parser_state::{parser_cache_recurse, ParserState};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
+use by_address::ByAddress;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
     Rc<ActionResult<'grm>>,
 );
 
-pub struct ParserContext<'a, 'grm> {
+pub struct ParserContext<'b, 'grm> {
     layout_disabled: bool,
-    prec_climb_this: Option<&'a RuleBodyExpr<'grm>>,
-    prec_climb_next: Option<&'a RuleBodyExpr<'grm>>,
+    prec_climb_this: Option<&'b RuleBodyExpr<'grm>>,
+    prec_climb_next: Option<&'b RuleBodyExpr<'grm>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -34,23 +35,24 @@ impl ParserContext<'_, '_> {
 
 pub fn parser_rule<
     'a,
-    'grm: 'a,
+    'b: 'a,
+    'grm: 'b,
     S: Stream<I = char>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'a HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     rule: &'grm str,
-    context: &'a ParserContext<'a, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
 
         let body = rules.get(rule);
         let body = body.as_ref().unwrap();
         let mut res = parser_cache_recurse(
             &parser_body(rules, body, &ParserContext{ prec_climb_this: Some(body), .. *context }),
-            rule,
+            ByAddress(body),
         )
         .parse(stream, state);
         res.add_label(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
@@ -58,13 +60,15 @@ pub fn parser_rule<
     }
 }
 
-fn parser_body<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'a HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    body: &'a RuleBodyExpr<'grm>,
-    context: &'a ParserContext<'a, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+fn parser_body<    'a,
+    'b: 'a,
+    'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    body: &'b RuleBodyExpr<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match body {
             RuleBodyExpr::Body(expr) => parser_expr(rules, expr, context).parse(stream, state),
@@ -72,7 +76,8 @@ fn parser_body<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 .parse(stream, state)
                 .merge_choice_parser(&parser_body(rules, c2, context), stream, state),
             RuleBodyExpr::PrecedenceClimbBlock(e_this, e_next) => {
-                let res = parser_body(
+                //Parse current with recursion check
+                let res = parser_cache_recurse(&parser_body(
                     rules,
                     e_this,
                     &ParserContext {
@@ -80,18 +85,19 @@ fn parser_body<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                         prec_climb_next: Some(e_next),
                         ..*context
                     },
-                )
+                ), ByAddress(e_this))
                 .parse(stream, state);
+                //Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body(
+                    &parser_cache_recurse(&parser_body(
                         rules,
                         e_next,
                         &ParserContext {
-                            prec_climb_this: Some(e_next),
+                            prec_climb_this: None,
                             prec_climb_next: None,
                             ..*context
                         },
-                    ),
+                    ), ByAddress(e_next)),
                     stream,
                     state,
                 )
@@ -107,7 +113,7 @@ fn parser_body<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
             RuleBodyExpr::Annotation(RuleAnnotation::NoLayout, rest) => parser_with_layout(
                 rules,
                 &move |stream: S,
-                       state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+                       state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
                       -> PResult<_, E, S> {
                     parser_body(
                         rules,
@@ -126,13 +132,15 @@ fn parser_body<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
     }
 }
 
-fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'a HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    expr: &'a RuleExpr<'grm>,
-    context: &'a ParserContext<'a, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+fn parser_expr<    'a,
+    'b: 'a,
+    'grm: 'b, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    expr: &'b RuleExpr<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(
@@ -155,7 +163,7 @@ fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 //First construct the literal parser
                 let parser_literal =
                     move |stream: S,
-                          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+                          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
                           -> PResult<PR<'grm>, E, S> {
                         let mut res = PResult::new_ok((), stream);
                         for char in literal.chars() {
@@ -243,11 +251,7 @@ fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => {
-                // parser_cache_recurse(
-                //     &parser_body(rules, context.prec_climb_this.unwrap(), context),
-                //     ""
-                // ).parse(stream, state)
-                todo!()
+                parser_body(rules, context.prec_climb_this.unwrap(), context).parse(stream, state)
             }
             RuleExpr::AtNext => {
                 parser_body(rules, context.prec_climb_next.unwrap(), context).parse(stream, state)
@@ -257,17 +261,18 @@ fn parser_expr<'a, 'grm: 'a, S: Stream<I = char>, E: ParseError<L = ErrorLabel<'
 }
 
 fn parser_with_layout<
-    'grm: 'a,
     'a,
+    'b: 'a,
+    'grm: 'b,
     O,
     S: Stream<I = char>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'a HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    sub: &'a impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
-    context: &'a ParserContext<'a, 'grm>,
-) -> impl Parser<char, O, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos: S, state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    sub: &'a impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    move |pos: S, state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
         if context.layout_disabled || !rules.contains_key("layout") {
             return sub.parse(pos, state);
         }

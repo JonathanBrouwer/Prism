@@ -7,11 +7,13 @@ use crate::parser::error_printer::ErrorLabel;
 use crate::parser::error_printer::ErrorLabel::Debug;
 use crate::parser::parser_rule::PR;
 use std::collections::HashMap;
+use by_address::ByAddress;
+use crate::grammar::RuleBodyExpr;
 
-pub struct ParserState<'grm, PR> {
+pub struct ParserState<'b, 'grm, PR> {
     //Cache for parser_cache_recurse
-    cache: HashMap<(usize, &'grm str), ParserCacheEntry<PR>>,
-    cache_stack: Vec<(usize, &'grm str)>,
+    cache: HashMap<(usize, ByAddress<&'b RuleBodyExpr<'grm>>), ParserCacheEntry<PR>>,
+    cache_stack: Vec<(usize, ByAddress<&'b RuleBodyExpr<'grm>>)>,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -19,7 +21,7 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, PR: Clone> ParserState<'grm, PR> {
+impl<'b, 'grm, PR: Clone> ParserState<'b, 'grm, PR> {
     pub fn new() -> Self {
         ParserState {
             cache: HashMap::new(),
@@ -27,11 +29,11 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         }
     }
 
-    fn cache_is_read(&self, key: (usize, &'grm str)) -> Option<bool> {
+    fn cache_is_read(&self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>)) -> Option<bool> {
         self.cache.get(&key).map(|v| v.read)
     }
 
-    fn cache_get(&mut self, key: (usize, &'grm str)) -> Option<&PR> {
+    fn cache_get(&mut self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>)) -> Option<&PR> {
         if let Some(v) = self.cache.get_mut(&key) {
             v.read = true;
             Some(&v.value)
@@ -40,7 +42,7 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         }
     }
 
-    fn cache_insert(&mut self, key: (usize, &'grm str), value: PR) {
+    fn cache_insert(&mut self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>), value: PR) {
         self.cache
             .insert(key, ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -58,17 +60,18 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
 }
 
 pub fn parser_cache_recurse<
-    'grm: 'a,
     'a,
+    'b: 'a,
+    'grm: 'b,
     I: Clone + Eq,
     S: Stream<I = I>,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>>,
-    id: &'grm str,
-) -> impl Parser<I, PR<'grm>, S, E, ParserState<'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
+    id: ByAddress<&'b RuleBodyExpr<'grm>>,
+) -> impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos_start: S,
-          state: &mut ParserState<'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         //Check if this result is cached
         let key = (pos_start.pos(), id);

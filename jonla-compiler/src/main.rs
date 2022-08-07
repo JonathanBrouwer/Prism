@@ -11,7 +11,7 @@ fn main() {
 
     match parse_term(input).collapse() {
         Ok(o) => println!("Result: {:?}", o),
-        Err(e) => print_set_error(e, filename, input, false),
-        // Err(e) => print_tree_error(e, filename, input),
+        // Err(e) => print_set_error(e, filename, input, false),
+        Err(e) => print_tree_error(e, filename, input, true),
     }
 }
