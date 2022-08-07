@@ -12,9 +12,6 @@ pub struct ParserState<'grm, PR> {
     //Cache for parser_cache_recurse
     cache: HashMap<(usize, &'grm str), ParserCacheEntry<PR>>,
     cache_stack: Vec<(usize, &'grm str)>,
-
-    //Flags
-    layout_disable: usize,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -27,7 +24,6 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
-            layout_disable: 0,
         }
     }
 
@@ -58,18 +54,6 @@ impl<'grm, PR: Clone> ParserState<'grm, PR> {
         self.cache_stack.drain(state..).for_each(|key| {
             self.cache.remove(&key);
         })
-    }
-
-    pub fn is_layout_disabled(&self) -> bool {
-        self.layout_disable > 0
-    }
-
-    pub fn layout_disable(&mut self) {
-        self.layout_disable += 1;
-    }
-
-    pub fn layout_enable(&mut self) {
-        self.layout_disable -= 1;
     }
 }
 

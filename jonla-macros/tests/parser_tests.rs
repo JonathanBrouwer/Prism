@@ -11,6 +11,8 @@ use jonla_macros::parser::parser_state::ParserState;
 use std::collections::HashMap;
 use jonla_macros::parser::core::error::empty_error::EmptyError;
 use jonla_macros::grammar::RuleBody;
+use jonla_macros::parser::parser_rule::ParserContext;
+
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
@@ -32,7 +34,7 @@ macro_rules! parse_test {
 
             let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, _>(&rules, "start")).parse(stream, &mut state);
+            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, _>(&rules, "start", &ParserContext::new())).parse(stream, &mut state);
 
             match result {
                 POk(o, _, _) => {
@@ -53,7 +55,7 @@ macro_rules! parse_test {
 
             let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start")).parse(stream, &mut state);
+            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start", &ParserContext::new())).parse(stream, &mut state);
 
             assert!(!result.is_ok());
             )*
