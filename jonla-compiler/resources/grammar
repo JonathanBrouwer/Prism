@@ -7,8 +7,7 @@ ast Term:
     FunDestruct(func: Term, arg: Term)
 
 
-rule layout -> Input:
-    [' ' | '\n']
+rule layout -> Input = [' ' | '\n']
 
 
 rule identifier -> Input:

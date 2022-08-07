@@ -29,14 +29,16 @@ pub enum AstType<'input> {
 pub struct Rule<'input> {
     pub name: &'input str,
     pub rtrn: AstType<'input>,
-    pub body: Vec<RuleBody<'input>>,
+    pub body: RuleBodyExpr<'input>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleBody<'input> {
+pub enum RuleBodyExpr<'input> {
     #[serde(borrow)]
-    pub annotations: Vec<RuleAnnotation<'input>>,
-    pub expr: RuleExpr<'input>
+    Body(RuleExpr<'input>),
+    Constructors(Box<RuleBodyExpr<'input>>, Box<RuleBodyExpr<'input>>),
+    PrecedenceClimbBlock(Box<RuleBodyExpr<'input>>, Box<RuleBodyExpr<'input>>),
+    Annotation(RuleAnnotation<'input>, Box<RuleBodyExpr<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -108,15 +110,18 @@ peg::parser! {
         //Rule
         rule prule() -> Rule<'input> =
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ ":" _n() body:prule_body() { Rule{name, rtrn, body } } /
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: vec![RuleBody{annotations: vec![], expr}] } }
+            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: RuleBodyExpr::Body(expr) } }
 
-        rule prule_body() -> Vec<RuleBody<'input>> = cs:prule_body_constr()* { cs }
-
-        rule prule_body_constr() -> RuleBody<'input> = annotations:prule_annotation()* expr:prule_expr() _n() { RuleBody{annotations, expr} }
+        rule prule_body() -> RuleBodyExpr<'input> = precedence!{
+            c1:(@) __ c2:@ { RuleBodyExpr::Constructors(box c1, box c2) }
+            --
+            annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, box rest) }
+            expr:prule_expr() _n() { RuleBodyExpr::Body(expr) }
+        }
 
         rule prule_annotation() -> RuleAnnotation<'input> = precedence! {
-            "@" _ "error" _ "(" _ "\"" err:$(str_char()*) "\"" _ ")" _n() { RuleAnnotation::Error(err) }
-            "@" _ "nolayout" _n() { RuleAnnotation::NoLayout }
+            "@" _ "error" _ "(" _ "\"" err:$(str_char()*) "\"" _ ")" { RuleAnnotation::Error(err) }
+            "@" _ "nolayout" { RuleAnnotation::NoLayout }
         }
 
         rule prule_expr() -> RuleExpr<'input> = precedence! {

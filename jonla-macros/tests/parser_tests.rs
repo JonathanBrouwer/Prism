@@ -10,8 +10,8 @@ use jonla_macros::parser::parser_rule::parser_rule;
 use jonla_macros::parser::parser_state::ParserState;
 use std::collections::HashMap;
 use jonla_macros::parser::core::error::empty_error::EmptyError;
-use jonla_macros::grammar::RuleBody;
 use jonla_macros::parser::parser_rule::ParserContext;
+use jonla_macros::grammar::RuleBodyExpr;
 
 
 macro_rules! parse_test {
@@ -25,7 +25,7 @@ macro_rules! parse_test {
                     panic!("{}", err);
                 }
             };
-            let rules: HashMap<&'static str, Vec<RuleBody<'static>>> =
+            let rules: HashMap<&'static str, RuleBodyExpr<'static>> =
                 grammar.rules.iter().map(|r| (r.name, r.body.clone())).collect();
 
             $(
