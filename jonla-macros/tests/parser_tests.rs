@@ -1,5 +1,7 @@
 use jonla_macros::grammar;
-use jonla_macros::grammar::{GrammarFile};
+use jonla_macros::grammar::GrammarFile;
+use jonla_macros::grammar::RuleBodyExpr;
+use jonla_macros::parser::core::error::empty_error::EmptyError;
 use jonla_macros::parser::core::parser::Parser;
 use jonla_macros::parser::core::presult::PResult;
 use jonla_macros::parser::core::presult::PResult::*;
@@ -7,12 +9,9 @@ use jonla_macros::parser::core::primitives::full_input;
 use jonla_macros::parser::core::stream::StringStream;
 use jonla_macros::parser::error_printer::*;
 use jonla_macros::parser::parser_rule::parser_rule;
+use jonla_macros::parser::parser_rule::ParserContext;
 use jonla_macros::parser::parser_state::ParserState;
 use std::collections::HashMap;
-use jonla_macros::parser::core::error::empty_error::EmptyError;
-use jonla_macros::parser::parser_rule::ParserContext;
-use jonla_macros::grammar::RuleBodyExpr;
-
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {

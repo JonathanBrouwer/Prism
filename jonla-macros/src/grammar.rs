@@ -55,7 +55,7 @@ impl CharClass {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleAnnotation<'input> {
     Error(&'input str),
-    NoLayout
+    NoLayout,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +74,8 @@ pub enum RuleExpr<'input> {
     NameBind(&'input str, Box<RuleExpr<'input>>),
     Action(Box<RuleExpr<'input>>, RuleAction<'input>),
     SliceInput(Box<RuleExpr<'input>>),
+    AtThis,
+    AtNext,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -113,6 +115,8 @@ peg::parser! {
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: RuleBodyExpr::Body(expr) } }
 
         rule prule_body() -> RuleBodyExpr<'input> = precedence!{
+            c1:(@) "--" _n() c2:@ { RuleBodyExpr::PrecedenceClimbBlock(box c1, box c2) }
+            --
             c1:(@) __ c2:@ { RuleBodyExpr::Constructors(box c1, box c2) }
             --
             annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, box rest) }
@@ -142,6 +146,8 @@ peg::parser! {
             "[" c:charclass() "]" { RuleExpr::CharClass(c) }
             "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(box r) }
             "(" _ r:prule_expr() _ ")" { r }
+            "@this" { RuleExpr::AtThis }
+            "@next" { RuleExpr::AtNext }
         }
 
         rule prule_action() -> RuleAction<'input> =

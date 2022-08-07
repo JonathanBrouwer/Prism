@@ -17,19 +17,8 @@ rule identifier -> Input:
 
 
 rule term -> Term:
-    Let(n, t, v, b) <- "let" n:identifier ":" t:term "=" v:term ";" b:term
-    FunConstruct(x, t, r) <- x:identifier ":" t:term "." r:term
-    FunType(n, at, bt) <- n:identifier ":" at:term "->" bt:term
-    FunType("_", at, bt) <- at:subterm "->" bt:term
-    sub <- sub:subterm
-
-
-rule subterm -> Term:
-    FunDestruct(f, a) <- f:subterm " " a:subsubterm
-    sub <- sub:subsubterm
-
-
-rule subsubterm -> Term:
+    FunType("_", at, bt) <- at:@next "->" bt:@this
+    --
+    FunDestruct(f, a) <- f:@this " " a:@next
+    --
     Type() <- "Type"
-    Var(n) <- n:identifier
-    t <- "(" t:term ")"
