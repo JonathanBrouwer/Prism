@@ -6,19 +6,21 @@ ast Term:
     FunConstruct(name: Input, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
 
-
 rule layout -> Input = [' ' | '\n']
-
 
 rule identifier -> Input:
     @error("Identifier")
     @nolayout
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
-
 rule term -> Term:
     Let(n, t, v, b) <- "let" n:identifier ":" t:@this "=" v:@this ";" b:@this
+    FunConstruct(x, t, r) <- x:identifier ":" t:@this "." r:@this
+    FunType(n, at, bt) <- n:identifier ":" at:@this "->" bt:@this
+    FunType("_", at, bt) <- at:@next "->" bt:@this
     --
-    FunDestruct(f, a) <- f:@next " " a:@this
+    FunDestruct(f, a) <- f:@this " " a:@next
     --
     Type() <- "Type"
+    Var(n) <- n:identifier
+    t <- "(" t:term ")"
