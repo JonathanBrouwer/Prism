@@ -300,11 +300,11 @@ fn parser_expr<
             }
             RuleExpr::AtThis => {
                 parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), context)
-                    .parse(stream, state)
+                    .parse(stream, state).map(|(_, v)| (HashMap::new(), v))
             }
             RuleExpr::AtNext => {
                 parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), context)
-                    .parse(stream, state)
+                    .parse(stream, state).map(|(_, v)| (HashMap::new(), v))
             }
         }
     }

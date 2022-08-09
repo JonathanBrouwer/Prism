@@ -14,7 +14,8 @@ rule identifier -> Input:
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
 rule term -> Term:
-    Let(n, t, v, b) <- "let" n:identifier ":" t:@this "=" v:@this ";" b:@this
+    Let(n, t, v, b) <- "let" n:identifier ":" t:@next "=" v:@next ";" b:@this
+    --
     FunConstruct(x, t, r) <- x:identifier ":" t:@this "." r:@this
     FunType(n, at, bt) <- n:identifier ":" at:@this "->" bt:@this
     FunType("_", at, bt) <- at:@next "->" bt:@this
