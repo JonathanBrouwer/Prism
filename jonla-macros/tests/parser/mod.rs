@@ -4,6 +4,7 @@ mod literal;
 mod minor;
 mod parser_tests;
 mod repeat;
+mod lambda;
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
         #[allow(unused_imports)]
