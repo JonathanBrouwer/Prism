@@ -1,0 +1,6 @@
+- Layout constraints
+- Recovery
+- Parametric rules
+- Non-char grammars
+- Lookahead?
+- Stack?

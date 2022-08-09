@@ -1,3 +1,4 @@
+use crate::grammar::RuleBodyExpr;
 use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
@@ -6,9 +7,8 @@ use crate::parser::core::stream::Stream;
 use crate::parser::error_printer::ErrorLabel;
 use crate::parser::error_printer::ErrorLabel::Debug;
 use crate::parser::parser_rule::PR;
-use std::collections::HashMap;
 use by_address::ByAddress;
-use crate::grammar::RuleBodyExpr;
+use std::collections::HashMap;
 
 pub struct ParserState<'b, 'grm, PR> {
     //Cache for parser_cache_recurse

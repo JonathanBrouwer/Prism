@@ -518,6 +518,7 @@ syntax: r#"
     "#
 passing tests:
     "123" => "Num('123')"
+    "123 " => "Num('123')"
     "- 8" => "Neg(Num('8'))"
 
 failing tests:
