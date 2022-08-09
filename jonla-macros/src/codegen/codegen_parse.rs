@@ -12,17 +12,16 @@ pub fn write_parsers(mut file: FormattingFile, rules: &Vec<Rule>) {
         quote! {
             use super::ast::*;
             use super::from_tuples::*;
-            use jonla_macros::parser::parser_rule::*;
-            use jonla_macros::parser::action_result::*;
+            use jonla_macros::parser::actual::parser_rule::*;
+            use jonla_macros::parser::actual::action_result::*;
             use jonla_macros::parser::core::presult::*;
             use jonla_macros::parser::core::error::*;
             use jonla_macros::parser::core::stream::*;
             use jonla_macros::parser::core::primitives::*;
-            use jonla_macros::parser::parser_state::*;
             use std::collections::HashMap;
             use jonla_macros::grammar::*;
             use jonla_macros::parser::core::parser::Parser;
-            use jonla_macros::parser::error_printer::ErrorLabel;
+            use jonla_macros::parser::actual::error_printer::ErrorLabel;
 
             const RULES_STR: &'static str = include_str!("rules.json");
         }
@@ -47,12 +46,11 @@ fn write_parser(file: &mut FormattingFile, rule: &Rule) {
         "{}",
         quote! {
             pub fn #name<'input, E: ParseError<L=ErrorLabel<'static>>>(input: &'input str)
-                    -> PResult<#rtrn, E, StringStream<'input>> {
+                    -> Result<#rtrn, E> {
                 let rules: HashMap<&'static str, RuleBodyExpr<'static>> = jonla_macros::read_rules_json(RULES_STR).unwrap();
 
-                let mut state = ParserState::new();
                 let stream: StringStream = input.into();
-                let result: PResult<_, _, _> = full_input(&parser_rule(&rules, #name_str, &ParserContext::new())).parse(stream, &mut state);
+                let result: Result<_, _> = run_parser_rule(&rules, #name_str, stream);
 
                 result.map(|pr| #from_action_result)
             }

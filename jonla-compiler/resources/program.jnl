@@ -1,2 +1,2 @@
 let f : Type -> Type = x:Type. x;
-f x y
+f

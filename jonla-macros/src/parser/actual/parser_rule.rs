@@ -2,9 +2,9 @@ use crate::grammar::{RuleAction, RuleAnnotation, RuleBodyExpr, RuleExpr};
 use crate::parser::actual::action_result::ActionResult;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::layout::{full_input_layout, parser_with_layout};
-use crate::parser::core::parser_state::{parser_cache_recurse, ParserState};
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
+use crate::parser::core::parser_state::{parser_cache_recurse, ParserState};
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::{repeat_delim, single};
 use crate::parser::core::stream::Stream;
@@ -12,7 +12,6 @@ use by_address::ByAddress;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::parser::core::presult::PResult::{PErr, POk};
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -47,10 +46,8 @@ pub fn run_parser_rule<
 ) -> Result<PR<'grm>, E> {
     let context = ParserContext::new();
     let mut state = ParserState::new();
-    let x = match full_input_layout(rules, &parser_rule(rules, rule, &context), &context).parse(stream, &mut state) {
-        POk(o, _, _) => Ok(o),
-        PErr(e, _) => Err(e),
-    };
+    let x = full_input_layout(rules, &parser_rule(rules, rule, &context), &context)
+        .parse(stream, &mut state).collapse();
     x
 }
 

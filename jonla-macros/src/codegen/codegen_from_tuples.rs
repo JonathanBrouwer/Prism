@@ -11,8 +11,8 @@ pub fn write_from_tuples(mut file: FormattingFile, asts: &Vec<Ast>) {
         "{}",
         quote! {
             use super::ast::*;
-            use jonla_macros::parser::parser_rule::*;
-            use jonla_macros::parser::action_result::*;
+            use jonla_macros::parser::actual::parser_rule::*;
+            use jonla_macros::parser::actual::action_result::*;
             use jonla_macros::parser::core::presult::*;
             use std::collections::HashMap;
             use jonla_macros::grammar::*;

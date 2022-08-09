@@ -86,16 +86,12 @@ pub fn repeat_delim<
     }
 }
 
-
-pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>() -> impl Parser<I, (), S, E, Q> + 'a {
+pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>(
+) -> impl Parser<I, (), S, E, Q> + 'a {
     move |stream: S, _: &mut Q| -> PResult<(), E, S> {
         match stream.next() {
-            (s, Some(_)) => {
-                PResult::new_err(E::new(stream.span_to(s)), stream)
-            },
-            (s, None) => {
-                PResult::new_ok((), s)
-            }
+            (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
+            (s, None) => PResult::new_ok((), s),
         }
     }
 }
