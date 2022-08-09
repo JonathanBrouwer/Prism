@@ -1,7 +1,6 @@
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
-use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::span::Span;
 use crate::parser::core::stream::Stream;
 
@@ -87,19 +86,16 @@ pub fn repeat_delim<
     }
 }
 
-pub fn full_input<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
-    p1: &'a impl Parser<I, O, S, E, Q>,
-) -> impl Parser<I, O, S, E, Q> + 'a {
-    move |stream: S, state: &mut Q| {
-        match p1.parse(stream, state) {
-            POk(o, rest, be) => {
-                match (rest.next().1, be) {
-                    (None, be) => POk(o, rest, be),
-                    (Some(_), Some((be, bs))) => PErr(be, bs),
-                    (Some(_), None) => PErr(E::new(rest.span_rest()), rest), //TODO explain what happened
-                }
+
+pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>() -> impl Parser<I, (), S, E, Q> + 'a {
+    move |stream: S, _: &mut Q| -> PResult<(), E, S> {
+        match stream.next() {
+            (s, Some(_)) => {
+                PResult::new_err(E::new(stream.span_to(s)), stream)
+            },
+            (s, None) => {
+                PResult::new_ok((), s)
             }
-            err @ PErr(_, _) => err,
         }
     }
 }

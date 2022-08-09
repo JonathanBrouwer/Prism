@@ -16,13 +16,13 @@ macro_rules! parse_test {
             use jonla_macros::parser::core::parser::Parser;
             use jonla_macros::parser::core::presult::PResult;
             use jonla_macros::parser::core::presult::PResult::*;
-            use jonla_macros::parser::core::primitives::full_input;
+            use jonla_macros::parser::actual::layout::full_input_layout;
             use jonla_macros::parser::core::stream::StringStream;
-            use jonla_macros::parser::error_printer::*;
-            use jonla_macros::parser::parser_rule::parser_rule;
-            use jonla_macros::parser::parser_rule::ParserContext;
-            use jonla_macros::parser::parser_state::ParserState;
+            use jonla_macros::parser::actual::error_printer::*;
+            use jonla_macros::parser::actual::parser_rule::parser_rule;
+            use jonla_macros::parser::actual::parser_rule::ParserContext;
             use std::collections::HashMap;
+            use jonla_macros::parser::actual::parser_rule::run_parser_rule;
 
             let syntax: &'static str = $syntax;
             let grammar: GrammarFile = match grammar::grammar_def::toplevel(&syntax) {
@@ -38,16 +38,14 @@ macro_rules! parse_test {
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, _>(&rules, "start", &ParserContext::new())).parse(stream, &mut state);
 
-            match result {
-                POk(o, _, _) => {
+            match run_parser_rule(&rules, "start", stream) {
+                Ok(o) => {
                     let got = o.1.to_string(input);
                     assert_eq!($expected, got);
                 }
-                PErr(e, _) => {
+                Err(e) => {
                     // print_set_error(e, "test", input, true);
                     print_tree_error(e, "test", input, true);
                     panic!();
@@ -59,11 +57,15 @@ macro_rules! parse_test {
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            let mut state = ParserState::new();
             let stream: StringStream = input.into();
-            let result: PResult<_, _, _> = full_input(&parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start", &ParserContext::new())).parse(stream, &mut state);
-
-            assert!(!result.is_ok());
+            match run_parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start", stream) {
+                Ok(o) => {
+                    let got = o.1.to_string(input);
+                    println!("Got: {:?}", got);
+                    panic!();
+                }
+                Err(_) => {}
+            }
             )*
         }
     }

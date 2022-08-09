@@ -1,16 +1,18 @@
 use crate::grammar::{RuleAction, RuleAnnotation, RuleBodyExpr, RuleExpr};
-use crate::parser::action_result::ActionResult;
+use crate::parser::actual::action_result::ActionResult;
+use crate::parser::actual::error_printer::ErrorLabel;
+use crate::parser::actual::layout::{full_input_layout, parser_with_layout};
+use crate::parser::core::parser_state::{parser_cache_recurse, ParserState};
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::{repeat_delim, single};
 use crate::parser::core::stream::Stream;
-use crate::parser::error_printer::ErrorLabel;
-use crate::parser::parser_state::{parser_cache_recurse, ParserState};
 use by_address::ByAddress;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser::core::presult::PResult::{PErr, POk};
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -18,9 +20,9 @@ pub type PR<'grm> = (
 );
 
 pub struct ParserContext<'b, 'grm> {
-    layout_disabled: bool,
-    prec_climb_this: Option<&'b RuleBodyExpr<'grm>>,
-    prec_climb_next: Option<&'b RuleBodyExpr<'grm>>,
+    pub(crate) layout_disabled: bool,
+    pub(crate) prec_climb_this: Option<&'b RuleBodyExpr<'grm>>,
+    pub(crate) prec_climb_next: Option<&'b RuleBodyExpr<'grm>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -31,6 +33,25 @@ impl ParserContext<'_, '_> {
             prec_climb_next: None,
         }
     }
+}
+
+pub fn run_parser_rule<
+    'b,
+    'grm: 'b,
+    S: Stream<I = char>,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rule: &'grm str,
+    stream: S,
+) -> Result<PR<'grm>, E> {
+    let context = ParserContext::new();
+    let mut state = ParserState::new();
+    let x = match full_input_layout(rules, &parser_rule(rules, rule, &context), &context).parse(stream, &mut state) {
+        POk(o, _, _) => Ok(o),
+        PErr(e, _) => Err(e),
+    };
+    x
 }
 
 pub fn parser_rule<
@@ -287,51 +308,6 @@ fn parser_expr<
             RuleExpr::AtNext => {
                 parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), context)
                     .parse(stream, state)
-            }
-        }
-    }
-}
-
-fn parser_with_layout<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    O,
-    S: Stream<I = char>,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    sub: &'a impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos: S, state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
-        if context.layout_disabled || !rules.contains_key("layout") {
-            return sub.parse(pos, state);
-        }
-
-        //Start attemping to parse layout
-        let mut res = PResult::new_ok((), pos);
-        loop {
-            let (new_res, success) = res.merge_seq_opt_parser(sub, state);
-            if success {
-                return new_res.map(|(_, o)| o.unwrap());
-            }
-
-            res = new_res
-                .merge_seq_parser(
-                    &parser_rule(
-                        rules,
-                        "layout",
-                        &ParserContext {
-                            layout_disabled: true,
-                            ..*context
-                        },
-                    ),
-                    state,
-                )
-                .map(|_| ());
-            if res.is_err() {
-                return res.map(|_| unreachable!());
             }
         }
     }

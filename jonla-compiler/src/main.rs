@@ -1,5 +1,5 @@
 use crate::autogen::parse::*;
-use jonla_macros::parser::error_printer::*;
+use jonla_macros::parser::actual::error_printer::*;
 
 #[allow(unused)]
 #[rustfmt::skip]
