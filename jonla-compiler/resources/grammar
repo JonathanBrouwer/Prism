@@ -11,7 +11,7 @@ rule layout -> Str = [' ' | '\n']
 rule identifier -> Str:
     @error("Identifier")
     @nolayout
-    str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+    s <- neg("let") s:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
 rule term -> Term:
     Let(n, t, v, b) <- "let" n:identifier ":" t:@next "=" v:@next ";" b:@this

@@ -10,7 +10,10 @@ use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 use std::collections::HashMap;
 
-type CacheKey<'b, 'grm> = (usize, (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>));
+type CacheKey<'b, 'grm> = (
+    usize,
+    (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>),
+);
 
 pub struct ParserState<'b, 'grm, PR> {
     //Cache for parser_cache_recurse

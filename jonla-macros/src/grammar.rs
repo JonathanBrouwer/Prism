@@ -74,6 +74,8 @@ pub enum RuleExpr<'input> {
     NameBind(&'input str, Box<RuleExpr<'input>>),
     Action(Box<RuleExpr<'input>>, RuleAction<'input>),
     SliceInput(Box<RuleExpr<'input>>),
+    PosLookahead(Box<RuleExpr<'input>>),
+    NegLookahead(Box<RuleExpr<'input>>),
     AtThis,
     AtNext,
 }
@@ -91,7 +93,7 @@ peg::parser! {
         rule identifier() -> &'input str
             = !reserved() s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
 
-        rule reserved() = "end" / "str" / "rule" / "ast"
+        rule reserved() = "end" / "str" / "rule" / "ast" / "neg" / "pos"
 
         rule _ = [' ']*
         rule _w() = [' ']+
@@ -141,13 +143,15 @@ peg::parser! {
             r:(@) "+" { RuleExpr::Repeat{ expr: box r, min: 1, max: None, delim: box RuleExpr::Sequence(vec![]) } }
             r:(@) "?" { RuleExpr::Repeat{ expr: box r, min: 0, max: Some(1), delim: box RuleExpr::Sequence(vec![]) } }
             --
-            name:identifier() { RuleExpr::Rule(name) }
             "\"" n:$(str_char()*) "\"" { RuleExpr::Literal(n) }
             "[" c:charclass() "]" { RuleExpr::CharClass(c) }
             "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(box r) }
+            "pos" _ "(" _ r:prule_expr() _ ")" { RuleExpr::PosLookahead(box r) }
+            "neg" _ "(" _ r:prule_expr() _ ")" { RuleExpr::NegLookahead(box r) }
             "(" _ r:prule_expr() _ ")" { r }
             "@this" { RuleExpr::AtThis }
             "@next" { RuleExpr::AtNext }
+            name:identifier() { RuleExpr::Rule(name) }
         }
 
         rule prule_action() -> RuleAction<'input> =

@@ -6,7 +6,9 @@ use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
-use crate::parser::core::primitives::{repeat_delim, single};
+use crate::parser::core::primitives::{
+    negative_lookahead, positive_lookahead, repeat_delim, single,
+};
 use crate::parser::core::stream::Stream;
 
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
@@ -147,6 +149,17 @@ pub fn parser_expr<
                     .parse(stream, state)
                     .map(|(_, v)| (HashMap::new(), v))
             }
+            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, context))
+                .parse(stream, state)
+                .map(|r| (HashMap::new(), r.1)),
+            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, context))
+                .parse(stream, state)
+                .map(|_| {
+                    (
+                        HashMap::new(),
+                        Rc::new(ActionResult::Error("negative lookahead")),
+                    )
+                }),
         }
     }
 }

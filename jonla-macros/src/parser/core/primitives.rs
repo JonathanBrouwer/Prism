@@ -1,6 +1,7 @@
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
+use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::span::Span;
 use crate::parser::core::stream::Stream;
 
@@ -92,6 +93,28 @@ pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>(
         match stream.next() {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
             (s, None) => PResult::new_ok((), s),
+        }
+    }
+}
+
+pub fn positive_lookahead<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
+    p: &'a impl Parser<I, O, S, E, Q>,
+) -> impl Parser<I, O, S, E, Q> + 'a {
+    move |stream: S, state: &mut Q| -> PResult<O, E, S> {
+        match p.parse(stream, state) {
+            POk(o, _, err) => POk(o, stream, err),
+            PErr(e, s) => PErr(e, s),
+        }
+    }
+}
+
+pub fn negative_lookahead<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
+    p: &'a impl Parser<I, O, S, E, Q>,
+) -> impl Parser<I, (), S, E, Q> + 'a {
+    move |stream: S, state: &mut Q| -> PResult<(), E, S> {
+        match p.parse(stream, state) {
+            POk(_, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
+            PErr(_, _) => PResult::new_ok((), stream),
         }
     }
 }

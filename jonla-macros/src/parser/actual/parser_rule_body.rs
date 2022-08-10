@@ -30,8 +30,11 @@ pub fn parser_body_cache_recurse<
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        parser_cache_recurse(&parser_body_sub(rules, body, context), (ByAddress(body), context.clone()))
-            .parse(stream, state)
+        parser_cache_recurse(
+            &parser_body_sub(rules, body, context),
+            (ByAddress(body), context.clone()),
+        )
+        .parse(stream, state)
     }
 }
 

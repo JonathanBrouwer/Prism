@@ -1,1 +1,1 @@
-let f : Type -> Type = x:Type. x; f
+let

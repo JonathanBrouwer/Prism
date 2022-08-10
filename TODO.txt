@@ -1,6 +1,6 @@
-- Layout constraints
+- Layout constraints -> No?
 - Recovery
 - Parametric rules
-- Non-char grammars
-- Lookahead?
+- Non-char grammars -> No.
+- Lookahead -> Done
 - Stack?
