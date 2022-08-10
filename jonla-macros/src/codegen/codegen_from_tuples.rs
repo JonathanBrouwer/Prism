@@ -87,7 +87,7 @@ pub(crate) fn write_from_tuple_arg(
     box_needed: bool,
 ) -> TokenStream {
     match arg {
-        AstType::Input => {
+        AstType::Str => {
             quote! {
                 read_input(#val, input)
             }

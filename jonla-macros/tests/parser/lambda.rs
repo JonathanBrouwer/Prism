@@ -5,15 +5,15 @@ name: lambda
 syntax: r#"
 ast Term:
     Type()
-    Var(name: Input)
-    Let(name: Input, arg_type: Term, arg_value: Term, body: Term)
-    FunType(name: Input, arg_type: Term, body_type: Term)
-    FunConstruct(name: Input, arg_type: Term, body: Term)
+    Var(name: Str)
+    Let(name: Str, arg_type: Term, arg_value: Term, body: Term)
+    FunType(name: Str, arg_type: Term, body_type: Term)
+    FunConstruct(name: Str, arg_type: Term, body: Term)
     FunDestruct(func: Term, arg: Term)
 
-rule layout -> Input = [' ' | '\n']
+rule layout -> Str = [' ' | '\n']
 
-rule identifier -> Input:
+rule identifier -> Str:
     @error("Identifier")
     @nolayout
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)

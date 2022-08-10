@@ -2,7 +2,7 @@ use crate::parser::parse_test;
 parse_test! {
 name: literal
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         "lol"
 
     "#
@@ -22,10 +22,10 @@ failing tests:
 parse_test! {
 name: literal_indirect
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         lol
 
-    rule lol -> Input:
+    rule lol -> Str:
         "lol"
 
     "#
@@ -45,7 +45,7 @@ failing tests:
 parse_test! {
 name: charclass
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         str([ 'w'-'z' | '8' | 'p'-'q' ])
 
     "#

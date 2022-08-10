@@ -20,7 +20,7 @@ pub struct AstConstructor<'input> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AstType<'input> {
-    Input,
+    Str,
     Ast(&'input str),
     List(Box<AstType<'input>>),
 }
@@ -105,7 +105,7 @@ peg::parser! {
         rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _n() { AstConstructor{ name, args } }
         rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
         rule ast_constructor_type() -> AstType<'input> =
-            "Input" { AstType::Input } /
+            "Str" { AstType::Str } /
             "[" _ t:ast_constructor_type() _ "]" { AstType::List(box t) } /
             r:identifier() { AstType::Ast(r) }
 

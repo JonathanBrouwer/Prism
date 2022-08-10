@@ -9,12 +9,12 @@ syntax: r#"
         Div(l: Expr, r: Expr)
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
-        Num(n: Input)
+        Num(n: Str)
 
 
-    rule layout -> Input = " "
+    rule layout -> Str = " "
 
-    rule num -> Input:
+    rule num -> Str:
         @nolayout
         str(['0'-'9']+)
 
@@ -67,12 +67,12 @@ name: num_layout
 syntax: r#"
     ast Expr:
         Neg(e: Expr)
-        Num(n: Input)
+        Num(n: Str)
 
 
-    rule layout -> Input = " "
+    rule layout -> Str = " "
 
-    rule num -> Input:
+    rule num -> Str:
         @nolayout
         str(['0'-'9']+)
 
@@ -93,8 +93,8 @@ failing tests:
 parse_test! {
 name: trailing_layout
 syntax: r#"
-    rule layout -> Input = " "
-    rule start -> Input = "x"
+    rule layout -> Str = " "
+    rule start -> Str = "x"
     "#
 passing tests:
     "x" => "'x'"

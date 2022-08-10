@@ -47,7 +47,7 @@ fn write_ast(file: &mut FormattingFile, ast: &Ast) {
 
 pub(crate) fn process_type(typ: &AstType, need_box: bool) -> TokenStream {
     match typ {
-        AstType::Input => {
+        AstType::Str => {
             quote! { &'input str }
         }
         AstType::Ast(name) => {

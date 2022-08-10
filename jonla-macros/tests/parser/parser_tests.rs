@@ -10,12 +10,12 @@ syntax: r#"
         Div(l: Expr, r: Expr)
         Pow(l: Expr, r: Expr)
         Neg(e: Expr)
-        Num(n: Input)
+        Num(n: Str)
     
 
-    rule _ -> Input = [' ']*
+    rule _ -> Str = [' ']*
 
-    rule num -> Input:
+    rule num -> Str:
         str(['0'-'9']+)
     
 

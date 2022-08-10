@@ -2,7 +2,7 @@ use crate::parser::parse_test;
 parse_test! {
 name: repeat_star
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         str([ 'w'-'z' | '8' | 'p'-'q' ]*)
 
     "#
@@ -35,7 +35,7 @@ failing tests:
 parse_test! {
 name: repeat_plus
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         str([ 'w'-'z' | '8' | 'p'-'q' ]+)
 
     "#
@@ -68,7 +68,7 @@ failing tests:
 parse_test! {
 name: repeat_option
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         str([ 'w'-'z' | '8' | 'p'-'q' ]?)
 
     "#

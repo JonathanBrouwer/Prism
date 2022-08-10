@@ -2,7 +2,7 @@ use crate::parser::parse_test;
 parse_test! {
 name: sequence
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         str("a" ['w'-'y'] "q")
 
     "#
@@ -26,7 +26,7 @@ failing tests:
 parse_test! {
 name: choice
 syntax: r#"
-    rule start -> Input:
+    rule start -> Str:
         "a" / ['w'-'y'] / "q"
 
     "#
@@ -49,10 +49,10 @@ parse_test! {
 name: action
 syntax: r#"
     ast Test:
-        TestC(left: Input, right: Input)
+        TestC(left: Str, right: Str)
 
 
-    rule start -> Input:
+    rule start -> Str:
         TestC(c, d) <- "a" c:['w'-'y'] d:"q"
 
     "#

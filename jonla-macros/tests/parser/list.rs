@@ -4,7 +4,7 @@ name: list_ast
 syntax: r#"
     ast Test:
         Leaf()
-        Nodes(nodes: [Input])
+        Nodes(nodes: [Str])
 
 
     rule start -> Test:
@@ -34,7 +34,7 @@ name: list_rule
 syntax: r#"
     ast Test:
         Leaf()
-        Nodes(nodes: [Input])
+        Nodes(nodes: [Str])
 
 
     rule start -> [Test]:
