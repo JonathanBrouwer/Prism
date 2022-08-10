@@ -138,12 +138,12 @@ pub fn parser_expr<
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => {
-                parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), context)
+                parser_body_cache_recurse(rules, *context.prec_climb_this.unwrap(), context)
                     .parse(stream, state)
                     .map(|(_, v)| (HashMap::new(), v))
             }
             RuleExpr::AtNext => {
-                parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), context)
+                parser_body_cache_recurse(rules, *context.prec_climb_next.unwrap(), context)
                     .parse(stream, state)
                     .map(|(_, v)| (HashMap::new(), v))
             }

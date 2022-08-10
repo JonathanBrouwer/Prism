@@ -13,16 +13,19 @@ use crate::parser::core::stream::Stream;
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
 use std::rc::Rc;
+use by_address::ByAddress;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
     Rc<ActionResult<'grm>>,
 );
 
+
+#[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Option<&'b RuleBodyExpr<'grm>>,
-    pub(crate) prec_climb_next: Option<&'b RuleBodyExpr<'grm>>,
+    pub(crate) prec_climb_this: Option<ByAddress<&'b RuleBodyExpr<'grm>>>,
+    pub(crate) prec_climb_next: Option<ByAddress<&'b RuleBodyExpr<'grm>>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -73,7 +76,7 @@ pub fn parser_rule<
             rules,
             body,
             &ParserContext {
-                prec_climb_this: Some(body),
+                prec_climb_this: Some(ByAddress(body)),
                 ..*context
             },
         )

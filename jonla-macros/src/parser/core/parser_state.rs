@@ -1,7 +1,7 @@
 use crate::grammar::RuleBodyExpr;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::error_printer::ErrorLabel::Debug;
-use crate::parser::actual::parser_rule::PR;
+use crate::parser::actual::parser_rule::{ParserContext, PR};
 use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
@@ -10,10 +10,12 @@ use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 use std::collections::HashMap;
 
+type CacheKey<'b, 'grm> = (usize, (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>));
+
 pub struct ParserState<'b, 'grm, PR> {
     //Cache for parser_cache_recurse
-    cache: HashMap<(usize, ByAddress<&'b RuleBodyExpr<'grm>>), ParserCacheEntry<PR>>,
-    cache_stack: Vec<(usize, ByAddress<&'b RuleBodyExpr<'grm>>)>,
+    cache: HashMap<CacheKey<'b, 'grm>, ParserCacheEntry<PR>>,
+    cache_stack: Vec<CacheKey<'b, 'grm>>,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -29,11 +31,11 @@ impl<'b, 'grm, PR: Clone> ParserState<'b, 'grm, PR> {
         }
     }
 
-    fn cache_is_read(&self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>)) -> Option<bool> {
+    fn cache_is_read(&self, key: &CacheKey<'b, 'grm>) -> Option<bool> {
         self.cache.get(&key).map(|v| v.read)
     }
 
-    fn cache_get(&mut self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>)) -> Option<&PR> {
+    fn cache_get(&mut self, key: &CacheKey<'b, 'grm>) -> Option<&PR> {
         if let Some(v) = self.cache.get_mut(&key) {
             v.read = true;
             Some(&v.value)
@@ -42,9 +44,9 @@ impl<'b, 'grm, PR: Clone> ParserState<'b, 'grm, PR> {
         }
     }
 
-    fn cache_insert(&mut self, key: (usize, ByAddress<&'b RuleBodyExpr<'grm>>), value: PR) {
+    fn cache_insert(&mut self, key: CacheKey<'b, 'grm>, value: PR) {
         self.cache
-            .insert(key, ParserCacheEntry { read: false, value });
+            .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
     }
 
@@ -68,14 +70,14 @@ pub fn parser_cache_recurse<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
-    id: ByAddress<&'b RuleBodyExpr<'grm>>,
+    id: (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>),
 ) -> impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos_start: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         //Check if this result is cached
-        let key = (pos_start.pos(), id);
-        if let Some(cached) = state.cache_get(key) {
+        let key = (pos_start.pos(), id.clone());
+        if let Some(cached) = state.cache_get(&key) {
             return cached.clone();
         }
 
@@ -85,7 +87,7 @@ pub fn parser_cache_recurse<
         res_recursive.add_label(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = state.cache_state_get();
-        state.cache_insert(key, res_recursive);
+        state.cache_insert(key.clone(), res_recursive);
 
         //Now execute the actual rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -98,7 +100,7 @@ pub fn parser_cache_recurse<
         match res {
             POk(mut o, mut pos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
-                if !state.cache_is_read(key).unwrap() {
+                if !state.cache_is_read(&key).unwrap() {
                     //No leftrec, cache and return
                     let res = POk(o, pos, be);
                     state.cache_insert(key, res.clone());
@@ -108,7 +110,7 @@ pub fn parser_cache_recurse<
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(key, POk(o.clone(), pos, be.clone()));
+                        state.cache_insert(key.clone(), POk(o.clone(), pos, be.clone()));
 
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state);
