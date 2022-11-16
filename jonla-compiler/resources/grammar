@@ -1,22 +1,30 @@
-ast Term:
+ast Decl:
+    Stmt(s: Stmt)
+
+ast Block:
+    Block(stmts: [Stmt], body: Expr)
+
+ast Stmt:
+    Let(name: Str, arg_value: Block)
+
+ast Expr:
     Type()
     Var(name: Str)
-    Let(name: Str, arg_type: Term, arg_value: Term, body: Term)
-    FunType(name: Str, arg_type: Term, body_type: Term)
-    FunConstruct(name: Str, arg_type: Term, body: Term)
-    FunDestruct(func: Term, arg: Term)
+    FunType(name: Str, arg_type: Block, body_type: Block)
+    FunConstruct(name: Str, arg_type: Block, body: Block)
+    FunDestruct(func: Block, arg: Block)
 
-rule layout -> Str = [' ' | '\n']
+rule decl -> Decl:
+    Stmt(s) <- s:stmt
 
-rule identifier -> Str:
-    @error("Identifier")
-    @nolayout
-    s <- neg("let") s:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+rule stmt -> Stmt:
+    Let(n, v) <- "let" n:identifier "=" v:@next
 
-rule term -> Term:
-    Let(n, t, v, b) <- "let" n:identifier ":" t:@next "=" v:@next ";" b:@this
-    --
-    FunConstruct(x, t, r) <- x:identifier ":" t:@this "." r:@this
+rule block -> Block:
+    Block(stmts, body) <- stmts:(stmt*) body:block_expr
+
+rule block_expr -> Block:
+    FunConstruct(x, t, r) <- x:identifier "." r:@this
     FunType(n, at, bt) <- n:identifier ":" at:@this "->" bt:@this
     FunType("_", at, bt) <- at:@next "->" bt:@this
     --
@@ -24,4 +32,13 @@ rule term -> Term:
     --
     Type() <- "Type"
     Var(n) <- n:identifier
-    t <- "(" t:term ")"
+    t <- "(" t:block ")"
+
+rule layout -> Str = [' ' | '\n']
+
+rule reserved_keyword -> Str = "let" / "set"
+
+rule identifier -> Str:
+    @error("Identifier")
+    @nolayout
+    s <- neg(reserved_keyword) s:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
