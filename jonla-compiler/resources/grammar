@@ -18,7 +18,7 @@ rule decl -> Decl:
     Stmt(s) <- s:stmt
 
 rule stmt -> Stmt:
-    Let(n, v) <- "let" n:identifier "=" v:@next
+    Let(n, v) <- "let" n:identifier "=" v:block
 
 rule block -> Block:
     Block(stmts, body) <- stmts:(stmt*) body:block_expr
