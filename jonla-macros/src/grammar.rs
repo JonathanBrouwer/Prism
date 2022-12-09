@@ -85,6 +85,8 @@ pub enum RuleAction<'input> {
     Name(&'input str),
     InputLiteral(&'input str),
     Construct(&'input str, Vec<RuleAction<'input>>),
+    Cons(Box<RuleAction<'input>>, Box<RuleAction<'input>>),
+    Nil()
 }
 
 peg::parser! {
@@ -108,7 +110,7 @@ peg::parser! {
         rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
         rule ast_constructor_type() -> AstType<'input> =
             "Str" { AstType::Str } /
-            "[" _ t:ast_constructor_type() _ "]" { AstType::List(box t) } /
+            "[" _ t:ast_constructor_type() _ "]" { AstType::List(Box::new(t)) } /
             r:identifier() { AstType::Ast(r) }
 
         //Rule
@@ -117,11 +119,11 @@ peg::parser! {
             "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: RuleBodyExpr::Body(expr) } }
 
         rule prule_body() -> RuleBodyExpr<'input> = precedence!{
-            c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(box c1, box c2) }
+            c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(Box::new(c1), Box::new(c2)) }
             --
-            c1:@ __ c2:(@) { RuleBodyExpr::Constructors(box c1, box c2) }
+            c1:@ __ c2:(@) { RuleBodyExpr::Constructors(Box::new(c1), Box::new(c2)) }
             --
-            annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, box rest) }
+            annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, Box::new(rest)) }
             expr:prule_expr() _n() { RuleBodyExpr::Body(expr) }
         }
 
@@ -131,33 +133,37 @@ peg::parser! {
         }
 
         rule prule_expr() -> RuleExpr<'input> = precedence! {
-            a:prule_action() _ "<-" _ r:(@) { RuleExpr::Action(box r, a) }
+            a:prule_action() _ "<-" _ r:(@) { RuleExpr::Action(Box::new(r), a) }
             --
             x:@ _ "/" _ y:(@) { RuleExpr::Choice(vec![x, y]) }
             --
             x:@ _ y:(@) { RuleExpr::Sequence(vec![x,y]) }
             --
-            n:identifier() _ ":" _ e:(@) { RuleExpr::NameBind(n, box e) }
+            n:identifier() _ ":" _ e:(@) { RuleExpr::NameBind(n, Box::new(e)) }
             --
-            r:(@) "*" { RuleExpr::Repeat{ expr: box r, min: 0, max: None, delim: box RuleExpr::Sequence(vec![]) } }
-            r:(@) "+" { RuleExpr::Repeat{ expr: box r, min: 1, max: None, delim: box RuleExpr::Sequence(vec![]) } }
-            r:(@) "?" { RuleExpr::Repeat{ expr: box r, min: 0, max: Some(1), delim: box RuleExpr::Sequence(vec![]) } }
+            r:(@) "*" { RuleExpr::Repeat{ expr: Box::new(r), min: 0, max: None, delim: Box::new(RuleExpr::Sequence(vec![])) } }
+            r:(@) "+" { RuleExpr::Repeat{ expr: Box::new(r), min: 1, max: None, delim: Box::new(RuleExpr::Sequence(vec![])) } }
+            r:(@) "?" { RuleExpr::Repeat{ expr: Box::new(r), min: 0, max: Some(1), delim: Box::new(RuleExpr::Sequence(vec![])) } }
             --
             "\"" n:$(str_char()*) "\"" { RuleExpr::Literal(n) }
             "[" c:charclass() "]" { RuleExpr::CharClass(c) }
-            "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(box r) }
-            "pos" _ "(" _ r:prule_expr() _ ")" { RuleExpr::PosLookahead(box r) }
-            "neg" _ "(" _ r:prule_expr() _ ")" { RuleExpr::NegLookahead(box r) }
+            "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(Box::new(r)) }
+            "pos" _ "(" _ r:prule_expr() _ ")" { RuleExpr::PosLookahead(Box::new(r)) }
+            "neg" _ "(" _ r:prule_expr() _ ")" { RuleExpr::NegLookahead(Box::new(r)) }
             "(" _ r:prule_expr() _ ")" { r }
             "@this" { RuleExpr::AtThis }
             "@next" { RuleExpr::AtNext }
             name:identifier() { RuleExpr::Rule(name) }
         }
 
-        rule prule_action() -> RuleAction<'input> =
-            n:identifier() _ "(" args:(prule_action()**(_ "," _)) ")" { RuleAction::Construct(n, args) } /
-            "\"" n:$(str_char()*) "\"" { RuleAction::InputLiteral(n) } /
+        rule prule_action() -> RuleAction<'input> = precedence! {
+            h:(@) _ "::" _ t:@ { RuleAction::Cons(Box::new(h), Box::new(t)) }
+            --
+            "[]" { RuleAction::Nil() }
+            n:identifier() _ "(" args:(prule_action()**(_ "," _)) ")" { RuleAction::Construct(n, args) }
+            "\"" n:$(str_char()*) "\"" { RuleAction::InputLiteral(n) }
             n:identifier() { RuleAction::Name(n) }
+        }
 
         rule charclass() -> CharClass = rs:(_ r:charclass_part() _ {r})++"|" { CharClass { ranges: rs } }
 

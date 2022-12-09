@@ -1,1 +1,24 @@
-let x = Type
+grammar {
+
+};
+let x;
+grammar {
+
+};
+let {
+    grammar {
+
+    };
+    let {
+        grammar {
+
+        };
+        let y;
+        do;
+    };
+    let {
+        let {
+        do;
+        };
+    };
+};

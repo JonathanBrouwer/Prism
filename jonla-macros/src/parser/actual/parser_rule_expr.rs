@@ -181,5 +181,18 @@ fn apply_action<'grm>(
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect_vec();
             Rc::new(ActionResult::Construct(name, args_vals))
         }
+        RuleAction::Cons(h, t) => {
+            let mut res = Vec::new();
+            res.push(apply_action(h, map));
+            res.extend_from_slice(match &*apply_action(t, map) {
+                ActionResult::List(v) => &v[..],
+                _ => unreachable!()
+            });
+
+            Rc::new(ActionResult::List(res))
+        }
+        RuleAction::Nil() => {
+            Rc::new(ActionResult::List(Vec::new()))
+        }
     }
 }

@@ -1,44 +1,24 @@
-ast Decl:
-    Stmt(s: Stmt)
-
-ast Block:
-    Block(stmts: [Stmt], body: Expr)
-
 ast Stmt:
-    Let(name: Str, arg_value: Block)
+    Let(e: Expr)
+    Do()
 
 ast Expr:
-    Type()
-    Var(name: Str)
-    FunType(name: Str, arg_type: Block, body_type: Block)
-    FunConstruct(name: Str, arg_type: Block, body: Block)
-    FunDestruct(func: Block, arg: Block)
+    Block(b: [Stmt])
+    X()
+    Y()
 
-rule decl -> Decl:
-    Stmt(s) <- s:stmt
+rule block -> [Stmt]:
+    b <- "grammar" "{" "}" ";" b:block
+    s :: b <- s:stmt ";" b:block
+    [] <- ""
 
 rule stmt -> Stmt:
-    Let(n, v) <- "let" n:identifier "=" v:block
+    Let(e) <- "let" e:expr
+    Do() <- "do"
 
-rule block -> Block:
-    Block(stmts, body) <- stmts:(stmt*) body:block_expr
-
-rule block_expr -> Block:
-    FunConstruct(x, t, r) <- x:identifier "." r:@this
-    FunType(n, at, bt) <- n:identifier ":" at:@this "->" bt:@this
-    FunType("_", at, bt) <- at:@next "->" bt:@this
-    --
-    FunDestruct(f, a) <- f:@this " " a:@next
-    --
-    Type() <- "Type"
-    Var(n) <- n:identifier
-    t <- "(" t:block ")"
+rule expr -> Expr:
+    Block(b) <- "{" b:block "}"
+    X() <- "x"
+    Y() <- "y"
 
 rule layout -> Str = [' ' | '\n']
-
-rule reserved_keyword -> Str = "let" / "set"
-
-rule identifier -> Str:
-    @error("Identifier")
-    @nolayout
-    s <- neg(reserved_keyword) s:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
