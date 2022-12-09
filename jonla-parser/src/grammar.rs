@@ -2,33 +2,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct GrammarFile<'input> {
-    pub asts: Vec<Ast<'input>>,
     pub rules: Vec<Rule<'input>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Ast<'input> {
-    pub name: &'input str,
-    pub constructors: Vec<AstConstructor<'input>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct AstConstructor<'input> {
-    pub name: &'input str,
-    pub args: Vec<(&'input str, AstType<'input>)>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum AstType<'input> {
-    Str,
-    Ast(&'input str),
-    List(Box<AstType<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Rule<'input> {
     pub name: &'input str,
-    pub rtrn: AstType<'input>,
     pub body: RuleBodyExpr<'input>,
 }
 
@@ -102,21 +81,12 @@ peg::parser! {
         rule __ = [' ' | '\n']*
         rule _n() = [' ']* ("\n" [' ']*)+
 
-        pub rule toplevel() -> GrammarFile<'input> = asts:(__ a:ast() __ {a})* __ rules:(__ r:prule() __ {r})* { GrammarFile{ asts, rules } }
-
-        //Ast
-        rule ast() -> Ast<'input> = "ast" _ name:identifier() _ ":" _n() constructors:(c:ast_constructor() {c})* { Ast { name, constructors } }
-        rule ast_constructor() -> AstConstructor<'input> = name:identifier() _ "(" _ args:ast_constructor_arg()**"," _ ")" _n() { AstConstructor{ name, args } }
-        rule ast_constructor_arg() -> (&'input str, AstType<'input>) = _ name:identifier() _ ":" _ typ:ast_constructor_type() _ { (name, typ) }
-        rule ast_constructor_type() -> AstType<'input> =
-            "Str" { AstType::Str } /
-            "[" _ t:ast_constructor_type() _ "]" { AstType::List(Box::new(t)) } /
-            r:identifier() { AstType::Ast(r) }
+        pub rule toplevel() -> GrammarFile<'input> = rules:(__ r:prule() __ {r})* { GrammarFile{ rules } }
 
         //Rule
         rule prule() -> Rule<'input> =
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ ":" _n() body:prule_body() { Rule{name, rtrn, body } } /
-            "rule" _ name:identifier() _ "->" _ rtrn:ast_constructor_type() _ "=" _ expr:prule_expr() _n() { Rule{name, rtrn, body: RuleBodyExpr::Body(expr) } }
+            "rule" _ name:identifier() _ ":" _n() body:prule_body() { Rule{name, body } } /
+            "rule" _ name:identifier() _ "=" _ expr:prule_expr() _n() { Rule{name, body: RuleBodyExpr::Body(expr) } }
 
         rule prule_body() -> RuleBodyExpr<'input> = precedence!{
             c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(Box::new(c1), Box::new(c2)) }

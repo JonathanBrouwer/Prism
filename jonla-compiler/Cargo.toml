@@ -8,11 +8,11 @@ edition = "2021"
 [dependencies]
 itertools = "0.10.3"
 thiserror = "1.0.31"
-jonla-macros = { path = "../jonla-macros" }
+jonla-parser = { path = "../jonla-parser" }
 
 [build-dependencies]
 peg = "0.8.0"
 itertools = "0.10.3"
 thiserror = "1.0.31"
 quote = "1.0.18"
-jonla-macros = { path = "../jonla-macros" }
+jonla-parser = { path = "../jonla-parser" }

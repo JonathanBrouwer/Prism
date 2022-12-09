@@ -1,24 +1,15 @@
-ast Stmt:
-    Let(e: Expr)
-    Do()
-
-ast Expr:
-    Block(b: [Stmt])
-    X()
-    Y()
-
-rule block -> [Stmt]:
-    b <- "grammar" "{" "}" ";" b:block
+rule block:
+    b <- "grammar" "{" g:$grammar "}" ";" b:block
     s :: b <- s:stmt ";" b:block
     [] <- ""
 
-rule stmt -> Stmt:
+rule stmt:
     Let(e) <- "let" e:expr
     Do() <- "do"
 
-rule expr -> Expr:
+rule expr:
     Block(b) <- "{" b:block "}"
     X() <- "x"
     Y() <- "y"
 
-rule layout -> Str = [' ' | '\n']
+rule layout = [' ' | '\n']
