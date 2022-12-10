@@ -69,6 +69,10 @@ pub fn parser_rule<
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
+        if rule == "grammar" {
+
+        }
+
         let body = rules.get(rule);
         let body = body.as_ref().unwrap();
         let mut res = parser_body_cache_recurse(
