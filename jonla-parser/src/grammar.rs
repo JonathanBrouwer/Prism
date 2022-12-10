@@ -1,25 +1,21 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct GrammarFile<'input> {
-    pub rules: Vec<Rule<'input>>,
+    pub rules: HashMap<&'input str, Rule<'input>>,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Rule<'input> {
     pub name: &'input str,
-    pub body: RuleBodyExpr<'input>,
+    pub blocks: Blocks<'input>,
 }
 
-pub type AnnotatedRuleExpr<'input> = (Vec<RuleAnnotation<'input>>, RuleExpr<'input>);
+pub type Blocks<'input> = Vec<Block<'input>>;
+pub type Block<'input> = Constructors<'input>;
 pub type Constructors<'input> = Vec<AnnotatedRuleExpr<'input>>;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RuleBodyExpr<'input> {
-    #[serde(borrow)]
-    Body(Constructors<'input>),
-    PrecedenceClimbBlock(Box<RuleBodyExpr<'input>>, Box<RuleBodyExpr<'input>>),
-}
+pub type AnnotatedRuleExpr<'input> = (Vec<RuleAnnotation<'input>>, RuleExpr<'input>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CharClass {
@@ -82,17 +78,15 @@ peg::parser! {
         rule __ = [' ' | '\n']*
         rule _n() = [' ']* ("\n" [' ']*)+
 
-        pub rule toplevel() -> GrammarFile<'input> = rules:(__ r:prule() __ {r})* { GrammarFile{ rules } }
+        pub rule toplevel() -> GrammarFile<'input> = rules:(__ r:prule() __ {r})* { GrammarFile{ rules: rules.into_iter().map(|rule| (rule.name, rule)).collect() } }
 
         //Rule
         rule prule() -> Rule<'input> =
-            "rule" _ name:identifier() _ ":" _n() body:prule_body() { Rule{name, body } } /
-            "rule" _ name:identifier() _ "=" _ expr:prule_expr() _n() { Rule{name, body: RuleBodyExpr::Body(vec![(vec![], expr)]) } }
+            "rule" _ name:identifier() _ ":" _n() blocks:prule_blocks() { Rule{name, blocks } } /
+            "rule" _ name:identifier() _ "=" _ expr:prule_expr() _n() { Rule{name, blocks: vec![vec![(vec![], expr)]] } }
 
-        rule prule_body() -> RuleBodyExpr<'input> = precedence!{
-            c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(Box::new(c1), Box::new(c2)) }
-            --
-            x:prule_constructors() { RuleBodyExpr::Body(x) }
+        rule prule_blocks() -> Blocks<'input> = precedence! {
+            bs:( prule_constructors() ) ** ("--" _n()) { bs }
         }
 
         rule prule_constructors() -> Constructors<'input> = precedence! {

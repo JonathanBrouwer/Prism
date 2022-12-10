@@ -1,4 +1,3 @@
-use crate::grammar::RuleBodyExpr;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::error_printer::ErrorLabel::Debug;
 use crate::parser::actual::parser_rule::{ParserContext, PR};
@@ -9,10 +8,11 @@ use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use crate::grammar::Block;
 
 type CacheKey<'b, 'grm> = (
     usize,
-    (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>),
+    (ByAddress<&'b [Block<'grm>]>, ParserContext<'b, 'grm>),
 );
 
 pub struct ParserState<'b, 'grm, PR> {
@@ -72,7 +72,7 @@ pub fn parser_cache_recurse<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     sub: &'a impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
-    id: (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>),
+    id: (ByAddress<&'b [Block<'grm>]>, ParserContext<'b, 'grm>),
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos_start: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|

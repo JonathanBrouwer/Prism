@@ -1,5 +1,3 @@
-use crate::grammar::RuleBodyExpr;
-
 use crate::parser::actual::action_result::ActionResult;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_layout::full_input_layout;
@@ -10,10 +8,11 @@ use crate::parser::core::presult::PResult;
 
 use crate::parser::core::stream::Stream;
 
-use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::grammar::{Block, GrammarFile};
+use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -23,8 +22,8 @@ pub type PR<'grm> = (
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Option<ByAddress<&'b RuleBodyExpr<'grm>>>,
-    pub(crate) prec_climb_next: Option<ByAddress<&'b RuleBodyExpr<'grm>>>,
+    pub(crate) prec_climb_this: Option<ByAddress<&'b [Block<'grm>]>>,
+    pub(crate) prec_climb_next: Option<ByAddress<&'b [Block<'grm>]>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -38,7 +37,7 @@ impl ParserContext<'_, '_> {
 }
 
 pub fn run_parser_rule<'b, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     rule: &'grm str,
     stream: S,
 ) -> Result<PR<'grm>, E> {
@@ -51,7 +50,7 @@ pub fn run_parser_rule<'b, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'gr
 }
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     rule: &'grm str,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
@@ -60,8 +59,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
           -> PResult<PR<'grm>, E, S> {
         if rule == "grammar" {}
 
-        let body = rules.get(rule);
-        let body = body.as_ref().unwrap();
+        let body = &rules.rules.get(rule).unwrap().blocks;
         let mut res = parser_body_cache_recurse(
             rules,
             body,

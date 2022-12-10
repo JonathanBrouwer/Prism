@@ -1,4 +1,4 @@
-use crate::grammar::{AnnotatedRuleExpr, RuleBodyExpr};
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile};
 use crate::grammar::{RuleAnnotation, RuleExpr};
 
 use crate::parser::actual::error_printer::ErrorLabel;
@@ -11,8 +11,6 @@ use crate::parser::core::presult::PResult;
 use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 
-use std::collections::HashMap;
-
 use crate::parser::actual::parser_rule::{ParserContext, PR};
 use crate::parser::actual::parser_rule_expr::parser_expr;
 
@@ -23,57 +21,52 @@ pub fn parser_body_cache_recurse<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    body: &'b RuleBodyExpr<'grm>,
+    rules: &'b GrammarFile<'grm>,
+    bs: &'b [Block<'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         parser_cache_recurse(
-            &parser_body_sub(rules, body, context),
-            (ByAddress(body), context.clone()),
+            &parser_body_sub_blocks(rules, bs, context),
+            (ByAddress(bs), context.clone()),
         )
         .parse(stream, state)
     }
 }
 
-fn parser_body_sub<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    body: &'b RuleBodyExpr<'grm>,
+fn parser_body_sub_blocks<
+    'a,
+    'b: 'a,
+    'grm: 'b,
+    S: Stream,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'b GrammarFile<'grm>,
+    bs: &'b [Block<'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        match body {
-            RuleBodyExpr::Body(x) => {
-                parser_body_sub_constructors(
-                    rules, x, context
-                ).parse(stream, state)
-            }
-            RuleBodyExpr::PrecedenceClimbBlock(e_this, e_next) => {
-                //Parse current with recursion check
-                let res = parser_body_cache_recurse(
-                    rules,
-                    e_this,
-                    &ParserContext {
-                        prec_climb_this: Some(ByAddress(body)),
-                        prec_climb_next: Some(ByAddress(e_next)),
-                        ..*context
-                    },
-                )
-                .parse(stream, state);
+        match bs {
+            [] => unreachable!(), // Should not be allowed by a future typechecker
+            [b] => parser_body_sub_constructors(rules, b, context).parse(stream, state),
+            [b, brest@..] => {
+                // Parse current
+                let res = parser_body_sub_constructors(rules, b,  &ParserContext {
+                    prec_climb_this: Some(ByAddress(bs)),
+                    prec_climb_next: Some(ByAddress(brest)),
+                    ..*context
+                },).parse(stream, state);
+
                 //Parse next with recursion check
                 res.merge_choice_parser(
                     &parser_body_cache_recurse(
                         rules,
-                        e_next,
-                        &ParserContext {
-                            prec_climb_this: None,
-                            prec_climb_next: None,
-                            ..*context
-                        },
+                        brest,
+                        context,
                     ),
                     stream,
                     state,
@@ -90,7 +83,7 @@ fn parser_body_sub_constructors<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     es: &'b [AnnotatedRuleExpr<'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
@@ -117,7 +110,7 @@ fn parser_body_sub_annotations<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,

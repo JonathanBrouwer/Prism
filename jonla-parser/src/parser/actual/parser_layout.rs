@@ -1,4 +1,3 @@
-use crate::grammar::RuleBodyExpr;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
 use crate::parser::core::error::ParseError;
@@ -7,7 +6,7 @@ use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::end;
 use crate::parser::core::stream::Stream;
-use std::collections::HashMap;
+use crate::grammar::GrammarFile;
 
 pub fn parser_with_layout<
     'a,
@@ -17,12 +16,12 @@ pub fn parser_with_layout<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos: S, state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
-        if context.layout_disabled || !rules.contains_key("layout") {
+        if context.layout_disabled || !rules.rules.contains_key("layout") {
             return sub.parse(pos, state);
         }
 
@@ -62,7 +61,7 @@ pub fn full_input_layout<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {

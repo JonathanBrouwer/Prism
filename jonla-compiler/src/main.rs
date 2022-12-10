@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use jonla_parser::grammar;
-use jonla_parser::grammar::{GrammarFile, RuleBodyExpr};
+use jonla_parser::grammar::{GrammarFile, Rule, RuleBodyExpr};
 use jonla_parser::parser::actual::error_printer::*;
 use jonla_parser::parser::actual::parser_rule::run_parser_rule;
 use jonla_parser::parser::core::stream::StringStream;
@@ -12,7 +12,7 @@ fn main() {
             panic!("{}", err);
         }
     };
-    let rules: HashMap<&str, RuleBodyExpr> = grammar.rules.iter().map(|r| (r.name, r.body.clone())).collect();
+    let rules: HashMap<&str, Rule> = grammar.rules.iter().map(|r| (r.name, r)).collect();
 
     let filename = "program.jnl";
     let input = include_str!("../resources/program.jnl");

@@ -13,7 +13,6 @@ macro_rules! parse_test {
         fn $name() {
             use jonla_parser::grammar;
             use jonla_parser::grammar::GrammarFile;
-            use jonla_parser::grammar::RuleBodyExpr;
             use jonla_parser::parser::core::error::empty_error::EmptyError;
             use jonla_parser::parser::core::parser::Parser;
             use jonla_parser::parser::core::presult::PResult;
@@ -32,8 +31,6 @@ macro_rules! parse_test {
                     panic!("{}", err);
                 }
             };
-            let rules: HashMap<&'static str, RuleBodyExpr<'static>> =
-                grammar.rules.iter().map(|r| (r.name, r.body.clone())).collect();
 
             $(
             let input: &'static str = $input_pass;
@@ -41,7 +38,7 @@ macro_rules! parse_test {
 
             let stream: StringStream = input.into();
 
-            match run_parser_rule(&rules, "start", stream) {
+            match run_parser_rule(&grammar, "start", stream) {
                 Ok(o) => {
                     let got = o.1.to_string(input);
                     assert_eq!($expected, got);
@@ -59,7 +56,7 @@ macro_rules! parse_test {
             println!("== Parsing (should be fail): {}", input);
 
             let stream: StringStream = input.into();
-            match run_parser_rule::<StringStream<'_>, EmptyError<_>>(&rules, "start", stream) {
+            match run_parser_rule::<StringStream<'_>, EmptyError<_>>(&grammar, "start", stream) {
                 Ok(o) => {
                     let got = o.1.to_string(input);
                     println!("Got: {:?}", got);

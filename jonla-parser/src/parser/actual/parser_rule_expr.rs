@@ -1,4 +1,4 @@
-use crate::grammar::{RuleAction, RuleBodyExpr, RuleExpr};
+use crate::grammar::{GrammarFile, RuleAction, RuleExpr};
 use crate::parser::actual::action_result::ActionResult;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_layout::parser_with_layout;
@@ -12,13 +12,13 @@ use crate::parser::core::primitives::{
 use crate::parser::core::stream::Stream;
 
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
-use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    rules: &'b GrammarFile<'grm>,
     expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
