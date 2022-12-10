@@ -1,0 +1,36 @@
+rule toplevel:
+    GrammarFile(rs) <- rs:prule*
+
+rule prule:
+    Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
+    Rule() <- "rule" name:identifier "=" expr:prule_expr _n
+
+rule prule_blocks = c :: cs <- c:prule_constructors cs:(c <- "--" _n c:prule_constructors)*
+rule prule_constructors = prule_annotated_expr*
+rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n) e:prule_expr _n
+
+rule prule_annotation:
+    Error(err) <- "@" "error" "(" err:pstring ")"
+    NoLayout() <- "@" "nolayout"
+
+
+
+
+rule pstring:
+    @error("String")
+    @nolayout
+    s <- ['\"'] s:str() ['\"']
+
+rule str_char:
+    [^ '\"' | '\'' | '\\']
+    "\n" <- ['\\']['\n']
+
+rule layout = [' ']
+
+rule _n = ['\n']+
+
+rule identifier:
+    @error("Identifier")
+    @nolayout
+    neg(reserved neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"

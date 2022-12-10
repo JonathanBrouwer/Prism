@@ -16,11 +16,11 @@ pub fn parser_with_layout<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos: S, state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
+    rules: &'grm GrammarFile,
+    sub: &'a impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
+    move |pos: S, state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
         if context.layout_disabled || !rules.rules.contains_key("layout") {
             return sub.parse(pos, state);
         }
@@ -61,12 +61,12 @@ pub fn full_input_layout<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    sub: &'a impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<O, E, S> {
         let res = sub.parse(stream, state);
         res.merge_seq_parser(&parser_with_layout(rules, &end(), context), state)

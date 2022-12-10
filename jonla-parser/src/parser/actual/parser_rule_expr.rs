@@ -17,12 +17,12 @@ use std::rc::Rc;
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarFile<'grm>,
-    expr: &'b RuleExpr<'grm>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    expr: &'grm RuleExpr,
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(
@@ -45,7 +45,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                 //First construct the literal parser
                 let parser_literal =
                     move |stream: S,
-                          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+                          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
                           -> PResult<PR<'grm>, E, S> {
                         let mut res = PResult::new_ok((), stream);
                         for char in literal.chars() {
@@ -158,12 +158,12 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
 }
 
 fn apply_action<'grm>(
-    rule: &RuleAction<'grm>,
+    rule: &'grm RuleAction,
     map: &HashMap<&str, Rc<ActionResult<'grm>>>,
 ) -> Rc<ActionResult<'grm>> {
     match rule {
         RuleAction::Name(name) => {
-            if let Some(v) = map.get(name) {
+            if let Some(v) = map.get(&name[..]) {
                 v.clone()
             } else {
                 panic!("Name not in context")

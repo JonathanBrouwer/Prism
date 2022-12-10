@@ -21,12 +21,12 @@ pub fn parser_body_cache_recurse<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    bs: &'b [Block<'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    bs: &'grm [Block],
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, context),
@@ -43,12 +43,12 @@ fn parser_body_sub_blocks<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    bs: &'b [Block<'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    bs: &'grm [Block],
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match bs {
             [] => unreachable!(), // Should not be allowed by a future typechecker
@@ -83,12 +83,12 @@ fn parser_body_sub_constructors<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    es: &'b [AnnotatedRuleExpr<'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    es: &'grm [AnnotatedRuleExpr],
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match es {
             [] => unreachable!(), // Should not be allowed by a future typechecker
@@ -110,13 +110,13 @@ fn parser_body_sub_annotations<
     S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarFile<'grm>,
-    annots: &'b [RuleAnnotation<'grm>],
-    expr: &'b RuleExpr<'grm>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    rules: &'grm GrammarFile,
+    annots: &'grm [RuleAnnotation],
+    expr: &'grm RuleExpr,
+    context: &'a ParserContext<'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
-          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
@@ -131,7 +131,7 @@ fn parser_body_sub_annotations<
             [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
                 rules,
                 &move |stream: S,
-                       state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+                       state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
                       -> PResult<_, E, S> {
                     parser_body_sub_annotations(
                         rules,
