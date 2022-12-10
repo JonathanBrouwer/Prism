@@ -57,8 +57,6 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        if rule == "grammar" {}
-
         let body = &rules.rules.get(rule).unwrap().blocks;
         let mut res = parser_body_cache_recurse(
             rules,
