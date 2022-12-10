@@ -1,4 +1,4 @@
-use crate::grammar::RuleBodyExpr;
+use crate::grammar::{AnnotatedRuleExpr, RuleBodyExpr};
 use crate::grammar::{RuleAnnotation, RuleExpr};
 
 use crate::parser::actual::error_printer::ErrorLabel;
@@ -47,12 +47,11 @@ fn parser_body_sub<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match body {
-            RuleBodyExpr::Body((annots, expr)) => {
-                parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
+            RuleBodyExpr::Body(x) => {
+                parser_body_sub_constructors(
+                    rules, x, context
+                ).parse(stream, state)
             }
-            RuleBodyExpr::Constructors(c1, c2) => parser_body_sub(rules, c1, context)
-                .parse(stream, state)
-                .merge_choice_parser(&parser_body_sub(rules, c2, context), stream, state),
             RuleBodyExpr::PrecedenceClimbBlock(e_this, e_next) => {
                 //Parse current with recursion check
                 let res = parser_body_cache_recurse(
@@ -83,6 +82,33 @@ fn parser_body_sub<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
         }
     }
 }
+
+fn parser_body_sub_constructors<
+    'a,
+    'b: 'a,
+    'grm: 'b,
+    S: Stream,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    es: &'b [AnnotatedRuleExpr<'grm>],
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    move |stream: S,
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          -> PResult<PR<'grm>, E, S> {
+        match es {
+            [] => unreachable!(), // Should not be allowed by a future typechecker
+            [(annots, expr)] => parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state),
+            [(annots, expr), rest@..] => {
+                parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
+
+                    .merge_choice_parser(&parser_body_sub_constructors(rules, rest, context), stream, state)
+            }
+        }
+    }
+}
+
 
 fn parser_body_sub_annotations<
     'a,
