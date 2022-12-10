@@ -12,7 +12,6 @@ use crate::parser::core::primitives::{
 use crate::parser::core::stream::Stream;
 
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
-use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
@@ -83,7 +82,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                 (
                     HashMap::new(),
                     Rc::new(ActionResult::List(
-                        list.into_iter().map(|pr| pr.1).collect_vec(),
+                        list.into_iter().map(|pr| pr.1).collect(),
                     )),
                 )
             }),
@@ -172,7 +171,7 @@ fn apply_action<'grm>(
         }
         RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),
         RuleAction::Construct(name, args) => {
-            let args_vals = args.iter().map(|a| apply_action(a, map)).collect_vec();
+            let args_vals = args.iter().map(|a| apply_action(a, map)).collect();
             Rc::new(ActionResult::Construct(name, args_vals))
         }
         RuleAction::Cons(h, t) => {
