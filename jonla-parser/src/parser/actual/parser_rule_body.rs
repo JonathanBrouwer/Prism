@@ -1,5 +1,5 @@
-use crate::grammar::RuleAnnotation;
 use crate::grammar::RuleBodyExpr;
+use crate::grammar::{RuleAnnotation, RuleExpr};
 
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_layout::parser_with_layout;
@@ -20,13 +20,13 @@ pub fn parser_body_cache_recurse<
     'a,
     'b: 'a,
     'grm: 'b,
-    S: Stream<I = char>,
+    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     body: &'b RuleBodyExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
@@ -38,22 +38,18 @@ pub fn parser_body_cache_recurse<
     }
 }
 
-fn parser_body_sub<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    S: Stream<I = char>,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+fn parser_body_sub<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     body: &'b RuleBodyExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match body {
-            RuleBodyExpr::Body(expr) => parser_expr(rules, expr, context).parse(stream, state),
+            RuleBodyExpr::Body((annots, expr)) => {
+                parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
+            }
             RuleBodyExpr::Constructors(c1, c2) => parser_body_sub(rules, c1, context)
                 .parse(stream, state)
                 .merge_choice_parser(&parser_body_sub(rules, c2, context), stream, state),
@@ -84,22 +80,44 @@ fn parser_body_sub<
                     state,
                 )
             }
-            RuleBodyExpr::Annotation(RuleAnnotation::Error(err_label), rest) => {
-                let mut res = parser_body_sub(rules, rest, context).parse(stream, state);
+        }
+    }
+}
+
+fn parser_body_sub_annotations<
+    'a,
+    'b: 'a,
+    'grm: 'b,
+    S: Stream,
+    E: ParseError<L = ErrorLabel<'grm>> + Clone,
+>(
+    rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
+    annots: &'b [RuleAnnotation<'grm>],
+    expr: &'b RuleExpr<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+    move |stream: S,
+          state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
+          -> PResult<PR<'grm>, E, S> {
+        match annots {
+            [RuleAnnotation::Error(err_label), rest @ ..] => {
+                let mut res =
+                    parser_body_sub_annotations(rules, rest, expr, context).parse(stream, state);
                 res.add_label(ErrorLabel::Explicit(
                     stream.span_to(res.get_stream().next().0),
                     err_label,
                 ));
                 res
             }
-            RuleBodyExpr::Annotation(RuleAnnotation::NoLayout, rest) => parser_with_layout(
+            [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
                 rules,
                 &move |stream: S,
                        state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
                       -> PResult<_, E, S> {
-                    parser_body_sub(
+                    parser_body_sub_annotations(
                         rules,
                         rest,
+                        expr,
                         &ParserContext {
                             layout_disabled: true,
                             ..*context
@@ -110,6 +128,7 @@ fn parser_body_sub<
                 context,
             )
             .parse(stream, state),
+            &[] => parser_expr(rules, &expr, context).parse(stream, state),
         }
     }
 }

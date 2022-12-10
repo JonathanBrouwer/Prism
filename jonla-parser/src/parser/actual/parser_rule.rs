@@ -37,12 +37,7 @@ impl ParserContext<'_, '_> {
     }
 }
 
-pub fn run_parser_rule<
-    'b,
-    'grm: 'b,
-    S: Stream<I = char>,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+pub fn run_parser_rule<'b, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     rule: &'grm str,
     stream: S,
@@ -55,23 +50,15 @@ pub fn run_parser_rule<
     x
 }
 
-pub fn parser_rule<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    S: Stream<I = char>,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     rule: &'grm str,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        if rule == "grammar" {
-
-        }
+        if rule == "grammar" {}
 
         let body = rules.get(rule);
         let body = body.as_ref().unwrap();

@@ -14,13 +14,13 @@ pub fn parser_with_layout<
     'b: 'a,
     'grm: 'b,
     O,
-    S: Stream<I = char>,
+    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    sub: &'a impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos: S, state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
         if context.layout_disabled || !rules.contains_key("layout") {
             return sub.parse(pos, state);
@@ -59,13 +59,13 @@ pub fn full_input_layout<
     'b: 'a,
     'grm: 'b,
     O,
-    S: Stream<I = char>,
+    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
-    sub: &'a impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<O, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<O, E, S> {

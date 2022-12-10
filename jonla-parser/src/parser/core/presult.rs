@@ -101,7 +101,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn merge_choice_parser<Q, P: Parser<S::I, O, S, E, Q>>(
+    pub fn merge_choice_parser<Q, P: Parser<O, S, E, Q>>(
         self,
         other: &P,
         stream: S,
@@ -115,7 +115,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         self.merge_choice(other.parse(stream, state))
     }
 
-    pub fn merge_seq_parser<O2, Q, P2: Parser<S::I, O2, S, E, Q>>(
+    pub fn merge_seq_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
         self,
         other: &P2,
         state: &mut Q,
@@ -129,7 +129,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         self.merge_seq(other.parse(pos, state))
     }
 
-    pub fn merge_seq_opt_parser<O2, Q, P2: Parser<S::I, O2, S, E, Q>>(
+    pub fn merge_seq_opt_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
         self,
         other: &P2,
         state: &mut Q,

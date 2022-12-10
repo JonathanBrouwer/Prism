@@ -2,12 +2,10 @@ use crate::parser::core::span::Span;
 use std::cmp::Ordering;
 
 pub trait Stream: Sized + Clone + Copy {
-    type I: Clone + Eq;
-
     fn pos(self) -> usize;
     fn cmp(self, other: Self) -> Ordering;
     fn span_to(self, other: Self) -> Span;
-    fn next(self) -> (Self, Option<(Span, Self::I)>);
+    fn next(self) -> (Self, Option<(Span, char)>);
     fn span_rest(self) -> Span;
 }
 
@@ -15,8 +13,6 @@ pub trait Stream: Sized + Clone + Copy {
 pub struct StringStream<'a>(&'a str, usize);
 
 impl Stream for StringStream<'_> {
-    type I = char;
-
     fn pos(self) -> usize {
         self.1
     }
@@ -29,7 +25,7 @@ impl Stream for StringStream<'_> {
         Span::new(self.1, other.1)
     }
 
-    fn next(self) -> (Self, Option<(Span, Self::I)>) {
+    fn next(self) -> (Self, Option<(Span, char)>) {
         match self.0[self.1..].chars().next() {
             None => (self, None),
             Some(c) => (

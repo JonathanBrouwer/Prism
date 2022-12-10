@@ -11,13 +11,14 @@ pub struct Rule<'input> {
     pub body: RuleBodyExpr<'input>,
 }
 
+pub type AnnotatedRuleExpr<'input> = (Vec<RuleAnnotation<'input>>, RuleExpr<'input>);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleBodyExpr<'input> {
     #[serde(borrow)]
-    Body(RuleExpr<'input>),
+    Body(AnnotatedRuleExpr<'input>),
     Constructors(Box<RuleBodyExpr<'input>>, Box<RuleBodyExpr<'input>>),
     PrecedenceClimbBlock(Box<RuleBodyExpr<'input>>, Box<RuleBodyExpr<'input>>),
-    Annotation(RuleAnnotation<'input>, Box<RuleBodyExpr<'input>>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -65,7 +66,7 @@ pub enum RuleAction<'input> {
     InputLiteral(&'input str),
     Construct(&'input str, Vec<RuleAction<'input>>),
     Cons(Box<RuleAction<'input>>, Box<RuleAction<'input>>),
-    Nil()
+    Nil(),
 }
 
 peg::parser! {
@@ -86,15 +87,14 @@ peg::parser! {
         //Rule
         rule prule() -> Rule<'input> =
             "rule" _ name:identifier() _ ":" _n() body:prule_body() { Rule{name, body } } /
-            "rule" _ name:identifier() _ "=" _ expr:prule_expr() _n() { Rule{name, body: RuleBodyExpr::Body(expr) } }
+            "rule" _ name:identifier() _ "=" _ expr:prule_expr() _n() { Rule{name, body: RuleBodyExpr::Body((vec![], expr)) } }
 
         rule prule_body() -> RuleBodyExpr<'input> = precedence!{
             c1:@ "--" _n() c2:(@) { RuleBodyExpr::PrecedenceClimbBlock(Box::new(c1), Box::new(c2)) }
             --
             c1:@ __ c2:(@) { RuleBodyExpr::Constructors(Box::new(c1), Box::new(c2)) }
             --
-            annot:prule_annotation() _n() rest:@ { RuleBodyExpr::Annotation(annot, Box::new(rest)) }
-            expr:prule_expr() _n() { RuleBodyExpr::Body(expr) }
+            ans:(a:prule_annotation() _n() {a})* expr:prule_expr() _n() { RuleBodyExpr::Body((ans, expr)) }
         }
 
         rule prule_annotation() -> RuleAnnotation<'input> = precedence! {

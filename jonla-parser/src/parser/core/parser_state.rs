@@ -68,13 +68,12 @@ pub fn parser_cache_recurse<
     'a,
     'b: 'a,
     'grm: 'b,
-    I: Clone + Eq,
-    S: Stream<I = I>,
+    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    sub: &'a impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>>,
     id: (ByAddress<&'b RuleBodyExpr<'grm>>, ParserContext<'b, 'grm>),
-) -> impl Parser<I, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |pos_start: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {

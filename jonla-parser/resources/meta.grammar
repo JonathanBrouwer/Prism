@@ -1,0 +1,8 @@
+rule toplevel:
+    GrammarFile(rs) <- rs:prule*
+
+rule prule:
+    Rule() <- ""
+
+
+rule layout = [' ']

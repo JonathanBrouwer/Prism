@@ -5,10 +5,10 @@ use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::span::Span;
 use crate::parser::core::stream::Stream;
 
-pub fn single<I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q, F: Fn(&I) -> bool>(
+pub fn single<S: Stream, E: ParseError, Q, F: Fn(&char) -> bool>(
     f: F,
-) -> impl Parser<I, (Span, I), S, E, Q> {
-    move |pos: S, _: &mut Q| -> PResult<(Span, I), E, S> {
+) -> impl Parser<(Span, char), S, E, Q> {
+    move |pos: S, _: &mut Q| -> PResult<(Span, char), E, S> {
         match pos.next() {
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
             (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
@@ -16,10 +16,10 @@ pub fn single<I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q, F: Fn(&I) -> bo
     }
 }
 
-pub fn seq2<'a, I: Clone + Eq, O1, O2, S: Stream<I = I>, E: ParseError, Q>(
-    p1: &'a impl Parser<I, O1, S, E, Q>,
-    p2: &'a impl Parser<I, O2, S, E, Q>,
-) -> impl Parser<I, (O1, O2), S, E, Q> + 'a {
+pub fn seq2<'a, O1, O2, S: Stream, E: ParseError, Q>(
+    p1: &'a impl Parser<O1, S, E, Q>,
+    p2: &'a impl Parser<O2, S, E, Q>,
+) -> impl Parser<(O1, O2), S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<(O1, O2), E, S> {
         let res1 = p1.parse(stream, state);
         let stream = res1.get_stream();
@@ -27,10 +27,10 @@ pub fn seq2<'a, I: Clone + Eq, O1, O2, S: Stream<I = I>, E: ParseError, Q>(
     }
 }
 
-pub fn choice2<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
-    p1: &'a impl Parser<I, O, S, E, Q>,
-    p2: &'a impl Parser<I, O, S, E, Q>,
-) -> impl Parser<I, O, S, E, Q> + 'a {
+pub fn choice2<'a, O, S: Stream, E: ParseError, Q>(
+    p1: &'a impl Parser<O, S, E, Q>,
+    p2: &'a impl Parser<O, S, E, Q>,
+) -> impl Parser<O, S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<O, E, S> {
         p1.parse(stream, state)
             .merge_choice(p2.parse(stream, state))
@@ -38,20 +38,19 @@ pub fn choice2<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
 }
 
 pub fn repeat_delim<
-    I: Clone + Eq,
     OP,
     OD,
-    S: Stream<I = I>,
+    S: Stream,
     E: ParseError,
     Q,
-    P: Parser<I, OP, S, E, Q>,
-    D: Parser<I, OD, S, E, Q>,
+    P: Parser<OP, S, E, Q>,
+    D: Parser<OD, S, E, Q>,
 >(
     item: P,
     delimiter: D,
     min: usize,
     max: Option<usize>,
-) -> impl Parser<I, Vec<OP>, S, E, Q> {
+) -> impl Parser<Vec<OP>, S, E, Q> {
     move |stream: S, state: &mut Q| -> PResult<Vec<OP>, E, S> {
         let mut last_res: PResult<Vec<OP>, E, S> = PResult::new_ok(vec![], stream);
 
@@ -87,8 +86,7 @@ pub fn repeat_delim<
     }
 }
 
-pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>(
-) -> impl Parser<I, (), S, E, Q> + 'a {
+pub fn end<'a, S: Stream, E: ParseError, Q>() -> impl Parser<(), S, E, Q> + 'a {
     move |stream: S, _: &mut Q| -> PResult<(), E, S> {
         match stream.next() {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
@@ -97,9 +95,9 @@ pub fn end<'a, I: Clone + Eq, S: Stream<I = I>, E: ParseError, Q>(
     }
 }
 
-pub fn positive_lookahead<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
-    p: &'a impl Parser<I, O, S, E, Q>,
-) -> impl Parser<I, O, S, E, Q> + 'a {
+pub fn positive_lookahead<'a, O, S: Stream, E: ParseError, Q>(
+    p: &'a impl Parser<O, S, E, Q>,
+) -> impl Parser<O, S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<O, E, S> {
         match p.parse(stream, state) {
             POk(o, _, err) => POk(o, stream, err),
@@ -108,9 +106,9 @@ pub fn positive_lookahead<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError,
     }
 }
 
-pub fn negative_lookahead<'a, I: Clone + Eq, O, S: Stream<I = I>, E: ParseError, Q>(
-    p: &'a impl Parser<I, O, S, E, Q>,
-) -> impl Parser<I, (), S, E, Q> + 'a {
+pub fn negative_lookahead<'a, O, S: Stream, E: ParseError, Q>(
+    p: &'a impl Parser<O, S, E, Q>,
+) -> impl Parser<(), S, E, Q> + 'a {
     move |stream: S, state: &mut Q| -> PResult<(), E, S> {
         match p.parse(stream, state) {
             POk(_, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),

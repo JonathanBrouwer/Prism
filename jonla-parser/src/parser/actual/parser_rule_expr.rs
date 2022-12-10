@@ -17,17 +17,11 @@ use itertools::Itertools;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-pub fn parser_expr<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    S: Stream<I = char>,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b HashMap<&'grm str, RuleBodyExpr<'grm>>,
     expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<char, PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
+) -> impl Parser<PR<'grm>, S, E, ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>> + 'a {
     move |stream: S,
           state: &mut ParserState<'b, 'grm, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
@@ -186,13 +180,11 @@ fn apply_action<'grm>(
             res.push(apply_action(h, map));
             res.extend_from_slice(match &*apply_action(t, map) {
                 ActionResult::List(v) => &v[..],
-                _ => unreachable!()
+                _ => unreachable!(),
             });
 
             Rc::new(ActionResult::List(res))
         }
-        RuleAction::Nil() => {
-            Rc::new(ActionResult::List(Vec::new()))
-        }
+        RuleAction::Nil() => Rc::new(ActionResult::List(Vec::new())),
     }
 }
