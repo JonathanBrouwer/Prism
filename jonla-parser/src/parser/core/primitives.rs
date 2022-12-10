@@ -86,7 +86,7 @@ pub fn repeat_delim<
     }
 }
 
-pub fn end<'a, S: Stream, E: ParseError, Q>() -> impl Parser<(), S, E, Q> + 'a {
+pub fn end<S: Stream, E: ParseError, Q>() -> impl Parser<(), S, E, Q> {
     move |stream: S, _: &mut Q| -> PResult<(), E, S> {
         match stream.next() {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
@@ -95,9 +95,9 @@ pub fn end<'a, S: Stream, E: ParseError, Q>() -> impl Parser<(), S, E, Q> + 'a {
     }
 }
 
-pub fn positive_lookahead<'a, O, S: Stream, E: ParseError, Q>(
-    p: &'a impl Parser<O, S, E, Q>,
-) -> impl Parser<O, S, E, Q> + 'a {
+pub fn positive_lookahead<O, S: Stream, E: ParseError, Q>(
+    p: &impl Parser<O, S, E, Q>,
+) -> impl Parser<O, S, E, Q> + '_ {
     move |stream: S, state: &mut Q| -> PResult<O, E, S> {
         match p.parse(stream, state) {
             POk(o, _, err) => POk(o, stream, err),
@@ -106,9 +106,9 @@ pub fn positive_lookahead<'a, O, S: Stream, E: ParseError, Q>(
     }
 }
 
-pub fn negative_lookahead<'a, O, S: Stream, E: ParseError, Q>(
-    p: &'a impl Parser<O, S, E, Q>,
-) -> impl Parser<(), S, E, Q> + 'a {
+pub fn negative_lookahead<O, S: Stream, E: ParseError, Q>(
+    p: &impl Parser<O, S, E, Q>,
+) -> impl Parser<(), S, E, Q> + '_ {
     move |stream: S, state: &mut Q| -> PResult<(), E, S> {
         match p.parse(stream, state) {
             POk(_, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),

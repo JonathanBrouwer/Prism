@@ -1,3 +1,4 @@
+use crate::grammar::GrammarFile;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
 use crate::parser::core::error::ParseError;
@@ -6,7 +7,6 @@ use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::end;
 use crate::parser::core::stream::Stream;
-use crate::grammar::GrammarFile;
 
 pub fn parser_with_layout<
     'a,
@@ -65,9 +65,7 @@ pub fn full_input_layout<
     sub: &'a impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S,
-          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
-          -> PResult<O, E, S> {
+    move |stream: S, state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
         let res = sub.parse(stream, state);
         res.merge_seq_parser(&parser_with_layout(rules, &end(), context), state)
             .map(|(o, _)| o)

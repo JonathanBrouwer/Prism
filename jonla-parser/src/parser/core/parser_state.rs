@@ -1,3 +1,4 @@
+use crate::grammar::Block;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::error_printer::ErrorLabel::Debug;
 use crate::parser::actual::parser_rule::{ParserContext, PR};
@@ -8,12 +9,8 @@ use crate::parser::core::presult::PResult::{PErr, POk};
 use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 use std::collections::HashMap;
-use crate::grammar::Block;
 
-type CacheKey<'b> = (
-    usize,
-    (ByAddress<&'b [Block]>, ParserContext<'b>),
-);
+type CacheKey<'b> = (usize, (ByAddress<&'b [Block]>, ParserContext<'b>));
 
 pub struct ParserState<'b, PR> {
     //Cache for parser_cache_recurse
@@ -35,11 +32,11 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
     }
 
     fn cache_is_read(&self, key: &CacheKey<'b>) -> Option<bool> {
-        self.cache.get(&key).map(|v| v.read)
+        self.cache.get(key).map(|v| v.read)
     }
 
     fn cache_get(&mut self, key: &CacheKey<'b>) -> Option<&PR> {
-        if let Some(v) = self.cache.get_mut(&key) {
+        if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
         } else {

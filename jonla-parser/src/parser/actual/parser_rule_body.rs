@@ -53,21 +53,22 @@ fn parser_body_sub_blocks<
         match bs {
             [] => unreachable!(), // Should not be allowed by a future typechecker
             [b] => parser_body_sub_constructors(rules, b, context).parse(stream, state),
-            [b, brest@..] => {
+            [b, brest @ ..] => {
                 // Parse current
-                let res = parser_body_sub_constructors(rules, b,  &ParserContext {
-                    prec_climb_this: Some(ByAddress(bs)),
-                    prec_climb_next: Some(ByAddress(brest)),
-                    ..*context
-                },).parse(stream, state);
+                let res = parser_body_sub_constructors(
+                    rules,
+                    b,
+                    &ParserContext {
+                        prec_climb_this: Some(ByAddress(bs)),
+                        prec_climb_next: Some(ByAddress(brest)),
+                        ..*context
+                    },
+                )
+                .parse(stream, state);
 
                 //Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body_cache_recurse(
-                        rules,
-                        brest,
-                        context,
-                    ),
+                    &parser_body_cache_recurse(rules, brest, context),
                     stream,
                     state,
                 )
@@ -92,16 +93,21 @@ fn parser_body_sub_constructors<
           -> PResult<PR<'grm>, E, S> {
         match es {
             [] => unreachable!(), // Should not be allowed by a future typechecker
-            [(annots, expr)] => parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state),
-            [(annots, expr), rest@..] => {
+            [(annots, expr)] => {
                 parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
-
-                    .merge_choice_parser(&parser_body_sub_constructors(rules, rest, context), stream, state)
+            }
+            [(annots, expr), rest @ ..] => {
+                parser_body_sub_annotations(rules, annots, expr, context)
+                    .parse(stream, state)
+                    .merge_choice_parser(
+                        &parser_body_sub_constructors(rules, rest, context),
+                        stream,
+                        state,
+                    )
             }
         }
     }
 }
-
 
 fn parser_body_sub_annotations<
     'a,
@@ -147,7 +153,7 @@ fn parser_body_sub_annotations<
                 context,
             )
             .parse(stream, state),
-            &[] => parser_expr(rules, &expr, context).parse(stream, state),
+            &[] => parser_expr(rules, expr, context).parse(stream, state),
         }
     }
 }

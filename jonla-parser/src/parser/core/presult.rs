@@ -28,7 +28,9 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     pub fn add_label(&mut self, l: E::L) {
         match self {
             POk(_, _, e) => {
-                e.as_mut().map(|(e, _)| e.add_label(l));
+                if let Some((e, _)) = e.as_mut() {
+                    e.add_label(l);
+                }
             }
             PErr(e, _) => {
                 e.add_label(l);

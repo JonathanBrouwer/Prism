@@ -40,8 +40,8 @@ impl Stream for StringStream<'_> {
     }
 }
 
-impl<'a> Into<StringStream<'a>> for &'a str {
-    fn into(self) -> StringStream<'a> {
-        StringStream(self, 0)
+impl<'a> From<&'a str> for StringStream<'a> {
+    fn from(s: &'a str) -> Self {
+        StringStream(s, 0)
     }
 }
