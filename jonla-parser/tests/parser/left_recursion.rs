@@ -4,6 +4,7 @@ parse_test! {
 name: left_recursion
 syntax: r#"
     rule start:
+        --
         X(e) <- e:@this "X"
         --
         Y() <- "Y"
@@ -24,6 +25,7 @@ parse_test! {
 name: left_recursion_direct
 syntax: r#"
     rule start:
+        --
         X(e) <- e:start "X"
         --
         Y() <- "Y"

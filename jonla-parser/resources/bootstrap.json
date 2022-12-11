@@ -1018,59 +1018,53 @@
           [
             [],
             {
-              "Action": [
-                {
-                  "Sequence": [
+              "Repeat": {
+                "expr": {
+                  "Action": [
                     {
-                      "NameBind": [
-                        "c",
+                      "Sequence": [
                         {
-                          "Rule": "prule_constructors"
+                          "Literal": "--"
+                        },
+                        {
+                          "Sequence": [
+                            {
+                              "Rule": "_n"
+                            },
+                            {
+                              "NameBind": [
+                                "c",
+                                {
+                                  "Rule": "prule_constructors"
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     },
                     {
-                      "NameBind": [
-                        "cs",
-                        {
-                          "Repeat": {
-                            "expr": {
-                              "Action": [
-                                {
-                                  "Sequence": [
-                                    {
-                                      "Literal": "--"
-                                    },
-                                    {
-                                      "Sequence": [
-                                        {
-                                          "Rule": "_n"
-                                        },
-                                        {
-                                          "NameBind": [
-                                            "c",
-                                            {
-                                              "Rule": "prule_constructors"
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                },
-                                {
-                                  "Name": "c"
-                                }
-                              ]
-                            },
-                            "min": 0,
-                            "max": null,
-                            "delim": {
-                              "Sequence": []
-                            }
-                          }
-                        }
-                      ]
+                      "Name": "c"
+                    }
+                  ]
+                },
+                "min": 1,
+                "max": null,
+                "delim": {
+                  "Sequence": []
+                }
+              }
+            }
+          ],
+          [
+            [],
+            {
+              "Action": [
+                {
+                  "NameBind": [
+                    "c",
+                    {
+                      "Rule": "prule_constructors"
                     }
                   ]
                 },
@@ -1080,7 +1074,7 @@
                       "Name": "c"
                     },
                     {
-                      "Name": "cs"
+                      "Nil": []
                     }
                   ]
                 }

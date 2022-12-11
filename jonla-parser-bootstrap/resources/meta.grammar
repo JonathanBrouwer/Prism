@@ -5,7 +5,10 @@ rule prule:
     Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
     Rule(name, (AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
 
-rule prule_blocks = c :: cs <- c:prule_constructors cs:(c <- "--" _n c:prule_constructors)*
+rule prule_blocks:
+    (c <- "--" _n c:prule_constructors)+
+    c :: [] <- c:prule_constructors
+
 rule prule_constructors = prule_annotated_expr+
 rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
 
@@ -14,6 +17,7 @@ rule prule_annotation:
     NoLayout() <- "@" "nolayout"
 
 rule prule_expr:
+    --
     Action(r, a) <- a:prule_action "<-" r:@this
     --
     Choice(x :: y :: []) <- x:@next "/" y:@this
@@ -37,6 +41,7 @@ rule prule_expr:
     Rule(n) <- n:identifier
 
 rule prule_action:
+    --
     Cons(h, t) <- h:@next "::" t:@this
     --
     Nil() <- "[]"

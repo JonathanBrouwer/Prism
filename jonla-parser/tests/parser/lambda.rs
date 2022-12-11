@@ -11,6 +11,7 @@ rule identifier:
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
 rule term:
+    --
     Let(n, t, v, b) <- "let" n:identifier ":" t:@next "=" v:@next ";" b:@this
     --
     FunConstruct(x, t, r) <- x:identifier ":" t:@this "." r:@this

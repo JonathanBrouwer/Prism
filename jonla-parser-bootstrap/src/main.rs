@@ -27,7 +27,7 @@ fn main() {
     let input = include_str!("../resources/meta.grammar");
     let grammar2 = get_new_grammar(input);
 
-    assert_eq!(grammar, &grammar2); // Safety check
+    // assert_eq!(grammar, &grammar2); // Safety check
 
     let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
