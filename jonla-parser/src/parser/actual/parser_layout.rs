@@ -1,21 +1,18 @@
 use crate::grammar::GrammarFile;
 use crate::parser::actual::error_printer::ErrorLabel;
-use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
+use crate::parser::actual::parser_rule::{parser_rule, PState, ParserContext};
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
-use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::end;
 use crate::parser::core::stream::StringStream;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
-    sub: &'a impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
+    sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
-    move |pos: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
-          -> PResult<'grm, O, E> {
+) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
+    move |pos: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
         if context.layout_disabled || !rules.rules.contains_key("layout") {
             return sub.parse(pos, state);
         }
@@ -50,12 +47,10 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
-    sub: &'a impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
+    sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
-          -> PResult<'grm, O, E> {
+) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
         let res = sub.parse(stream, state);
         res.merge_seq_parser(&parser_with_layout(rules, &end(), context), state)
             .map(|(o, _)| o)

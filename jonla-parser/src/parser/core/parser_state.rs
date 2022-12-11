@@ -1,7 +1,7 @@
 use crate::grammar::Block;
 use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::error_printer::ErrorLabel::Debug;
-use crate::parser::actual::parser_rule::{ParserContext, PR};
+use crate::parser::actual::parser_rule::{PState, ParserContext, PR};
 use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
@@ -62,11 +62,11 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
 }
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    sub: &'a impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
+    sub: &'a impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>>,
     id: (ByAddress<&'b [Block]>, ParserContext<'b>),
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |pos_start: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         //Check if this result is cached
         let key = (pos_start.pos(), id.clone());

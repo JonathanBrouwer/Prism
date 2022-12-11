@@ -5,12 +5,12 @@ use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_layout::parser_with_layout;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
-use crate::parser::core::parser_state::{parser_cache_recurse, ParserState};
+use crate::parser::core::parser_state::parser_cache_recurse;
 use crate::parser::core::presult::PResult;
 
 use by_address::ByAddress;
 
-use crate::parser::actual::parser_rule::{ParserContext, PR};
+use crate::parser::actual::parser_rule::{PState, ParserContext, PR};
 use crate::parser::actual::parser_rule_expr::parser_expr;
 use crate::parser::core::stream::StringStream;
 
@@ -23,9 +23,9 @@ pub fn parser_body_cache_recurse<
     rules: &'grm GrammarFile,
     bs: &'grm [Block],
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, context),
@@ -39,9 +39,9 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     rules: &'grm GrammarFile,
     bs: &'grm [Block],
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         match bs {
             [] => unreachable!(),
@@ -79,9 +79,9 @@ fn parser_body_sub_constructors<
     rules: &'grm GrammarFile,
     es: &'grm [AnnotatedRuleExpr],
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         match es {
             [] => unreachable!(),
@@ -111,9 +111,9 @@ fn parser_body_sub_annotations<
     annots: &'grm [RuleAnnotation],
     expr: &'grm RuleExpr,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
@@ -128,7 +128,7 @@ fn parser_body_sub_annotations<
             [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
                 rules,
                 &move |stream: StringStream<'grm>,
-                       state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+                       state: &mut PState<'b, 'grm, E>|
                       -> PResult<'grm, _, E> {
                     parser_body_sub_annotations(
                         rules,

@@ -4,13 +4,12 @@ use crate::parser::actual::error_printer::ErrorLabel;
 use crate::parser::actual::parser_layout::parser_with_layout;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::parser::Parser;
-use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
 };
 
-use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
+use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR, PState};
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::core::stream::StringStream;
 use std::collections::HashMap;
@@ -20,9 +19,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'grm GrammarFile,
     expr: &'grm RuleExpr,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(
@@ -45,7 +44,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 //First construct the literal parser
                 let parser_literal =
                     move |stream: StringStream<'grm>,
-                          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+                          state: &mut PState<'b, 'grm, E>|
                           -> PResult<'grm, PR<'grm>, E> {
                         let mut res = PResult::new_ok((), stream);
                         for char in literal.chars() {

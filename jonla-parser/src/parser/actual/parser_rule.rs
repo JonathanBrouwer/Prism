@@ -18,6 +18,8 @@ pub type PR<'grm> = (
     Rc<ActionResult<'grm>>,
 );
 
+pub type PState<'b, 'grm, E> = ParserState<'b, PResult<'grm, PR<'grm>, E>>;
+
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'grm> {
     pub(crate) layout_disabled: bool,
@@ -52,9 +54,9 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'grm GrammarFile,
     rule: &'grm str,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>,
-          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          state: &mut PState<'b, 'grm, E>|
           -> PResult<'grm, PR<'grm>, E> {
         let body: &'grm Blocks = &rules
             .rules
