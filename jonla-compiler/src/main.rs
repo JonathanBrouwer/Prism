@@ -1,4 +1,5 @@
 use jonla_parser::grammar;
+use jonla_parser::grammar::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::GrammarFile;
 use jonla_parser::parser::actual::error_printer::*;
 use jonla_parser::parser::actual::parser_rule::run_parser_rule;
@@ -18,7 +19,11 @@ fn main() {
     let result: Result<_, _> = run_parser_rule(&grammar, "toplevel", input_stream);
 
     match result {
-        Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
+        Ok(o) => {
+            let grammar2 = parse_grammarfile(&*o.1, input);
+            assert_eq!(grammar, grammar2);
+            println!("{:?}", grammar2)
+        }
         Err(e) => print_tree_error(e, "file", input, true),
     }
 

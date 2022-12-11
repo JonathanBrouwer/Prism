@@ -3,7 +3,7 @@ rule toplevel:
 
 rule prule:
     Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
-    Rule() <- "rule" name:identifier "=" expr:prule_expr _n
+    Rule(name, (AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
 
 rule prule_blocks = c :: cs <- c:prule_constructors cs:(c <- "--" _n c:prule_constructors)*
 rule prule_constructors = prule_annotated_expr+

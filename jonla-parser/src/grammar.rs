@@ -1,12 +1,14 @@
+pub mod from_action_result;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct GrammarFile {
     pub rules: HashMap<String, Rule>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Eq, PartialEq)]
 pub struct Rule {
     pub name: String,
     pub blocks: Blocks,
@@ -29,13 +31,13 @@ impl CharClass {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation {
     Error(String),
     NoLayout,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleExpr {
     Rule(String),
     CharClass(CharClass),
@@ -57,7 +59,7 @@ pub enum RuleExpr {
     AtNext,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAction {
     Name(String),
     InputLiteral(String),
