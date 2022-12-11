@@ -1,12 +1,36 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
+use itertools::Itertools;
 
-#[derive(Debug, Clone, Serialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct GrammarFile {
     pub rules: HashMap<String, Rule>,
 }
 
-#[derive(Debug, Clone, Serialize, Eq, PartialEq)]
+/// This exists since we want a stable serialization, and HashMap cannot provide that
+#[derive(Serialize, Deserialize)]
+struct GrammarFileForSerialization {
+    rules: Vec<Rule>,
+}
+
+impl Serialize for GrammarFile {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        GrammarFileForSerialization {
+            rules: self.rules.values().map(|r| r.clone()).sorted_by(|r1, r2| r1.name.cmp(&r2.name)).collect()
+        }.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for GrammarFile {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        let gr = GrammarFileForSerialization::deserialize(deserializer)?;
+        Ok(GrammarFile {
+            rules: gr.rules.into_iter().map(|r| (r.name.clone(), r)).collect()
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Rule {
     pub name: String,
     pub blocks: Blocks,
