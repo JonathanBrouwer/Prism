@@ -47,6 +47,15 @@ pub struct TreeError<L: Eq + Hash + Clone> {
     pub labels: ErrorTree<L>,
 }
 
+impl<L: Eq + Hash + Clone> TreeError<L> {
+    fn add_label(&mut self, label: L) {
+        let mut tree = ErrorTree(None, vec![]);
+        mem::swap(&mut self.labels, &mut tree);
+        tree = tree.label(label);
+        mem::swap(&mut self.labels, &mut tree);
+    }
+}
+
 impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
     type L = L;
 
@@ -57,11 +66,12 @@ impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
         }
     }
 
-    fn add_label(&mut self, label: L) {
-        let mut tree = ErrorTree(None, vec![]);
-        mem::swap(&mut self.labels, &mut tree);
-        tree = tree.label(label);
-        mem::swap(&mut self.labels, &mut tree);
+    fn add_label_explicit(&mut self, l: Self::L) {
+        self.add_label(l)
+    }
+
+    fn add_label_implicit(&mut self, l: Self::L) {
+        self.add_label(l)
     }
 
     fn merge(mut self, other: Self) -> Self {

@@ -51,7 +51,7 @@ fn parser_body_sub_blocks<
           state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match bs {
-            [] => unreachable!(), // Should not be allowed by a future typechecker
+            [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, b, context).parse(stream, state),
             [b, brest @ ..] => {
                 // Parse current
@@ -92,7 +92,7 @@ fn parser_body_sub_constructors<
           state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
         match es {
-            [] => unreachable!(), // Should not be allowed by a future typechecker
+            [] => unreachable!(),
             [(annots, expr)] => {
                 parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
             }
@@ -128,7 +128,7 @@ fn parser_body_sub_annotations<
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res =
                     parser_body_sub_annotations(rules, rest, expr, context).parse(stream, state);
-                res.add_label(ErrorLabel::Explicit(
+                res.add_label_explicit(ErrorLabel::Explicit(
                     stream.span_to(res.get_stream().next().0),
                     err_label,
                 ));

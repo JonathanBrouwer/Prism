@@ -54,7 +54,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                     }
                     let span = stream.span_to(res.get_stream());
                     let mut res = res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
-                    res.add_label(ErrorLabel::Literal(
+                    res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.get_stream().next().0),
                         literal,
                     ));
@@ -97,7 +97,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                         break;
                     }
                 }
-                res.map(|map| (map, Rc::new(ActionResult::Error("sequence"))))
+                res.map(|map| (map, Rc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E, S> =
@@ -113,6 +113,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub, context).parse(stream, state);
                 res.map(|mut res| {
+                    if let ActionResult::Void(v) = *res.1 {
+                        panic!("Tried to bind a void value '{v}' with name '{name}'")
+                    }
                     res.0.insert(name, res.1.clone());
                     res
                 })
@@ -147,7 +150,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                 .map(|_| {
                     (
                         HashMap::new(),
-                        Rc::new(ActionResult::Error("negative lookahead")),
+                        Rc::new(ActionResult::Void("negative lookahead")),
                     )
                 }),
         }
@@ -163,7 +166,7 @@ fn apply_action<'grm>(
             if let Some(v) = map.get(&name[..]) {
                 v.clone()
             } else {
-                panic!("Name not in context")
+                panic!("Name '{name}' not in context")
             }
         }
         RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),
@@ -176,7 +179,7 @@ fn apply_action<'grm>(
             res.push(apply_action(h, map));
             res.extend_from_slice(match &*apply_action(t, map) {
                 ActionResult::List(v) => &v[..],
-                _ => unreachable!(),
+                x => unreachable!("{:?} is not a list", x),
             });
 
             Rc::new(ActionResult::List(res))

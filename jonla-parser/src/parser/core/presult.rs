@@ -10,14 +10,17 @@ pub enum PResult<O, E: ParseError, S: Stream> {
 }
 
 impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
+    #[inline(always)]
     pub fn new_ok(o: O, s: S) -> Self {
         POk(o, s, None)
     }
 
+    #[inline(always)]
     pub fn new_err(e: E, s: S) -> Self {
         PErr(e, s)
     }
 
+    #[inline(always)]
     pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E, S> {
         match self {
             POk(o, s, e) => POk(f(o), s, e),
@@ -25,19 +28,35 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
-    pub fn add_label(&mut self, l: E::L) {
+    #[inline(always)]
+    pub fn add_label_explicit(&mut self, l: E::L) {
         match self {
             POk(_, _, e) => {
                 if let Some((e, _)) = e.as_mut() {
-                    e.add_label(l);
+                    e.add_label_explicit(l);
                 }
             }
             PErr(e, _) => {
-                e.add_label(l);
+                e.add_label_explicit(l);
             }
         }
     }
 
+    #[inline(always)]
+    pub fn add_label_implicit(&mut self, l: E::L) {
+        match self {
+            POk(_, _, e) => {
+                if let Some((e, _)) = e.as_mut() {
+                    e.add_label_implicit(l);
+                }
+            }
+            PErr(e, _) => {
+                e.add_label_implicit(l);
+            }
+        }
+    }
+
+    #[inline(always)]
     pub fn collapse(self) -> Result<O, E> {
         match self {
             POk(o, _, _) => Ok(o),
@@ -45,6 +64,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn is_ok(&self) -> bool {
         match self {
             POk(_, _, _) => true,
@@ -52,6 +72,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn is_err(&self) -> bool {
         match self {
             POk(_, _, _) => false,
@@ -59,6 +80,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn get_stream(&self) -> S {
         match self {
             POk(_, s, _) => *s,
@@ -66,6 +88,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn merge_choice(self, other: Self) -> Self {
         match (self, other) {
             // Left ok
@@ -82,6 +105,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn merge_seq<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, O2), E, S> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, o2), s2, err_combine_opt(e1, e2)),
@@ -93,6 +117,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn merge_seq_opt<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, Option<O2>), E, S> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
@@ -103,6 +128,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         }
     }
 
+    #[inline(always)]
     pub fn merge_choice_parser<Q, P: Parser<O, S, E, Q>>(
         self,
         other: &P,
@@ -117,6 +143,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         self.merge_choice(other.parse(stream, state))
     }
 
+    #[inline(always)]
     pub fn merge_seq_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
         self,
         other: &P2,
@@ -131,6 +158,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
         self.merge_seq(other.parse(pos, state))
     }
 
+    #[inline(always)]
     pub fn merge_seq_opt_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
         self,
         other: &P2,

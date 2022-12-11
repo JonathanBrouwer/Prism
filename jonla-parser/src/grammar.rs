@@ -70,7 +70,7 @@ peg::parser! {
     pub grammar grammar_def() for str {
         // Generic
         rule identifier() -> &'input str
-            = !reserved() s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
+            = !(reserved() !['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]) s:quiet!{$([ 'a'..='z' | 'A'..='Z' | '_' ]['a'..='z' | 'A'..='Z' | '0'..='9' | '_' ]*)} {s} / expected!("identifier")
 
         rule reserved() = "end" / "str" / "rule" / "ast" / "neg" / "pos"
 
@@ -99,7 +99,7 @@ peg::parser! {
         }
 
         rule prule_annotation() -> RuleAnnotation = precedence! {
-            "@" _ "error" _ "(" _ "\"" err:$(str_char()*) "\"" _ ")" { RuleAnnotation::Error(err.to_string()) }
+            "@" _ "error" _ "(" _ err:str() _ ")" { RuleAnnotation::Error(err.to_string()) }
             "@" _ "nolayout" { RuleAnnotation::NoLayout }
         }
 
@@ -116,7 +116,7 @@ peg::parser! {
             r:(@) "+" { RuleExpr::Repeat{ expr: Box::new(r), min: 1, max: None, delim: Box::new(RuleExpr::Sequence(vec![])) } }
             r:(@) "?" { RuleExpr::Repeat{ expr: Box::new(r), min: 0, max: Some(1), delim: Box::new(RuleExpr::Sequence(vec![])) } }
             --
-            "\"" n:$(str_char()*) "\"" { RuleExpr::Literal(n.to_string()) }
+            s:str() { RuleExpr::Literal(s) }
             "[" c:charclass() "]" { RuleExpr::CharClass(c) }
             "str" _ "(" _ r:prule_expr() _ ")" { RuleExpr::SliceInput(Box::new(r)) }
             "pos" _ "(" _ r:prule_expr() _ ")" { RuleExpr::PosLookahead(Box::new(r)) }
@@ -128,11 +128,11 @@ peg::parser! {
         }
 
         rule prule_action() -> RuleAction = precedence! {
-            h:(@) _ "::" _ t:@ { RuleAction::Cons(Box::new(h), Box::new(t)) }
+            h:@ _ "::" _ t:(@) { RuleAction::Cons(Box::new(h), Box::new(t)) }
             --
             "[]" { RuleAction::Nil() }
             n:identifier() _ "(" args:(prule_action()**(_ "," _)) ")" { RuleAction::Construct(n.to_string(), args) }
-            "\"" n:$(str_char()*) "\"" { RuleAction::InputLiteral(n.to_string()) }
+            s:str() { RuleAction::InputLiteral(s) }
             n:identifier() { RuleAction::Name(n.to_string()) }
             "(" _ a:prule_action() _ ")" { a }
         }
@@ -143,11 +143,15 @@ peg::parser! {
             "'" c1:str_char() "'" _ "-" _ "'" c2:str_char() "'"  { (c1, c2) } /
             "'" c:str_char() "'" { (c, c) }
 
+        rule str() -> String =
+            "\"" s:str_char()* "\"" { s.into_iter().collect() }
+
         rule str_char() -> char =
             [^ '\'' | '"' | '\\'] /
             "\\n" { '\n' } /
             "\\r" { '\r' } /
             "\\\"" { '"' } /
-            "\\\'" { '\'' }
+            "\\\'" { '\'' } /
+            "\\\\" { '\\' }
     }
 }

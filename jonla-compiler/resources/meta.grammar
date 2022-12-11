@@ -1,29 +1,70 @@
 rule toplevel:
-    GrammarFile(rs) <- rs:prule*
+    GrammarFile(rs) <- rs:(prule*)
 
 rule prule:
     Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
     Rule() <- "rule" name:identifier "=" expr:prule_expr _n
 
 rule prule_blocks = c :: cs <- c:prule_constructors cs:(c <- "--" _n c:prule_constructors)*
-rule prule_constructors = prule_annotated_expr*
-rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n) e:prule_expr _n
+rule prule_constructors = prule_annotated_expr+
+rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
 
 rule prule_annotation:
     Error(err) <- "@" "error" "(" err:pstring ")"
     NoLayout() <- "@" "nolayout"
 
+rule prule_expr:
+    Action(r, a) <- a:prule_action "<-" r:@this
+    --
+    Choice(x :: y :: []) <- x:@next "/" y:@this
+    --
+    Sequence(x :: y :: []) <- x:@next y:@this
+    --
+    NameBind(n, e) <- n:identifier ":" e:@next
+    --
+    Repeat(r, "0", None(), Sequence([])) <- r:@this "*"
+    Repeat(r, "1", None(), Sequence([])) <- r:@this "+"
+    Repeat(r, "0", Some("1"), Sequence([])) <- r:@this "?"
+    --
+    Literal(s) <- s:pstring
+    CharClass(c) <- "[" c:charclass "]"
+    SliceInput(r) <- "str" "(" r:prule_expr ")"
+    PosLookahead(r) <- "pos" "(" r:prule_expr ")"
+    NegLookahead(r) <- "neg" "(" r:prule_expr ")"
+    r <- "(" r:prule_expr ")"
+    AtThis() <- "@this"
+    AtNext() <- "@next"
+    Rule(n) <- n:identifier
 
+rule prule_action:
+    Cons(h, t) <- h:@next "::" t:@this
+    --
+    Nil() <- "[]"
+    Construct(n, []) <- n:identifier "(" ")"
+    Construct(n, a :: as) <- n:identifier "(" a:prule_action as:(a <- "," a:prule_action)* ")"
+    InputLiteral(s) <- s:pstring
+    Name(n) <- n:identifier
+    a <- "(" a:prule_action ")"
 
+rule charclass:
+    CharClass(negate, p :: ps) <- negate:"^"? p:charclass_part ps:(p <- "|" p:charclass_part)*
+
+rule charclass_part:
+    Range(c1, c2) <- "\'" c1:str_char "\'" "-" "\'" c2:str_char "\'"
+    Range(c, c) <- "\'" c:str_char "\'"
 
 rule pstring:
     @error("String")
     @nolayout
-    s <- ['\"'] s:str() ['\"']
+    s <- "\"" s:str_char* "\""
 
 rule str_char:
-    [^ '\"' | '\'' | '\\']
-    "\n" <- ['\\']['\n']
+    [^ '\"' | '\'' | '\\' | '\n']
+    "\n" <- "\\n"
+    "\r" <- "\\r"
+    "\\" <- "\\\\"
+    "\"" <- "\\\""
+    "\'" <- "\\\'"
 
 rule layout = [' ']
 
@@ -32,5 +73,5 @@ rule _n = ['\n']+
 rule identifier:
     @error("Identifier")
     @nolayout
-    neg(reserved neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+    n <- neg(reserved neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"

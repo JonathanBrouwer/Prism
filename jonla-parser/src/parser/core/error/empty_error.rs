@@ -12,7 +12,9 @@ impl<L: Clone> ParseError for EmptyError<L> {
         Self(PhantomData)
     }
 
-    fn add_label(&mut self, _: Self::L) {}
+    fn add_label_explicit(&mut self, _: Self::L) {}
+
+    fn add_label_implicit(&mut self, _: Self::L) {}
 
     fn merge(self, _: Self) -> Self {
         Self(PhantomData)

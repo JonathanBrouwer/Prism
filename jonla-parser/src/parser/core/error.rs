@@ -10,7 +10,8 @@ pub trait ParseError: Sized + Clone {
     type L;
 
     fn new(span: Span) -> Self;
-    fn add_label(&mut self, label: Self::L);
+    fn add_label_explicit(&mut self, label: Self::L);
+    fn add_label_implicit(&mut self, label: Self::L);
     fn merge(self, other: Self) -> Self;
 }
 

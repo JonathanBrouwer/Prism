@@ -13,13 +13,13 @@ fn main() {
     };
 
 
-    let input = include_str!("../resources/grammar");
+    let input = include_str!("../resources/meta.grammar");
     let input_stream: StringStream = input.into();
     let result: Result<_, _> = run_parser_rule(&grammar, "toplevel", input_stream);
 
     match result {
         Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
-        Err(e) => print_set_error(e, "", input, false),
+        Err(e) => print_tree_error(e, "file", input, true),
     }
 
     // let filename = "program.jnl";

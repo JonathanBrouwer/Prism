@@ -20,10 +20,10 @@ pub type PR<'grm> = (
 );
 
 #[derive(Eq, PartialEq, Hash, Clone)]
-pub struct ParserContext<'b> {
+pub struct ParserContext<'grm> {
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Option<ByAddress<&'b [Block]>>,
-    pub(crate) prec_climb_next: Option<ByAddress<&'b [Block]>>,
+    pub(crate) prec_climb_this: Option<ByAddress<&'grm [Block]>>,
+    pub(crate) prec_climb_next: Option<ByAddress<&'grm [Block]>>,
 }
 
 impl ParserContext<'_> {
@@ -57,7 +57,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
     move |stream: S,
           state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        let body: &'grm Blocks = &rules.rules.get(rule).unwrap().blocks;
+        let body: &'grm Blocks = &rules.rules.get(rule).expect(&format!("Rule not found: {rule}")).blocks;
         let mut res = parser_body_cache_recurse(
             rules,
             body,
@@ -67,7 +67,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
             },
         )
         .parse(stream, state);
-        res.add_label(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
+        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
         res
     }
 }

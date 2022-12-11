@@ -83,7 +83,7 @@ pub fn parser_cache_recurse<
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
         let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
-        res_recursive.add_label(Debug(pos_start.span_to(pos_start), "LEFTREC"));
+        res_recursive.add_label_implicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = state.cache_state_get();
         state.cache_insert(key.clone(), res_recursive);
