@@ -65,9 +65,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
     sub: &'a impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>>,
     id: (ByAddress<&'b [Block]>, ParserContext<'b>),
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |pos_start: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |pos_start: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         //Check if this result is cached
         let key = (pos_start.pos(), id.clone());
         if let Some(cached) = state.cache_get(&key) {

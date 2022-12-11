@@ -55,9 +55,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rule: &'grm str,
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         let body: &'grm Blocks = &rules
             .rules
             .get(rule)

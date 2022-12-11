@@ -24,9 +24,7 @@ pub fn parser_body_cache_recurse<
     bs: &'grm [Block],
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, context),
             (ByAddress(bs), context.clone()),
@@ -40,9 +38,7 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     bs: &'grm [Block],
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match bs {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, b, context).parse(stream, state),
@@ -80,9 +76,7 @@ fn parser_body_sub_constructors<
     es: &'grm [AnnotatedRuleExpr],
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match es {
             [] => unreachable!(),
             [(annots, expr)] => {
@@ -112,9 +106,7 @@ fn parser_body_sub_annotations<
     expr: &'grm RuleExpr,
     context: &'a ParserContext<'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>|
-          -> PResult<'grm, PR<'grm>, E> {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res =
