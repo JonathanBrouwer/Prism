@@ -57,12 +57,17 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
     move |stream: S,
           state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
           -> PResult<PR<'grm>, E, S> {
-        let body: &'grm Blocks = &rules.rules.get(rule).expect(&format!("Rule not found: {rule}")).blocks;
+        let body: &'grm Blocks = &rules
+            .rules
+            .get(rule)
+            .expect(&format!("Rule not found: {rule}"))
+            .blocks;
         let mut res = parser_body_cache_recurse(
             rules,
             body,
             &ParserContext {
-                prec_climb_this: Some(ByAddress(body)),
+                prec_climb_this: None,
+                prec_climb_next: None,
                 ..*context
             },
         )

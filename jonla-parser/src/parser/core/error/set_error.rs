@@ -45,7 +45,7 @@ impl<L: Eq + Hash + Clone> ParseError for SetError<L> {
         Self {
             span: Span::new(self.span.start, max(self.span.end, other.span.end)),
             labels: self.labels,
-            explicit: self.explicit || other.explicit
+            explicit: self.explicit || other.explicit,
         }
     }
 }

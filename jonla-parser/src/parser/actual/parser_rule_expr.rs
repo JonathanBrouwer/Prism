@@ -132,16 +132,30 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
-            RuleExpr::AtThis => {
-                parser_body_cache_recurse(rules, *context.prec_climb_this.unwrap(), context)
-                    .parse(stream, state)
-                    .map(|(_, v)| (HashMap::new(), v))
-            }
-            RuleExpr::AtNext => {
-                parser_body_cache_recurse(rules, *context.prec_climb_next.unwrap(), context)
-                    .parse(stream, state)
-                    .map(|(_, v)| (HashMap::new(), v))
-            }
+            RuleExpr::AtThis => parser_body_cache_recurse(
+                rules,
+                *context.prec_climb_this.unwrap(),
+                // Reset this/next as they shouldn't matter from now on
+                &ParserContext {
+                    prec_climb_this: None,
+                    prec_climb_next: None,
+                    ..*context
+                },
+            )
+            .parse(stream, state)
+            .map(|(_, v)| (HashMap::new(), v)),
+            RuleExpr::AtNext => parser_body_cache_recurse(
+                rules,
+                *context.prec_climb_next.unwrap(),
+                // Reset this/next as they shouldn't matter from now on
+                &ParserContext {
+                    prec_climb_this: None,
+                    prec_climb_next: None,
+                    ..*context
+                },
+            )
+            .parse(stream, state)
+            .map(|(_, v)| (HashMap::new(), v)),
             RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, context))
                 .parse(stream, state)
                 .map(|r| (HashMap::new(), r.1)),
