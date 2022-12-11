@@ -11,10 +11,8 @@ fn main() {
         Err(e) => {
             print_set_error(e, "grammar", grammar, false);
             return;
-        },
+        }
     };
-
-
 
     let filename = "program.jnl";
     let input = include_str!("../resources/program.jnl");

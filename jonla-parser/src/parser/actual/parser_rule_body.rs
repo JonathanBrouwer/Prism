@@ -35,12 +35,7 @@ pub fn parser_body_cache_recurse<
     }
 }
 
-fn parser_body_sub_blocks<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
     bs: &'grm [Block],
     context: &'a ParserContext<'grm>,

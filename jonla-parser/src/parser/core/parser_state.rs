@@ -6,9 +6,9 @@ use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::presult::PResult::{PErr, POk};
+use crate::parser::core::stream::StringStream;
 use by_address::ByAddress;
 use std::collections::HashMap;
-use crate::parser::core::stream::StringStream;
 
 type CacheKey<'b> = (usize, (ByAddress<&'b [Block]>, ParserContext<'b>));
 
@@ -61,12 +61,7 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
     }
 }
 
-pub fn parser_cache_recurse<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone,
->(
+pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
     id: (ByAddress<&'b [Block]>, ParserContext<'b>),
 ) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {

@@ -3,8 +3,8 @@ pub mod set_error;
 pub mod tree_error;
 
 use crate::parser::core::span::Span;
-use std::cmp::Ordering;
 use crate::parser::core::stream::StringStream;
+use std::cmp::Ordering;
 
 pub trait ParseError: Sized + Clone {
     type L;
@@ -15,7 +15,10 @@ pub trait ParseError: Sized + Clone {
     fn merge(self, other: Self) -> Self;
 }
 
-pub fn err_combine<'grm, E: ParseError>((xe, xs): (E, StringStream<'grm>), (ye, ys): (E, StringStream<'grm>)) -> (E, StringStream<'grm>) {
+pub fn err_combine<'grm, E: ParseError>(
+    (xe, xs): (E, StringStream<'grm>),
+    (ye, ys): (E, StringStream<'grm>),
+) -> (E, StringStream<'grm>) {
     match xs.cmp(ys) {
         Ordering::Less => (ye, ys),
         Ordering::Equal => (xe.merge(ye), xs),

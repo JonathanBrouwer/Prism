@@ -1,7 +1,7 @@
 use crate::parser::core::error::{err_combine, err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult::{PErr, POk};
-use crate::parser::core::stream::{StringStream};
+use crate::parser::core::stream::StringStream;
 
 #[derive(Clone)]
 pub enum PResult<'grm, O, E: ParseError> {
@@ -118,7 +118,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt<O2>(self, other: PResult<'grm, O2, E>) -> PResult<'grm, (O, Option<O2>), E> {
+    pub fn merge_seq_opt<O2>(
+        self,
+        other: PResult<'grm, O2, E>,
+    ) -> PResult<'grm, (O, Option<O2>), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
             (POk(o1, s1, e1), PErr(e2, s2)) => {

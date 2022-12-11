@@ -116,7 +116,7 @@ fn parse_rule_action(r: &ActionResult, src: &str) -> RuleAction {
             result_match! {
                 match &*b[1] => List(subs),
                 create subs.iter().map(|sub| parse_rule_action(sub, src)).collect()
-            }
+            },
         ),
         Construct("InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)),
         Construct("Name", b) => RuleAction::Name(parse_identifier(&b[0], src)),
@@ -140,7 +140,7 @@ fn parse_string(r: &ActionResult, src: &str) -> String {
 
 fn parse_string_char(r: &ActionResult, src: &str) -> char {
     match r {
-        Value(Span{ start, end }) => src[*start..*end].chars().next().unwrap(),
+        Value(Span { start, end }) => src[*start..*end].chars().next().unwrap(),
         Literal(c) => c.chars().next().unwrap(),
         _ => unreachable!(),
     }
@@ -179,4 +179,3 @@ fn parse_u64(r: &ActionResult, _: &str) -> u64 {
         create v.parse().unwrap()
     }
 }
-

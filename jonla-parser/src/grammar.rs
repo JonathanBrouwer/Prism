@@ -1,6 +1,6 @@
+use itertools::Itertools;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
-use itertools::Itertools;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct GrammarFile {
@@ -14,18 +14,30 @@ struct GrammarFileForSerialization {
 }
 
 impl Serialize for GrammarFile {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         GrammarFileForSerialization {
-            rules: self.rules.values().map(|r| r.clone()).sorted_by(|r1, r2| r1.name.cmp(&r2.name)).collect()
-        }.serialize(serializer)
+            rules: self
+                .rules
+                .values()
+                .cloned()
+                .sorted_by(|r1, r2| r1.name.cmp(&r2.name))
+                .collect(),
+        }
+        .serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for GrammarFile {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let gr = GrammarFileForSerialization::deserialize(deserializer)?;
         Ok(GrammarFile {
-            rules: gr.rules.into_iter().map(|r| (r.name.clone(), r)).collect()
+            rules: gr.rules.into_iter().map(|r| (r.name.clone(), r)).collect(),
         })
     }
 }

@@ -8,10 +8,10 @@ use crate::parser::actual::parser_rule::run_parser_rule;
 use crate::parser::core::error::ParseError;
 use crate::parser::core::stream::StringStream;
 
+pub mod from_action_result;
 #[allow(clippy::new_without_default)]
 pub mod grammar;
 pub mod parser;
-pub mod from_action_result;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile = {
@@ -20,7 +20,10 @@ lazy_static! {
     };
 }
 
-pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(grammar: &'a str) -> Result<GrammarFile, E> {
+pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
+    grammar: &'a str,
+) -> Result<GrammarFile, E> {
     let grammar_stream: StringStream = StringStream::new(grammar);
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar_stream).map(|pr| parse_grammarfile(&pr.1, grammar))
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar_stream)
+        .map(|pr| parse_grammarfile(&pr.1, grammar))
 }
