@@ -6,21 +6,20 @@ use crate::parser::core::parser::Parser;
 use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::end;
-use crate::parser::core::stream::Stream;
+use crate::parser::core::stream::StringStream;
 
 pub fn parser_with_layout<
     'a,
     'b: 'a,
     'grm: 'b,
     O,
-    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'grm GrammarFile,
-    sub: &'a impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos: S, state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
+) -> impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+    move |pos: StringStream<'grm>, state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>| -> PResult<'grm, O, E> {
         if context.layout_disabled || !rules.rules.contains_key("layout") {
             return sub.parse(pos, state);
         }
@@ -58,14 +57,13 @@ pub fn full_input_layout<
     'b: 'a,
     'grm: 'b,
     O,
-    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'grm GrammarFile,
-    sub: &'a impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<O, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S, state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>| -> PResult<O, E, S> {
+) -> impl Parser<'grm, O, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+    move |stream: StringStream<'grm>, state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>| -> PResult<'grm, O, E> {
         let res = sub.parse(stream, state);
         res.merge_seq_parser(&parser_with_layout(rules, &end(), context), state)
             .map(|(o, _)| o)

@@ -8,7 +8,7 @@ use jonla_parser::parser::actual::parser_rule::run_parser_rule;
 use jonla_parser::parser::core::stream::StringStream;
 
 pub fn get_new_grammar(input: &str) -> GrammarFile {
-    let input_stream: StringStream = input.into();
+    let input_stream: StringStream = StringStream::new(input);
     let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input_stream);
 
     match result {

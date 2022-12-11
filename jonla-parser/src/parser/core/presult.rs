@@ -1,27 +1,27 @@
 use crate::parser::core::error::{err_combine, err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult::{PErr, POk};
-use crate::parser::core::stream::Stream;
+use crate::parser::core::stream::{StringStream};
 
 #[derive(Clone)]
-pub enum PResult<O, E: ParseError, S: Stream> {
-    POk(O, S, Option<(E, S)>),
-    PErr(E, S),
+pub enum PResult<'grm, O, E: ParseError> {
+    POk(O, StringStream<'grm>, Option<(E, StringStream<'grm>)>),
+    PErr(E, StringStream<'grm>),
 }
 
-impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
+impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     #[inline(always)]
-    pub fn new_ok(o: O, s: S) -> Self {
+    pub fn new_ok(o: O, s: StringStream<'grm>) -> Self {
         POk(o, s, None)
     }
 
     #[inline(always)]
-    pub fn new_err(e: E, s: S) -> Self {
+    pub fn new_err(e: E, s: StringStream<'grm>) -> Self {
         PErr(e, s)
     }
 
     #[inline(always)]
-    pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E, S> {
+    pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<'grm, P, E> {
         match self {
             POk(o, s, e) => POk(f(o), s, e),
             PErr(err, s) => PErr(err, s),
@@ -81,7 +81,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn get_stream(&self) -> S {
+    pub fn get_stream(&self) -> StringStream<'grm> {
         match self {
             POk(_, s, _) => *s,
             PErr(_, s) => *s,
@@ -106,7 +106,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn merge_seq<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, O2), E, S> {
+    pub fn merge_seq<O2>(self, other: PResult<'grm, O2, E>) -> PResult<'grm, (O, O2), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, o2), s2, err_combine_opt(e1, e2)),
             (POk(_, _, e1), PErr(e2, s2)) => {
@@ -118,7 +118,7 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt<O2>(self, other: PResult<O2, E, S>) -> PResult<(O, Option<O2>), E, S> {
+    pub fn merge_seq_opt<O2>(self, other: PResult<'grm, O2, E>) -> PResult<'grm, (O, Option<O2>), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
             (POk(o1, s1, e1), PErr(e2, s2)) => {
@@ -129,10 +129,10 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<Q, P: Parser<O, S, E, Q>>(
+    pub fn merge_choice_parser<Q, P: Parser<'grm, O, E, Q>>(
         self,
         other: &P,
-        stream: S,
+        stream: StringStream<'grm>,
         state: &mut Q,
     ) -> Self {
         //Quick out
@@ -144,11 +144,11 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
+    pub fn merge_seq_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
         self,
         other: &P2,
         state: &mut Q,
-    ) -> PResult<(O, O2), E, S> {
+    ) -> PResult<'grm, (O, O2), E> {
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
@@ -159,11 +159,11 @@ impl<O, E: ParseError, S: Stream> PResult<O, E, S> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<O2, Q, P2: Parser<O2, S, E, Q>>(
+    pub fn merge_seq_opt_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
         self,
         other: &P2,
         state: &mut Q,
-    ) -> (PResult<(O, Option<O2>), E, S>, bool) {
+    ) -> (PResult<'grm, (O, Option<O2>), E>, bool) {
         //Quick out
         if self.is_err() {
             return (self.map(|_| unreachable!()), false);

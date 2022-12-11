@@ -9,21 +9,21 @@ use crate::parser::core::presult::PResult;
 use crate::parser::core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
 };
-use crate::parser::core::stream::Stream;
 
 use crate::parser::actual::parser_rule::{parser_rule, ParserContext, PR};
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser::core::stream::StringStream;
 
-pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
     expr: &'grm RuleExpr,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S,
-          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
-          -> PResult<PR<'grm>, E, S> {
+) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+    move |stream: StringStream<'grm>,
+          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          -> PResult<'grm, PR<'grm>, E> {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(
                 rules,
@@ -43,9 +43,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let parser_literal = move |stream: S,
-                                           state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
-                      -> PResult<PR<'grm>, E, S> {
+                let parser_literal = move |stream: StringStream<'grm>,
+                                           state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+                      -> PResult<'grm, PR<'grm>, E> {
                     let mut res = PResult::new_ok((), stream);
                     for char in literal.chars() {
                         res = res
@@ -100,7 +100,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel
                 res.map(|map| (map, Rc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E, S> =
+                let mut res: PResult<'grm, PR, E> =
                     PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
                     res = res.merge_choice_parser(&parser_expr(rules, sub, context), stream, state);

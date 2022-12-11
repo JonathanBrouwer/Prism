@@ -1,31 +1,27 @@
 use crate::parser::core::span::Span;
 use std::cmp::Ordering;
 
-pub trait Stream: Sized + Clone + Copy {
-    fn pos(self) -> usize;
-    fn cmp(self, other: Self) -> Ordering;
-    fn span_to(self, other: Self) -> Span;
-    fn next(self) -> (Self, Option<(Span, char)>);
-    fn span_rest(self) -> Span;
-}
-
 #[derive(Clone, Copy)]
-pub struct StringStream<'a>(&'a str, usize);
+pub struct StringStream<'grm>(&'grm str, usize);
 
-impl Stream for StringStream<'_> {
-    fn pos(self) -> usize {
+impl<'grm> StringStream<'grm> {
+    pub fn new(s: &'grm str) -> Self {
+        StringStream(s, 0)
+    }
+
+    pub fn pos(self) -> usize {
         self.1
     }
 
-    fn cmp(self, other: Self) -> Ordering {
+    pub fn cmp(self, other: Self) -> Ordering {
         self.1.cmp(&other.1)
     }
 
-    fn span_to(self, other: Self) -> Span {
+    pub fn span_to(self, other: Self) -> Span {
         Span::new(self.1, other.1)
     }
 
-    fn next(self) -> (Self, Option<(Span, char)>) {
+    pub fn next(self) -> (Self, Option<(Span, char)>) {
         match self.0[self.1..].chars().next() {
             None => (self, None),
             Some(c) => (
@@ -35,13 +31,7 @@ impl Stream for StringStream<'_> {
         }
     }
 
-    fn span_rest(self) -> Span {
+    pub fn span_rest(self) -> Span {
         Span::new(self.1, self.0.len())
-    }
-}
-
-impl<'a> From<&'a str> for StringStream<'a> {
-    fn from(s: &'a str) -> Self {
-        StringStream(s, 0)
     }
 }

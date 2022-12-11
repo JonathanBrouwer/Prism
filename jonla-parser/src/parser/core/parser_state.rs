@@ -6,9 +6,9 @@ use crate::parser::core::error::{err_combine_opt, ParseError};
 use crate::parser::core::parser::Parser;
 use crate::parser::core::presult::PResult;
 use crate::parser::core::presult::PResult::{PErr, POk};
-use crate::parser::core::stream::Stream;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use crate::parser::core::stream::StringStream;
 
 type CacheKey<'b> = (usize, (ByAddress<&'b [Block]>, ParserContext<'b>));
 
@@ -65,15 +65,14 @@ pub fn parser_cache_recurse<
     'a,
     'b: 'a,
     'grm: 'b,
-    S: Stream,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    sub: &'a impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>>,
+    sub: &'a impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>>,
     id: (ByAddress<&'b [Block]>, ParserContext<'b>),
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |pos_start: S,
-          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
-          -> PResult<PR<'grm>, E, S> {
+) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+    move |pos_start: StringStream<'grm>,
+          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          -> PResult<'grm, PR<'grm>, E> {
         //Check if this result is cached
         let key = (pos_start.pos(), id.clone());
         if let Some(cached) = state.cache_get(&key) {

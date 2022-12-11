@@ -6,13 +6,12 @@ use crate::parser::core::parser::Parser;
 use crate::parser::core::parser_state::ParserState;
 use crate::parser::core::presult::PResult;
 
-use crate::parser::core::stream::Stream;
-
 use crate::grammar::{Block, Blocks, GrammarFile};
 use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser::core::stream::StringStream;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -36,10 +35,10 @@ impl ParserContext<'_> {
     }
 }
 
-pub fn run_parser_rule<'b, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
     rule: &'grm str,
-    stream: S,
+    stream: StringStream<'grm>,
 ) -> Result<PR<'grm>, E> {
     let context = ParserContext::new();
     let mut state = ParserState::new();
@@ -49,14 +48,14 @@ pub fn run_parser_rule<'b, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'gr
     x
 }
 
-pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, S: Stream, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
     rule: &'grm str,
     context: &'a ParserContext<'grm>,
-) -> impl Parser<PR<'grm>, S, E, ParserState<'b, PResult<PR<'grm>, E, S>>> + 'a {
-    move |stream: S,
-          state: &mut ParserState<'b, PResult<PR<'grm>, E, S>>|
-          -> PResult<PR<'grm>, E, S> {
+) -> impl Parser<'grm, PR<'grm>, E, ParserState<'b, PResult<'grm, PR<'grm>, E>>> + 'a {
+    move |stream: StringStream<'grm>,
+          state: &mut ParserState<'b, PResult<'grm, PR<'grm>, E>>|
+          -> PResult<'grm, PR<'grm>, E> {
         let body: &'grm Blocks = &rules
             .rules
             .get(rule)
