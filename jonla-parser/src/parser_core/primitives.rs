@@ -1,9 +1,9 @@
-use crate::parser::core::error::ParseError;
-use crate::parser::core::parser::Parser;
-use crate::parser::core::presult::PResult;
-use crate::parser::core::presult::PResult::{PErr, POk};
-use crate::parser::core::span::Span;
-use crate::parser::core::stream::StringStream;
+use crate::parser_core::error::ParseError;
+use crate::parser_core::parser::Parser;
+use crate::parser_core::presult::PResult;
+use crate::parser_core::presult::PResult::{PErr, POk};
+use crate::parser_core::span::Span;
+use crate::parser_core::stream::StringStream;
 
 pub fn single<'grm, E: ParseError, Q, F: Fn(&char) -> bool>(
     f: F,

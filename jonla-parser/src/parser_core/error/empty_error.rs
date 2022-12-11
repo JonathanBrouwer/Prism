@@ -1,5 +1,5 @@
-use crate::parser::core::error::ParseError;
-use crate::parser::core::span::Span;
+use crate::parser_core::error::ParseError;
+use crate::parser_core::span::Span;
 use std::marker::PhantomData;
 
 #[derive(Clone)]

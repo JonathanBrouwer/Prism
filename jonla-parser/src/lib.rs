@@ -3,15 +3,16 @@ extern crate lazy_static;
 
 use crate::from_action_result::parse_grammarfile;
 use crate::grammar::GrammarFile;
-use crate::parser::actual::error_printer::ErrorLabel;
-use crate::parser::actual::parser_rule::run_parser_rule;
-use crate::parser::core::error::ParseError;
-use crate::parser::core::stream::StringStream;
+use crate::parser_sugar::error_printer::ErrorLabel;
+use crate::parser_sugar::parser_rule::run_parser_rule;
+use crate::parser_core::error::ParseError;
+use crate::parser_core::stream::StringStream;
 
 pub mod from_action_result;
 #[allow(clippy::new_without_default)]
 pub mod grammar;
-pub mod parser;
+pub mod parser_sugar;
+pub mod parser_core;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile = {

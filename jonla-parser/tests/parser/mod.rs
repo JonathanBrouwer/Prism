@@ -15,18 +15,18 @@ macro_rules! parse_test {
         fn $name() {
             use jonla_parser::grammar;
             use jonla_parser::grammar::GrammarFile;
-            use jonla_parser::parser::core::error::empty_error::EmptyError;
-            use jonla_parser::parser::core::parser::Parser;
-            use jonla_parser::parser::core::presult::PResult;
-            use jonla_parser::parser::core::presult::PResult::*;
-            use jonla_parser::parser::core::stream::StringStream;
-            use jonla_parser::parser::actual::error_printer::*;
-            use jonla_parser::parser::actual::parser_rule::parser_rule;
-            use jonla_parser::parser::actual::parser_rule::ParserContext;
+            use jonla_parser::parser_core::error::empty_error::EmptyError;
+            use jonla_parser::parser_core::parser::Parser;
+            use jonla_parser::parser_core::presult::PResult;
+            use jonla_parser::parser_core::presult::PResult::*;
+            use jonla_parser::parser_core::stream::StringStream;
+            use jonla_parser::parser_sugar::error_printer::*;
+            use jonla_parser::parser_sugar::parser_rule::parser_rule;
+            use jonla_parser::parser_sugar::parser_rule::ParserContext;
             use std::collections::HashMap;
-            use jonla_parser::parser::actual::parser_rule::run_parser_rule;
+            use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
             use jonla_parser::parse_grammar;
-            use jonla_parser::parser::core::error::set_error::SetError;
+            use jonla_parser::parser_core::error::set_error::SetError;
 
             let syntax: &'static str = $syntax;
             let grammar: GrammarFile = match parse_grammar::<SetError<_>>(syntax) {

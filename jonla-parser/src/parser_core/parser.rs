@@ -1,6 +1,6 @@
-use crate::parser::core::error::ParseError;
-use crate::parser::core::presult::PResult;
-use crate::parser::core::stream::StringStream;
+use crate::parser_core::error::ParseError;
+use crate::parser_core::presult::PResult;
+use crate::parser_core::stream::StringStream;
 
 pub trait Parser<'grm, O, E: ParseError, Q> {
     fn parse(&self, stream: StringStream<'grm>, state: &mut Q) -> PResult<'grm, O, E>;

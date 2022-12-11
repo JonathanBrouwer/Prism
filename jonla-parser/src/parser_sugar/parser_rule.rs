@@ -1,14 +1,14 @@
-use crate::parser::actual::action_result::ActionResult;
-use crate::parser::actual::error_printer::ErrorLabel;
-use crate::parser::actual::parser_layout::full_input_layout;
-use crate::parser::core::error::ParseError;
-use crate::parser::core::parser::Parser;
-use crate::parser::core::parser_state::ParserState;
-use crate::parser::core::presult::PResult;
+use crate::parser_sugar::action_result::ActionResult;
+use crate::parser_sugar::error_printer::ErrorLabel;
+use crate::parser_sugar::parser_layout::full_input_layout;
+use crate::parser_core::error::ParseError;
+use crate::parser_core::parser::Parser;
+use crate::parser_core::parser_state::ParserState;
+use crate::parser_core::presult::PResult;
 
 use crate::grammar::{Block, Blocks, GrammarFile};
-use crate::parser::actual::parser_rule_body::parser_body_cache_recurse;
-use crate::parser::core::stream::StringStream;
+use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
+use crate::parser_core::stream::StringStream;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::rc::Rc;
