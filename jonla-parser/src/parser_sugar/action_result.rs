@@ -1,7 +1,7 @@
 use crate::parser_core::span::Span;
 use itertools::Itertools;
-use std::rc::Rc;
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {

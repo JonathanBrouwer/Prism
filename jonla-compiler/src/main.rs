@@ -1,8 +1,8 @@
 use jonla_parser::grammar::GrammarFile;
 use jonla_parser::parse_grammar;
+use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::parser_sugar::error_printer::*;
 use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
-use jonla_parser::parser_core::stream::StringStream;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");

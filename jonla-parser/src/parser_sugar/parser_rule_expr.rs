@@ -1,17 +1,17 @@
 use crate::grammar::{GrammarFile, RuleAction, RuleExpr};
-use crate::parser_sugar::action_result::ActionResult;
-use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_layout::parser_with_layout;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
 use crate::parser_core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
 };
+use crate::parser_sugar::action_result::ActionResult;
+use crate::parser_sugar::error_printer::ErrorLabel;
+use crate::parser_sugar::parser_layout::parser_with_layout;
 
+use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
-use crate::parser_core::stream::StringStream;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -40,21 +40,23 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let parser_literal = move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
-                    let mut res = PResult::new_ok((), stream);
-                    for char in literal.chars() {
-                        res = res
-                            .merge_seq_parser(&single(|c| *c == char), state)
-                            .map(|_| ());
-                    }
-                    let span = stream.span_to(res.get_stream());
-                    let mut res = res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
-                    res.add_label_implicit(ErrorLabel::Literal(
-                        stream.span_to(res.get_stream().next().0),
-                        literal,
-                    ));
-                    res
-                };
+                let parser_literal =
+                    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
+                        let mut res = PResult::new_ok((), stream);
+                        for char in literal.chars() {
+                            res = res
+                                .merge_seq_parser(&single(|c| *c == char), state)
+                                .map(|_| ());
+                        }
+                        let span = stream.span_to(res.get_stream());
+                        let mut res =
+                            res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
+                        res.add_label_implicit(ErrorLabel::Literal(
+                            stream.span_to(res.get_stream().next().0),
+                            literal,
+                        ));
+                        res
+                    };
                 //Next, allow there to be layout before the literal
                 let res = parser_with_layout(rules, &parser_literal, context).parse(stream, state);
                 res

@@ -1,8 +1,8 @@
 use jonla_parser::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::GrammarFile;
+use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::parser_sugar::error_printer::print_set_error;
 use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
-use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::META_GRAMMAR;
 
 fn get_new_grammar(input: &str) -> GrammarFile {

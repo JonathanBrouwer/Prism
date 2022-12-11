@@ -1,12 +1,14 @@
-use std::fs::{File, read};
+#![allow(dead_code)]
+
 use jonla_parser::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::GrammarFile;
+use jonla_parser::parser_core::stream::StringStream;
+use jonla_parser::parser_sugar::action_result::ActionResult;
 use jonla_parser::parser_sugar::error_printer::print_set_error;
 use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
-use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::META_GRAMMAR;
+use std::fs::{read, File};
 use std::process::exit;
-use jonla_parser::parser_sugar::action_result::ActionResult;
 
 pub fn get_new_grammar(input: &str) -> GrammarFile {
     let input_stream: StringStream = StringStream::new(input);
@@ -22,10 +24,10 @@ pub fn get_new_grammar(input: &str) -> GrammarFile {
     }
 }
 
-
 fn main() {
+    normal();
     // part1();
-    part2();
+    // part2();
 }
 
 fn normal() {
@@ -57,12 +59,15 @@ fn part1() {
     bincode::serialize_into(&mut file, &result).unwrap();
 }
 
-
 fn part2() {
     let input = include_str!("../resources/meta.grammar");
 
     // Leak because ownership was being annoying
-    let temp: &'static [u8] = Box::leak(read("jonla-parser-bootstrap/resources/temp.bincode").unwrap().into_boxed_slice());
+    let temp: &'static [u8] = Box::leak(
+        read("jonla-parser-bootstrap/resources/temp.bincode")
+            .unwrap()
+            .into_boxed_slice(),
+    );
     let result: ActionResult<'static> = bincode::deserialize(&temp).unwrap();
 
     let grammar2 = parse_grammarfile(&result, input);
