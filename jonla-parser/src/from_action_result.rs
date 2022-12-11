@@ -35,7 +35,7 @@ fn parse_rule(r: &ActionResult, src: &str) -> Rule {
         match &**blocks => List(blocks),
         create Rule {
             name: parse_identifier(name, src),
-            blocks: blocks.iter().map(|block| parse_constructors(block, src)).collect(),
+            blocks: blocks.iter().map(|block| Block(String::new(), parse_constructors(block, src))).collect(), //TODO name
         }
     }
 }
@@ -52,7 +52,7 @@ fn parse_annotated_rule_expr(r: &ActionResult, src: &str) -> AnnotatedRuleExpr {
         match r => Construct("AnnotatedExpr", body),
         match &body[..] => [annots, e],
         match &**annots => List(annots),
-        create (annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect(), parse_rule_expr(e, src))
+        create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect(), parse_rule_expr(e, src))
     }
 }
 

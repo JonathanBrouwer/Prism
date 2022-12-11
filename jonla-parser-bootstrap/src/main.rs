@@ -6,7 +6,6 @@ use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
 use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::META_GRAMMAR;
 use std::process::exit;
-use std::rc::Rc;
 use jonla_parser::parser_sugar::action_result::ActionResult;
 
 pub fn get_new_grammar(input: &str) -> GrammarFile {
@@ -25,7 +24,7 @@ pub fn get_new_grammar(input: &str) -> GrammarFile {
 
 
 fn main() {
-    part1();
+    // part1();
     part2();
 }
 

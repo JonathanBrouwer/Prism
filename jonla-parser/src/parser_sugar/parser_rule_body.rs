@@ -41,12 +41,12 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, b, context).parse(stream, state),
+            [b] => parser_body_sub_constructors(rules, &b.1, context).parse(stream, state),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(
                     rules,
-                    b,
+                    &b.1,
                     &ParserContext {
                         prec_climb_this: Some(ByAddress(bs)),
                         prec_climb_next: Some(ByAddress(brest)),
@@ -79,10 +79,10 @@ fn parser_body_sub_constructors<
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match es {
             [] => unreachable!(),
-            [(annots, expr)] => {
+            [AnnotatedRuleExpr(annots, expr)] => {
                 parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
             }
-            [(annots, expr), rest @ ..] => {
+            [AnnotatedRuleExpr(annots, expr), rest @ ..] => {
                 parser_body_sub_annotations(rules, annots, expr, context)
                     .parse(stream, state)
                     .merge_choice_parser(

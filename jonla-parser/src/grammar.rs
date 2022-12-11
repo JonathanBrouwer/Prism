@@ -49,9 +49,14 @@ pub struct Rule {
 }
 
 pub type Blocks = Vec<Block>;
-pub type Block = Constructors;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub struct Block(pub String, pub Constructors);
+
 pub type Constructors = Vec<AnnotatedRuleExpr>;
-pub type AnnotatedRuleExpr = (Vec<RuleAnnotation>, RuleExpr);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub struct AnnotatedRuleExpr(pub Vec<RuleAnnotation>, pub RuleExpr);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CharClass {
