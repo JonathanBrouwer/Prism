@@ -1,9 +1,7 @@
-pub mod from_action_result;
-
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Eq, PartialEq)]
 pub struct GrammarFile {
     pub rules: HashMap<String, Rule>,
 }
