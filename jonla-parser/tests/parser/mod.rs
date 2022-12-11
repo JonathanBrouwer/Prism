@@ -25,12 +25,15 @@ macro_rules! parse_test {
             use jonla_parser::parser::actual::parser_rule::ParserContext;
             use std::collections::HashMap;
             use jonla_parser::parser::actual::parser_rule::run_parser_rule;
+            use jonla_parser::parse_grammar;
+            use jonla_parser::parser::core::error::set_error::SetError;
 
             let syntax: &'static str = $syntax;
-            let grammar: GrammarFile = match grammar::grammar_def::toplevel(&syntax) {
+            let grammar: GrammarFile = match parse_grammar::<SetError<_>>(syntax) {
                 Ok(ok) => ok,
                 Err(err) => {
-                    panic!("{}", err);
+                    print_set_error(err, "grammar", syntax, true);
+                    panic!();
                 }
             };
 
@@ -46,8 +49,8 @@ macro_rules! parse_test {
                     assert_eq!($expected, got);
                 }
                 Err(e) => {
-                    // print_set_error(e, "test", input, true);
-                    print_tree_error(e, "test", input, true);
+                    // print_set_error(e, "tests", input, true);
+                    print_tree_error(e, "tests", input, true);
                     panic!();
                 }
             }

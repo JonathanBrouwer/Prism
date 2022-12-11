@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-itertools = "0.10.3"
-thiserror = "1.0.31"
+itertools = "0.10.5"
+thiserror = "1.0.37"
 jonla-parser = { path = "../jonla-parser" }
 
 [build-dependencies]
-peg = "0.8.0"
-itertools = "0.10.3"
-thiserror = "1.0.31"
-quote = "1.0.18"
+peg = "0.8.1"
+itertools = "0.10.5"
+thiserror = "1.0.37"
+quote = "1.0.21"
 jonla-parser = { path = "../jonla-parser" }

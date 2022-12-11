@@ -1,7 +1,7 @@
-use jonla_parser::grammar::*;
-use jonla_parser::parser::actual::action_result::ActionResult;
-use jonla_parser::parser::actual::action_result::ActionResult::*;
-use jonla_parser::parser::core::span::Span;
+use crate::grammar::*;
+use crate::parser::actual::action_result::ActionResult;
+use crate::parser::actual::action_result::ActionResult::*;
+use crate::parser::core::span::Span;
 
 macro_rules! result_match {
     {match $e1:expr => $p1:pat_param, $(match $es:expr => $ps:pat_param,)* create $body:expr} => {

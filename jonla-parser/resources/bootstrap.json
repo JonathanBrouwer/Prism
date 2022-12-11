@@ -1970,12 +1970,11 @@
             {
               "Action": [
                 {
-                  "NameBind": [
-                    "rs",
+                  "Sequence": [
                     {
                       "Repeat": {
                         "expr": {
-                          "Rule": "prule"
+                          "Rule": "_n"
                         },
                         "min": 0,
                         "max": null,
@@ -1983,6 +1982,23 @@
                           "Sequence": []
                         }
                       }
+                    },
+                    {
+                      "NameBind": [
+                        "rs",
+                        {
+                          "Repeat": {
+                            "expr": {
+                              "Rule": "prule"
+                            },
+                            "min": 0,
+                            "max": null,
+                            "delim": {
+                              "Sequence": []
+                            }
+                          }
+                        }
+                      ]
                     }
                   ]
                 },

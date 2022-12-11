@@ -1,5 +1,5 @@
 rule toplevel:
-    GrammarFile(rs) <- rs:(prule*)
+    GrammarFile(rs) <- _n* rs:(prule*)
 
 rule prule:
     Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks

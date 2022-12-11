@@ -1,17 +1,11 @@
-use jonla_parser::grammar;
-use jonla_parser::grammar::GrammarFile;
-use jonla_parser::parser::actual::error_printer::*;
-use jonla_parser::parser::actual::parser_rule::run_parser_rule;
-use jonla_parser::parser::core::stream::StringStream;
-
 fn main() {
-    let grammar: GrammarFile =
-        match grammar::grammar_def::toplevel(include_str!("../../jonla-parser-bootstrap/resources/meta.grammar")) {
-            Ok(ok) => ok,
-            Err(err) => {
-                panic!("{}", err);
-            }
-        };
+    // let grammar: GrammarFile =
+    //     match grammar::grammar_def::toplevel(include_str!("../../jonla-parser-bootstrap/resources/meta.grammar")) {
+    //         Ok(ok) => ok,
+    //         Err(err) => {
+    //             panic!("{}", err);
+    //         }
+    //     };
 
     // let input = include_str!("../../jonla-parser-bootstrap/resources/meta.grammar");
     // let input_stream: StringStream = input.into();
