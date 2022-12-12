@@ -1,4 +1,4 @@
-use crate::grammar::{RuleAction, RuleExpr};
+use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -17,6 +17,7 @@ use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::from_action_result::parse_grammarfile;
+use crate::parser_sugar::apply_action::apply_action;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'grm>,
@@ -175,43 +176,20 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let g: Rc<ActionResult<'grm>> = apply_action(ga, vars);
                 let g = parse_grammarfile(&*g, stream.src());
 
-                //TODO temp fix
+                //TODO temp fix, don't leak things pls
 
+                let g: &'grm GrammarFile = Box::leak(Box::new(g));
+                let mut rules: GrammarState = (*rules).clone();
+                if let Err(_) = rules.update(g) {
+                    let mut e = E::new(stream.span_to(stream));
+                    e.add_label_implicit(ErrorLabel::Explicit(stream.span_to(stream), "Grammar was invalid, created cycle in block order."));
+                    return PResult::new_err(e, stream);
+                }
+                let rules: &'grm GrammarState<'grm> = Box::leak(Box::new(rules));
 
-
-                todo!()
+                let p: PResult<'grm, PR, E> = parser_rule(&rules, &b[..], &context).parse(stream, state);
+                p
             }
         }
-    }
-}
-
-fn apply_action<'grm>(
-    rule: &'grm RuleAction,
-    map: &HashMap<&str, Rc<ActionResult<'grm>>>,
-) -> Rc<ActionResult<'grm>> {
-    match rule {
-        RuleAction::Name(name) => {
-            if let Some(v) = map.get(&name[..]) {
-                v.clone()
-            } else {
-                panic!("Name '{name}' not in context")
-            }
-        }
-        RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),
-        RuleAction::Construct(name, args) => {
-            let args_vals = args.iter().map(|a| apply_action(a, map)).collect();
-            Rc::new(ActionResult::Construct(name, args_vals))
-        }
-        RuleAction::Cons(h, t) => {
-            let mut res = Vec::new();
-            res.push(apply_action(h, map));
-            res.extend_from_slice(match &*apply_action(t, map) {
-                ActionResult::List(v) => &v[..],
-                x => unreachable!("{:?} is not a list", x),
-            });
-
-            Rc::new(ActionResult::List(res))
-        }
-        RuleAction::Nil() => Rc::new(ActionResult::List(Vec::new())),
     }
 }

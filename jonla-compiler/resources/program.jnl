@@ -4,3 +4,4 @@ grammar {
         Z() <- "z"
 };
 let x;
+let z;

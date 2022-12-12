@@ -1,5 +1,5 @@
 rule block:
-    g :: b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
+    b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
     s :: b <- s:stmt ";" b:block
     [] <- ""
 

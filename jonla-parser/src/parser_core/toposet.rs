@@ -33,6 +33,10 @@ impl<'grm> TopoSet<'grm> {
                 }
             }
         }
+        // Insert final entry
+        if let Entry::Vacant(e) = self.map.entry(&grm.blocks.last().unwrap().0) {
+            e.insert(Arc::new(HashSet::new()));
+        }
     }
 
     pub fn toposort(&self) -> Result<Vec<&'grm str>, ()> {
