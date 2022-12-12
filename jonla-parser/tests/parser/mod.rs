@@ -1,3 +1,4 @@
+mod adaptive;
 mod lambda;
 mod layout;
 mod left_recursion;

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use std::rc::Rc;
 use crate::grammar::RuleAction;
 use crate::parser_sugar::action_result::ActionResult;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 pub fn apply_action<'grm>(
     rule: &'grm RuleAction,

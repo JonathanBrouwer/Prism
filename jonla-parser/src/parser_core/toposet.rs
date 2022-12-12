@@ -1,17 +1,17 @@
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::collections::hash_map::Entry;
-use std::sync::Arc;
 use crate::grammar::Rule;
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct TopoSet<'grm> {
-    map: HashMap<&'grm str, Arc<HashSet<&'grm str>>>
+    map: HashMap<&'grm str, Arc<HashSet<&'grm str>>>,
 }
 
 impl<'grm> TopoSet<'grm> {
     pub fn new() -> Self {
         Self {
-            map: HashMap::new()
+            map: HashMap::new(),
         }
     }
 
@@ -41,14 +41,16 @@ impl<'grm> TopoSet<'grm> {
 
     pub fn toposort(&self) -> Result<Vec<&'grm str>, ()> {
         let mut result = Vec::new();
-        let mut todo = VecDeque::new();
-        let mut counts: HashMap<&'grm str, usize> = self.map.iter().map(|(k, v)| {
-            let l = v.len();
-            if l == 0 {
-                todo.push_back(*k);
+        let mut counts: HashMap<&'grm str, usize> = HashMap::new();
+
+        for (k, nbs) in &self.map {
+            counts.entry(k).or_insert(0);
+            for nb in &**nbs {
+                *counts.entry(nb).or_insert(0) += 1;
             }
-            (*k, l)
-        }).collect();
+        }
+
+        let mut todo: VecDeque<&'grm str> = counts.iter().filter(|(_, v)| **v == 0).map(|(k, _)| *k).collect();
 
         while let Some(k) = todo.pop_front() {
             counts.remove(k);
@@ -70,5 +72,3 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 }
-
-

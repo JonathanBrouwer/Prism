@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::grammar::AnnotatedRuleExpr;
 use crate::grammar::{RuleAnnotation, RuleExpr};
+use std::collections::HashMap;
 
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;

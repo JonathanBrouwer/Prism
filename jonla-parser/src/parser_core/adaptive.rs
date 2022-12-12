@@ -1,9 +1,9 @@
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
-use std::collections::{HashMap};
+use crate::parser_core::toposet::TopoSet;
 use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::mem;
 use std::sync::Arc;
-use crate::parser_core::toposet::TopoSet;
 
 #[derive(Clone)]
 pub struct GrammarState<'grm> {
@@ -55,16 +55,19 @@ impl<'grm> RuleState<'grm> {
         let blocks = r.blocks.iter().map(|b| BlockState::new(b)).collect();
         let mut order = TopoSet::new();
         order.update(r);
-        Self {
-            blocks,
-            order,
-        }
+        Self { blocks, order }
     }
 
     pub fn update(&mut self, r: &'grm Rule) -> Result<(), ()> {
         self.order.update(r);
 
-        let order: HashMap<&'grm str, usize> = self.order.toposort()?.into_iter().enumerate().map(|(k, v)| (v, k)).collect();
+        let order: HashMap<&'grm str, usize> = self
+            .order
+            .toposort()?
+            .into_iter()
+            .enumerate()
+            .map(|(k, v)| (v, k))
+            .collect();
 
         let mut res = vec![None; order.len()];
         let old_blocks = mem::take(&mut self.blocks);
@@ -111,4 +114,3 @@ impl<'grm> BlockState<'grm> {
         self.constructors.extend(&b.1[..]);
     }
 }
-
