@@ -53,6 +53,7 @@ pub enum RuleExpr {
     SliceInput(Box<RuleExpr>),
     PosLookahead(Box<RuleExpr>),
     NegLookahead(Box<RuleExpr>),
+    AtGrammar,
     AtThis,
     AtNext,
 }

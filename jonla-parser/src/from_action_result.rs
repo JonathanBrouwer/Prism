@@ -97,6 +97,7 @@ fn parse_rule_expr(r: &ActionResult, src: &str) -> RuleExpr {
         Construct("NegLookahead", b) => {
             RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src)))
         }
+        Construct("AtGrammar", _) => RuleExpr::AtGrammar,
         Construct("AtThis", _) => RuleExpr::AtThis,
         Construct("AtNext", _) => RuleExpr::AtNext,
         Construct("Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)),

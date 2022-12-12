@@ -1132,6 +1132,22 @@
               {
                 "Action": [
                   {
+                    "Literal": "@grammar"
+                  },
+                  {
+                    "Construct": [
+                      "AtGrammar",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
                     "NameBind": [
                       "n",
                       {

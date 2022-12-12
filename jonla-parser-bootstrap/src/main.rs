@@ -34,8 +34,8 @@ fn normal() {
     let input = include_str!("../resources/meta.grammar");
     let grammar2 = get_new_grammar(input);
 
-    let grammar: &'static GrammarFile = &META_GRAMMAR;
-    assert_eq!(grammar, &grammar2); // Safety check
+    // let grammar: &'static GrammarFile = &META_GRAMMAR;
+    // assert_eq!(grammar, &grammar2); // Safety check
 
     let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();

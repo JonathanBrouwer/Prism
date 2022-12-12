@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 use crate::from_action_result::parse_grammarfile;
 use crate::grammar::GrammarFile;
+use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
@@ -18,6 +19,9 @@ lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile = {
         let meta_grammar = include_str!("../resources/bootstrap.json");
         serde_json::from_str(meta_grammar).unwrap()
+    };
+    pub static ref META_GRAMMAR_STATE: GrammarState<'static> = {
+        GrammarState::new(&META_GRAMMAR)
     };
 }
 

@@ -38,6 +38,7 @@ rule prule_expr:
     r <- "(" r:prule_expr ")"
     AtThis() <- "@this"
     AtNext() <- "@next"
+    AtGrammar() <- "@grammar"
     Rule(n) <- n:identifier
 
 rule prule_action:
