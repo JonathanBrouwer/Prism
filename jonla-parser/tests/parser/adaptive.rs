@@ -65,6 +65,38 @@ passing tests:
     };
     let x + y * y - x * x + y * x;
     "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
+    // Add mul + minus seperately (1)
+    r###"
+    grammar {
+        rule expr:
+            -- additive
+            -- multiplicative
+            Mul(x, y) <- x:@next "*" y:@this
+            -- base
+    };
+    grammar {
+        rule expr:
+            -- additive
+            Sub(x, y) <- x:@next "-" y:@this
+    };
+    let x + y * y - x * x + y * x;
+    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
+    // Add mul + minus seperately (2)
+    r###"
+    grammar {
+        rule expr:
+            -- additive
+            Sub(x, y) <- x:@next "-" y:@this
+    };
+    grammar {
+        rule expr:
+            -- additive
+            -- multiplicative
+            Mul(x, y) <- x:@next "*" y:@this
+            -- base
+    };
+    let x + y * y - x * x + y * x;
+    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
 
 failing tests:
     // Turns order around
