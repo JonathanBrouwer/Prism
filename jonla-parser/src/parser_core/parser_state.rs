@@ -1,4 +1,3 @@
-use crate::grammar::Block;
 use crate::parser_core::error::{err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -9,13 +8,14 @@ use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
 use by_address::ByAddress;
 use std::collections::HashMap;
+use crate::parser_core::adaptive::BlockState;
 
-type CacheKey<'b> = (usize, (ByAddress<&'b [Block]>, ParserContext<'b>));
+type CacheKey<'grm, 'b> = (usize, (ByAddress<&'b [BlockState<'grm>]>, ParserContext<'b, 'grm>));
 
-pub struct ParserState<'b, PR> {
+pub struct ParserState<'grm, 'b, PR> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'b>, ParserCacheEntry<PR>>,
-    cache_stack: Vec<CacheKey<'b>>,
+    cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PR>>,
+    cache_stack: Vec<CacheKey<'grm, 'b>>,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -23,7 +23,7 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'b, PR: Clone> ParserState<'b, PR> {
+impl<'grm, 'b, PR: Clone> ParserState<'grm, 'b, PR> {
     pub fn new() -> Self {
         ParserState {
             cache: HashMap::new(),
@@ -31,11 +31,11 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
         }
     }
 
-    fn cache_is_read(&self, key: &CacheKey<'b>) -> Option<bool> {
+    fn cache_is_read(&self, key: &CacheKey<'grm, 'b>) -> Option<bool> {
         self.cache.get(key).map(|v| v.read)
     }
 
-    fn cache_get(&mut self, key: &CacheKey<'b>) -> Option<&PR> {
+    fn cache_get(&mut self, key: &CacheKey<'grm, 'b>) -> Option<&PR> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
@@ -44,7 +44,7 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
         }
     }
 
-    fn cache_insert(&mut self, key: CacheKey<'b>, value: PR) {
+    fn cache_insert(&mut self, key: CacheKey<'grm, 'b>, value: PR) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -63,7 +63,7 @@ impl<'b, PR: Clone> ParserState<'b, PR> {
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>>,
-    id: (ByAddress<&'b [Block]>, ParserContext<'b>),
+    id: (ByAddress<&'b [BlockState<'grm>]>, ParserContext<'b, 'grm>),
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |pos_start: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         //Check if this result is cached

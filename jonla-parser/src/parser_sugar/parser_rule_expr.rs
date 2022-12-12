@@ -1,4 +1,4 @@
-use crate::grammar::{GrammarFile, RuleAction, RuleExpr};
+use crate::grammar::{RuleAction, RuleExpr};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -14,11 +14,12 @@ use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::parser_core::adaptive::GrammarState;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'grm GrammarFile,
+    rules: &'b GrammarState<'grm>,
     expr: &'grm RuleExpr,
-    context: &'a ParserContext<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match expr {

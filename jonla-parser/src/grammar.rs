@@ -45,15 +45,11 @@ impl<'de> Deserialize<'de> for GrammarFile {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Rule {
     pub name: String,
-    pub blocks: Blocks,
+    pub blocks: Vec<Block>,
 }
 
-pub type Blocks = Vec<Block>;
-
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block(pub String, pub Constructors);
-
-pub type Constructors = Vec<AnnotatedRuleExpr>;
+pub struct Block(pub String, pub Vec<AnnotatedRuleExpr>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct AnnotatedRuleExpr(pub Vec<RuleAnnotation>, pub RuleExpr);

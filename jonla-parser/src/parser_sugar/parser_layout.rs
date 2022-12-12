@@ -1,4 +1,4 @@
-use crate::grammar::GrammarFile;
+use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -8,9 +8,9 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext};
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'grm GrammarFile,
+    rules: &'b GrammarState<'grm>,
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
-    context: &'a ParserContext<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
     move |pos: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
         if context.layout_disabled || !rules.rules.contains_key("layout") {
@@ -46,9 +46,9 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 }
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'grm GrammarFile,
+    rules: &'b GrammarState<'grm>,
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
-    context: &'a ParserContext<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
         let res = sub.parse(stream, state);

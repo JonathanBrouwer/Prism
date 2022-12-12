@@ -40,7 +40,7 @@ fn parse_rule(r: &ActionResult, src: &str) -> Rule {
     }
 }
 
-fn parse_constructors(r: &ActionResult, src: &str) -> Constructors {
+fn parse_constructors(r: &ActionResult, src: &str) -> Vec<AnnotatedRuleExpr> {
     result_match! {
         match r => List(constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect()

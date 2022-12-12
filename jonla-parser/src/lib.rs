@@ -25,6 +25,7 @@ pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
     grammar: &'a str,
 ) -> Result<GrammarFile, E> {
     let grammar_stream: StringStream = StringStream::new(grammar);
+
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar_stream)
         .map(|pr| parse_grammarfile(&pr.1, grammar))
 }

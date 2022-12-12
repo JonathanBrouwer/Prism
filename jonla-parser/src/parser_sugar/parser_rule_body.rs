@@ -1,4 +1,4 @@
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile};
+use crate::grammar::{AnnotatedRuleExpr};
 use crate::grammar::{RuleAnnotation, RuleExpr};
 
 use crate::parser_core::error::ParseError;
@@ -9,6 +9,7 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
 
 use by_address::ByAddress;
+use crate::parser_core::adaptive::{BlockState, GrammarState};
 
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
@@ -20,9 +21,9 @@ pub fn parser_body_cache_recurse<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'grm GrammarFile,
-    bs: &'grm [Block],
-    context: &'a ParserContext<'grm>,
+    rules: &'b GrammarState<'grm>,
+    bs: &'b [BlockState<'grm>],
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         parser_cache_recurse(
@@ -34,19 +35,19 @@ pub fn parser_body_cache_recurse<
 }
 
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'grm GrammarFile,
-    bs: &'grm [Block],
-    context: &'a ParserContext<'grm>,
+    rules: &'b GrammarState<'grm>,
+    bs: &'b [BlockState<'grm>],
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
+    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, &b.1, context).parse(stream, state),
+            [b] => parser_body_sub_constructors(rules, &b.constructors[..], context).parse(stream, state),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(
                     rules,
-                    &b.1,
+                    &b.constructors[..],
                     &ParserContext {
                         prec_climb_this: Some(ByAddress(bs)),
                         prec_climb_next: Some(ByAddress(brest)),
@@ -55,7 +56,7 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
                 )
                 .parse(stream, state);
 
-                //Parse next with recursion check
+                // Parse next with recursion check
                 res.merge_choice_parser(
                     &parser_body_cache_recurse(rules, brest, context),
                     stream,
@@ -72,9 +73,9 @@ fn parser_body_sub_constructors<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'grm GrammarFile,
-    es: &'grm [AnnotatedRuleExpr],
-    context: &'a ParserContext<'grm>,
+    rules: &'b GrammarState<'grm>,
+    es: &'b [&'grm AnnotatedRuleExpr],
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match es {
         [] => unreachable!(),
@@ -99,10 +100,10 @@ fn parser_body_sub_annotations<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'grm GrammarFile,
+    rules: &'b GrammarState<'grm>,
     annots: &'grm [RuleAnnotation],
     expr: &'grm RuleExpr,
-    context: &'a ParserContext<'grm>,
+    context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
