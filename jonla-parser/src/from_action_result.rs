@@ -35,8 +35,16 @@ fn parse_rule(r: &ActionResult, src: &str) -> Rule {
         match &**blocks => List(blocks),
         create Rule {
             name: parse_identifier(name, src),
-            blocks: blocks.iter().map(|block| Block(String::new(), parse_constructors(block, src))).collect(), //TODO name
+            blocks: blocks.iter().map(|block| parse_block(block, src)).collect(),
         }
+    }
+}
+
+fn parse_block(r: &ActionResult, src: &str) -> Block {
+    result_match! {
+        match r => Construct("Block", b),
+        match &b[..] => [name, cs],
+        create Block(parse_identifier(name, src), parse_constructors(cs, src))
     }
 }
 
@@ -126,9 +134,10 @@ fn parse_rule_action(r: &ActionResult, src: &str) -> RuleAction {
 }
 
 fn parse_identifier(r: &ActionResult, src: &str) -> String {
-    result_match! {
-        match r => Value(Span{ start, end }),
-        create src[*start..*end].to_string()
+    match r {
+        Value(Span{ start, end }) => src[*start..*end].to_string(),
+        Literal(s) => s.to_string(),
+        _ => unreachable!()
     }
 }
 

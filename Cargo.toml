@@ -6,4 +6,4 @@ default-members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap"]
 opt-level = 1
 
 [profile.dev]
-opt-level = 1
+#opt-level = 1

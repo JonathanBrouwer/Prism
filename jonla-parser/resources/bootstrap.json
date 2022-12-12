@@ -182,23 +182,33 @@
                         {
                           "Cons": [
                             {
-                              "Cons": [
-                                {
-                                  "Construct": [
-                                    "AnnotatedExpr",
-                                    [
+                              "Construct": [
+                                "Block",
+                                [
+                                  {
+                                    "InputLiteral": ""
+                                  },
+                                  {
+                                    "Cons": [
                                       {
-                                        "Nil": []
+                                        "Construct": [
+                                          "AnnotatedExpr",
+                                          [
+                                            {
+                                              "Nil": []
+                                            },
+                                            {
+                                              "Name": "expr"
+                                            }
+                                          ]
+                                        ]
                                       },
                                       {
-                                        "Name": "expr"
+                                        "Nil": []
                                       }
                                     ]
-                                  ]
-                                },
-                                {
-                                  "Nil": []
-                                }
+                                  }
+                                ]
                               ]
                             },
                             {
@@ -236,13 +246,37 @@
                           {
                             "Sequence": [
                               {
-                                "Rule": "_n"
+                                "Choice": [
+                                  {
+                                    "NameBind": [
+                                      "n",
+                                      {
+                                        "Rule": "identifier"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "NameBind": [
+                                      "n",
+                                      {
+                                        "Literal": ""
+                                      }
+                                    ]
+                                  }
+                                ]
                               },
                               {
-                                "NameBind": [
-                                  "c",
+                                "Sequence": [
                                   {
-                                    "Rule": "prule_constructors"
+                                    "Rule": "_n"
+                                  },
+                                  {
+                                    "NameBind": [
+                                      "c",
+                                      {
+                                        "Rule": "prule_constructors"
+                                      }
+                                    ]
                                   }
                                 ]
                               }
@@ -251,7 +285,17 @@
                         ]
                       },
                       {
-                        "Name": "c"
+                        "Construct": [
+                          "Block",
+                          [
+                            {
+                              "Name": "n"
+                            },
+                            {
+                              "Name": "c"
+                            }
+                          ]
+                        ]
                       }
                     ]
                   },
@@ -278,7 +322,17 @@
                   {
                     "Cons": [
                       {
-                        "Name": "c"
+                        "Construct": [
+                          "Block",
+                          [
+                            {
+                              "InputLiteral": ""
+                            },
+                            {
+                              "Name": "c"
+                            }
+                          ]
+                        ]
                       },
                       {
                         "Nil": []

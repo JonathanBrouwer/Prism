@@ -3,11 +3,11 @@ rule toplevel:
 
 rule prule:
     Rule(name, blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
-    Rule(name, (AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
+    Rule(name, Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
 
 rule prule_blocks:
-    (c <- "--" _n c:prule_constructors)+
-    c :: [] <- c:prule_constructors
+    (Block(n, c) <- "--" (n:identifier / n:"") _n c:prule_constructors)+
+    Block("", c) :: [] <- c:prule_constructors
 
 rule prule_constructors = prule_annotated_expr+
 rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
