@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::grammar::AnnotatedRuleExpr;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 
@@ -135,6 +136,6 @@ fn parser_body_sub_annotations<
             context,
         )
         .parse(stream, state),
-        &[] => parser_expr(rules, expr, context).parse(stream, state),
+        &[] => parser_expr(rules, expr, context, &HashMap::new()).parse(stream, state),
     }
 }

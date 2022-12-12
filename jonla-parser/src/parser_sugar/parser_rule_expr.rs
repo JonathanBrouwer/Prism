@@ -22,12 +22,12 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'b GrammarState<'grm>,
     expr: &'grm RuleExpr,
     context: &'a ParserContext<'b, 'grm>,
+    vars: &'a HashMap<&'grm str, Rc<ActionResult<'grm>>>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(rules, rule, context)
-            .parse(stream, state)
-            .map(|(_, v)| (HashMap::new(), v)),
+            .parse(stream, state),
             RuleExpr::CharClass(cc) => {
                 parser_with_layout(rules, &single(|c| cc.contains(*c)), context)
                     .parse(stream, state)
@@ -62,8 +62,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 max,
                 delim,
             } => repeat_delim(
-                parser_expr(rules, expr, context),
-                parser_expr(rules, delim, context),
+                parser_expr(rules, expr, context, &vars),
+                parser_expr(rules, delim, context, &vars),
                 *min as usize,
                 max.map(|max| max as usize),
             )
@@ -78,9 +78,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }),
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_ok(HashMap::new(), stream);
+                let mut res_vars = vars.clone();
                 for sub in subs {
                     res = res
-                        .merge_seq_parser(&parser_expr(rules, sub, context), state)
+                        .merge_seq_parser(&parser_expr(rules, sub, context, &res_vars), state)
                         .map(|(mut l, r)| {
                             l.extend(r.0);
                             l
@@ -88,6 +89,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     if res.is_err() {
                         break;
                     }
+                    res_vars.extend(res.ok().unwrap().clone().into_iter());
                 }
                 res.map(|map| (map, Rc::new(ActionResult::Void("sequence"))))
             }
@@ -95,7 +97,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let mut res: PResult<'grm, PR, E> =
                     PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
-                    res = res.merge_choice_parser(&parser_expr(rules, sub, context), stream, state);
+                    res = res.merge_choice_parser(&parser_expr(rules, sub, context, vars), stream, state);
                     if res.is_ok() {
                         break;
                     }
@@ -103,7 +105,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = parser_expr(rules, sub, context).parse(stream, state);
+                let res = parser_expr(rules, sub, context, vars).parse(stream, state);
                 res.map(|mut res| {
                     if let ActionResult::Void(v) = *res.1 {
                         panic!("Tried to bind a void value '{v}' with name '{name}'")
@@ -113,14 +115,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = parser_expr(rules, sub, context).parse(stream, state);
+                let res = parser_expr(rules, sub, context, vars).parse(stream, state);
                 res.map(|mut res| {
                     res.1 = apply_action(action, &res.0);
                     res
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = parser_expr(rules, sub, context).parse(stream, state);
+                let res = parser_expr(rules, sub, context, vars).parse(stream, state);
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
             }
@@ -148,10 +150,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             )
             .parse(stream, state)
             .map(|(_, v)| (HashMap::new(), v)),
-            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, context))
+            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, context, vars))
                 .parse(stream, state)
                 .map(|r| (HashMap::new(), r.1)),
-            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, context))
+            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, context, vars))
                 .parse(stream, state)
                 .map(|_| {
                     (
@@ -170,8 +172,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             )
             .parse(stream, state),
             RuleExpr::AtAdapt(ga, b) => {
-                let g: &ActionResult<'grm> = todo!();
-                let g = parse_grammarfile(g, stream.src());
+                let g: Rc<ActionResult<'grm>> = apply_action(ga, vars);
+                let g = parse_grammarfile(&*g, stream.src());
 
 
                 todo!()

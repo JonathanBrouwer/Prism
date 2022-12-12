@@ -78,6 +78,6 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
         )
         .parse(stream, state);
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
-        res
+        res.map(|(_, v)| (HashMap::new(), v))
     }
 }

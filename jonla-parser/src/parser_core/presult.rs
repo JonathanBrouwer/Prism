@@ -177,4 +177,12 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)
     }
+
+    #[inline(always)]
+    pub fn ok(&self) -> Option<&O> {
+        match self {
+            POk(o, _, _) => Some(o),
+            PErr(_, _) => None,
+        }
+    }
 }

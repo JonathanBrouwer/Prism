@@ -1,4 +1,6 @@
 grammar {
-
+    rule expr:
+        -- base
+        Z() <- "z"
 };
 let x;
