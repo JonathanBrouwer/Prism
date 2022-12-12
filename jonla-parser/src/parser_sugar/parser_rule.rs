@@ -64,7 +64,6 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         let body: &'b Vec<BlockState<'grm>> = rules
-            .rules
             .get(rule)
             .expect(&format!("Rule not found: {rule}"));
         let mut res = parser_body_cache_recurse(

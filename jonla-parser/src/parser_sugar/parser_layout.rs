@@ -13,7 +13,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
     move |pos: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
-        if context.layout_disabled || !rules.rules.contains_key("layout") {
+        if context.layout_disabled || !rules.contains_rule("layout") {
             return sub.parse(pos, state);
         }
 
