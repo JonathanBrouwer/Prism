@@ -76,36 +76,24 @@
                         "Literal": "rule"
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "name",
                           {
-                            "NameBind": [
-                              "name",
-                              {
-                                "Rule": "identifier"
-                              }
-                            ]
-                          },
+                            "Rule": "identifier"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ":"
+                      },
+                      {
+                        "Rule": "_n"
+                      },
+                      {
+                        "NameBind": [
+                          "blocks",
                           {
-                            "Sequence": [
-                              {
-                                "Literal": ":"
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "Rule": "_n"
-                                  },
-                                  {
-                                    "NameBind": [
-                                      "blocks",
-                                      {
-                                        "Rule": "prule_blocks"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
+                            "Rule": "prule_blocks"
                           }
                         ]
                       }
@@ -137,38 +125,26 @@
                         "Literal": "rule"
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "name",
                           {
-                            "NameBind": [
-                              "name",
-                              {
-                                "Rule": "identifier"
-                              }
-                            ]
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "Literal": "="
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "NameBind": [
-                                      "expr",
-                                      {
-                                        "Rule": "prule_expr"
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Rule": "_n"
-                                  }
-                                ]
-                              }
-                            ]
+                            "Rule": "identifier"
                           }
                         ]
+                      },
+                      {
+                        "Literal": "="
+                      },
+                      {
+                        "NameBind": [
+                          "expr",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Rule": "_n"
                       }
                     ]
                   },
@@ -244,41 +220,33 @@
                             "Literal": "--"
                           },
                           {
-                            "Sequence": [
+                            "Choice": [
                               {
-                                "Choice": [
+                                "NameBind": [
+                                  "n",
                                   {
-                                    "NameBind": [
-                                      "n",
-                                      {
-                                        "Rule": "identifier"
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "NameBind": [
-                                      "n",
-                                      {
-                                        "Literal": ""
-                                      }
-                                    ]
+                                    "Rule": "identifier"
                                   }
                                 ]
                               },
                               {
-                                "Sequence": [
+                                "NameBind": [
+                                  "n",
                                   {
-                                    "Rule": "_n"
-                                  },
-                                  {
-                                    "NameBind": [
-                                      "c",
-                                      {
-                                        "Rule": "prule_constructors"
-                                      }
-                                    ]
+                                    "Literal": ""
                                   }
                                 ]
+                              }
+                            ]
+                          },
+                          {
+                            "Rule": "_n"
+                          },
+                          {
+                            "NameBind": [
+                              "c",
+                              {
+                                "Rule": "prule_constructors"
                               }
                             ]
                           }
@@ -420,19 +388,15 @@
                         ]
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "e",
                           {
-                            "NameBind": [
-                              "e",
-                              {
-                                "Rule": "prule_expr"
-                              }
-                            ]
-                          },
-                          {
-                            "Rule": "_n"
+                            "Rule": "prule_expr"
                           }
                         ]
+                      },
+                      {
+                        "Rule": "_n"
                       }
                     ]
                   },
@@ -472,33 +436,21 @@
                         "Literal": "@"
                       },
                       {
-                        "Sequence": [
+                        "Literal": "error"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "err",
                           {
-                            "Literal": "error"
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "Literal": "("
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "NameBind": [
-                                      "err",
-                                      {
-                                        "Rule": "pstring"
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Literal": ")"
-                                  }
-                                ]
-                              }
-                            ]
+                            "Rule": "pstring"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -563,16 +515,12 @@
                         ]
                       },
                       {
-                        "Sequence": [
-                          {
-                            "Literal": "<-"
-                          },
-                          {
-                            "NameBind": [
-                              "r",
-                              "AtThis"
-                            ]
-                          }
+                        "Literal": "<-"
+                      },
+                      {
+                        "NameBind": [
+                          "r",
+                          "AtThis"
                         ]
                       }
                     ]
@@ -611,16 +559,12 @@
                         ]
                       },
                       {
-                        "Sequence": [
-                          {
-                            "Literal": "/"
-                          },
-                          {
-                            "NameBind": [
-                              "y",
-                              "AtThis"
-                            ]
-                          }
+                        "Literal": "/"
+                      },
+                      {
+                        "NameBind": [
+                          "y",
+                          "AtThis"
                         ]
                       }
                     ]
@@ -665,14 +609,23 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "x",
+                          "e1",
                           "AtNext"
                         ]
                       },
                       {
                         "NameBind": [
-                          "y",
-                          "AtThis"
+                          "es",
+                          {
+                            "Repeat": {
+                              "expr": "AtNext",
+                              "min": 1,
+                              "max": null,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
                         ]
                       }
                     ]
@@ -684,17 +637,10 @@
                         {
                           "Cons": [
                             {
-                              "Name": "x"
+                              "Name": "e1"
                             },
                             {
-                              "Cons": [
-                                {
-                                  "Name": "y"
-                                },
-                                {
-                                  "Nil": []
-                                }
-                              ]
+                              "Name": "es"
                             }
                           ]
                         }
@@ -724,16 +670,12 @@
                         ]
                       },
                       {
-                        "Sequence": [
-                          {
-                            "Literal": ":"
-                          },
-                          {
-                            "NameBind": [
-                              "e",
-                              "AtNext"
-                            ]
-                          }
+                        "Literal": ":"
+                      },
+                      {
+                        "NameBind": [
+                          "e",
+                          "AtNext"
                         ]
                       }
                     ]
@@ -950,19 +892,15 @@
                         "Literal": "["
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "c",
                           {
-                            "NameBind": [
-                              "c",
-                              {
-                                "Rule": "charclass"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": "]"
+                            "Rule": "charclass"
                           }
                         ]
+                      },
+                      {
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -989,26 +927,18 @@
                         "Literal": "str"
                       },
                       {
-                        "Sequence": [
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "r",
                           {
-                            "Literal": "("
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "r",
-                                  {
-                                    "Rule": "prule_expr"
-                                  }
-                                ]
-                              },
-                              {
-                                "Literal": ")"
-                              }
-                            ]
+                            "Rule": "prule_expr"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1035,26 +965,18 @@
                         "Literal": "pos"
                       },
                       {
-                        "Sequence": [
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "r",
                           {
-                            "Literal": "("
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "r",
-                                  {
-                                    "Rule": "prule_expr"
-                                  }
-                                ]
-                              },
-                              {
-                                "Literal": ")"
-                              }
-                            ]
+                            "Rule": "prule_expr"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1081,26 +1003,18 @@
                         "Literal": "neg"
                       },
                       {
-                        "Sequence": [
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "r",
                           {
-                            "Literal": "("
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "r",
-                                  {
-                                    "Rule": "prule_expr"
-                                  }
-                                ]
-                              },
-                              {
-                                "Literal": ")"
-                              }
-                            ]
+                            "Rule": "prule_expr"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1127,19 +1041,15 @@
                         "Literal": "("
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "r",
                           {
-                            "NameBind": [
-                              "r",
-                              {
-                                "Rule": "prule_expr"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": ")"
+                            "Rule": "prule_expr"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1207,45 +1117,29 @@
                         "Literal": "@adapt"
                       },
                       {
-                        "Sequence": [
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "a",
                           {
-                            "Literal": "("
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "a",
-                                  {
-                                    "Rule": "prule_action"
-                                  }
-                                ]
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "Literal": ","
-                                  },
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "NameBind": [
-                                          "n",
-                                          {
-                                            "Rule": "identifier"
-                                          }
-                                        ]
-                                      },
-                                      {
-                                        "Literal": ")"
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
+                            "Rule": "prule_action"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "Rule": "identifier"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1313,16 +1207,12 @@
                         ]
                       },
                       {
-                        "Sequence": [
-                          {
-                            "Literal": "::"
-                          },
-                          {
-                            "NameBind": [
-                              "t",
-                              "AtThis"
-                            ]
-                          }
+                        "Literal": "::"
+                      },
+                      {
+                        "NameBind": [
+                          "t",
+                          "AtThis"
                         ]
                       }
                     ]
@@ -1379,14 +1269,10 @@
                         ]
                       },
                       {
-                        "Sequence": [
-                          {
-                            "Literal": "("
-                          },
-                          {
-                            "Literal": ")"
-                          }
-                        ]
+                        "Literal": "("
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1421,66 +1307,54 @@
                         ]
                       },
                       {
-                        "Sequence": [
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "a",
                           {
-                            "Literal": "("
-                          },
+                            "Rule": "prule_action"
+                          }
+                        ]
+                      },
+                      {
+                        "NameBind": [
+                          "as",
                           {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "a",
+                            "Repeat": {
+                              "expr": {
+                                "Action": [
                                   {
-                                    "Rule": "prule_action"
-                                  }
-                                ]
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "NameBind": [
-                                      "as",
+                                    "Sequence": [
                                       {
-                                        "Repeat": {
-                                          "expr": {
-                                            "Action": [
-                                              {
-                                                "Sequence": [
-                                                  {
-                                                    "Literal": ","
-                                                  },
-                                                  {
-                                                    "NameBind": [
-                                                      "a",
-                                                      {
-                                                        "Rule": "prule_action"
-                                                      }
-                                                    ]
-                                                  }
-                                                ]
-                                              },
-                                              {
-                                                "Name": "a"
-                                              }
-                                            ]
-                                          },
-                                          "min": 0,
-                                          "max": null,
-                                          "delim": {
-                                            "Sequence": []
+                                        "Literal": ","
+                                      },
+                                      {
+                                        "NameBind": [
+                                          "a",
+                                          {
+                                            "Rule": "prule_action"
                                           }
-                                        }
+                                        ]
                                       }
                                     ]
                                   },
                                   {
-                                    "Literal": ")"
+                                    "Name": "a"
                                   }
                                 ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Sequence": []
                               }
-                            ]
+                            }
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1567,19 +1441,15 @@
                         "Literal": "("
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "a",
                           {
-                            "NameBind": [
-                              "a",
-                              {
-                                "Rule": "prule_action"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": ")"
+                            "Rule": "prule_action"
                           }
                         ]
+                      },
+                      {
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1623,50 +1493,46 @@
                         ]
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "p",
                           {
-                            "NameBind": [
-                              "p",
-                              {
-                                "Rule": "charclass_part"
-                              }
-                            ]
-                          },
+                            "Rule": "charclass_part"
+                          }
+                        ]
+                      },
+                      {
+                        "NameBind": [
+                          "ps",
                           {
-                            "NameBind": [
-                              "ps",
-                              {
-                                "Repeat": {
-                                  "expr": {
-                                    "Action": [
+                            "Repeat": {
+                              "expr": {
+                                "Action": [
+                                  {
+                                    "Sequence": [
                                       {
-                                        "Sequence": [
-                                          {
-                                            "Literal": "|"
-                                          },
-                                          {
-                                            "NameBind": [
-                                              "p",
-                                              {
-                                                "Rule": "charclass_part"
-                                              }
-                                            ]
-                                          }
-                                        ]
+                                        "Literal": "|"
                                       },
                                       {
-                                        "Name": "p"
+                                        "NameBind": [
+                                          "p",
+                                          {
+                                            "Rule": "charclass_part"
+                                          }
+                                        ]
                                       }
                                     ]
                                   },
-                                  "min": 0,
-                                  "max": null,
-                                  "delim": {
-                                    "Sequence": []
+                                  {
+                                    "Name": "p"
                                   }
-                                }
+                                ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Sequence": []
                               }
-                            ]
+                            }
                           }
                         ]
                       }
@@ -1715,52 +1581,32 @@
                         "Literal": "'"
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "c1",
                           {
-                            "NameBind": [
-                              "c1",
-                              {
-                                "Rule": "str_char"
-                              }
-                            ]
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "Literal": "'"
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "Literal": "-"
-                                  },
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "Literal": "'"
-                                      },
-                                      {
-                                        "Sequence": [
-                                          {
-                                            "NameBind": [
-                                              "c2",
-                                              {
-                                                "Rule": "str_char"
-                                              }
-                                            ]
-                                          },
-                                          {
-                                            "Literal": "'"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
+                            "Rule": "str_char"
                           }
                         ]
+                      },
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "Literal": "-"
+                      },
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "NameBind": [
+                          "c2",
+                          {
+                            "Rule": "str_char"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "'"
                       }
                     ]
                   },
@@ -1790,19 +1636,15 @@
                         "Literal": "'"
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "c",
                           {
-                            "NameBind": [
-                              "c",
-                              {
-                                "Rule": "str_char"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": "'"
+                            "Rule": "str_char"
                           }
                         ]
+                      },
+                      {
+                        "Literal": "'"
                       }
                     ]
                   },
@@ -1847,28 +1689,24 @@
                         "Literal": "\""
                       },
                       {
-                        "Sequence": [
+                        "NameBind": [
+                          "s",
                           {
-                            "NameBind": [
-                              "s",
-                              {
-                                "Repeat": {
-                                  "expr": {
-                                    "Rule": "str_char"
-                                  },
-                                  "min": 0,
-                                  "max": null,
-                                  "delim": {
-                                    "Sequence": []
-                                  }
-                                }
+                            "Repeat": {
+                              "expr": {
+                                "Rule": "str_char"
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Sequence": []
                               }
-                            ]
-                          },
-                          {
-                            "Literal": "\""
+                            }
                           }
                         ]
+                      },
+                      {
+                        "Literal": "\""
                       }
                     ]
                   },

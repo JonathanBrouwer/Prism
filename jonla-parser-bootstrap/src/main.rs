@@ -25,8 +25,8 @@ pub fn get_new_grammar(input: &str) -> GrammarFile {
 }
 
 fn main() {
-    // normal();
-    part1();
+    normal();
+    // part1();
     // part2();
 }
 

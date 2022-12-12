@@ -22,7 +22,7 @@ rule prule_expr:
     --
     Choice(x :: y :: []) <- x:@next "/" y:@this
     --
-    Sequence(x :: y :: []) <- x:@next y:@this
+    Sequence(e1 :: es) <- e1:@next es:@next+
     --
     NameBind(n, e) <- n:identifier ":" e:@next
     --
