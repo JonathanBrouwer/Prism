@@ -554,17 +554,42 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "x",
+                          "e",
                           "AtNext"
                         ]
                       },
                       {
-                        "Literal": "/"
-                      },
-                      {
                         "NameBind": [
-                          "y",
-                          "AtThis"
+                          "es",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Action": [
+                                  {
+                                    "Sequence": [
+                                      {
+                                        "Literal": "/"
+                                      },
+                                      {
+                                        "NameBind": [
+                                          "e",
+                                          "AtNext"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Name": "e"
+                                  }
+                                ]
+                              },
+                              "min": 1,
+                              "max": null,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
                         ]
                       }
                     ]
@@ -576,17 +601,10 @@
                         {
                           "Cons": [
                             {
-                              "Name": "x"
+                              "Name": "e"
                             },
                             {
-                              "Cons": [
-                                {
-                                  "Name": "y"
-                                },
-                                {
-                                  "Nil": []
-                                }
-                              ]
+                              "Name": "es"
                             }
                           ]
                         }
@@ -609,7 +627,7 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "e1",
+                          "e",
                           "AtNext"
                         ]
                       },
@@ -637,7 +655,7 @@
                         {
                           "Cons": [
                             {
-                              "Name": "e1"
+                              "Name": "e"
                             },
                             {
                               "Name": "es"
@@ -2017,35 +2035,19 @@
                     "Literal": "end"
                   },
                   {
-                    "Choice": [
-                      {
-                        "Literal": "str"
-                      },
-                      {
-                        "Choice": [
-                          {
-                            "Literal": "rule"
-                          },
-                          {
-                            "Choice": [
-                              {
-                                "Literal": "ast"
-                              },
-                              {
-                                "Choice": [
-                                  {
-                                    "Literal": "neg"
-                                  },
-                                  {
-                                    "Literal": "pos"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
+                    "Literal": "str"
+                  },
+                  {
+                    "Literal": "rule"
+                  },
+                  {
+                    "Literal": "ast"
+                  },
+                  {
+                    "Literal": "neg"
+                  },
+                  {
+                    "Literal": "pos"
                   }
                 ]
               }

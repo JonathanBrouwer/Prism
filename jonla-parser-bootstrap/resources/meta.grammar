@@ -20,9 +20,9 @@ rule prule_expr:
     --
     Action(r, a) <- a:prule_action "<-" r:@this
     --
-    Choice(x :: y :: []) <- x:@next "/" y:@this
+    Choice(e :: es) <- e:@next es:(e <- "/" e:@next)+
     --
-    Sequence(e1 :: es) <- e1:@next es:@next+
+    Sequence(e :: es) <- e:@next es:@next+
     --
     NameBind(n, e) <- n:identifier ":" e:@next
     --
