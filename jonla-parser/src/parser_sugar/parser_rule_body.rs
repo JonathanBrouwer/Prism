@@ -80,7 +80,9 @@ fn parser_body_sub_constructors<
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match es {
-        [] => unreachable!(),
+        [] => {
+            PResult::new_err(E::new(stream.span_to(stream)), stream)
+        },
         [AnnotatedRuleExpr(annots, expr)] => {
             parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
         }

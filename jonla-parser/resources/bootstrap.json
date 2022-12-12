@@ -327,7 +327,7 @@
                   "expr": {
                     "Rule": "prule_annotated_expr"
                   },
-                  "min": 1,
+                  "min": 0,
                   "max": null,
                   "delim": {
                     "Sequence": []

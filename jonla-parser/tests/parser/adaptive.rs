@@ -36,12 +36,35 @@ passing tests:
     r###"
     grammar {
         rule expr:
+            -- x
             -- additive
             -- base
             Z() <- "z"
+            -- y
     };
     let z;
     "### => "[Let(Z())]"
+    // Add minus
+    r###"
+    grammar {
+        rule expr:
+            -- additive
+            Sub(x, y) <- x:@next "-" y:@this
+    };
+    let x + y - x + x + y - x;
+    "### => "[Let(Add(X(), Sub(Y(), Add(X(), Add(X(), Sub(Y(), X()))))))]"
+    // Add mul + minus
+    r###"
+    grammar {
+        rule expr:
+            -- additive
+            Sub(x, y) <- x:@next "-" y:@this
+            -- multiplicative
+            Mul(x, y) <- x:@next "*" y:@this
+            -- base
+    };
+    let x + y * y - x * x + y * x;
+    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
 
 failing tests:
     // Turns order around

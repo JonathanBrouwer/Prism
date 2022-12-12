@@ -9,7 +9,7 @@ rule prule_blocks:
     (Block(n, c) <- "--" (n:identifier / n:"") _n c:prule_constructors)+
     Block("", c) :: [] <- c:prule_constructors
 
-rule prule_constructors = prule_annotated_expr+
+rule prule_constructors = prule_annotated_expr*
 rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
 
 rule prule_annotation:
