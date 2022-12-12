@@ -1,40 +1,7 @@
 {
   "rules": [
     {
-      "name": "_n",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Repeat": {
-                  "expr": {
-                    "CharClass": {
-                      "neg": false,
-                      "ranges": [
-                        [
-                          "\n",
-                          "\n"
-                        ]
-                      ]
-                    }
-                  },
-                  "min": 1,
-                  "max": null,
-                  "delim": {
-                    "Sequence": []
-                  }
-                }
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "charclass",
+      "name": "toplevel",
       "blocks": [
         [
           "",
@@ -46,369 +13,47 @@
                   {
                     "Sequence": [
                       {
+                        "Repeat": {
+                          "expr": {
+                            "Rule": "_n"
+                          },
+                          "min": 0,
+                          "max": null,
+                          "delim": {
+                            "Sequence": []
+                          }
+                        }
+                      },
+                      {
                         "NameBind": [
-                          "negate",
+                          "rs",
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": "^"
+                                "Rule": "prule"
                               },
                               "min": 0,
-                              "max": 1,
+                              "max": null,
                               "delim": {
                                 "Sequence": []
                               }
                             }
                           }
                         ]
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "NameBind": [
-                              "p",
-                              {
-                                "Rule": "charclass_part"
-                              }
-                            ]
-                          },
-                          {
-                            "NameBind": [
-                              "ps",
-                              {
-                                "Repeat": {
-                                  "expr": {
-                                    "Action": [
-                                      {
-                                        "Sequence": [
-                                          {
-                                            "Literal": "|"
-                                          },
-                                          {
-                                            "NameBind": [
-                                              "p",
-                                              {
-                                                "Rule": "charclass_part"
-                                              }
-                                            ]
-                                          }
-                                        ]
-                                      },
-                                      {
-                                        "Name": "p"
-                                      }
-                                    ]
-                                  },
-                                  "min": 0,
-                                  "max": null,
-                                  "delim": {
-                                    "Sequence": []
-                                  }
-                                }
-                              }
-                            ]
-                          }
-                        ]
                       }
                     ]
                   },
                   {
                     "Construct": [
-                      "CharClass",
+                      "GrammarFile",
                       [
                         {
-                          "Name": "negate"
-                        },
-                        {
-                          "Cons": [
-                            {
-                              "Name": "p"
-                            },
-                            {
-                              "Name": "ps"
-                            }
-                          ]
+                          "Name": "rs"
                         }
                       ]
                     ]
                   }
                 ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "charclass_part",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "'"
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "NameBind": [
-                              "c1",
-                              {
-                                "Rule": "str_char"
-                              }
-                            ]
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "Literal": "'"
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "Literal": "-"
-                                  },
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "Literal": "'"
-                                      },
-                                      {
-                                        "Sequence": [
-                                          {
-                                            "NameBind": [
-                                              "c2",
-                                              {
-                                                "Rule": "str_char"
-                                              }
-                                            ]
-                                          },
-                                          {
-                                            "Literal": "'"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Range",
-                      [
-                        {
-                          "Name": "c1"
-                        },
-                        {
-                          "Name": "c2"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "'"
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "NameBind": [
-                              "c",
-                              {
-                                "Rule": "str_char"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": "'"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Range",
-                      [
-                        {
-                          "Name": "c"
-                        },
-                        {
-                          "Name": "c"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "identifier",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [
-                {
-                  "Error": "Identifier"
-                },
-                "NoLayout"
-              ],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "NegLookahead": {
-                          "Sequence": [
-                            {
-                              "Rule": "reserved"
-                            },
-                            {
-                              "NegLookahead": {
-                                "CharClass": {
-                                  "neg": false,
-                                  "ranges": [
-                                    [
-                                      "a",
-                                      "z"
-                                    ],
-                                    [
-                                      "A",
-                                      "Z"
-                                    ],
-                                    [
-                                      "0",
-                                      "9"
-                                    ],
-                                    [
-                                      "_",
-                                      "_"
-                                    ]
-                                  ]
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      {
-                        "NameBind": [
-                          "n",
-                          {
-                            "SliceInput": {
-                              "Sequence": [
-                                {
-                                  "CharClass": {
-                                    "neg": false,
-                                    "ranges": [
-                                      [
-                                        "a",
-                                        "z"
-                                      ],
-                                      [
-                                        "A",
-                                        "Z"
-                                      ],
-                                      [
-                                        "_",
-                                        "_"
-                                      ]
-                                    ]
-                                  }
-                                },
-                                {
-                                  "Repeat": {
-                                    "expr": {
-                                      "CharClass": {
-                                        "neg": false,
-                                        "ranges": [
-                                          [
-                                            "a",
-                                            "z"
-                                          ],
-                                          [
-                                            "A",
-                                            "Z"
-                                          ],
-                                          [
-                                            "0",
-                                            "9"
-                                          ],
-                                          [
-                                            "_",
-                                            "_"
-                                          ]
-                                        ]
-                                      }
-                                    },
-                                    "min": 0,
-                                    "max": null,
-                                    "delim": {
-                                      "Sequence": []
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Name": "n"
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "layout",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "CharClass": {
-                  "neg": false,
-                  "ranges": [
-                    [
-                      " ",
-                      " "
-                    ]
-                  ]
-                }
               }
             ]
           ]
@@ -572,7 +217,7 @@
       ]
     },
     {
-      "name": "prule_action",
+      "name": "prule_blocks",
       "blocks": [
         [
           "",
@@ -580,290 +225,92 @@
             [
               [],
               {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "NameBind": [
-                          "h",
-                          "AtNext"
-                        ]
-                      },
+                "Repeat": {
+                  "expr": {
+                    "Action": [
                       {
                         "Sequence": [
                           {
-                            "Literal": "::"
+                            "Literal": "--"
                           },
                           {
-                            "NameBind": [
-                              "t",
-                              "AtThis"
+                            "Sequence": [
+                              {
+                                "Rule": "_n"
+                              },
+                              {
+                                "NameBind": [
+                                  "c",
+                                  {
+                                    "Rule": "prule_constructors"
+                                  }
+                                ]
+                              }
                             ]
                           }
                         ]
+                      },
+                      {
+                        "Name": "c"
+                      }
+                    ]
+                  },
+                  "min": 1,
+                  "max": null,
+                  "delim": {
+                    "Sequence": []
+                  }
+                }
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "NameBind": [
+                      "c",
+                      {
+                        "Rule": "prule_constructors"
                       }
                     ]
                   },
                   {
-                    "Construct": [
-                      "Cons",
-                      [
-                        {
-                          "Name": "h"
-                        },
-                        {
-                          "Name": "t"
-                        }
-                      ]
+                    "Cons": [
+                      {
+                        "Name": "c"
+                      },
+                      {
+                        "Nil": []
+                      }
                     ]
                   }
                 ]
               }
             ]
           ]
-        ],
+        ]
+      ]
+    },
+    {
+      "name": "prule_constructors",
+      "blocks": [
         [
           "",
           [
             [
               [],
               {
-                "Action": [
-                  {
-                    "Literal": "[]"
+                "Repeat": {
+                  "expr": {
+                    "Rule": "prule_annotated_expr"
                   },
-                  {
-                    "Construct": [
-                      "Nil",
-                      []
-                    ]
+                  "min": 1,
+                  "max": null,
+                  "delim": {
+                    "Sequence": []
                   }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "NameBind": [
-                          "n",
-                          {
-                            "Rule": "identifier"
-                          }
-                        ]
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "Literal": "("
-                          },
-                          {
-                            "Literal": ")"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Construct",
-                      [
-                        {
-                          "Name": "n"
-                        },
-                        {
-                          "Nil": []
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "NameBind": [
-                          "n",
-                          {
-                            "Rule": "identifier"
-                          }
-                        ]
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "Literal": "("
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "NameBind": [
-                                  "a",
-                                  {
-                                    "Rule": "prule_action"
-                                  }
-                                ]
-                              },
-                              {
-                                "Sequence": [
-                                  {
-                                    "NameBind": [
-                                      "as",
-                                      {
-                                        "Repeat": {
-                                          "expr": {
-                                            "Action": [
-                                              {
-                                                "Sequence": [
-                                                  {
-                                                    "Literal": ","
-                                                  },
-                                                  {
-                                                    "NameBind": [
-                                                      "a",
-                                                      {
-                                                        "Rule": "prule_action"
-                                                      }
-                                                    ]
-                                                  }
-                                                ]
-                                              },
-                                              {
-                                                "Name": "a"
-                                              }
-                                            ]
-                                          },
-                                          "min": 0,
-                                          "max": null,
-                                          "delim": {
-                                            "Sequence": []
-                                          }
-                                        }
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Literal": ")"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Construct",
-                      [
-                        {
-                          "Name": "n"
-                        },
-                        {
-                          "Cons": [
-                            {
-                              "Name": "a"
-                            },
-                            {
-                              "Name": "as"
-                            }
-                          ]
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "s",
-                      {
-                        "Rule": "pstring"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "InputLiteral",
-                      [
-                        {
-                          "Name": "s"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "n",
-                      {
-                        "Rule": "identifier"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Name",
-                      [
-                        {
-                          "Name": "n"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "("
-                      },
-                      {
-                        "Sequence": [
-                          {
-                            "NameBind": [
-                              "a",
-                              {
-                                "Rule": "prule_action"
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": ")"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Name": "a"
-                  }
-                ]
+                }
               }
             ]
           ]
@@ -1035,107 +482,6 @@
                     ]
                   }
                 ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "prule_blocks",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Repeat": {
-                  "expr": {
-                    "Action": [
-                      {
-                        "Sequence": [
-                          {
-                            "Literal": "--"
-                          },
-                          {
-                            "Sequence": [
-                              {
-                                "Rule": "_n"
-                              },
-                              {
-                                "NameBind": [
-                                  "c",
-                                  {
-                                    "Rule": "prule_constructors"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "Name": "c"
-                      }
-                    ]
-                  },
-                  "min": 1,
-                  "max": null,
-                  "delim": {
-                    "Sequence": []
-                  }
-                }
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "c",
-                      {
-                        "Rule": "prule_constructors"
-                      }
-                    ]
-                  },
-                  {
-                    "Cons": [
-                      {
-                        "Name": "c"
-                      },
-                      {
-                        "Nil": []
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "prule_constructors",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Repeat": {
-                  "expr": {
-                    "Rule": "prule_annotated_expr"
-                  },
-                  "min": 1,
-                  "max": null,
-                  "delim": {
-                    "Sequence": []
-                  }
-                }
               }
             ]
           ]
@@ -1811,6 +1157,538 @@
       ]
     },
     {
+      "name": "prule_action",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "h",
+                          "AtNext"
+                        ]
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "Literal": "::"
+                          },
+                          {
+                            "NameBind": [
+                              "t",
+                              "AtThis"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Cons",
+                      [
+                        {
+                          "Name": "h"
+                        },
+                        {
+                          "Name": "t"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        ],
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Literal": "[]"
+                  },
+                  {
+                    "Construct": [
+                      "Nil",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "Rule": "identifier"
+                          }
+                        ]
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "Literal": "("
+                          },
+                          {
+                            "Literal": ")"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Construct",
+                      [
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Nil": []
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "Rule": "identifier"
+                          }
+                        ]
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "Literal": "("
+                          },
+                          {
+                            "Sequence": [
+                              {
+                                "NameBind": [
+                                  "a",
+                                  {
+                                    "Rule": "prule_action"
+                                  }
+                                ]
+                              },
+                              {
+                                "Sequence": [
+                                  {
+                                    "NameBind": [
+                                      "as",
+                                      {
+                                        "Repeat": {
+                                          "expr": {
+                                            "Action": [
+                                              {
+                                                "Sequence": [
+                                                  {
+                                                    "Literal": ","
+                                                  },
+                                                  {
+                                                    "NameBind": [
+                                                      "a",
+                                                      {
+                                                        "Rule": "prule_action"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Name": "a"
+                                              }
+                                            ]
+                                          },
+                                          "min": 0,
+                                          "max": null,
+                                          "delim": {
+                                            "Sequence": []
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Literal": ")"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Construct",
+                      [
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Cons": [
+                            {
+                              "Name": "a"
+                            },
+                            {
+                              "Name": "as"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "NameBind": [
+                      "s",
+                      {
+                        "Rule": "pstring"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "InputLiteral",
+                      [
+                        {
+                          "Name": "s"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "NameBind": [
+                      "n",
+                      {
+                        "Rule": "identifier"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Name",
+                      [
+                        {
+                          "Name": "n"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "NameBind": [
+                              "a",
+                              {
+                                "Rule": "prule_action"
+                              }
+                            ]
+                          },
+                          {
+                            "Literal": ")"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "a"
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "charclass",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "negate",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Literal": "^"
+                              },
+                              "min": 0,
+                              "max": 1,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "NameBind": [
+                              "p",
+                              {
+                                "Rule": "charclass_part"
+                              }
+                            ]
+                          },
+                          {
+                            "NameBind": [
+                              "ps",
+                              {
+                                "Repeat": {
+                                  "expr": {
+                                    "Action": [
+                                      {
+                                        "Sequence": [
+                                          {
+                                            "Literal": "|"
+                                          },
+                                          {
+                                            "NameBind": [
+                                              "p",
+                                              {
+                                                "Rule": "charclass_part"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Name": "p"
+                                      }
+                                    ]
+                                  },
+                                  "min": 0,
+                                  "max": null,
+                                  "delim": {
+                                    "Sequence": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "CharClass",
+                      [
+                        {
+                          "Name": "negate"
+                        },
+                        {
+                          "Cons": [
+                            {
+                              "Name": "p"
+                            },
+                            {
+                              "Name": "ps"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "charclass_part",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "NameBind": [
+                              "c1",
+                              {
+                                "Rule": "str_char"
+                              }
+                            ]
+                          },
+                          {
+                            "Sequence": [
+                              {
+                                "Literal": "'"
+                              },
+                              {
+                                "Sequence": [
+                                  {
+                                    "Literal": "-"
+                                  },
+                                  {
+                                    "Sequence": [
+                                      {
+                                        "Literal": "'"
+                                      },
+                                      {
+                                        "Sequence": [
+                                          {
+                                            "NameBind": [
+                                              "c2",
+                                              {
+                                                "Rule": "str_char"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "Literal": "'"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Range",
+                      [
+                        {
+                          "Name": "c1"
+                        },
+                        {
+                          "Name": "c2"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "NameBind": [
+                              "c",
+                              {
+                                "Rule": "str_char"
+                              }
+                            ]
+                          },
+                          {
+                            "Literal": "'"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Range",
+                      [
+                        {
+                          "Name": "c"
+                        },
+                        {
+                          "Name": "c"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
       "name": "pstring",
       "blocks": [
         [
@@ -1858,57 +1736,6 @@
                   },
                   {
                     "Name": "s"
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "reserved",
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Choice": [
-                  {
-                    "Literal": "end"
-                  },
-                  {
-                    "Choice": [
-                      {
-                        "Literal": "str"
-                      },
-                      {
-                        "Choice": [
-                          {
-                            "Literal": "rule"
-                          },
-                          {
-                            "Choice": [
-                              {
-                                "Literal": "ast"
-                              },
-                              {
-                                "Choice": [
-                                  {
-                                    "Literal": "neg"
-                                  },
-                                  {
-                                    "Literal": "pos"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
                   }
                 ]
               }
@@ -2019,7 +1846,7 @@
       ]
     },
     {
-      "name": "toplevel",
+      "name": "layout",
       "blocks": [
         [
           "",
@@ -2027,34 +1854,163 @@
             [
               [],
               {
+                "CharClass": {
+                  "neg": false,
+                  "ranges": [
+                    [
+                      " ",
+                      " "
+                    ]
+                  ]
+                }
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "_n",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Repeat": {
+                  "expr": {
+                    "CharClass": {
+                      "neg": false,
+                      "ranges": [
+                        [
+                          "\n",
+                          "\n"
+                        ]
+                      ]
+                    }
+                  },
+                  "min": 1,
+                  "max": null,
+                  "delim": {
+                    "Sequence": []
+                  }
+                }
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "identifier",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [
+                {
+                  "Error": "Identifier"
+                },
+                "NoLayout"
+              ],
+              {
                 "Action": [
                   {
                     "Sequence": [
                       {
-                        "Repeat": {
-                          "expr": {
-                            "Rule": "_n"
-                          },
-                          "min": 0,
-                          "max": null,
-                          "delim": {
-                            "Sequence": []
-                          }
+                        "NegLookahead": {
+                          "Sequence": [
+                            {
+                              "Rule": "reserved"
+                            },
+                            {
+                              "NegLookahead": {
+                                "CharClass": {
+                                  "neg": false,
+                                  "ranges": [
+                                    [
+                                      "a",
+                                      "z"
+                                    ],
+                                    [
+                                      "A",
+                                      "Z"
+                                    ],
+                                    [
+                                      "0",
+                                      "9"
+                                    ],
+                                    [
+                                      "_",
+                                      "_"
+                                    ]
+                                  ]
+                                }
+                              }
+                            }
+                          ]
                         }
                       },
                       {
                         "NameBind": [
-                          "rs",
+                          "n",
                           {
-                            "Repeat": {
-                              "expr": {
-                                "Rule": "prule"
-                              },
-                              "min": 0,
-                              "max": null,
-                              "delim": {
-                                "Sequence": []
-                              }
+                            "SliceInput": {
+                              "Sequence": [
+                                {
+                                  "CharClass": {
+                                    "neg": false,
+                                    "ranges": [
+                                      [
+                                        "a",
+                                        "z"
+                                      ],
+                                      [
+                                        "A",
+                                        "Z"
+                                      ],
+                                      [
+                                        "_",
+                                        "_"
+                                      ]
+                                    ]
+                                  }
+                                },
+                                {
+                                  "Repeat": {
+                                    "expr": {
+                                      "CharClass": {
+                                        "neg": false,
+                                        "ranges": [
+                                          [
+                                            "a",
+                                            "z"
+                                          ],
+                                          [
+                                            "A",
+                                            "Z"
+                                          ],
+                                          [
+                                            "0",
+                                            "9"
+                                          ],
+                                          [
+                                            "_",
+                                            "_"
+                                          ]
+                                        ]
+                                      }
+                                    },
+                                    "min": 0,
+                                    "max": null,
+                                    "delim": {
+                                      "Sequence": []
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
@@ -2062,13 +2018,57 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "GrammarFile",
-                      [
-                        {
-                          "Name": "rs"
-                        }
-                      ]
+                    "Name": "n"
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "reserved",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Choice": [
+                  {
+                    "Literal": "end"
+                  },
+                  {
+                    "Choice": [
+                      {
+                        "Literal": "str"
+                      },
+                      {
+                        "Choice": [
+                          {
+                            "Literal": "rule"
+                          },
+                          {
+                            "Choice": [
+                              {
+                                "Literal": "ast"
+                              },
+                              {
+                                "Choice": [
+                                  {
+                                    "Literal": "neg"
+                                  },
+                                  {
+                                    "Literal": "pos"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   }
                 ]

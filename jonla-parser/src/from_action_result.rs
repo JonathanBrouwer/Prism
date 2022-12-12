@@ -23,7 +23,7 @@ pub fn parse_grammarfile(r: &ActionResult, src: &str) -> GrammarFile {
         match &rules[..] => [rules],
         match &**rules => List(rules),
         create GrammarFile {
-            rules: rules.iter().map(|rule| parse_rule(rule, src)).map(|rule| (rule.name.clone(), rule)).collect(),
+            rules: rules.iter().map(|rule| parse_rule(rule, src)).collect(),
         }
     }
 }

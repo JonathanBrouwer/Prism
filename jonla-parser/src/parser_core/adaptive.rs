@@ -9,8 +9,8 @@ impl<'grm> GrammarState<'grm> {
     pub fn new(grammar: &'grm GrammarFile) -> Self {
         Self {
             rules: grammar.rules.iter().map(|r| {
-                let blocks: Vec<BlockState<'grm>> = r.1.blocks.iter().map(|b| BlockState::new(b)).collect();
-                (&r.0[..], blocks)
+                let blocks: Vec<BlockState<'grm>> = r.blocks.iter().map(|b| BlockState::new(b)).collect();
+                (&r.name[..], blocks)
             }).collect()
         }
     }
