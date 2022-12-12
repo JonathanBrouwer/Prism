@@ -34,4 +34,8 @@ impl<'grm> StringStream<'grm> {
     pub fn span_rest(self) -> Span {
         Span::new(self.1, self.0.len())
     }
+
+    pub fn src(self) -> &'grm str {
+        self.0
+    }
 }
