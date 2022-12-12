@@ -1,3 +1,4 @@
+use crate::parser_core::adaptive::BlockState;
 use crate::parser_core::error::{err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -8,9 +9,11 @@ use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
 use by_address::ByAddress;
 use std::collections::HashMap;
-use crate::parser_core::adaptive::BlockState;
 
-type CacheKey<'grm, 'b> = (usize, (ByAddress<&'b [BlockState<'grm>]>, ParserContext<'b, 'grm>));
+type CacheKey<'grm, 'b> = (
+    usize,
+    (ByAddress<&'b [BlockState<'grm>]>, ParserContext<'b, 'grm>),
+);
 
 pub struct ParserState<'grm, 'b, PR> {
     //Cache for parser_cache_recurse

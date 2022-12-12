@@ -9,13 +9,13 @@ use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
 
+use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
+use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::META_GRAMMAR_STATE;
-use crate::parser_core::adaptive::GrammarState;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'grm>,
@@ -166,12 +166,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         Rc::new(ActionResult::Void("negative lookahead")),
                     )
                 }),
-            RuleExpr::AtGrammar => {
-                parser_rule(&META_GRAMMAR_STATE, "toplevel", &ParserContext {
+            RuleExpr::AtGrammar => parser_rule(
+                &META_GRAMMAR_STATE,
+                "toplevel",
+                &ParserContext {
                     prec_climb_this: None,
                     prec_climb_next: None,
                     ..*context
-                }).parse(stream, state)
+                },
+            )
+            .parse(stream, state),
+            RuleExpr::AtAdapt(g, b) => {
+
+                todo!()
             }
         }
     }

@@ -109,6 +109,9 @@ fn parse_rule_expr(r: &ActionResult, src: &str) -> RuleExpr {
         Construct("AtThis", _) => RuleExpr::AtThis,
         Construct("AtNext", _) => RuleExpr::AtNext,
         Construct("Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)),
+        Construct("AtAdapt", b) => {
+            RuleExpr::AtAdapt(parse_rule_action(&b[0], src), parse_identifier(&b[1], src))
+        }
         _ => unreachable!(),
     }
 }
@@ -135,9 +138,9 @@ fn parse_rule_action(r: &ActionResult, src: &str) -> RuleAction {
 
 fn parse_identifier(r: &ActionResult, src: &str) -> String {
     match r {
-        Value(Span{ start, end }) => src[*start..*end].to_string(),
+        Value(Span { start, end }) => src[*start..*end].to_string(),
         Literal(s) => s.to_string(),
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 

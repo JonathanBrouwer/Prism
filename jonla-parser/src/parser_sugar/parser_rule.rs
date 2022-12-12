@@ -6,13 +6,13 @@ use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::full_input_layout;
 
+use crate::grammar::GrammarFile;
+use crate::parser_core::adaptive::{BlockState, GrammarState};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::grammar::GrammarFile;
-use crate::parser_core::adaptive::{BlockState, GrammarState};
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Rc<ActionResult<'grm>>>,
@@ -47,9 +47,13 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     let mut state = ParserState::new();
     let grammar_state = GrammarState::new(&rules);
 
-    let x = full_input_layout(&grammar_state, &parser_rule(&grammar_state, rule, &context), &context)
-        .parse(stream, &mut state)
-        .collapse();
+    let x = full_input_layout(
+        &grammar_state,
+        &parser_rule(&grammar_state, rule, &context),
+        &context,
+    )
+    .parse(stream, &mut state)
+    .collapse();
     x
 }
 
@@ -71,7 +75,8 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 prec_climb_next: None,
                 ..*context
             },
-        ).parse(stream, state);
+        )
+        .parse(stream, state);
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
         res
     }

@@ -1,4 +1,4 @@
-use crate::grammar::{AnnotatedRuleExpr};
+use crate::grammar::AnnotatedRuleExpr;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 
 use crate::parser_core::error::ParseError;
@@ -8,8 +8,8 @@ use crate::parser_core::presult::PResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
 
-use by_address::ByAddress;
 use crate::parser_core::adaptive::{BlockState, GrammarState};
+use by_address::ByAddress;
 
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
@@ -42,7 +42,8 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, &b.constructors[..], context).parse(stream, state),
+            [b] => parser_body_sub_constructors(rules, &b.constructors[..], context)
+                .parse(stream, state),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(

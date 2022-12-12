@@ -1,5 +1,5 @@
 rule block:
-    g :: b <- "grammar" "{" g:@grammar "}" ";" b:block
+    g :: b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
     s :: b <- s:stmt ";" b:block
     [] <- ""
 
@@ -8,6 +8,7 @@ rule stmt:
     Do() <- "do"
 
 rule expr:
+    -- base
     Block(b) <- "{" b:block "}"
     X() <- "x"
     Y() <- "y"

@@ -1202,6 +1202,74 @@
               {
                 "Action": [
                   {
+                    "Sequence": [
+                      {
+                        "Literal": "@adapt"
+                      },
+                      {
+                        "Sequence": [
+                          {
+                            "Literal": "("
+                          },
+                          {
+                            "Sequence": [
+                              {
+                                "NameBind": [
+                                  "a",
+                                  {
+                                    "Rule": "prule_action"
+                                  }
+                                ]
+                              },
+                              {
+                                "Sequence": [
+                                  {
+                                    "Literal": ","
+                                  },
+                                  {
+                                    "Sequence": [
+                                      {
+                                        "NameBind": [
+                                          "n",
+                                          {
+                                            "Rule": "identifier"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Literal": ")"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "AtAdapt",
+                      [
+                        {
+                          "Name": "a"
+                        },
+                        {
+                          "Name": "n"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
                     "NameBind": [
                       "n",
                       {

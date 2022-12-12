@@ -56,6 +56,7 @@ pub enum RuleExpr {
     AtGrammar,
     AtThis,
     AtNext,
+    AtAdapt(RuleAction, String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]

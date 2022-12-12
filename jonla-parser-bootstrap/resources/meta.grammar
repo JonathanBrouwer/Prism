@@ -39,6 +39,7 @@ rule prule_expr:
     AtThis() <- "@this"
     AtNext() <- "@next"
     AtGrammar() <- "@grammar"
+    AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
     Rule(n) <- n:identifier
 
 rule prule_action:
