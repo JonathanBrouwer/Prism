@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::Arc;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {
@@ -20,7 +20,10 @@ pub struct Rule<'grm> {
 pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm>(pub Vec<RuleAnnotation<'grm>>, #[serde(borrow)] pub RuleExpr<'grm>);
+pub struct AnnotatedRuleExpr<'grm>(
+    pub Vec<RuleAnnotation<'grm>>,
+    #[serde(borrow)] pub RuleExpr<'grm>,
+);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CharClass {
@@ -85,7 +88,7 @@ impl<'grm> EscapedString<'grm> {
         Self(Arc::new(Cow::from(s)))
     }
 
-    pub fn chars(&self) -> impl Iterator<Item=char> + '_ {
+    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.0.chars()
     }
 

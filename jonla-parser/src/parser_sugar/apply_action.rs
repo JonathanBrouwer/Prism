@@ -15,9 +15,7 @@ pub fn apply_action<'b, 'grm>(
                 panic!("Name '{name}' not in context")
             }
         }
-        RuleAction::InputLiteral(lit) => {
-            Arc::new(ActionResult::Literal(lit.clone()))
-        },
+        RuleAction::InputLiteral(lit) => Arc::new(ActionResult::Literal(lit.clone())),
         RuleAction::Construct(name, args) => {
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect();
             Arc::new(ActionResult::Construct(name, args_vals))

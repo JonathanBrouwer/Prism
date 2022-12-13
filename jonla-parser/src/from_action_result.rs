@@ -48,14 +48,20 @@ fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Block<'grm> {
     }
 }
 
-fn parse_constructors<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Vec<AnnotatedRuleExpr<'grm>> {
+fn parse_constructors<'grm>(
+    r: &ActionResult<'grm>,
+    src: &'grm str,
+) -> Vec<AnnotatedRuleExpr<'grm>> {
     result_match! {
         match r => List(constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect()
     }
 }
 
-fn parse_annotated_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> AnnotatedRuleExpr<'grm> {
+fn parse_annotated_rule_expr<'grm>(
+    r: &ActionResult<'grm>,
+    src: &'grm str,
+) -> AnnotatedRuleExpr<'grm> {
     result_match! {
         match r => Construct("AnnotatedExpr", body),
         match &body[..] => [annots, e],

@@ -1,4 +1,4 @@
-use crate::grammar::{EscapedString, GrammarFile, RuleExpr};
+use crate::grammar::{EscapedString, RuleExpr};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -11,6 +11,7 @@ use crate::parser_sugar::parser_layout::parser_with_layout;
 
 use crate::from_action_result::parse_grammarfile;
 use crate::parser_core::adaptive::GrammarState;
+use crate::parser_core::parser_state::ParserState;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::apply_action::apply_action;
 use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
@@ -185,23 +186,24 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 
                 // Parse it into a grammar
                 let g = parse_grammarfile(&*gr, stream.src());
-                //TODO temp fix, don't leak things pls
-                let g: &'b GrammarFile<'grm> = Box::leak(Box::new(g));
 
                 // Create new grammarstate
                 let mut rules: GrammarState = (*rules).clone();
-                if let Err(_) = rules.update(g) {
+                if let Err(_) = rules.update(&g) {
                     let mut e = E::new(stream.span_to(stream));
                     e.add_label_implicit(ErrorLabel::Explicit(
                         stream.span_to(stream),
-                        EscapedString::new_borrow("Grammar was invalid, created cycle in block order."),
+                        EscapedString::new_borrow(
+                            "Grammar was invalid, created cycle in block order.",
+                        ),
                     ));
                     return PResult::new_err(e, stream);
                 }
-                let rules: &'b GrammarState<'_, 'grm> = Box::leak(Box::new(rules));
+
+                let mut state = ParserState::new();
 
                 let p: PResult<'grm, PR, E> =
-                    parser_rule(&rules, &b[..], &context).parse(stream, state);
+                    parser_rule(&rules, &b[..], &context).parse(stream, &mut state);
                 p
             }
         }

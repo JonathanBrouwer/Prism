@@ -50,7 +50,11 @@ impl<'grm> TopoSet<'grm> {
             }
         }
 
-        let mut todo: VecDeque<&'grm str> = counts.iter().filter(|(_, v)| **v == 0).map(|(k, _)| *k).collect();
+        let mut todo: VecDeque<&'grm str> = counts
+            .iter()
+            .filter(|(_, v)| **v == 0)
+            .map(|(k, _)| *k)
+            .collect();
 
         while let Some(k) = todo.pop_front() {
             counts.remove(k);

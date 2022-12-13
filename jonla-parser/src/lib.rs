@@ -20,7 +20,8 @@ lazy_static! {
         let meta_grammar = include_str!("../resources/bootstrap.json");
         serde_json::from_str(meta_grammar).unwrap()
     };
-    pub static ref META_GRAMMAR_STATE: GrammarState<'static, 'static> = GrammarState::new(&META_GRAMMAR);
+    pub static ref META_GRAMMAR_STATE: GrammarState<'static, 'static> =
+        GrammarState::new(&META_GRAMMAR);
 }
 
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(

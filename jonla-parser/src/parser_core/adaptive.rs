@@ -52,7 +52,8 @@ struct RuleState<'b, 'grm> {
 
 impl<'b, 'grm> RuleState<'b, 'grm> {
     pub fn new(r: &'b Rule<'grm>) -> Self {
-        let blocks: Vec<BlockState<'b, 'grm>> = r.blocks.iter().map(|b| BlockState::new(b)).collect();
+        let blocks: Vec<BlockState<'b, 'grm>> =
+            r.blocks.iter().map(|b| BlockState::new(b)).collect();
         let mut order: TopoSet<'grm> = TopoSet::new();
         order.update(r);
         Self { blocks, order }

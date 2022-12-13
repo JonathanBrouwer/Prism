@@ -12,7 +12,10 @@ use std::collections::HashMap;
 
 type CacheKey<'grm, 'b> = (
     usize,
-    (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext<'b, 'grm>),
+    (
+        ByAddress<&'b [BlockState<'b, 'grm>]>,
+        ParserContext<'b, 'grm>,
+    ),
 );
 
 pub struct ParserState<'grm, 'b, PR> {
@@ -66,7 +69,10 @@ impl<'grm, 'b, PR: Clone> ParserState<'grm, 'b, PR> {
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>>,
-    id: (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext<'b, 'grm>),
+    id: (
+        ByAddress<&'b [BlockState<'b, 'grm>]>,
+        ParserContext<'b, 'grm>,
+    ),
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |pos_start: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         //Check if this result is cached

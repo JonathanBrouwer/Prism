@@ -1,3 +1,4 @@
+use crate::grammar::EscapedString;
 use crate::parser_core::error::set_error::SetError;
 use crate::parser_core::error::tree_error::TreeError;
 use crate::parser_core::span::Span;
@@ -5,7 +6,6 @@ use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKi
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::ops::Range;
-use crate::grammar::EscapedString;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
