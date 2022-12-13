@@ -3,4 +3,4 @@ grammar {
         -- base
         Z() <- "z"
 };
-let z;
+z;

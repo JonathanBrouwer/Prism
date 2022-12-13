@@ -4,7 +4,7 @@ rule block:
     [] <- ""
 
 rule stmt:
-    Let(e) <- "let" e:expr
+    Expr(e) <- e:expr
     Do() <- "do"
 
 rule expr:
