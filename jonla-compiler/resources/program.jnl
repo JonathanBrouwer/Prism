@@ -6,7 +6,6 @@ grammar {
         -- base
         Z() <- "z"
 };
-z + wjhbkj; { * z;
+z + x * z;
 x;
 y;
-w;

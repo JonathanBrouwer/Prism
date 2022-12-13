@@ -1201,6 +1201,317 @@
                   }
                 ]
               }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "repeat"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "d",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "Literal": "*"
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Repeat",
+                      [
+                        {
+                          "Name": "e"
+                        },
+                        {
+                          "InputLiteral": "0"
+                        },
+                        {
+                          "Construct": [
+                            "None",
+                            []
+                          ]
+                        },
+                        {
+                          "Name": "d"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "repeat"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "d",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "Literal": "+"
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Repeat",
+                      [
+                        {
+                          "Name": "e"
+                        },
+                        {
+                          "InputLiteral": "1"
+                        },
+                        {
+                          "Construct": [
+                            "None",
+                            []
+                          ]
+                        },
+                        {
+                          "Name": "d"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "repeat"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "d",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "min",
+                          {
+                            "Rule": "integer"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "Literal": "inf"
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Repeat",
+                      [
+                        {
+                          "Name": "e"
+                        },
+                        {
+                          "Name": "min"
+                        },
+                        {
+                          "Construct": [
+                            "None",
+                            []
+                          ]
+                        },
+                        {
+                          "Name": "d"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "repeat"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "d",
+                          {
+                            "Rule": "prule_expr"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "min",
+                          {
+                            "Rule": "integer"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "max",
+                          {
+                            "Rule": "integer"
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Repeat",
+                      [
+                        {
+                          "Name": "e"
+                        },
+                        {
+                          "Name": "min"
+                        },
+                        {
+                          "Construct": [
+                            "Some",
+                            [
+                              {
+                                "Name": "max"
+                              }
+                            ]
+                          ]
+                        },
+                        {
+                          "Name": "d"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
             ]
           ]
         ]
@@ -1890,6 +2201,58 @@
                     "Sequence": []
                   }
                 }
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "integer",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [
+                {
+                  "Error": "Integer"
+                },
+                "NoLayout"
+              ],
+              {
+                "Action": [
+                  {
+                    "NameBind": [
+                      "n",
+                      {
+                        "SliceInput": {
+                          "Repeat": {
+                            "expr": {
+                              "CharClass": {
+                                "neg": false,
+                                "ranges": [
+                                  [
+                                    "0",
+                                    "9"
+                                  ]
+                                ]
+                              }
+                            },
+                            "min": 1,
+                            "max": null,
+                            "delim": {
+                              "Sequence": []
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "n"
+                  }
+                ]
               }
             ]
           ]

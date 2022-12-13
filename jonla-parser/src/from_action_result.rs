@@ -193,9 +193,10 @@ fn parse_option<T>(
     }
 }
 
-fn parse_u64(r: &ActionResult, _: &str) -> u64 {
-    result_match! {
-        match r => Literal(v),
-        create v.parse().unwrap()
+fn parse_u64(r: &ActionResult, src: &str) -> u64 {
+    match r {
+        Literal(v) => v.parse().unwrap(),
+        Value(Span{ start, end }) => src[*start..*end].parse().unwrap(),
+        _ => unreachable!()
     }
 }

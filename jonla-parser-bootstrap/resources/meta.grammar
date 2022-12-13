@@ -41,6 +41,10 @@ rule prule_expr:
     AtGrammar() <- "@grammar"
     AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
     Rule(n) <- n:identifier
+    Repeat(e, "0", None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
+    Repeat(e, "1", None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
+    Repeat(e, min, None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," "inf" ")"
+    Repeat(e, min, Some(max), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," max:integer ")"
 
 rule prule_action:
     --
@@ -76,6 +80,11 @@ rule str_char:
 rule layout = [' ']
 
 rule _n = ['\n']+
+
+rule integer:
+    @error("Integer")
+    @nolayout
+    n <- n:str([ '0'-'9' ]+)
 
 rule identifier:
     @error("Identifier")
