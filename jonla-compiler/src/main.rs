@@ -20,7 +20,7 @@ fn main() {
 
     match result {
         Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
-        // Err(e) => print_set_error(e, filename, input, false),
-        Err(e) => print_tree_error(e, filename, input, true),
+        Err(e) => print_set_error(e, filename, input, false),
+        // Err(e) => print_tree_error(e, filename, input, true),
     }
 }

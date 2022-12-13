@@ -1,6 +1,12 @@
 grammar {
     rule expr:
+        -- additive
+        -- multiplicative
+        Mul(x, y) <- x:@this "*" y:@next
         -- base
         Z() <- "z"
 };
-z;
+z + wjhbkj; { * z;
+x;
+y;
+w;
