@@ -12,11 +12,11 @@ use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub type PR<'grm> = (
-    HashMap<&'grm str, Rc<ActionResult<'grm>>>,
-    Rc<ActionResult<'grm>>,
+    HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    Arc<ActionResult<'grm>>,
 );
 
 pub type PState<'b, 'grm, E> = ParserState<'grm, 'b, PResult<'grm, PR<'grm>, E>>;
@@ -24,8 +24,8 @@ pub type PState<'b, 'grm, E> = ParserState<'grm, 'b, PResult<'grm, PR<'grm>, E>>
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Option<ByAddress<&'b [BlockState<'grm>]>>,
-    pub(crate) prec_climb_next: Option<ByAddress<&'b [BlockState<'grm>]>>,
+    pub(crate) prec_climb_this: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
+    pub(crate) prec_climb_next: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -58,12 +58,12 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
 }
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'grm>,
+    rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
-        let body: &'b Vec<BlockState<'grm>> =
+        let body: &'b Vec<BlockState<'b, 'grm>> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
         let mut res = parser_body_cache_recurse(
             rules,

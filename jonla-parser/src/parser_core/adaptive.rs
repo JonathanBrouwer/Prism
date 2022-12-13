@@ -6,12 +6,12 @@ use std::mem;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct GrammarState<'grm> {
-    rules: HashMap<&'grm str, Arc<RuleState<'grm>>>,
+pub struct GrammarState<'b, 'grm> {
+    rules: HashMap<&'grm str, Arc<RuleState<'b, 'grm>>>,
 }
 
-impl<'grm> GrammarState<'grm> {
-    pub fn new(grammar: &'grm GrammarFile) -> Self {
+impl<'b, 'grm> GrammarState<'b, 'grm> {
+    pub fn new(grammar: &'b GrammarFile<'grm>) -> Self {
         let mut s = Self {
             rules: HashMap::new(),
         };
@@ -23,11 +23,11 @@ impl<'grm> GrammarState<'grm> {
         self.rules.contains_key(rule)
     }
 
-    pub fn get(&self, rule: &'grm str) -> Option<&Vec<BlockState<'grm>>> {
+    pub fn get(&self, rule: &'grm str) -> Option<&Vec<BlockState<'b, 'grm>>> {
         self.rules.get(rule).map(|r| &r.blocks)
     }
 
-    pub fn update(&mut self, grammar: &'grm GrammarFile) -> Result<(), &'grm str> {
+    pub fn update(&mut self, grammar: &'b GrammarFile<'grm>) -> Result<(), &'grm str> {
         for rule in &grammar.rules {
             match self.rules.entry(&rule.name[..]) {
                 Entry::Occupied(mut e) => {
@@ -45,20 +45,20 @@ impl<'grm> GrammarState<'grm> {
 }
 
 #[derive(Clone)]
-struct RuleState<'grm> {
-    blocks: Vec<BlockState<'grm>>,
+struct RuleState<'b, 'grm> {
+    blocks: Vec<BlockState<'b, 'grm>>,
     order: TopoSet<'grm>,
 }
 
-impl<'grm> RuleState<'grm> {
-    pub fn new(r: &'grm Rule) -> Self {
-        let blocks = r.blocks.iter().map(|b| BlockState::new(b)).collect();
-        let mut order = TopoSet::new();
+impl<'b, 'grm> RuleState<'b, 'grm> {
+    pub fn new(r: &'b Rule<'grm>) -> Self {
+        let blocks: Vec<BlockState<'b, 'grm>> = r.blocks.iter().map(|b| BlockState::new(b)).collect();
+        let mut order: TopoSet<'grm> = TopoSet::new();
         order.update(r);
         Self { blocks, order }
     }
 
-    pub fn update(&mut self, r: &'grm Rule) -> Result<(), ()> {
+    pub fn update(&mut self, r: &'b Rule<'grm>) -> Result<(), ()> {
         self.order.update(r);
 
         let order: HashMap<&'grm str, usize> = self
@@ -96,20 +96,20 @@ impl<'grm> RuleState<'grm> {
 }
 
 #[derive(Clone)]
-pub struct BlockState<'grm> {
+pub struct BlockState<'b, 'grm> {
     pub name: &'grm str,
-    pub constructors: Vec<&'grm AnnotatedRuleExpr<'grm>>,
+    pub constructors: Vec<&'b AnnotatedRuleExpr<'grm>>,
 }
 
-impl<'grm> BlockState<'grm> {
-    pub fn new(block: &'grm Block) -> Self {
+impl<'b, 'grm> BlockState<'b, 'grm> {
+    pub fn new(block: &'b Block<'grm>) -> Self {
         Self {
             name: &block.0,
             constructors: block.1.iter().collect(),
         }
     }
 
-    pub fn update(&mut self, b: &'grm Block) {
+    pub fn update(&mut self, b: &'b Block<'grm>) {
         assert_eq!(self.name, b.0);
         self.constructors.extend(&b.1[..]);
     }

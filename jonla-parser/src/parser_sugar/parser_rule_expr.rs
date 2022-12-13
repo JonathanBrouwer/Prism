@@ -1,4 +1,4 @@
-use crate::grammar::{GrammarFile, RuleExpr};
+use crate::grammar::{RuleExpr};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -17,13 +17,13 @@ use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'grm>,
-    expr: &'grm RuleExpr,
+    rules: &'b GrammarState<'b, 'grm>,
+    expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Rc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
         match expr {
@@ -31,7 +31,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::CharClass(cc) => {
                 parser_with_layout(rules, &single(|c| cc.contains(*c)), context)
                     .parse(stream, state)
-                    .map(|(span, _)| (HashMap::new(), Rc::new(ActionResult::Value(span))))
+                    .map(|(span, _)| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
@@ -45,11 +45,12 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         }
                         let span = stream.span_to(res.get_stream());
                         let mut res =
-                            res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))));
-                        res.add_label_implicit(ErrorLabel::Literal(
-                            stream.span_to(res.get_stream().next().0),
-                            literal,
-                        ));
+                            res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))));
+                        // res.add_label_implicit(ErrorLabel::Literal(
+                        //     stream.span_to(res.get_stream().next().0),
+                        //     literal,
+                        // ));
+                        todo!();
                         res
                     };
                 //Next, allow there to be layout before the literal
@@ -71,7 +72,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             .map(|list| {
                 (
                     HashMap::new(),
-                    Rc::new(ActionResult::List(
+                    Arc::new(ActionResult::List(
                         list.into_iter().map(|pr| pr.1).collect(),
                     )),
                 )
@@ -91,7 +92,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     }
                     res_vars.extend(res.ok().unwrap().clone().into_iter());
                 }
-                res.map(|map| (map, Rc::new(ActionResult::Void("sequence"))))
+                res.map(|map| (map, Arc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<'grm, PR, E> =
@@ -128,7 +129,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, context, vars).parse(stream, state);
                 let span = stream.span_to(res.get_stream());
-                res.map(|_| (HashMap::new(), Rc::new(ActionResult::Value(span))))
+                res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(
                 rules,
@@ -165,7 +166,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     .map(|_| {
                         (
                             HashMap::new(),
-                            Rc::new(ActionResult::Void("negative lookahead")),
+                            Arc::new(ActionResult::Void("negative lookahead")),
                         )
                     })
             }
@@ -180,26 +181,27 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             )
             .parse(stream, state),
             RuleExpr::AtAdapt(ga, b) => {
-                let gr: Rc<ActionResult<'grm>> = apply_action(ga, vars);
-                let g = parse_grammarfile(&*gr, stream.src());
-
+                // let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
+                // let g = parse_grammarfile(&*gr, stream.src());
+                //
                 //TODO temp fix, don't leak things pls
 
-                let g: &'grm GrammarFile = Box::leak(Box::new(g));
-                let mut rules: GrammarState = (*rules).clone();
-                if let Err(_) = rules.update(g) {
-                    let mut e = E::new(stream.span_to(stream));
-                    e.add_label_implicit(ErrorLabel::Explicit(
-                        stream.span_to(stream),
-                        "Grammar was invalid, created cycle in block order.",
-                    ));
-                    return PResult::new_err(e, stream);
-                }
-                let rules: &'grm GrammarState<'grm> = Box::leak(Box::new(rules));
-
-                let p: PResult<'grm, PR, E> =
-                    parser_rule(&rules, &b[..], &context).parse(stream, state);
-                p
+                // let g: &'static GrammarFile = Box::leak(Box::new(g));
+                // let mut rules: GrammarState = (*rules).clone();
+                // if let Err(_) = rules.update(g) {
+                //     let mut e = E::new(stream.span_to(stream));
+                //     e.add_label_implicit(ErrorLabel::Explicit(
+                //         stream.span_to(stream),
+                //         "Grammar was invalid, created cycle in block order.",
+                //     ));
+                //     return PResult::new_err(e, stream);
+                // }
+                // let rules: &'static GrammarState<'_, 'grm> = Box::leak(Box::new(rules));
+                //
+                // let p: PResult<'grm, PR, E> =
+                //     parser_rule(&rules, &b[..], &context).parse(stream, state);
+                // p
+                todo!()
             }
         }
     }

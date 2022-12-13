@@ -8,7 +8,7 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext};
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'grm>,
+    rules: &'b GrammarState<'b, 'grm>,
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
@@ -46,7 +46,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 }
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'grm>,
+    rules: &'b GrammarState<'b, 'grm>,
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {

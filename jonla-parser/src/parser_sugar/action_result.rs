@@ -1,14 +1,14 @@
 use crate::parser_core::span::Span;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
     Value(Span),
     Literal(&'grm str),
-    Construct(&'grm str, Vec<Rc<ActionResult<'grm>>>),
-    List(Vec<Rc<ActionResult<'grm>>>),
+    Construct(&'grm str, Vec<Arc<ActionResult<'grm>>>),
+    List(Vec<Arc<ActionResult<'grm>>>),
     Void(&'static str),
 }
 

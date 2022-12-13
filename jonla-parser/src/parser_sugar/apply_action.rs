@@ -1,12 +1,12 @@
 use crate::grammar::RuleAction;
 use crate::parser_sugar::action_result::ActionResult;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 
-pub fn apply_action<'grm>(
-    rule: &'grm RuleAction,
-    map: &HashMap<&str, Rc<ActionResult<'grm>>>,
-) -> Rc<ActionResult<'grm>> {
+pub fn apply_action<'b, 'grm>(
+    rule: &'b RuleAction<'grm>,
+    map: &HashMap<&str, Arc<ActionResult<'grm>>>,
+) -> Arc<ActionResult<'grm>> {
     match rule {
         RuleAction::Name(name) => {
             if let Some(v) = map.get(&name[..]) {
@@ -15,10 +15,13 @@ pub fn apply_action<'grm>(
                 panic!("Name '{name}' not in context")
             }
         }
-        RuleAction::InputLiteral(lit) => Rc::new(ActionResult::Literal(lit)),
+        RuleAction::InputLiteral(lit) => {
+            todo!()
+            // Arc::new(ActionResult::Literal(lit))
+        },
         RuleAction::Construct(name, args) => {
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect();
-            Rc::new(ActionResult::Construct(name, args_vals))
+            Arc::new(ActionResult::Construct(name, args_vals))
         }
         RuleAction::Cons(h, t) => {
             let mut res = Vec::new();
@@ -28,8 +31,8 @@ pub fn apply_action<'grm>(
                 x => unreachable!("{:?} is not a list", x),
             });
 
-            Rc::new(ActionResult::List(res))
+            Arc::new(ActionResult::List(res))
         }
-        RuleAction::Nil() => Rc::new(ActionResult::List(Vec::new())),
+        RuleAction::Nil() => Arc::new(ActionResult::List(Vec::new())),
     }
 }

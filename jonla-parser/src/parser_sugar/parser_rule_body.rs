@@ -22,8 +22,8 @@ pub fn parser_body_cache_recurse<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarState<'grm>,
-    bs: &'b [BlockState<'grm>],
+    rules: &'b GrammarState<'b, 'grm>,
+    bs: &'b [BlockState<'b, 'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
@@ -36,8 +36,8 @@ pub fn parser_body_cache_recurse<
 }
 
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'grm>,
-    bs: &'b [BlockState<'grm>],
+    rules: &'b GrammarState<'b, 'grm>,
+    bs: &'b [BlockState<'b, 'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
@@ -75,8 +75,8 @@ fn parser_body_sub_constructors<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarState<'grm>,
-    es: &'b [&'grm AnnotatedRuleExpr],
+    rules: &'b GrammarState<'b, 'grm>,
+    es: &'b [&'b AnnotatedRuleExpr<'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match es {
@@ -104,19 +104,21 @@ fn parser_body_sub_annotations<
     'grm: 'b,
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
-    rules: &'b GrammarState<'grm>,
-    annots: &'grm [RuleAnnotation],
-    expr: &'grm RuleExpr,
+    rules: &'b GrammarState<'b, 'grm>,
+    annots: &'b [RuleAnnotation],
+    expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
     move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res =
                 parser_body_sub_annotations(rules, rest, expr, context).parse(stream, state);
-            res.add_label_explicit(ErrorLabel::Explicit(
-                stream.span_to(res.get_stream().next().0),
-                err_label,
-            ));
+            let err_label: &'b str = err_label;
+            // res.add_label_explicit(ErrorLabel::Explicit(
+            //     stream.span_to(res.get_stream().next().0),
+            //     err_label,
+            // ));
+            todo!();
             res
         }
         [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
