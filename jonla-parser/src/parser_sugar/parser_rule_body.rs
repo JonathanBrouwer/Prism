@@ -105,7 +105,7 @@ fn parser_body_sub_annotations<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'b GrammarState<'b, 'grm>,
-    annots: &'b [RuleAnnotation],
+    annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
@@ -113,12 +113,10 @@ fn parser_body_sub_annotations<
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res =
                 parser_body_sub_annotations(rules, rest, expr, context).parse(stream, state);
-            let err_label: &'b str = err_label;
-            // res.add_label_explicit(ErrorLabel::Explicit(
-            //     stream.span_to(res.get_stream().next().0),
-            //     err_label,
-            // ));
-            todo!();
+            res.add_label_explicit(ErrorLabel::Explicit(
+                stream.span_to(res.get_stream().next().0),
+                err_label.clone(),
+            ));
             res
         }
         [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(

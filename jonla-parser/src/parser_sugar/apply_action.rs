@@ -16,8 +16,7 @@ pub fn apply_action<'b, 'grm>(
             }
         }
         RuleAction::InputLiteral(lit) => {
-            todo!()
-            // Arc::new(ActionResult::Literal(lit))
+            Arc::new(ActionResult::Literal(lit.clone()))
         },
         RuleAction::Construct(name, args) => {
             let args_vals = args.iter().map(|a| apply_action(a, map)).collect();

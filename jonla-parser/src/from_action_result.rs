@@ -64,7 +64,7 @@ fn parse_annotated_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> An
     }
 }
 
-fn parse_rule_annotation(r: &ActionResult, src: &str) -> RuleAnnotation {
+fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAnnotation<'grm> {
     match r {
         Construct("Error", b) => RuleAnnotation::Error(parse_string(&b[0], src)),
         Construct("NoLayout", _) => RuleAnnotation::NoLayout,
@@ -139,15 +139,16 @@ fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAction
 fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
     match r {
         Value(Span { start, end }) => &src[*start..*end],
-        Literal(s) => s,
+        // If the identifier of a block is a literal, its always empty
+        Literal(s) if s.chars().next().is_none() => "",
         _ => unreachable!(),
     }
 }
 
-fn parse_string(r: &ActionResult, src: &str) -> String {
+fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> EscapedString<'grm> {
     result_match! {
         match r => List(cs),
-        create cs.iter().map(|c| parse_string_char(c, src)).collect()
+        create EscapedString::new(cs.iter().map(|c| parse_string_char(c, src)).collect())
     }
 }
 

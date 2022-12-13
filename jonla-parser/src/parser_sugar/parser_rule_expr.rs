@@ -46,11 +46,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         let span = stream.span_to(res.get_stream());
                         let mut res =
                             res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))));
-                        // res.add_label_implicit(ErrorLabel::Literal(
-                        //     stream.span_to(res.get_stream().next().0),
-                        //     literal,
-                        // ));
-                        todo!();
+                        res.add_label_implicit(ErrorLabel::Literal(
+                            stream.span_to(res.get_stream().next().0),
+                            literal.clone(),
+                        ));
                         res
                     };
                 //Next, allow there to be layout before the literal

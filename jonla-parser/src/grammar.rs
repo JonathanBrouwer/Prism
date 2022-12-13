@@ -1,3 +1,7 @@
+use std::borrow::Cow;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -16,7 +20,7 @@ pub struct Rule<'grm> {
 pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm>(pub Vec<RuleAnnotation>, #[serde(borrow)] pub RuleExpr<'grm>);
+pub struct AnnotatedRuleExpr<'grm>(pub Vec<RuleAnnotation<'grm>>, #[serde(borrow)] pub RuleExpr<'grm>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct CharClass {
@@ -31,8 +35,8 @@ impl CharClass {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleAnnotation {
-    Error(String),
+pub enum RuleAnnotation<'grm> {
+    Error(EscapedString<'grm>),
     NoLayout,
 }
 
@@ -40,7 +44,7 @@ pub enum RuleAnnotation {
 pub enum RuleExpr<'grm> {
     Rule(&'grm str),
     CharClass(CharClass),
-    Literal(String),
+    Literal(EscapedString<'grm>),
     Repeat {
         expr: Box<Self>,
         min: u64,
@@ -63,8 +67,35 @@ pub enum RuleExpr<'grm> {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAction<'grm> {
     Name(&'grm str),
-    InputLiteral(String),
+    InputLiteral(EscapedString<'grm>),
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
+}
+
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
+pub struct EscapedString<'grm>(Arc<Cow<'grm, str>>);
+
+impl<'grm> EscapedString<'grm> {
+    pub fn new(s: String) -> Self {
+        Self(Arc::new(Cow::from(s)))
+    }
+
+    pub fn new_borrow(s: &'grm str) -> Self {
+        Self(Arc::new(Cow::from(s)))
+    }
+
+    pub fn chars(&self) -> impl Iterator<Item=char> + '_ {
+        self.0.chars()
+    }
+
+    pub fn parse<F: FromStr>(&self) -> Result<F, F::Err> {
+        self.0.parse()
+    }
+}
+
+impl<'grm> Display for EscapedString<'grm> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }

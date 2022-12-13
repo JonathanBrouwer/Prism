@@ -2,11 +2,12 @@ use crate::parser_core::span::Span;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use crate::grammar::EscapedString;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
     Value(Span),
-    Literal(&'grm str),
+    Literal(EscapedString<'grm>),
     Construct(&'grm str, Vec<Arc<ActionResult<'grm>>>),
     List(Vec<Arc<ActionResult<'grm>>>),
     Void(&'static str),

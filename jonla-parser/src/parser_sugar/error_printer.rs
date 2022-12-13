@@ -5,11 +5,12 @@ use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKi
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::ops::Range;
+use crate::grammar::EscapedString;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
-    Explicit(Span, &'grm str),
-    Literal(Span, &'grm str),
+    Explicit(Span, EscapedString<'grm>),
+    Literal(Span, EscapedString<'grm>),
     Debug(Span, &'grm str),
 }
 
