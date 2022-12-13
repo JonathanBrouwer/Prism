@@ -1,4 +1,4 @@
-use crate::grammar::{RuleExpr};
+use crate::grammar::{EscapedString, GrammarFile, RuleExpr};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -180,27 +180,29 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             )
             .parse(stream, state),
             RuleExpr::AtAdapt(ga, b) => {
-                // let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
-                // let g = parse_grammarfile(&*gr, stream.src());
-                //
-                //TODO temp fix, don't leak things pls
+                // First, get the grammar actionresult
+                let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
 
-                // let g: &'static GrammarFile = Box::leak(Box::new(g));
-                // let mut rules: GrammarState = (*rules).clone();
-                // if let Err(_) = rules.update(g) {
-                //     let mut e = E::new(stream.span_to(stream));
-                //     e.add_label_implicit(ErrorLabel::Explicit(
-                //         stream.span_to(stream),
-                //         "Grammar was invalid, created cycle in block order.",
-                //     ));
-                //     return PResult::new_err(e, stream);
-                // }
-                // let rules: &'static GrammarState<'_, 'grm> = Box::leak(Box::new(rules));
-                //
-                // let p: PResult<'grm, PR, E> =
-                //     parser_rule(&rules, &b[..], &context).parse(stream, state);
-                // p
-                todo!()
+                // Parse it into a grammar
+                let g = parse_grammarfile(&*gr, stream.src());
+                //TODO temp fix, don't leak things pls
+                let g: &'b GrammarFile<'grm> = Box::leak(Box::new(g));
+
+                // Create new grammarstate
+                let mut rules: GrammarState = (*rules).clone();
+                if let Err(_) = rules.update(g) {
+                    let mut e = E::new(stream.span_to(stream));
+                    e.add_label_implicit(ErrorLabel::Explicit(
+                        stream.span_to(stream),
+                        EscapedString::new_borrow("Grammar was invalid, created cycle in block order."),
+                    ));
+                    return PResult::new_err(e, stream);
+                }
+                let rules: &'b GrammarState<'_, 'grm> = Box::leak(Box::new(rules));
+
+                let p: PResult<'grm, PR, E> =
+                    parser_rule(&rules, &b[..], &context).parse(stream, state);
+                p
             }
         }
     }
