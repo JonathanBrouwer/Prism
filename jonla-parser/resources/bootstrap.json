@@ -551,46 +551,17 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
+                    "NameBind": [
+                      "es",
                       {
-                        "NameBind": [
-                          "e",
-                          "AtNext"
-                        ]
-                      },
-                      {
-                        "NameBind": [
-                          "es",
-                          {
-                            "Repeat": {
-                              "expr": {
-                                "Action": [
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "Literal": "/"
-                                      },
-                                      {
-                                        "NameBind": [
-                                          "e",
-                                          "AtNext"
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Name": "e"
-                                  }
-                                ]
-                              },
-                              "min": 1,
-                              "max": null,
-                              "delim": {
-                                "Sequence": []
-                              }
-                            }
+                        "Repeat": {
+                          "expr": "AtNext",
+                          "min": 2,
+                          "max": null,
+                          "delim": {
+                            "Literal": "/"
                           }
-                        ]
+                        }
                       }
                     ]
                   },
@@ -599,14 +570,7 @@
                       "Choice",
                       [
                         {
-                          "Cons": [
-                            {
-                              "Name": "e"
-                            },
-                            {
-                              "Name": "es"
-                            }
-                          ]
+                          "Name": "es"
                         }
                       ]
                     ]
@@ -624,27 +588,17 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
+                    "NameBind": [
+                      "es",
                       {
-                        "NameBind": [
-                          "e",
-                          "AtNext"
-                        ]
-                      },
-                      {
-                        "NameBind": [
-                          "es",
-                          {
-                            "Repeat": {
-                              "expr": "AtNext",
-                              "min": 1,
-                              "max": null,
-                              "delim": {
-                                "Sequence": []
-                              }
-                            }
+                        "Repeat": {
+                          "expr": "AtNext",
+                          "min": 2,
+                          "max": null,
+                          "delim": {
+                            "Literal": ""
                           }
-                        ]
+                        }
                       }
                     ]
                   },
@@ -653,14 +607,7 @@
                       "Sequence",
                       [
                         {
-                          "Cons": [
-                            {
-                              "Name": "e"
-                            },
-                            {
-                              "Name": "es"
-                            }
-                          ]
+                          "Name": "es"
                         }
                       ]
                     ]
@@ -1640,43 +1587,16 @@
                       },
                       {
                         "NameBind": [
-                          "a",
-                          {
-                            "Rule": "prule_action"
-                          }
-                        ]
-                      },
-                      {
-                        "NameBind": [
                           "as",
                           {
                             "Repeat": {
                               "expr": {
-                                "Action": [
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "Literal": ","
-                                      },
-                                      {
-                                        "NameBind": [
-                                          "a",
-                                          {
-                                            "Rule": "prule_action"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Name": "a"
-                                  }
-                                ]
+                                "Rule": "prule_action"
                               },
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Sequence": []
+                                "Literal": ","
                               }
                             }
                           }
@@ -1695,14 +1615,7 @@
                           "Name": "n"
                         },
                         {
-                          "Cons": [
-                            {
-                              "Name": "a"
-                            },
-                            {
-                              "Name": "as"
-                            }
-                          ]
+                          "Name": "as"
                         }
                       ]
                     ]
@@ -1823,43 +1736,16 @@
                       },
                       {
                         "NameBind": [
-                          "p",
-                          {
-                            "Rule": "charclass_part"
-                          }
-                        ]
-                      },
-                      {
-                        "NameBind": [
                           "ps",
                           {
                             "Repeat": {
                               "expr": {
-                                "Action": [
-                                  {
-                                    "Sequence": [
-                                      {
-                                        "Literal": "|"
-                                      },
-                                      {
-                                        "NameBind": [
-                                          "p",
-                                          {
-                                            "Rule": "charclass_part"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    "Name": "p"
-                                  }
-                                ]
+                                "Rule": "charclass_part"
                               },
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Sequence": []
+                                "Literal": "|"
                               }
                             }
                           }
@@ -1875,14 +1761,7 @@
                           "Name": "negate"
                         },
                         {
-                          "Cons": [
-                            {
-                              "Name": "p"
-                            },
-                            {
-                              "Name": "ps"
-                            }
-                          ]
+                          "Name": "ps"
                         }
                       ]
                     ]
