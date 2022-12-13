@@ -1,6 +1,4 @@
-- Layout constraints -> No?
-- Recovery
+THE PLAN:
+- Error recovery
 - Parametric rules
-- Non-char grammars -> No.
-- Lookahead -> Done
-- Stack?
+-
