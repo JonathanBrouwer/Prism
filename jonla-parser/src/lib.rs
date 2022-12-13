@@ -16,7 +16,7 @@ pub mod parser_core;
 pub mod parser_sugar;
 
 lazy_static! {
-    pub static ref META_GRAMMAR: GrammarFile = {
+    pub static ref META_GRAMMAR: GrammarFile<'static> = {
         let meta_grammar = include_str!("../resources/bootstrap.json");
         serde_json::from_str(meta_grammar).unwrap()
     };

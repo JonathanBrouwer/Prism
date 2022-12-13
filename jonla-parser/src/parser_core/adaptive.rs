@@ -98,7 +98,7 @@ impl<'grm> RuleState<'grm> {
 #[derive(Clone)]
 pub struct BlockState<'grm> {
     pub name: &'grm str,
-    pub constructors: Vec<&'grm AnnotatedRuleExpr>,
+    pub constructors: Vec<&'grm AnnotatedRuleExpr<'grm>>,
 }
 
 impl<'grm> BlockState<'grm> {

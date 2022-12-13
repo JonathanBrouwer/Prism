@@ -17,7 +17,7 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile(r: &ActionResult, src: &str) -> GrammarFile {
+pub fn parse_grammarfile<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> GrammarFile<'grm> {
     result_match! {
         match r => Construct("GrammarFile", rules),
         match &rules[..] => [rules],
@@ -28,7 +28,7 @@ pub fn parse_grammarfile(r: &ActionResult, src: &str) -> GrammarFile {
     }
 }
 
-fn parse_rule(r: &ActionResult, src: &str) -> Rule {
+fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Rule<'grm> {
     result_match! {
         match r => Construct("Rule", rule_body),
         match &rule_body[..] => [name, blocks],
@@ -40,7 +40,7 @@ fn parse_rule(r: &ActionResult, src: &str) -> Rule {
     }
 }
 
-fn parse_block(r: &ActionResult, src: &str) -> Block {
+fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Block<'grm> {
     result_match! {
         match r => Construct("Block", b),
         match &b[..] => [name, cs],
@@ -48,14 +48,14 @@ fn parse_block(r: &ActionResult, src: &str) -> Block {
     }
 }
 
-fn parse_constructors(r: &ActionResult, src: &str) -> Vec<AnnotatedRuleExpr> {
+fn parse_constructors<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Vec<AnnotatedRuleExpr<'grm>> {
     result_match! {
         match r => List(constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect()
     }
 }
 
-fn parse_annotated_rule_expr(r: &ActionResult, src: &str) -> AnnotatedRuleExpr {
+fn parse_annotated_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> AnnotatedRuleExpr<'grm> {
     result_match! {
         match r => Construct("AnnotatedExpr", body),
         match &body[..] => [annots, e],
@@ -72,7 +72,7 @@ fn parse_rule_annotation(r: &ActionResult, src: &str) -> RuleAnnotation {
     }
 }
 
-fn parse_rule_expr(r: &ActionResult, src: &str) -> RuleExpr {
+fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleExpr<'grm> {
     match r {
         Construct("Action", b) => RuleExpr::Action(
             Box::new(parse_rule_expr(&b[0], src)),
@@ -116,7 +116,7 @@ fn parse_rule_expr(r: &ActionResult, src: &str) -> RuleExpr {
     }
 }
 
-fn parse_rule_action(r: &ActionResult, src: &str) -> RuleAction {
+fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAction<'grm> {
     match r {
         Construct("Cons", b) => RuleAction::Cons(
             Box::new(parse_rule_action(&b[0], src)),
@@ -136,10 +136,10 @@ fn parse_rule_action(r: &ActionResult, src: &str) -> RuleAction {
     }
 }
 
-fn parse_identifier(r: &ActionResult, src: &str) -> String {
+fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
     match r {
-        Value(Span { start, end }) => src[*start..*end].to_string(),
-        Literal(s) => s.to_string(),
+        Value(Span { start, end }) => &src[*start..*end],
+        Literal(s) => s,
         _ => unreachable!(),
     }
 }
