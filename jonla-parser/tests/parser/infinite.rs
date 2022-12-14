@@ -34,3 +34,54 @@ failing tests:
 
 }
 
+parse_test! {
+name: infinite_directrec
+syntax: r#"
+    rule start:
+        X() <- start
+
+    "#
+
+passing tests:
+
+failing tests:
+    ""
+    "x"
+
+}
+
+parse_test! {
+name: infinite_mutualrec
+syntax: r#"
+    rule start:
+        X() <- other
+    rule other:
+        X() <- start
+
+    "#
+
+passing tests:
+
+failing tests:
+    ""
+    "x"
+
+}
+
+parse_test! {
+name: infinite_emptyrec
+syntax: r#"
+    rule start:
+        X() <- "" other
+    rule other:
+        X() <- "" start
+
+    "#
+
+passing tests:
+
+failing tests:
+    ""
+    "x"
+
+}
