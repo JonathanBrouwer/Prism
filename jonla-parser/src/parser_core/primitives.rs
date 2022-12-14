@@ -4,6 +4,8 @@ use crate::parser_core::presult::PResult;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::span::Span;
 use crate::parser_core::stream::StringStream;
+use crate::parser_sugar::error_printer::ErrorLabel;
+use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 
 pub fn single<'grm, E: ParseError, Q, F: Fn(&char) -> bool>(
     f: F,
@@ -41,7 +43,7 @@ pub fn repeat_delim<
     'grm,
     OP,
     OD,
-    E: ParseError,
+    E: ParseError<L = ErrorLabel<'grm>>,
     Q,
     P: Parser<'grm, OP, E, Q>,
     D: Parser<'grm, OD, E, Q>,
@@ -75,11 +77,20 @@ pub fn repeat_delim<
                     }
                     vec
                 });
-            }
+            };
 
             if !should_continue {
                 break;
             };
+
+            // If the result is OK and the last pos has not changed, we got into an infinite loop
+            // We break out with an infinite loop error
+            if pos.pos() == last_res.get_stream().pos() {
+                let span = Span::new(pos.pos(), pos.pos());
+                let mut e = E::new(span);
+                e.add_label_explicit(Debug(span, "INFLOOP"));
+                return PResult::new_err(e, pos);
+            }
         }
 
         last_res
