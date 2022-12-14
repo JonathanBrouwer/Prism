@@ -1,7 +1,7 @@
 pub mod adaptive;
 pub mod error;
 pub mod parser;
-pub mod parser_state;
+pub mod parser_cache;
 pub mod presult;
 pub mod primitives;
 pub mod span;

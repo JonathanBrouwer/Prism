@@ -18,7 +18,7 @@ type CacheKey<'grm, 'b> = (
     ),
 );
 
-pub struct ParserState<'grm, 'b, PR> {
+pub struct ParserCache<'grm, 'b, PR> {
     //Cache for parser_cache_recurse
     cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PR>>,
     cache_stack: Vec<CacheKey<'grm, 'b>>,
@@ -29,9 +29,9 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'b, PR: Clone> ParserState<'grm, 'b, PR> {
+impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
     pub fn new() -> Self {
-        ParserState {
+        ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
         }
@@ -64,6 +64,11 @@ impl<'grm, 'b, PR: Clone> ParserState<'grm, 'b, PR> {
         self.cache_stack.drain(state..).for_each(|key| {
             self.cache.remove(&key);
         })
+    }
+
+    fn clear(&mut self) {
+        self.cache.clear();
+        self.cache_stack.clear();
     }
 }
 

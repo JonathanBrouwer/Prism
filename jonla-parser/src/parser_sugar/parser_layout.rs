@@ -12,15 +12,15 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
-    move |pos: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
+    move |pos: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
-            return sub.parse(pos, state);
+            return sub.parse(pos, cache);
         }
 
         //Start attemping to parse layout
         let mut res = PResult::new_ok((), pos);
         loop {
-            let (new_res, success) = res.merge_seq_opt_parser(sub, state);
+            let (new_res, success) = res.merge_seq_opt_parser(sub, cache);
             if success {
                 return new_res.map(|(_, o)| o.unwrap());
             }
@@ -35,7 +35,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                             ..*context
                         },
                     ),
-                    state,
+                    cache,
                 )
                 .map(|_| ());
             if res.is_err() {
@@ -50,9 +50,9 @@ pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'
     sub: &'a impl Parser<'grm, O, E, PState<'b, 'grm, E>>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, O, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
-        let res = sub.parse(stream, state);
-        res.merge_seq_parser(&parser_with_layout(rules, &end(), context), state)
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| -> PResult<'grm, O, E> {
+        let res = sub.parse(stream, cache);
+        res.merge_seq_parser(&parser_with_layout(rules, &end(), context), cache)
             .map(|(o, _)| o)
     }
 }

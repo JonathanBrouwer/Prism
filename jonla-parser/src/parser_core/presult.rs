@@ -136,21 +136,21 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         self,
         other: &P,
         stream: StringStream<'grm>,
-        state: &mut Q,
+        cache: &mut Q,
     ) -> Self {
         //Quick out
         if self.is_ok() {
             return self;
         }
 
-        self.merge_choice(other.parse(stream, state))
+        self.merge_choice(other.parse(stream, cache))
     }
 
     #[inline(always)]
     pub fn merge_seq_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
         self,
         other: &P2,
-        state: &mut Q,
+        cache: &mut Q,
     ) -> PResult<'grm, (O, O2), E> {
         //Quick out
         if self.is_err() {
@@ -158,14 +158,14 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         }
 
         let pos = self.get_stream();
-        self.merge_seq(other.parse(pos, state))
+        self.merge_seq(other.parse(pos, cache))
     }
 
     #[inline(always)]
     pub fn merge_seq_opt_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
         self,
         other: &P2,
-        state: &mut Q,
+        cache: &mut Q,
     ) -> (PResult<'grm, (O, Option<O2>), E>, bool) {
         //Quick out
         if self.is_err() {
@@ -173,7 +173,7 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         }
 
         let pos = self.get_stream();
-        let other_res = other.parse(pos, state);
+        let other_res = other.parse(pos, cache);
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)
     }

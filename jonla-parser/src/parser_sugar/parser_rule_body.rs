@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
-use crate::parser_core::parser_state::parser_cache_recurse;
+use crate::parser_core::parser_cache::parser_cache_recurse;
 use crate::parser_core::presult::PResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
@@ -26,12 +26,12 @@ pub fn parser_body_cache_recurse<
     bs: &'b [BlockState<'b, 'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, context),
             (ByAddress(bs), context.clone()),
         )
-        .parse(stream, state)
+        .parse(stream, cache)
     }
 }
 
@@ -40,11 +40,11 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     bs: &'b [BlockState<'b, 'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
         match bs {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, &b.constructors[..], context)
-                .parse(stream, state),
+                .parse(stream, cache),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(
@@ -56,13 +56,13 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
                         ..*context
                     },
                 )
-                .parse(stream, state);
+                .parse(stream, cache);
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
                     &parser_body_cache_recurse(rules, brest, context),
                     stream,
-                    state,
+                    cache,
                 )
             }
         }
@@ -79,18 +79,18 @@ fn parser_body_sub_constructors<
     es: &'b [&'b AnnotatedRuleExpr<'grm>],
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match es {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [AnnotatedRuleExpr(annots, expr)] => {
-            parser_body_sub_annotations(rules, annots, expr, context).parse(stream, state)
+            parser_body_sub_annotations(rules, annots, expr, context).parse(stream, cache)
         }
         [AnnotatedRuleExpr(annots, expr), rest @ ..] => {
             parser_body_sub_annotations(rules, annots, expr, context)
-                .parse(stream, state)
+                .parse(stream, cache)
                 .merge_choice_parser(
                     &parser_body_sub_constructors(rules, rest, context),
                     stream,
-                    state,
+                    cache,
                 )
         }
     }
@@ -107,10 +107,10 @@ fn parser_body_sub_annotations<
     expr: &'b RuleExpr<'grm>,
     context: &'a ParserContext<'b, 'grm>,
 ) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, state: &mut PState<'b, 'grm, E>| match annots {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res =
-                parser_body_sub_annotations(rules, rest, expr, context).parse(stream, state);
+                parser_body_sub_annotations(rules, rest, expr, context).parse(stream, cache);
             res.add_label_explicit(ErrorLabel::Explicit(
                 stream.span_to(res.get_stream().next().0),
                 err_label.clone(),
@@ -120,7 +120,7 @@ fn parser_body_sub_annotations<
         [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
             rules,
             &move |stream: StringStream<'grm>,
-                   state: &mut PState<'b, 'grm, E>|
+                   cache: &mut PState<'b, 'grm, E>|
                   -> PResult<'grm, _, E> {
                 parser_body_sub_annotations(
                     rules,
@@ -131,11 +131,11 @@ fn parser_body_sub_annotations<
                         ..*context
                     },
                 )
-                .parse(stream, state)
+                .parse(stream, cache)
             },
             context,
         )
-        .parse(stream, state),
-        &[] => parser_expr(rules, expr, context, &HashMap::new()).parse(stream, state),
+        .parse(stream, cache),
+        &[] => parser_expr(rules, expr, context, &HashMap::new()).parse(stream, cache),
     }
 }

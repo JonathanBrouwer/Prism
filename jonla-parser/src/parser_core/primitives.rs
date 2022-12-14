@@ -20,10 +20,10 @@ pub fn seq2<'grm, 'a, O1, O2, E: ParseError, Q>(
     p1: &'a impl Parser<'grm, O1, E, Q>,
     p2: &'a impl Parser<'grm, O2, E, Q>,
 ) -> impl Parser<'grm, (O1, O2), E, Q> + 'a {
-    move |stream: StringStream<'grm>, state: &mut Q| -> PResult<'grm, (O1, O2), E> {
-        let res1 = p1.parse(stream, state);
+    move |stream: StringStream<'grm>, cache: &mut Q| -> PResult<'grm, (O1, O2), E> {
+        let res1 = p1.parse(stream, cache);
         let stream = res1.get_stream();
-        res1.merge_seq(p2.parse(stream, state))
+        res1.merge_seq(p2.parse(stream, cache))
     }
 }
 
@@ -31,9 +31,9 @@ pub fn choice2<'grm, 'a, O, E: ParseError, Q>(
     p1: &'a impl Parser<'grm, O, E, Q>,
     p2: &'a impl Parser<'grm, O, E, Q>,
 ) -> impl Parser<'grm, O, E, Q> + 'a {
-    move |stream: StringStream<'grm>, state: &mut Q| -> PResult<'grm, O, E> {
-        p1.parse(stream, state)
-            .merge_choice(p2.parse(stream, state))
+    move |stream: StringStream<'grm>, cache: &mut Q| -> PResult<'grm, O, E> {
+        p1.parse(stream, cache)
+            .merge_choice(p2.parse(stream, cache))
     }
 }
 
@@ -51,15 +51,15 @@ pub fn repeat_delim<
     min: usize,
     max: Option<usize>,
 ) -> impl Parser<'grm, Vec<OP>, E, Q> {
-    move |stream: StringStream<'grm>, state: &mut Q| -> PResult<'grm, Vec<OP>, E> {
+    move |stream: StringStream<'grm>, cache: &mut Q| -> PResult<'grm, Vec<OP>, E> {
         let mut last_res: PResult<'grm, Vec<OP>, E> = PResult::new_ok(vec![], stream);
 
         for i in 0..max.unwrap_or(usize::MAX) {
             let pos = last_res.get_stream();
             let part = if i == 0 {
-                item.parse(pos, state)
+                item.parse(pos, cache)
             } else {
-                seq2(&delimiter, &item).parse(pos, state).map(|x| x.1)
+                seq2(&delimiter, &item).parse(pos, cache).map(|x| x.1)
             };
             let should_continue = part.is_ok();
 
@@ -98,8 +98,8 @@ pub fn end<'grm, E: ParseError, Q>() -> impl Parser<'grm, (), E, Q> {
 pub fn positive_lookahead<'grm, O, E: ParseError, Q>(
     p: &impl Parser<'grm, O, E, Q>,
 ) -> impl Parser<'grm, O, E, Q> + '_ {
-    move |stream: StringStream<'grm>, state: &mut Q| -> PResult<'grm, O, E> {
-        match p.parse(stream, state) {
+    move |stream: StringStream<'grm>, cache: &mut Q| -> PResult<'grm, O, E> {
+        match p.parse(stream, cache) {
             POk(o, _, err) => POk(o, stream, err),
             PErr(e, s) => PErr(e, s),
         }
@@ -109,8 +109,8 @@ pub fn positive_lookahead<'grm, O, E: ParseError, Q>(
 pub fn negative_lookahead<'grm, O, E: ParseError, Q>(
     p: &impl Parser<'grm, O, E, Q>,
 ) -> impl Parser<'grm, (), E, Q> + '_ {
-    move |stream: StringStream<'grm>, state: &mut Q| -> PResult<'grm, (), E> {
-        match p.parse(stream, state) {
+    move |stream: StringStream<'grm>, cache: &mut Q| -> PResult<'grm, (), E> {
+        match p.parse(stream, cache) {
             POk(_, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
             PErr(_, _) => PResult::new_ok((), stream),
         }
