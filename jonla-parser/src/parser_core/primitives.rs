@@ -85,7 +85,8 @@ pub fn repeat_delim<
 
             // If the result is OK and the last pos has not changed, we got into an infinite loop
             // We break out with an infinite loop error
-            if pos.pos() == last_res.get_stream().pos() {
+            // The i != 0 check is to make sure to take the delim into account
+            if i != 0 && pos.pos() == last_res.get_stream().pos() {
                 let span = Span::new(pos.pos(), pos.pos());
                 let mut e = E::new(span);
                 e.add_label_explicit(Debug(span, "INFLOOP"));
