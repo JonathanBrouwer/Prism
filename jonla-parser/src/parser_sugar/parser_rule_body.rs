@@ -24,45 +24,43 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| {
+) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         parser_cache_recurse(
-            &parser_body_sub_blocks(rules, bs, context),
+            &parser_body_sub_blocks(rules, bs),
             (ByAddress(bs), context.clone()),
         )
-        .parse(stream, cache)
+        .parse(stream, cache, context)
     }
 }
 
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| -> PResult<'grm, PR, E> {
+) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| -> PResult<'grm, PR, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, &b.constructors[..], context)
-                .parse(stream, cache),
+            [b] => parser_body_sub_constructors(rules, &b.constructors[..])
+                .parse(stream, cache, context),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(
                     rules,
                     &b.constructors[..],
-                    &ParserContext {
-                        prec_climb_this: Some(ByAddress(bs)),
-                        prec_climb_next: Some(ByAddress(brest)),
-                        ..*context
-                    },
                 )
-                .parse(stream, cache);
+                .parse(stream, cache, &ParserContext {
+                    prec_climb_this: Some(ByAddress(bs)),
+                    prec_climb_next: Some(ByAddress(brest)),
+                    ..*context
+                });
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body_cache_recurse(rules, brest, context),
+                    &parser_body_cache_recurse(rules, brest),
                     stream,
                     cache,
+                    context
                 )
             }
         }
@@ -77,20 +75,20 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     es: &'b [&'b AnnotatedRuleExpr<'grm>],
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| match es {
+) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [AnnotatedRuleExpr(annots, expr)] => {
-            parser_body_sub_annotations(rules, annots, expr, context).parse(stream, cache)
+            parser_body_sub_annotations(rules, annots, expr).parse(stream, cache, context)
         }
         [AnnotatedRuleExpr(annots, expr), rest @ ..] => {
-            parser_body_sub_annotations(rules, annots, expr, context)
-                .parse(stream, cache)
+            parser_body_sub_annotations(rules, annots, expr)
+                .parse(stream, cache, context)
                 .merge_choice_parser(
-                    &parser_body_sub_constructors(rules, rest, context),
+                    &parser_body_sub_constructors(rules, rest),
                     stream,
                     cache,
+                    context
                 )
         }
     }
@@ -104,13 +102,12 @@ fn parser_body_sub_annotations<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     annots: &'b [RuleAnnotation<'grm>],
-    expr: &'b RuleExpr<'grm>,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| match annots {
+    expr: &'b RuleExpr<'grm>
+) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res =
-                parser_body_sub_annotations(rules, rest, expr, context).parse(stream, cache);
+                parser_body_sub_annotations(rules, rest, expr).parse(stream, cache, context);
             res.add_label_explicit(ErrorLabel::Explicit(
                 stream.span_to(res.get_stream().next().0),
                 err_label.clone(),
@@ -120,22 +117,20 @@ fn parser_body_sub_annotations<
         [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
             rules,
             &move |stream: StringStream<'grm>,
-                   cache: &mut PState<'b, 'grm, E>|
+                   cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>|
                   -> PResult<'grm, _, E> {
                 parser_body_sub_annotations(
                     rules,
                     rest,
                     expr,
-                    &ParserContext {
-                        layout_disabled: true,
-                        ..*context
-                    },
                 )
-                .parse(stream, cache)
-            },
-            context,
+                .parse(stream, cache, &ParserContext {
+                    layout_disabled: true,
+                    ..*context
+                })
+            }
         )
-        .parse(stream, cache),
-        &[] => parser_expr(rules, expr, context, &HashMap::new()).parse(stream, cache),
+        .parse(stream, cache, context),
+        &[] => parser_expr(rules, expr, &HashMap::new()).parse(stream, cache, context),
     }
 }

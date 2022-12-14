@@ -2,6 +2,7 @@ use crate::parser_core::error::{err_combine, err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
+use crate::parser_sugar::parser_rule::ParserContext;
 
 #[derive(Clone)]
 pub enum PResult<'grm, O, E: ParseError> {
@@ -132,48 +133,51 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<Q, P: Parser<'grm, O, E, Q>>(
+    pub fn merge_choice_parser<'b, Q, P: Parser<'b, 'grm, O, E, Q>>(
         self,
         other: &P,
         stream: StringStream<'grm>,
         cache: &mut Q,
-    ) -> Self {
+        context: &ParserContext<'b, 'grm>,
+    ) -> Self where 'grm: 'b  {
         //Quick out
         if self.is_ok() {
             return self;
         }
 
-        self.merge_choice(other.parse(stream, cache))
+        self.merge_choice(other.parse(stream, cache, context))
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
+    pub fn merge_seq_parser<'b, O2, Q, P2: Parser<'b, 'grm, O2, E, Q>>(
         self,
         other: &P2,
         cache: &mut Q,
-    ) -> PResult<'grm, (O, O2), E> {
+        context: &ParserContext<'b, 'grm>,
+    ) -> PResult<'grm, (O, O2), E> where 'grm: 'b  {
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
         }
 
         let pos = self.get_stream();
-        self.merge_seq(other.parse(pos, cache))
+        self.merge_seq(other.parse(pos, cache, context))
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<O2, Q, P2: Parser<'grm, O2, E, Q>>(
+    pub fn merge_seq_opt_parser<'b, O2, Q, P2: Parser<'b, 'grm, O2, E, Q>>(
         self,
         other: &P2,
         cache: &mut Q,
-    ) -> (PResult<'grm, (O, Option<O2>), E>, bool) {
+        context: &ParserContext<'b, 'grm>,
+    ) -> (PResult<'grm, (O, Option<O2>), E>, bool) where 'grm: 'b  {
         //Quick out
         if self.is_err() {
             return (self.map(|_| unreachable!()), false);
         }
 
         let pos = self.get_stream();
-        let other_res = other.parse(pos, cache);
+        let other_res = other.parse(pos, cache, context);
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)
     }

@@ -38,21 +38,19 @@ impl ParserContext<'_, '_> {
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
-    context: &'a ParserContext<'b, 'grm>,
-) -> impl Parser<'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>| {
+) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         let body: &'b Vec<BlockState<'b, 'grm>> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
         let mut res = parser_body_cache_recurse(
             rules,
             body,
-            &ParserContext {
-                prec_climb_this: None,
-                prec_climb_next: None,
-                ..*context
-            },
         )
-        .parse(stream, cache);
+        .parse(stream, cache, &ParserContext {
+            prec_climb_this: None,
+            prec_climb_next: None,
+            ..*context
+        });
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
         res.map(|(_, v)| (HashMap::new(), v))
     }
