@@ -4,9 +4,6 @@ use crate::parser_core::parser_state::ParserState;
 use crate::parser_core::presult::PResult;
 use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_layout::full_input_layout;
-
-use crate::grammar::GrammarFile;
 use crate::parser_core::adaptive::{BlockState, GrammarState};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
@@ -36,25 +33,6 @@ impl ParserContext<'_, '_> {
             prec_climb_next: None,
         }
     }
-}
-
-pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'grm GrammarFile,
-    rule: &'grm str,
-    stream: StringStream<'grm>,
-) -> Result<PR<'grm>, E> {
-    let context = ParserContext::new();
-    let mut state = ParserState::new();
-    let grammar_state = GrammarState::new(&rules);
-
-    let x = full_input_layout(
-        &grammar_state,
-        &parser_rule(&grammar_state, rule, &context),
-        &context,
-    )
-    .parse(stream, &mut state)
-    .collapse();
-    x
 }
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(

@@ -7,7 +7,7 @@ use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_rule::run_parser_rule;
+use parser_sugar::run::run_parser_rule;
 
 pub mod from_action_result;
 #[allow(clippy::new_without_default)]
@@ -26,7 +26,7 @@ lazy_static! {
 
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
     grammar: &'a str,
-) -> Result<GrammarFile, E> {
+) -> Result<GrammarFile, Vec<E>> {
     let grammar_stream: StringStream = StringStream::new(grammar);
 
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar_stream)

@@ -5,7 +5,7 @@ use jonla_parser::grammar::GrammarFile;
 use jonla_parser::parser_core::stream::StringStream;
 use jonla_parser::parser_sugar::action_result::ActionResult;
 use jonla_parser::parser_sugar::error_printer::print_set_error;
-use jonla_parser::parser_sugar::parser_rule::run_parser_rule;
+use jonla_parser::parser_sugar::run::run_parser_rule;
 use jonla_parser::META_GRAMMAR;
 use std::fs::{read, File};
 use std::process::exit;
@@ -16,9 +16,11 @@ pub fn get_new_grammar(input: &str) -> GrammarFile {
 
     match result {
         Ok(o) => parse_grammarfile(&o.1, input),
-        Err(e) => {
-            // print_tree_error(e, "file", input, true);
-            print_set_error(e, "file", input, true);
+        Err(es) => {
+            for e in es {
+                // print_tree_error(e, "file", input, true);
+                print_set_error(e, "file", input, true);
+            }
             exit(1);
         }
     }
@@ -48,9 +50,11 @@ fn part1() {
     let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input_stream);
     let result = match result {
         Ok(o) => o.1,
-        Err(e) => {
-            // print_tree_error(e, "file", input, true);
-            print_set_error(e, "file", input, true);
+        Err(es) => {
+            for e in es {
+                // print_tree_error(e, "file", input, true);
+                print_set_error(e, "file", input, true);
+            }
             return;
         }
     };

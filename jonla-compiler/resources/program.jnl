@@ -6,6 +6,11 @@ grammar {
         -- base
         Z() <- "z"
 };
-z + x * z;
 x;
-y;
+x;
+x
+x;
+x;
+x;
+x;
+x;

@@ -7,3 +7,4 @@ pub mod primitives;
 pub mod span;
 pub mod stream;
 pub mod toposet;
+pub mod recovery;
