@@ -477,13 +477,36 @@
                         "Literal": "@"
                       },
                       {
-                        "Literal": "nolayout"
+                        "Literal": "disablelayout"
                       }
                     ]
                   },
                   {
                     "Construct": [
-                      "NoLayout",
+                      "DisableLayout",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "enablelayout"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "EnableLayout",
                       []
                     ]
                   }
@@ -1887,7 +1910,7 @@
                 {
                   "Error": "String"
                 },
-                "NoLayout"
+                "DisableLayout"
               ],
               {
                 "Action": [
@@ -2097,7 +2120,7 @@
                 {
                   "Error": "Integer"
                 },
-                "NoLayout"
+                "DisableLayout"
               ],
               {
                 "Action": [
@@ -2149,7 +2172,7 @@
                 {
                   "Error": "Identifier"
                 },
-                "NoLayout"
+                "DisableLayout"
               ],
               {
                 "Action": [

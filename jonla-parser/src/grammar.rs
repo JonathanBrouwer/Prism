@@ -40,7 +40,8 @@ impl CharClass {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation<'grm> {
     Error(EscapedString<'grm>),
-    NoLayout,
+    DisableLayout,
+    EnableLayout,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]

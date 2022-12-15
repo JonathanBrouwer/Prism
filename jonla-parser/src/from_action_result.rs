@@ -73,7 +73,8 @@ fn parse_annotated_rule_expr<'grm>(
 fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAnnotation<'grm> {
     match r {
         Construct("Error", b) => RuleAnnotation::Error(parse_string(&b[0], src)),
-        Construct("NoLayout", _) => RuleAnnotation::NoLayout,
+        Construct("DisableLayout", _) => RuleAnnotation::DisableLayout,
+        Construct("EnableLayout", _) => RuleAnnotation::EnableLayout,
         _ => unreachable!(),
     }
 }

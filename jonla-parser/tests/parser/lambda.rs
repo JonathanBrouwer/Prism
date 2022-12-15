@@ -7,7 +7,7 @@ rule layout = [' ' | '\n']
 
 rule identifier:
     @error("Identifier")
-    @nolayout
+    @disablelayout
     str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
 rule term:

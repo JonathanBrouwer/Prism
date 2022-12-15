@@ -114,7 +114,7 @@ fn parser_body_sub_annotations<
             ));
             res
         }
-        [RuleAnnotation::NoLayout, rest @ ..] => parser_with_layout(
+        [RuleAnnotation::DisableLayout, rest @ ..] => parser_with_layout(
             rules,
             &move |stream: StringStream<'grm>,
                    cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>|
@@ -131,6 +131,23 @@ fn parser_body_sub_annotations<
             }
         )
         .parse(stream, cache, context),
+        [RuleAnnotation::EnableLayout, rest @ ..] => parser_with_layout(
+            rules,
+            &move |stream: StringStream<'grm>,
+                   cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>|
+                   -> PResult<'grm, _, E> {
+                parser_body_sub_annotations(
+                    rules,
+                    rest,
+                    expr,
+                )
+                    .parse(stream, cache, &ParserContext {
+                        layout_disabled: false,
+                        ..context.clone()
+                    })
+            }
+        )
+            .parse(stream, cache, context),
         &[] => parser_expr(rules, expr, &HashMap::new()).parse(stream, cache, context),
     }
 }
