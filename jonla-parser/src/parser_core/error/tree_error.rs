@@ -82,4 +82,8 @@ impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
             labels: self.labels,
         }
     }
+
+    fn set_end(&mut self, end: usize) {
+        self.span.end = end;
+    }
 }

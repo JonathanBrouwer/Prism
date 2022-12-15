@@ -55,7 +55,7 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
         //Pointing label
         .with_label(
             Label::new((filename, span.start..span.end))
-                .with_message("This was the first character that was unparsable, starting at the marked position it could've been...")
+                .with_message("These characters were unparsable, errors are marked at attempted parse positions.")
                 .with_color(Color::Red)
                 .with_priority(1)
                 .with_order(i32::MIN),
@@ -79,8 +79,8 @@ pub fn print_set_error(
         .into_iter()
     {
         report = report.with_label(
-            Label::new((filename, start..error.span.end))
-                .with_message(format!("{}", labels.into_iter().format(" / ")))
+            Label::new((filename, start..start))
+                .with_message(format!("Expected {}", labels.into_iter().format(" / ")))
                 .with_order(-(start as i32)),
         );
     }

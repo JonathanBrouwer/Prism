@@ -19,4 +19,6 @@ impl<L: Clone> ParseError for EmptyError<L> {
     fn merge(self, _: Self) -> Self {
         Self(PhantomData)
     }
+
+    fn set_end(&mut self, _: usize) { }
 }

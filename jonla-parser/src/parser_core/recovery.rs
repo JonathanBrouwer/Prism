@@ -35,6 +35,12 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
             PErr(e, s) => {
                 //If this is the first time we encounter this, error, log it and retry
                 if last_err_pos.is_none() || last_err_pos.unwrap() + last_err_offset < s.pos() {
+                    // Update last error
+                    if let Some(last) = result_errors.last_mut() {
+                        last.set_end(last_err_pos.unwrap() + last_err_offset);
+                    }
+
+                    // Add new error
                     result_errors.push(e);
                     last_err_pos = Some(s.pos());
                     last_err_offset = 0;
@@ -44,6 +50,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     //If the error now spans rest of file, we could not recover
                     let len_left = s.src().len() - s.pos();
                     if last_err_offset >= len_left {
+                        result_errors.last_mut().unwrap().set_end(s.src().len());
                         return Err(result_errors)
                     }
 

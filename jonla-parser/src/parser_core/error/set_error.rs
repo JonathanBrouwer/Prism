@@ -48,4 +48,8 @@ impl<L: Eq + Hash + Clone> ParseError for SetError<L> {
             explicit: self.explicit || other.explicit,
         }
     }
+
+    fn set_end(&mut self, end: usize) {
+        self.span.end = end;
+    }
 }
