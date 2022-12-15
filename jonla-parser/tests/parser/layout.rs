@@ -1,4 +1,5 @@
 use crate::parser::parse_test;
+
 parse_test! {
 name: arith_layout
 syntax: r#"
@@ -116,6 +117,7 @@ passing tests:
     "1{- 23}" => "Num('1{- 23}')"
 
 failing tests:
+    "1 2"
     "1 23"
     "1 2{23}4"
     "12 {3}4"

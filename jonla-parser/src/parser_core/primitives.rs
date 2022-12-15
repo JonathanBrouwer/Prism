@@ -8,6 +8,12 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use crate::parser_sugar::parser_rule::ParserContext;
 
+pub fn empty<'b, 'grm: 'b, E: ParseError, Q>() -> impl Parser<'b, 'grm, (), E, Q> {
+    move |pos: StringStream<'grm>, _: &mut Q, _: &ParserContext<'b, 'grm>| -> PResult<'grm, (), E> {
+        PResult::new_ok((), pos)
+    }
+}
+
 pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'b, 'grm, (Span, char), E, Q> {

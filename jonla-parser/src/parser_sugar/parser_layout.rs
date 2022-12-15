@@ -2,6 +2,7 @@ use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
+use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::primitives::end;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
@@ -24,7 +25,8 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                 return new_res.map(|(_, o)| o.unwrap());
             }
 
-            res = new_res
+            let pos_before_layout = new_res.get_stream().pos();
+            let new_res = new_res
                 .merge_seq_parser(
                     &parser_rule(
                         rules,
@@ -35,10 +37,18 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                         layout_disabled: true,
                         ..context.clone()
                     },
-                )
-                .map(|_| ());
-            if res.is_err() {
-                return res.map(|_| unreachable!());
+                );
+            match new_res {
+                POk(_, _, _) if pos_before_layout < new_res.get_stream().pos() => {
+                    res = new_res.map(|_| ());
+                }
+                POk(_, _, _) => {
+                    debug_assert!(pos_before_layout == new_res.get_stream().pos());
+                    return new_res.merge_seq_parser(sub, cache, context).map(|(_, r)| r);
+                }
+                PErr(_, _) => {
+                    return new_res.map(|_| unreachable!());
+                }
             }
         }
     }
