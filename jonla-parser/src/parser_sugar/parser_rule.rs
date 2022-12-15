@@ -7,7 +7,6 @@ use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
-use by_address::ByAddress;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
@@ -24,8 +23,8 @@ pub type PState<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>
 pub struct ParserContext<'b, 'grm> {
     pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
-    pub(crate) prec_climb_next: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
+    pub(crate) prec_climb_this: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
+    pub(crate) prec_climb_next: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
     pub(crate) recovery_points: Ignore<Arc<HashMap<usize, usize>>>,
 }
 
@@ -34,14 +33,14 @@ impl ParserContext<'_, '_> {
         Self {
             recovery_disabled: false,
             layout_disabled: false,
-            prec_climb_this: None,
-            prec_climb_next: None,
+            prec_climb_this: Ignore(None),
+            prec_climb_next: Ignore(None),
             recovery_points: Ignore(Arc::new(HashMap::new())),
         }
     }
 }
 
-#[derive(Clone, Eq)]
+#[derive(Clone, Copy)]
 pub struct Ignore<T>(pub T);
 
 impl<T> Hash for Ignore<T> {
@@ -53,6 +52,8 @@ impl<T> PartialEq for Ignore<T> {
         true
     }
 }
+
+impl<T> Eq for Ignore<T> {}
 
 impl<T> Deref for Ignore<T> {
     type Target = T;
@@ -81,8 +82,8 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             stream,
             cache,
             &ParserContext {
-                prec_climb_this: None,
-                prec_climb_next: None,
+                prec_climb_this: Ignore(None),
+                prec_climb_next: Ignore(None),
                 ..context.clone()
             },
         );

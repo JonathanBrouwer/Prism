@@ -14,7 +14,7 @@ use crate::parser_core::adaptive::GrammarState;
 use crate::parser_core::parser_cache::ParserCache;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::apply_action::apply_action;
-use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR};
+use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext, PR, Ignore};
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
@@ -133,26 +133,26 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
-            RuleExpr::AtThis => parser_body_cache_recurse(rules, *context.prec_climb_this.unwrap())
+            RuleExpr::AtThis => parser_body_cache_recurse(rules, context.prec_climb_this.unwrap())
                 .parse(
                     stream,
                     cache,
                     // Reset this/next as they shouldn't matter from now on
                     &ParserContext {
-                        prec_climb_this: None,
-                        prec_climb_next: None,
+                        prec_climb_this: Ignore(None),
+                        prec_climb_next: Ignore(None),
                         ..context.clone()
                     },
                 )
                 .map(|(_, v)| (HashMap::new(), v)),
-            RuleExpr::AtNext => parser_body_cache_recurse(rules, *context.prec_climb_next.unwrap())
+            RuleExpr::AtNext => parser_body_cache_recurse(rules, context.prec_climb_next.unwrap())
                 .parse(
                     stream,
                     cache,
                     // Reset this/next as they shouldn't matter from now on
                     &ParserContext {
-                        prec_climb_this: None,
-                        prec_climb_next: None,
+                        prec_climb_this: Ignore(None),
+                        prec_climb_next: Ignore(None),
                         ..context.clone()
                     },
                 )

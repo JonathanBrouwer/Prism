@@ -13,7 +13,7 @@ use crate::parser_core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
+use crate::parser_sugar::parser_rule::{PState, ParserContext, PR, Ignore};
 use crate::parser_sugar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
@@ -54,8 +54,8 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
                     stream,
                     cache,
                     &ParserContext {
-                        prec_climb_this: Some(ByAddress(bs)),
-                        prec_climb_next: Some(ByAddress(brest)),
+                        prec_climb_this: Ignore(Some(bs)),
+                        prec_climb_next: Ignore(Some(brest)),
                         ..context.clone()
                     },
                 );
