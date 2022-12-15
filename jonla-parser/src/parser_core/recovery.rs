@@ -14,7 +14,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
     context: &ParserContext<'b, 'grm>,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<usize, usize> = HashMap::new();
-    let mut result_errors = Vec::new();
+    let mut result_errors: Vec<E> = Vec::new();
     let mut err_state: Option<(usize, usize)> = None;
 
     loop {
@@ -28,11 +28,15 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                 return if result_errors.is_empty() {
                     Ok(o)
                 } else {
+                    // Update last error
+                    if let Some(last) = result_errors.last_mut() {
+                        last.set_end(err_state.unwrap().1);
+                    }
                     Err(result_errors)
                 }
             }
             PErr(e, s) => {
-                //If this is the first time we encounter this, error, log it and retry
+                //If this is the first time we encounter *this* error, log it and retry
                 if err_state.is_none() || err_state.unwrap().1 < s.pos() {
                     // Update last error
                     if let Some(last) = result_errors.last_mut() {
@@ -56,6 +60,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     unreachable!()
                 }
                 recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
+                cache.clear();
             }
         }
     }

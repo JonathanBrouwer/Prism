@@ -55,7 +55,11 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
         //Pointing label
         .with_label(
             Label::new((filename, span.start..span.end))
-                .with_message("These characters were unparsable, errors are marked at attempted parse positions.")
+                .with_message(match span.end - span.start {
+                    0 => "Failed to parse at this location (but recovered immediately), errors are marked at attempted parse positions.",
+                    1 => "This character was unparsable, errors are marked at attempted parse positions.",
+                    _ => "These characters were unparsable, errors are marked at attempted parse positions.",
+                })
                 .with_color(Color::Red)
                 .with_priority(1)
                 .with_order(i32::MIN),

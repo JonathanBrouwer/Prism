@@ -37,11 +37,11 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
         }
     }
 
-    fn cache_is_read(&self, key: &CacheKey<'grm, 'b>) -> Option<bool> {
+    pub(crate) fn cache_is_read(&self, key: &CacheKey<'grm, 'b>) -> Option<bool> {
         self.cache.get(key).map(|v| v.read)
     }
 
-    fn cache_get(&mut self, key: &CacheKey<'grm, 'b>) -> Option<&PR> {
+    pub(crate) fn cache_get(&mut self, key: &CacheKey<'grm, 'b>) -> Option<&PR> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
@@ -50,23 +50,23 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
         }
     }
 
-    fn cache_insert(&mut self, key: CacheKey<'grm, 'b>, value: PR) {
+    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b>, value: PR) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
     }
 
-    fn cache_state_get(&self) -> usize {
+    pub(crate) fn cache_state_get(&self) -> usize {
         self.cache_stack.len()
     }
 
-    fn cache_state_revert(&mut self, state: usize) {
+    pub(crate) fn cache_state_revert(&mut self, state: usize) {
         self.cache_stack.drain(state..).for_each(|key| {
             self.cache.remove(&key);
         })
     }
 
-    fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.cache.clear();
         self.cache_stack.clear();
     }
