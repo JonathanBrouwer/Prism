@@ -9,6 +9,7 @@ use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 pub type PR<'grm> = (
@@ -23,6 +24,7 @@ pub struct ParserContext<'b, 'grm> {
     pub(crate) layout_disabled: bool,
     pub(crate) prec_climb_this: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
     pub(crate) prec_climb_next: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
+    pub(crate) recovery_points: Ignore<Arc<HashMap<usize, usize>>>,
 }
 
 impl ParserContext<'_, '_> {
@@ -31,7 +33,22 @@ impl ParserContext<'_, '_> {
             layout_disabled: false,
             prec_climb_this: None,
             prec_climb_next: None,
+            recovery_points: Ignore(Arc::new(HashMap::new())),
         }
+    }
+}
+
+#[derive(Clone, Eq)]
+pub struct Ignore<T>(pub T);
+
+impl<T> Hash for Ignore<T> {
+    fn hash<H: Hasher>(&self, _: &mut H) {
+    }
+}
+
+impl<T> PartialEq for Ignore<T> {
+    fn eq(&self, _: &Self) -> bool {
+        true
     }
 }
 
@@ -49,7 +66,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
         .parse(stream, cache, &ParserContext {
             prec_climb_this: None,
             prec_climb_next: None,
-            ..*context
+            ..context.clone()
         });
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
         res.map(|(_, v)| (HashMap::new(), v))

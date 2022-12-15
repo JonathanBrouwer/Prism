@@ -33,7 +33,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                     cache,
                     &ParserContext {
                         layout_disabled: true,
-                        ..*context
+                        ..context.clone()
                     },
                 )
                 .map(|_| ());

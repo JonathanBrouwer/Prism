@@ -52,7 +52,7 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
                 .parse(stream, cache, &ParserContext {
                     prec_climb_this: Some(ByAddress(bs)),
                     prec_climb_next: Some(ByAddress(brest)),
-                    ..*context
+                    ..context.clone()
                 });
 
                 // Parse next with recursion check
@@ -126,7 +126,7 @@ fn parser_body_sub_annotations<
                 )
                 .parse(stream, cache, &ParserContext {
                     layout_disabled: true,
-                    ..*context
+                    ..context.clone()
                 })
             }
         )

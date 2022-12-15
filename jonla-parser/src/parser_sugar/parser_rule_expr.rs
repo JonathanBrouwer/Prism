@@ -140,7 +140,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                    &ParserContext {
                        prec_climb_this: None,
                        prec_climb_next: None,
-                       ..*context
+                       ..context.clone()
                    })
             .map(|(_, v)| (HashMap::new(), v)),
             RuleExpr::AtNext => parser_body_cache_recurse(
@@ -152,7 +152,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                    &ParserContext {
                        prec_climb_this: None,
                        prec_climb_next: None,
-                       ..*context
+                       ..context.clone()
                    })
             .map(|(_, v)| (HashMap::new(), v)),
             RuleExpr::PosLookahead(sub) => {
