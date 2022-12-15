@@ -18,9 +18,14 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     let mut cache = ParserCache::new();
     let grammar_state = GrammarState::new(&rules);
 
-    let x = parse_with_recovery(&full_input_layout(
-        &grammar_state,
-        &parser_rule::parser_rule(&grammar_state, rule),
-    ), stream, &mut cache, &context);
+    let x = parse_with_recovery(
+        &full_input_layout(
+            &grammar_state,
+            &parser_rule::parser_rule(&grammar_state, rule),
+        ),
+        stream,
+        &mut cache,
+        &context,
+    );
     x
 }

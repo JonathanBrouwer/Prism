@@ -1,11 +1,11 @@
+use crate::parser_core::adaptive::{BlockState, GrammarState};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::parser_cache::ParserCache;
 use crate::parser_core::presult::PResult;
+use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_core::adaptive::{BlockState, GrammarState};
-use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
@@ -43,8 +43,7 @@ impl ParserContext<'_, '_> {
 pub struct Ignore<T>(pub T);
 
 impl<T> Hash for Ignore<T> {
-    fn hash<H: Hasher>(&self, _: &mut H) {
-    }
+    fn hash<H: Hasher>(&self, _: &mut H) {}
 }
 
 impl<T> PartialEq for Ignore<T> {
@@ -71,18 +70,20 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+    move |stream: StringStream<'grm>,
+          cache: &mut PState<'b, 'grm, E>,
+          context: &ParserContext<'b, 'grm>| {
         let body: &'b Vec<BlockState<'b, 'grm>> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
-        let mut res = parser_body_cache_recurse(
-            rules,
-            body,
-        )
-        .parse(stream, cache, &ParserContext {
-            prec_climb_this: None,
-            prec_climb_next: None,
-            ..context.clone()
-        });
+        let mut res = parser_body_cache_recurse(rules, body).parse(
+            stream,
+            cache,
+            &ParserContext {
+                prec_climb_this: None,
+                prec_climb_next: None,
+                ..context.clone()
+            },
+        );
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
         res.map(|(_, v)| (HashMap::new(), v))
     }

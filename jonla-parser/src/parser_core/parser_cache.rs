@@ -79,7 +79,9 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         ParserContext<'b, 'grm>,
     ),
 ) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |pos_start: StringStream<'grm>, state: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+    move |pos_start: StringStream<'grm>,
+          state: &mut PState<'b, 'grm, E>,
+          context: &ParserContext<'b, 'grm>| {
         //Check if this result is cached
         let key = (pos_start.pos(), id.clone());
         if let Some(cached) = state.cache_get(&key) {

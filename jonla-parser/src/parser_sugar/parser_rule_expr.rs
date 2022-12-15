@@ -25,18 +25,20 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     expr: &'b RuleExpr<'grm>,
     vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+    move |stream: StringStream<'grm>,
+          cache: &mut PState<'b, 'grm, E>,
+          context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(rules, rule).parse(stream, cache, context),
-            RuleExpr::CharClass(cc) => {
-                parser_with_layout(rules, &single(|c| cc.contains(*c)))
-                    .parse(stream, cache, context)
-                    .map(|(span, _)| (HashMap::new(), Arc::new(ActionResult::Value(span))))
-            }
+            RuleExpr::CharClass(cc) => parser_with_layout(rules, &single(|c| cc.contains(*c)))
+                .parse(stream, cache, context)
+                .map(|(span, _)| (HashMap::new(), Arc::new(ActionResult::Value(span)))),
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let parser_literal =
-                    move |stream: StringStream<'grm>, cache: &mut PState<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+                    move |stream: StringStream<'grm>,
+                          cache: &mut PState<'b, 'grm, E>,
+                          context: &ParserContext<'b, 'grm>| {
                         let mut res = PResult::new_ok((), stream);
                         for char in literal.chars() {
                             res = res
@@ -101,7 +103,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         &parser_expr(rules, sub, vars),
                         stream,
                         cache,
-                        context
+                        context,
                     );
                     if res.is_ok() {
                         break;
@@ -131,50 +133,44 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let span = stream.span_to(res.get_stream());
                 res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
-            RuleExpr::AtThis => parser_body_cache_recurse(
-                rules,
-                *context.prec_climb_this.unwrap(),
-            )
-            .parse(stream, cache,
-                   // Reset this/next as they shouldn't matter from now on
-                   &ParserContext {
-                       prec_climb_this: None,
-                       prec_climb_next: None,
-                       ..context.clone()
-                   })
-            .map(|(_, v)| (HashMap::new(), v)),
-            RuleExpr::AtNext => parser_body_cache_recurse(
-                rules,
-                *context.prec_climb_next.unwrap(),
-            )
-            .parse(stream, cache,
-                   // Reset this/next as they shouldn't matter from now on
-                   &ParserContext {
-                       prec_climb_this: None,
-                       prec_climb_next: None,
-                       ..context.clone()
-                   })
-            .map(|(_, v)| (HashMap::new(), v)),
-            RuleExpr::PosLookahead(sub) => {
-                positive_lookahead(&parser_expr(rules, sub, vars))
-                    .parse(stream, cache, context)
-                    .map(|r| (HashMap::new(), r.1))
+            RuleExpr::AtThis => parser_body_cache_recurse(rules, *context.prec_climb_this.unwrap())
+                .parse(
+                    stream,
+                    cache,
+                    // Reset this/next as they shouldn't matter from now on
+                    &ParserContext {
+                        prec_climb_this: None,
+                        prec_climb_next: None,
+                        ..context.clone()
+                    },
+                )
+                .map(|(_, v)| (HashMap::new(), v)),
+            RuleExpr::AtNext => parser_body_cache_recurse(rules, *context.prec_climb_next.unwrap())
+                .parse(
+                    stream,
+                    cache,
+                    // Reset this/next as they shouldn't matter from now on
+                    &ParserContext {
+                        prec_climb_this: None,
+                        prec_climb_next: None,
+                        ..context.clone()
+                    },
+                )
+                .map(|(_, v)| (HashMap::new(), v)),
+            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, vars))
+                .parse(stream, cache, context)
+                .map(|r| (HashMap::new(), r.1)),
+            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, vars))
+                .parse(stream, cache, context)
+                .map(|_| {
+                    (
+                        HashMap::new(),
+                        Arc::new(ActionResult::Void("negative lookahead")),
+                    )
+                }),
+            RuleExpr::AtGrammar => {
+                parser_rule(&META_GRAMMAR_STATE, "toplevel").parse(stream, cache, context)
             }
-            RuleExpr::NegLookahead(sub) => {
-                negative_lookahead(&parser_expr(rules, sub, vars))
-                    .parse(stream, cache, context)
-                    .map(|_| {
-                        (
-                            HashMap::new(),
-                            Arc::new(ActionResult::Void("negative lookahead")),
-                        )
-                    })
-            }
-            RuleExpr::AtGrammar => parser_rule(
-                &META_GRAMMAR_STATE,
-                "toplevel",
-            )
-            .parse(stream, cache, context),
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
                 let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);

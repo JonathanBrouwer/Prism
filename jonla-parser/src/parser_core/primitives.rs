@@ -17,25 +17,38 @@ pub fn empty<'b, 'grm: 'b, E: ParseError, Q>() -> impl Parser<'b, 'grm, (), E, Q
 pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'b, 'grm, (Span, char), E, Q> {
-    move |pos: StringStream<'grm>, _: &mut Q, ctx: &ParserContext<'b, 'grm>| -> PResult<'grm, (Span, char), E> {
+    move |pos: StringStream<'grm>,
+          _: &mut Q,
+          ctx: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, (Span, char), E> {
         match pos.next() {
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
             (_, Some((_, e))) if ctx.recovery_points.contains_key(&pos.pos()) => {
                 let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
-                PResult::new_ok((Span{start: pos.pos(), end }, e), pos.with_pos(end))
-            },
-            (pos_new, _) => {
-                PResult::new_err(E::new(pos.span_to(pos_new)), pos)
-            },
+                PResult::new_ok(
+                    (
+                        Span {
+                            start: pos.pos(),
+                            end,
+                        },
+                        e,
+                    ),
+                    pos.with_pos(end),
+                )
+            }
+            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
         }
     }
 }
 
-pub fn seq2<'b, 'grm: 'b,'a, O1, O2, E: ParseError, Q>(
+pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError, Q>(
     p1: &'a impl Parser<'b, 'grm, O1, E, Q>,
     p2: &'a impl Parser<'b, 'grm, O2, E, Q>,
 ) -> impl Parser<'b, 'grm, (O1, O2), E, Q> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut Q, context: &ParserContext<'b, 'grm>| -> PResult<'grm, (O1, O2), E> {
+    move |stream: StringStream<'grm>,
+          cache: &mut Q,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, (O1, O2), E> {
         let res1 = p1.parse(stream, cache, context);
         let stream = res1.get_stream();
         res1.merge_seq(p2.parse(stream, cache, context))
@@ -46,14 +59,18 @@ pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError, Q>(
     p1: &'a impl Parser<'b, 'grm, O, E, Q>,
     p2: &'a impl Parser<'b, 'grm, O, E, Q>,
 ) -> impl Parser<'b, 'grm, O, E, Q> + 'a {
-    move |stream: StringStream<'grm>, cache: &mut Q, context: &ParserContext<'b, 'grm>| -> PResult<'grm, O, E> {
+    move |stream: StringStream<'grm>,
+          cache: &mut Q,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, O, E> {
         p1.parse(stream, cache, context)
             .merge_choice(p2.parse(stream, cache, context))
     }
 }
 
 pub fn repeat_delim<
-    'b, 'grm: 'b,
+    'b,
+    'grm: 'b,
     OP,
     OD,
     E: ParseError<L = ErrorLabel<'grm>>,
@@ -66,7 +83,10 @@ pub fn repeat_delim<
     min: usize,
     max: Option<usize>,
 ) -> impl Parser<'b, 'grm, Vec<OP>, E, Q> {
-    move |stream: StringStream<'grm>, cache: &mut Q, context: &ParserContext<'b, 'grm>| -> PResult<'grm, Vec<OP>, E> {
+    move |stream: StringStream<'grm>,
+          cache: &mut Q,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, Vec<OP>, E> {
         let mut last_res: PResult<'grm, Vec<OP>, E> = PResult::new_ok(vec![], stream);
 
         for i in 0..max.unwrap_or(usize::MAX) {
@@ -74,7 +94,9 @@ pub fn repeat_delim<
             let part = if i == 0 {
                 item.parse(pos, cache, context)
             } else {
-                seq2(&delimiter, &item).parse(pos, cache, context).map(|x| x.1)
+                seq2(&delimiter, &item)
+                    .parse(pos, cache, context)
+                    .map(|x| x.1)
             };
             let should_continue = part.is_ok();
 
@@ -112,7 +134,10 @@ pub fn repeat_delim<
 }
 
 pub fn end<'b, 'grm: 'b, E: ParseError, Q>() -> impl Parser<'b, 'grm, (), E, Q> {
-    move |stream: StringStream<'grm>, _: &mut Q, _: &ParserContext<'b, 'grm>| -> PResult<'grm, (), E> {
+    move |stream: StringStream<'grm>,
+          _: &mut Q,
+          _: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, (), E> {
         match stream.next() {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
             (s, None) => PResult::new_ok((), s),
@@ -123,7 +148,10 @@ pub fn end<'b, 'grm: 'b, E: ParseError, Q>() -> impl Parser<'b, 'grm, (), E, Q> 
 pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError, Q>(
     p: &impl Parser<'b, 'grm, O, E, Q>,
 ) -> impl Parser<'b, 'grm, O, E, Q> + '_ {
-    move |stream: StringStream<'grm>, cache: &mut Q, context: &ParserContext<'b, 'grm>| -> PResult<'grm, O, E> {
+    move |stream: StringStream<'grm>,
+          cache: &mut Q,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, O, E> {
         match p.parse(stream, cache, context) {
             POk(o, _, err) => POk(o, stream, err),
             PErr(e, s) => PErr(e, s),
@@ -134,7 +162,10 @@ pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError, Q>(
 pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError, Q>(
     p: &impl Parser<'b, 'grm, O, E, Q>,
 ) -> impl Parser<'b, 'grm, (), E, Q> + '_ {
-    move |stream: StringStream<'grm>, cache: &mut Q, context: &ParserContext<'b, 'grm>| -> PResult<'grm, (), E> {
+    move |stream: StringStream<'grm>,
+          cache: &mut Q,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, (), E> {
         match p.parse(stream, cache, context) {
             POk(_, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
             PErr(_, _) => PResult::new_ok((), stream),

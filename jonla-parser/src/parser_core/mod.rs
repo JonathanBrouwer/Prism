@@ -4,7 +4,7 @@ pub mod parser;
 pub mod parser_cache;
 pub mod presult;
 pub mod primitives;
+pub mod recovery;
 pub mod span;
 pub mod stream;
 pub mod toposet;
-pub mod recovery;

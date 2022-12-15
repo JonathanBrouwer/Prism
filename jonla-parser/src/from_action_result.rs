@@ -197,7 +197,7 @@ fn parse_option<T>(
 fn parse_u64(r: &ActionResult, src: &str) -> u64 {
     match r {
         Literal(v) => v.parse().unwrap(),
-        Value(Span{ start, end }) => src[*start..*end].parse().unwrap(),
-        _ => unreachable!()
+        Value(Span { start, end }) => src[*start..*end].parse().unwrap(),
+        _ => unreachable!(),
     }
 }

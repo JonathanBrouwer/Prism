@@ -20,5 +20,5 @@ impl<L: Clone> ParseError for EmptyError<L> {
         Self(PhantomData)
     }
 
-    fn set_end(&mut self, _: usize) { }
+    fn set_end(&mut self, _: usize) {}
 }

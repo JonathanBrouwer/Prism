@@ -139,7 +139,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         stream: StringStream<'grm>,
         cache: &mut Q,
         context: &ParserContext<'b, 'grm>,
-    ) -> Self where 'grm: 'b  {
+    ) -> Self
+    where
+        'grm: 'b,
+    {
         //Quick out
         if self.is_ok() {
             return self;
@@ -154,7 +157,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         other: &P2,
         cache: &mut Q,
         context: &ParserContext<'b, 'grm>,
-    ) -> PResult<'grm, (O, O2), E> where 'grm: 'b  {
+    ) -> PResult<'grm, (O, O2), E>
+    where
+        'grm: 'b,
+    {
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
@@ -170,7 +176,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
         other: &P2,
         cache: &mut Q,
         context: &ParserContext<'b, 'grm>,
-    ) -> (PResult<'grm, (O, Option<O2>), E>, bool) where 'grm: 'b  {
+    ) -> (PResult<'grm, (O, Option<O2>), E>, bool)
+    where
+        'grm: 'b,
+    {
         //Quick out
         if self.is_err() {
             return (self.map(|_| unreachable!()), false);

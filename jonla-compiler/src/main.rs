@@ -26,7 +26,7 @@ fn main() {
             for e in es {
                 print_set_error(e, filename, input, false)
             }
-        },
+        }
         // Err(e) => print_tree_error(e, filename, input, true),
     }
 }

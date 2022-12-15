@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use std::sync::Arc;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_rule::{Ignore, ParserContext, PState};
+use crate::parser_sugar::parser_rule::{Ignore, PState, ParserContext};
+use std::collections::HashMap;
+use std::sync::Arc;
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>>,
@@ -33,7 +33,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                         last.set_end(err_state.unwrap().1);
                     }
                     Err(result_errors)
-                }
+                };
             }
             PErr(e, s) => {
                 //If this is the first time we encounter *this* error, log it and retry
@@ -50,7 +50,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     //If the error now spans rest of file, we could not recover
                     if *err_state_end == s.src().len() {
                         result_errors.last_mut().unwrap().set_end(s.src().len());
-                        return Err(result_errors)
+                        return Err(result_errors);
                     }
 
                     //Increase offset by one char and repeat
@@ -64,6 +64,4 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
             }
         }
     }
-
-
 }
