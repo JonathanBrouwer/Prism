@@ -8,13 +8,19 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use crate::parser_sugar::parser_rule::ParserContext;
 
-pub fn single<'b, 'grm: 'b, E: ParseError, Q, F: Fn(&char) -> bool>(
-    f: F,
+pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
+    f: impl Fn(&char) -> bool,
 ) -> impl Parser<'b, 'grm, (Span, char), E, Q> {
-    move |pos: StringStream<'grm>, _: &mut Q, _: &ParserContext<'b, 'grm>| -> PResult<'grm, (Span, char), E> {
+    move |pos: StringStream<'grm>, _: &mut Q, ctx: &ParserContext<'b, 'grm>| -> PResult<'grm, (Span, char), E> {
         match pos.next() {
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
-            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
+            (_, Some((_, e))) if ctx.recovery_points.contains_key(&pos.pos()) => {
+                let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
+                PResult::new_ok((Span{start: pos.pos(), end }, e), pos.with_pos(end))
+            },
+            (pos_new, _) => {
+                PResult::new_err(E::new(pos.span_to(pos_new)), pos)
+            },
         }
     }
 }

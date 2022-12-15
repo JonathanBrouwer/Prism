@@ -10,6 +10,7 @@ use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 pub type PR<'grm> = (
@@ -49,6 +50,20 @@ impl<T> Hash for Ignore<T> {
 impl<T> PartialEq for Ignore<T> {
     fn eq(&self, _: &Self) -> bool {
         true
+    }
+}
+
+impl<T> Deref for Ignore<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for Ignore<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

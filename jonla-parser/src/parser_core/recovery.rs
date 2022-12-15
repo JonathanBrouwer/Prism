@@ -15,8 +15,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<usize, usize> = HashMap::new();
     let mut result_errors = Vec::new();
-    let mut last_err_pos: Option<usize> = None;
-    let mut last_err_offset = 0usize;
+    let mut err_state: Option<(usize, usize)> = None;
 
     loop {
         let context = ParserContext {
@@ -34,32 +33,29 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
             }
             PErr(e, s) => {
                 //If this is the first time we encounter this, error, log it and retry
-                if last_err_pos.is_none() || last_err_pos.unwrap() + last_err_offset < s.pos() {
+                if err_state.is_none() || err_state.unwrap().1 < s.pos() {
                     // Update last error
                     if let Some(last) = result_errors.last_mut() {
-                        last.set_end(last_err_pos.unwrap() + last_err_offset);
+                        last.set_end(err_state.unwrap().1);
                     }
 
                     // Add new error
                     result_errors.push(e);
-                    last_err_pos = Some(s.pos());
-                    last_err_offset = 0;
-                    recovery_points.insert(s.pos(), last_err_offset);
-                    continue;
-                } else if let Some(last_err_pos) = last_err_pos {
+                    err_state = Some((s.pos(), s.pos()));
+                } else if let Some((_err_state_start, err_state_end)) = &mut err_state {
                     //If the error now spans rest of file, we could not recover
-                    let len_left = s.src().len() - s.pos();
-                    if last_err_offset >= len_left {
+                    if *err_state_end == s.src().len() {
                         result_errors.last_mut().unwrap().set_end(s.src().len());
                         return Err(result_errors)
                     }
 
-                    //Increase offset by 1 and repeat
-                    last_err_offset += 1;
-                    recovery_points.insert(last_err_pos, last_err_offset);
+                    //Increase offset by one char and repeat
+                    *err_state_end = stream.with_pos(*err_state_end).next().0.pos();
+                    debug_assert!(*err_state_end <= s.src().len());
                 } else {
                     unreachable!()
                 }
+                recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
             }
         }
     }

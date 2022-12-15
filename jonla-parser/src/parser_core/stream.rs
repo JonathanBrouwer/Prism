@@ -38,4 +38,8 @@ impl<'grm> StringStream<'grm> {
     pub fn src(self) -> &'grm str {
         self.0
     }
+
+    pub fn with_pos(self, pos: usize) -> Self {
+        Self(self.0, pos)
+    }
 }
