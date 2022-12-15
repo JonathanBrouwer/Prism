@@ -35,9 +35,9 @@ rule prule_expr:
     --
     Literal(s) <- s:pstring
     CharClass(c) <- "[" c:charclass "]"
-    SliceInput(r) <- "str" "(" r:prule_expr ")"
-    PosLookahead(r) <- "pos" "(" r:prule_expr ")"
-    NegLookahead(r) <- "neg" "(" r:prule_expr ")"
+    SliceInput(r) <- "@" "str" "(" r:prule_expr ")"
+    PosLookahead(r) <- "@" "pos" "(" r:prule_expr ")"
+    NegLookahead(r) <- "@" "neg" "(" r:prule_expr ")"
     r <- "(" r:prule_expr ")"
     AtThis() <- "@this"
     AtNext() <- "@next"
@@ -87,10 +87,10 @@ rule _n = ['\n']+
 rule integer:
     @error("Integer")
     @disable_layout
-    n <- n:str([ '0'-'9' ]+)
+    n <- n:@str([ '0'-'9' ]+)
 
 rule identifier:
     @error("Identifier")
     @disable_layout
-    n <- neg(reserved neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+    n <- @neg(reserved @neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:@str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"

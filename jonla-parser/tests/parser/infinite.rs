@@ -93,7 +93,7 @@ syntax: r#"
 
     rule num:
         @disable_layout
-        str("x"+)
+        @str("x"+)
 
     rule start:
         Num(e) <- e:num

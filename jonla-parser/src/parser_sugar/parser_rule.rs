@@ -22,6 +22,7 @@ pub type PState<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
+    pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
     pub(crate) prec_climb_this: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
     pub(crate) prec_climb_next: Option<ByAddress<&'b [BlockState<'b, 'grm>]>>,
@@ -31,6 +32,7 @@ pub struct ParserContext<'b, 'grm> {
 impl ParserContext<'_, '_> {
     pub fn new() -> Self {
         Self {
+            recovery_disabled: false,
             layout_disabled: false,
             prec_climb_this: None,
             prec_climb_next: None,

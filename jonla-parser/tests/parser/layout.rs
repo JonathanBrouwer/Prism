@@ -7,7 +7,7 @@ syntax: r#"
 
     rule num:
         @disable_layout
-        str(['0'-'9']+)
+        @str(['0'-'9']+)
 
 
     rule start:
@@ -60,7 +60,7 @@ syntax: r#"
 
     rule num:
         @disable_layout
-        str(['0'-'9']+)
+        @str(['0'-'9']+)
 
 
     rule start:
@@ -96,10 +96,10 @@ syntax: r#"
 
     rule num:
         @disable_layout
-        str(num_char+)
+        @str(num_char+)
 
     rule num_char:
-        str(['0'-'9'])
+        @str(['0'-'9'])
         "{" start "}"
 
 

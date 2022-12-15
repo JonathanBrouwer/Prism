@@ -19,3 +19,23 @@ failing tests:
     "axyd" => "1..4"
     "xabcd" => "0..2"
 }
+
+parse_test! {
+name: recovery_with_norecovery
+syntax: r#"
+rule start = test*
+
+rule test:
+    w <- w:@str(word) ";"
+
+rule word:
+    @disable_recovery
+    ['a'-'z']+
+"#
+passing tests:
+    "aaaaa;a;aa;" => "['aaaaa', 'a', 'aa']"
+
+failing tests:
+    "a@a;aa;" => "1..2"
+    "a@;aa;" => "1..2"
+}

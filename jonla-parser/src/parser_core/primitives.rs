@@ -23,7 +23,7 @@ pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
           -> PResult<'grm, (Span, char), E> {
         match pos.next() {
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
-            (_, Some((_, e))) if ctx.recovery_points.contains_key(&pos.pos()) => {
+            (_, Some((_, e))) if !ctx.layout_disabled && ctx.recovery_points.contains_key(&pos.pos()) => {
                 let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
                 PResult::new_ok(
                     (

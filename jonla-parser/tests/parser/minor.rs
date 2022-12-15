@@ -3,7 +3,7 @@ parse_test! {
 name: sequence
 syntax: r#"
     rule start:
-        str("a" ['w'-'y'] "q")
+        @str("a" ['w'-'y'] "q")
 
     "#
 passing tests:

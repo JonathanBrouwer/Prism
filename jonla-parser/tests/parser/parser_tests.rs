@@ -6,7 +6,7 @@ syntax: r#"
     rule _ = [' ']*
 
     rule num:
-        str(['0'-'9']+)
+        @str(['0'-'9']+)
     
 
     rule start:

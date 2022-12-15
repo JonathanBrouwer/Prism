@@ -3,7 +3,7 @@ parse_test! {
 name: repeat_star
 syntax: r#"
     rule start:
-        str([ 'w'-'z' | '8' | 'p'-'q' ]*)
+        @str([ 'w'-'z' | '8' | 'p'-'q' ]*)
 
     "#
 passing tests:
@@ -36,7 +36,7 @@ parse_test! {
 name: repeat_plus
 syntax: r#"
     rule start:
-        str([ 'w'-'z' | '8' | 'p'-'q' ]+)
+        @str([ 'w'-'z' | '8' | 'p'-'q' ]+)
 
     "#
 passing tests:
@@ -69,7 +69,7 @@ parse_test! {
 name: repeat_option
 syntax: r#"
     rule start:
-        str([ 'w'-'z' | '8' | 'p'-'q' ]?)
+        @str([ 'w'-'z' | '8' | 'p'-'q' ]?)
 
     "#
 passing tests:

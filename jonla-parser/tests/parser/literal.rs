@@ -46,7 +46,7 @@ parse_test! {
 name: charclass
 syntax: r#"
     rule start:
-        str([ 'w'-'z' | '8' | 'p'-'q' ])
+        @str([ 'w'-'z' | '8' | 'p'-'q' ])
 
     "#
 passing tests:

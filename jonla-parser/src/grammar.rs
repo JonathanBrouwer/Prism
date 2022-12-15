@@ -42,6 +42,8 @@ pub enum RuleAnnotation<'grm> {
     Error(EscapedString<'grm>),
     DisableLayout,
     EnableLayout,
+    DisableRecovery,
+    EnableRecovery,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]

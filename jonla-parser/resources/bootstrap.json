@@ -958,6 +958,9 @@
                   {
                     "Sequence": [
                       {
+                        "Literal": "@"
+                      },
+                      {
                         "Literal": "str"
                       },
                       {
@@ -996,6 +999,9 @@
                   {
                     "Sequence": [
                       {
+                        "Literal": "@"
+                      },
+                      {
                         "Literal": "pos"
                       },
                       {
@@ -1033,6 +1039,9 @@
                 "Action": [
                   {
                     "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
                       {
                         "Literal": "neg"
                       },

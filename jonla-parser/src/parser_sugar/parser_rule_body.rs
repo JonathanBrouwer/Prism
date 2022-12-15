@@ -155,6 +155,26 @@ fn parser_body_sub_annotations<
             })
             .parse(stream, cache, context)
         }
+        [RuleAnnotation::DisableRecovery, rest @ ..] => {
+            parser_body_sub_annotations(rules, rest, expr).parse(
+                stream,
+                cache,
+                &ParserContext {
+                    recovery_disabled: true,
+                    ..context.clone()
+                },
+            )
+        },
+        [RuleAnnotation::EnableRecovery, rest @ ..] => {
+            parser_body_sub_annotations(rules, rest, expr).parse(
+                stream,
+                cache,
+                &ParserContext {
+                    recovery_disabled: false,
+                    ..context.clone()
+                },
+            )
+        },
         &[] => parser_expr(rules, expr, &HashMap::new()).parse(stream, cache, context),
     }
 }

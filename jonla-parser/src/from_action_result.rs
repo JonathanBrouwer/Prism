@@ -75,6 +75,8 @@ fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAn
         Construct("Error", b) => RuleAnnotation::Error(parse_string(&b[0], src)),
         Construct("DisableLayout", _) => RuleAnnotation::DisableLayout,
         Construct("EnableLayout", _) => RuleAnnotation::EnableLayout,
+        Construct("DisableRecovery", _) => RuleAnnotation::DisableRecovery,
+        Construct("EnableRecovery", _) => RuleAnnotation::EnableRecovery,
         _ => unreachable!(),
     }
 }
