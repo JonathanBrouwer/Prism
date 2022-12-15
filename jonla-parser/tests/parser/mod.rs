@@ -12,8 +12,9 @@ mod recovery;
 mod repeat;
 
 macro_rules! parse_test {
-    (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal)*) => {
+    (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {
         #[allow(unused_imports)]
+        #[allow(unused_variables)]
         #[test]
         fn $name() {
             use jonla_parser::grammar;
@@ -30,6 +31,7 @@ macro_rules! parse_test {
             use jonla_parser::parser_sugar::run::run_parser_rule;
             use jonla_parser::parse_grammar;
             use jonla_parser::parser_core::error::set_error::SetError;
+            use crate::parser::errors_to_str;
 
             let syntax: &'static str = $syntax;
             let grammar: GrammarFile = match parse_grammar::<SetError<_>>(syntax) {
@@ -68,17 +70,29 @@ macro_rules! parse_test {
             println!("== Parsing (should be fail): {}", input);
 
             let stream: StringStream = StringStream::new(input);
-            match run_parser_rule::<EmptyError<_>>(&grammar, "start", stream) {
+            match run_parser_rule::<SetError<_>>(&grammar, "start", stream) {
                 Ok(o) => {
                     let got = o.1.to_string(input);
                     println!("Got: {:?}", got);
                     panic!();
                 }
-                Err(_) => {}
+                Err(es) => {
+                    $(
+                    let got = errors_to_str(&es);
+                    assert_eq!(got, $errors);
+                    )?
+                }
             }
             )*
         }
     }
 }
 
+fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
+    e.iter().map(|e| format!("{}..{}", e.span.start, e.span.end)).join(" ")
+}
+
+use itertools::Itertools;
+use jonla_parser::parser_core::error::set_error::SetError;
+use jonla_parser::parser_sugar::error_printer::ErrorLabel;
 pub(crate) use parse_test;

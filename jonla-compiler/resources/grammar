@@ -1,10 +1,2 @@
-rule block:
-    s :: b <- s:stmt ";" b:block
-    [] <- ""
-
-rule stmt:
-    Expr(e) <- e:expr
-
-rule expr:
-    X() <- "x"
+rule block = "abcd"
 
