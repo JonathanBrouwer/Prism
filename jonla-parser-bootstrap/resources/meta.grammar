@@ -70,6 +70,7 @@ rule charclass_part:
 rule pstring:
     @error("String")
     @disable_layout
+    @disable_recovery
     s <- "\"" s:str_char* "\""
 
 rule str_char:
@@ -87,10 +88,12 @@ rule _n = ['\n']+
 rule integer:
     @error("Integer")
     @disable_layout
+    @disable_recovery
     n <- n:@str([ '0'-'9' ]+)
 
 rule identifier:
     @error("Identifier")
     @disable_layout
+    @disable_recovery
     n <- @neg(reserved @neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:@str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"

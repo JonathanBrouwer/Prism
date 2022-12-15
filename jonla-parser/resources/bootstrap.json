@@ -1965,7 +1965,8 @@
                 {
                   "Error": "String"
                 },
-                "DisableLayout"
+                "DisableLayout",
+                "DisableRecovery"
               ],
               {
                 "Action": [
@@ -2175,7 +2176,8 @@
                 {
                   "Error": "Integer"
                 },
-                "DisableLayout"
+                "DisableLayout",
+                "DisableRecovery"
               ],
               {
                 "Action": [
@@ -2227,7 +2229,8 @@
                 {
                   "Error": "Identifier"
                 },
-                "DisableLayout"
+                "DisableLayout",
+                "DisableRecovery"
               ],
               {
                 "Action": [
