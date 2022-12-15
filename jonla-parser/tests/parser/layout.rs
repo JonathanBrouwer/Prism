@@ -6,7 +6,7 @@ syntax: r#"
     rule layout = " "
 
     rule num:
-        @disablelayout
+        @disable_layout
         str(['0'-'9']+)
 
 
@@ -59,7 +59,7 @@ syntax: r#"
     rule layout = " "
 
     rule num:
-        @disablelayout
+        @disable_layout
         str(['0'-'9']+)
 
 
@@ -95,7 +95,7 @@ syntax: r#"
     rule layout = " "
 
     rule num:
-        @disablelayout
+        @disable_layout
         str(num_char+)
 
     rule num_char:
@@ -104,9 +104,9 @@ syntax: r#"
 
 
     rule start:
-        @enablelayout
+        @enable_layout
         Neg(e) <- "-" e:start
-        @enablelayout
+        @enable_layout
         Num(e) <- e:num
 
     "#

@@ -477,7 +477,7 @@
                         "Literal": "@"
                       },
                       {
-                        "Literal": "disablelayout"
+                        "Literal": "disable_layout"
                       }
                     ]
                   },
@@ -500,13 +500,59 @@
                         "Literal": "@"
                       },
                       {
-                        "Literal": "enablelayout"
+                        "Literal": "enable_layout"
                       }
                     ]
                   },
                   {
                     "Construct": [
                       "EnableLayout",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "disable_recovery"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "DisableRecovery",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "@"
+                      },
+                      {
+                        "Literal": "enable_recovery"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "EnableRecovery",
                       []
                     ]
                   }

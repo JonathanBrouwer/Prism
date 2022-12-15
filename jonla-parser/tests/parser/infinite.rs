@@ -92,7 +92,7 @@ syntax: r#"
     rule layout = " "
 
     rule num:
-        @disablelayout
+        @disable_layout
         str("x"+)
 
     rule start:

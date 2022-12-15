@@ -14,8 +14,10 @@ rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotatio
 
 rule prule_annotation:
     Error(err) <- "@" "error" "(" err:pstring ")"
-    DisableLayout() <- "@" "disablelayout"
-    EnableLayout() <- "@" "enablelayout"
+    DisableLayout() <- "@" "disable_layout"
+    EnableLayout() <- "@" "enable_layout"
+    DisableRecovery() <- "@" "disable_recovery"
+    EnableRecovery() <- "@" "enable_recovery"
 
 rule prule_expr:
     --
@@ -67,7 +69,7 @@ rule charclass_part:
 
 rule pstring:
     @error("String")
-    @disablelayout
+    @disable_layout
     s <- "\"" s:str_char* "\""
 
 rule str_char:
@@ -84,11 +86,11 @@ rule _n = ['\n']+
 
 rule integer:
     @error("Integer")
-    @disablelayout
+    @disable_layout
     n <- n:str([ '0'-'9' ]+)
 
 rule identifier:
     @error("Identifier")
-    @disablelayout
+    @disable_layout
     n <- neg(reserved neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"
