@@ -24,20 +24,20 @@ pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
         match pos.next() {
             // We can parse the character
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
-            // We cannot parse the character but we can recover
-            (_, Some((_, e))) if (ctx.recovery_disabled.is_none() || ctx.recovery_disabled.unwrap() == pos.pos()) && ctx.recovery_points.contains_key(&pos.pos()) => {
-                let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
-                PResult::new_ok(
-                    (
-                        Span {
-                            start: pos.pos(),
-                            end,
-                        },
-                        e,
-                    ),
-                    pos.with_pos(end),
-                )
-            }
+            // // We cannot parse the character but we can recover
+            // (_, Some((_, e))) if (ctx.recovery_disabled.is_none() || ctx.recovery_disabled.unwrap() == pos.pos()) && ctx.recovery_points.contains_key(&pos.pos()) => {
+            //     let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
+            //     PResult::new_ok(
+            //         (
+            //             Span {
+            //                 start: pos.pos(),
+            //                 end,
+            //             },
+            //             e,
+            //         ),
+            //         pos.with_pos(end),
+            //     )
+            // }
             // Error
             (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
         }
