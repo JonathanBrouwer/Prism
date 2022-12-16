@@ -13,7 +13,7 @@ use crate::parser_core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_rule::{PState, ParserContext, PR, Ignore};
+use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PState};
 use crate::parser_sugar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
@@ -160,7 +160,7 @@ fn parser_body_sub_annotations<
                 stream,
                 cache,
                 &ParserContext {
-                    recovery_disabled: true,
+                    recovery_disabled: Some(stream.pos()),
                     ..context.clone()
                 },
             )
@@ -170,7 +170,7 @@ fn parser_body_sub_annotations<
                 stream,
                 cache,
                 &ParserContext {
-                    recovery_disabled: false,
+                    recovery_disabled: None,
                     ..context.clone()
                 },
             )

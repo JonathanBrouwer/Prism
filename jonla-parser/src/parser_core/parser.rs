@@ -1,7 +1,7 @@
 use crate::parser_core::error::ParseError;
 use crate::parser_core::presult::PResult;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_rule::ParserContext;
+use crate::parser_sugar::parser_context::ParserContext;
 
 pub trait Parser<'b, 'grm, O, E: ParseError, Q> {
     fn parse(

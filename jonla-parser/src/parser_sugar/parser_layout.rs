@@ -6,7 +6,8 @@ use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::primitives::end;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_rule::{parser_rule, PState, ParserContext};
+use crate::parser_sugar::parser_context::{ParserContext, PState};
+use crate::parser_sugar::parser_rule::parser_rule;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,

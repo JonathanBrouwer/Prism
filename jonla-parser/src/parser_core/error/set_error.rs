@@ -4,6 +4,7 @@ use std::cmp::max;
 use std::collections::HashSet;
 use std::hash::Hash;
 
+/// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone, Debug)]
 pub struct SetError<L: Eq + Hash + Clone> {
     pub span: Span,

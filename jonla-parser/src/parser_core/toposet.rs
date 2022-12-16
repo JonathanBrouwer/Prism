@@ -3,6 +3,7 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 
+/// A TopoSet is basically a graph with string nodes, that is stored such that it is easy to clone and easy to topologically sort.
 #[derive(Clone)]
 pub struct TopoSet<'grm> {
     map: HashMap<&'grm str, Arc<HashSet<&'grm str>>>,

@@ -1,6 +1,7 @@
 use crate::parser_core::span::Span;
 use std::cmp::Ordering;
 
+///
 #[derive(Clone, Copy)]
 pub struct StringStream<'grm>(&'grm str, usize);
 

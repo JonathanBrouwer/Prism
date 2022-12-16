@@ -1,2 +1,6 @@
-rule block = "abcd"
+rule block:
+    "a" &
+
+rule x:
+    "y"
 

@@ -2,7 +2,7 @@ use crate::parser_core::error::{err_combine, err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_rule::ParserContext;
+use crate::parser_sugar::parser_context::ParserContext;
 
 #[derive(Clone)]
 pub enum PResult<'grm, O, E: ParseError> {

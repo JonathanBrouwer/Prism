@@ -6,9 +6,9 @@ use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::error_printer::ErrorLabel::Debug;
-use crate::parser_sugar::parser_rule::{PState, ParserContext, PR};
 use by_address::ByAddress;
 use std::collections::HashMap;
+use crate::parser_sugar::parser_context::{ParserContext, PR, PState};
 
 type CacheKey<'grm, 'b> = (
     usize,

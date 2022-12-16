@@ -41,6 +41,7 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
     }
 }
 
+/// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone, Debug)]
 pub struct TreeError<L: Eq + Hash + Clone> {
     pub span: Span,

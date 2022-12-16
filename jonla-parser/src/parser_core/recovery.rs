@@ -3,9 +3,9 @@ use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_rule::{Ignore, PState, ParserContext};
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::parser_sugar::parser_context::{Ignore, ParserContext, PState};
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>>,

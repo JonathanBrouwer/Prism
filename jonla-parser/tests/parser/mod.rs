@@ -26,7 +26,7 @@ macro_rules! parse_test {
             use jonla_parser::parser_core::stream::StringStream;
             use jonla_parser::parser_sugar::error_printer::*;
             use jonla_parser::parser_sugar::parser_rule::parser_rule;
-            use jonla_parser::parser_sugar::parser_rule::ParserContext;
+            use jonla_parser::parser_sugar::parser_context::ParserContext;
             use std::collections::HashMap;
             use jonla_parser::parser_sugar::run::run_parser_rule;
             use jonla_parser::parse_grammar;

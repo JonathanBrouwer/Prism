@@ -37,5 +37,5 @@ passing tests:
 
 failing tests:
     "a@a;aa;" => "1..2"
-    "a@;aa;" => "1..2"
+    "a@;aa;" => "1..3"
 }

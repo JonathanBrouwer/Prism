@@ -6,7 +6,7 @@ use crate::parser_core::span::Span;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::error_printer::ErrorLabel::Debug;
-use crate::parser_sugar::parser_rule::ParserContext;
+use crate::parser_sugar::parser_context::ParserContext;
 
 pub fn empty<'b, 'grm: 'b, E: ParseError, Q>() -> impl Parser<'b, 'grm, (), E, Q> {
     move |pos: StringStream<'grm>, _: &mut Q, _: &ParserContext<'b, 'grm>| -> PResult<'grm, (), E> {
@@ -22,8 +22,10 @@ pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
           ctx: &ParserContext<'b, 'grm>|
           -> PResult<'grm, (Span, char), E> {
         match pos.next() {
+            // We can parse the character
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos_new),
-            (_, Some((_, e))) if !ctx.layout_disabled && ctx.recovery_points.contains_key(&pos.pos()) => {
+            // We cannot parse the character but we can recover
+            (_, Some((_, e))) if (ctx.recovery_disabled.is_none() || ctx.recovery_disabled.unwrap() == pos.pos()) && ctx.recovery_points.contains_key(&pos.pos()) => {
                 let end = *ctx.recovery_points.get(&pos.pos()).unwrap();
                 PResult::new_ok(
                     (
@@ -36,6 +38,7 @@ pub fn single<'b, 'grm: 'b, E: ParseError, Q>(
                     pos.with_pos(end),
                 )
             }
+            // Error
             (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
         }
     }

@@ -1,73 +1,11 @@
 use crate::parser_core::adaptive::{BlockState, GrammarState};
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
-use crate::parser_core::parser_cache::ParserCache;
-use crate::parser_core::presult::PResult;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::action_result::ActionResult;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
-
-pub type PR<'grm> = (
-    HashMap<&'grm str, Arc<ActionResult<'grm>>>,
-    Arc<ActionResult<'grm>>,
-);
-
-pub type PState<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>;
-
-#[derive(Eq, PartialEq, Hash, Clone)]
-pub struct ParserContext<'b, 'grm> {
-    pub(crate) recovery_disabled: bool,
-    pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
-    pub(crate) prec_climb_next: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
-    pub(crate) recovery_points: Ignore<Arc<HashMap<usize, usize>>>,
-}
-
-impl ParserContext<'_, '_> {
-    pub fn new() -> Self {
-        Self {
-            recovery_disabled: false,
-            layout_disabled: false,
-            prec_climb_this: Ignore(None),
-            prec_climb_next: Ignore(None),
-            recovery_points: Ignore(Arc::new(HashMap::new())),
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct Ignore<T>(pub T);
-
-impl<T> Hash for Ignore<T> {
-    fn hash<H: Hasher>(&self, _: &mut H) {}
-}
-
-impl<T> PartialEq for Ignore<T> {
-    fn eq(&self, _: &Self) -> bool {
-        true
-    }
-}
-
-impl<T> Eq for Ignore<T> {}
-
-impl<T> Deref for Ignore<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> DerefMut for Ignore<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
+use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PState};
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
