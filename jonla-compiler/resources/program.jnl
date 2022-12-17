@@ -1,16 +1,3 @@
-grammar {
-    rule expr:
-        -- additive
-        -- multiplicative
-        Mul(x, y) <- x:@this "*" y:@next
-        -- base
-        Z() <- "z"
-};
-x;
-x;
-x
-x;
-x;
-x;
-x;
-x;
+{ab;}
+{abc;}
+{abc;}
