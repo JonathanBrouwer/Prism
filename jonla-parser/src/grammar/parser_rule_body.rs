@@ -108,7 +108,7 @@ fn parser_body_sub_annotations<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
 >(
     rules: &'b GrammarState<'b, 'grm>,
-    annots: &'b [RuleAnnotation<'grm>],
+    annots: &'b [RuleAnnotation],
     expr: &'b RuleExpr<'grm>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: StringStream<'grm>,

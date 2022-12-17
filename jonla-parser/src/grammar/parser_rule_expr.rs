@@ -185,8 +185,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     let mut e = E::new(stream.span_to(stream));
                     e.add_label_implicit(ErrorLabel::Explicit(
                         stream.span_to(stream),
-                        EscapedString::new_borrow(
-                            "Grammar was invalid, created cycle in block order.",
+                        EscapedString::from_char_iter(
+                            "Grammar was invalid, created cycle in block order.".chars(),
                         ),
                     ));
                     return PResult::new_err(e, stream);

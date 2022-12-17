@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -21,7 +20,7 @@ pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct AnnotatedRuleExpr<'grm>(
-    pub Vec<RuleAnnotation<'grm>>,
+    pub Vec<RuleAnnotation>,
     #[serde(borrow)] pub RuleExpr<'grm>,
 );
 
@@ -38,8 +37,8 @@ impl CharClass {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleAnnotation<'grm> {
-    Error(EscapedString<'grm>),
+pub enum RuleAnnotation {
+    Error(EscapedString),
     DisableLayout,
     EnableLayout,
     DisableRecovery,
@@ -50,7 +49,7 @@ pub enum RuleAnnotation<'grm> {
 pub enum RuleExpr<'grm> {
     Rule(&'grm str),
     CharClass(CharClass),
-    Literal(EscapedString<'grm>),
+    Literal(EscapedString),
     Repeat {
         expr: Box<Self>,
         min: u64,
@@ -73,22 +72,18 @@ pub enum RuleExpr<'grm> {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAction<'grm> {
     Name(&'grm str),
-    InputLiteral(EscapedString<'grm>),
+    InputLiteral(EscapedString),
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
 }
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
-pub struct EscapedString<'grm>(Arc<Cow<'grm, str>>);
+pub struct EscapedString(Arc<String>);
 
-impl<'grm> EscapedString<'grm> {
-    pub fn new(s: String) -> Self {
-        Self(Arc::new(Cow::from(s)))
-    }
-
-    pub fn new_borrow(s: &'grm str) -> Self {
-        Self(Arc::new(Cow::from(s)))
+impl EscapedString {
+    pub fn from_char_iter(s: impl Iterator<Item=char>) -> Self {
+        Self(Arc::new(s.collect()))
     }
 
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
@@ -100,7 +95,7 @@ impl<'grm> EscapedString<'grm> {
     }
 }
 
-impl<'grm> Display for EscapedString<'grm> {
+impl Display for EscapedString {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
