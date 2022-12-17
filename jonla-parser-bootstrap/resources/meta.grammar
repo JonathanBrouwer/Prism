@@ -13,11 +13,11 @@ rule prule_constructors = prule_annotated_expr*
 rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
 
 rule prule_annotation:
-    Error(err) <- "@" "error" "(" err:pstring ")"
-    DisableLayout() <- "@" "disable_layout"
-    EnableLayout() <- "@" "enable_layout"
-    DisableRecovery() <- "@" "disable_recovery"
-    EnableRecovery() <- "@" "enable_recovery"
+    Error(err) <- "@error" "(" err:pstring ")"
+    DisableLayout() <- "@disable_layout"
+    EnableLayout() <- "@enable_layout"
+    DisableRecovery() <- "@disable_recovery"
+    EnableRecovery() <- "@enable_recovery"
 
 rule prule_expr:
     --
@@ -35,19 +35,19 @@ rule prule_expr:
     --
     Literal(s) <- s:pstring
     CharClass(c) <- "[" c:charclass "]"
-    SliceInput(r) <- "@" "str" "(" r:prule_expr ")"
-    PosLookahead(r) <- "@" "pos" "(" r:prule_expr ")"
-    NegLookahead(r) <- "@" "neg" "(" r:prule_expr ")"
+    SliceInput(r) <- "@str" "(" r:prule_expr ")"
+    PosLookahead(r) <- "@pos" "(" r:prule_expr ")"
+    NegLookahead(r) <- "@neg" "(" r:prule_expr ")"
     r <- "(" r:prule_expr ")"
     AtThis() <- "@this"
     AtNext() <- "@next"
     AtGrammar() <- "@grammar"
     AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
     Rule(n) <- n:identifier
-    Repeat(e, "0", None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
-    Repeat(e, "1", None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
-    Repeat(e, min, None(), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," "inf" ")"
-    Repeat(e, min, Some(max), d) <- "@" "repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," max:integer ")"
+    Repeat(e, "0", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
+    Repeat(e, "1", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
+    Repeat(e, min, None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," "inf" ")"
+    Repeat(e, min, Some(max), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," max:integer ")"
 
 rule prule_action:
     --

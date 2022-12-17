@@ -433,10 +433,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "error"
+                        "Literal": "@error"
                       },
                       {
                         "Literal": "("
@@ -472,14 +469,7 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "disable_layout"
-                      }
-                    ]
+                    "Literal": "@disable_layout"
                   },
                   {
                     "Construct": [
@@ -495,14 +485,7 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "enable_layout"
-                      }
-                    ]
+                    "Literal": "@enable_layout"
                   },
                   {
                     "Construct": [
@@ -518,14 +501,7 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "disable_recovery"
-                      }
-                    ]
+                    "Literal": "@disable_recovery"
                   },
                   {
                     "Construct": [
@@ -541,14 +517,7 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "enable_recovery"
-                      }
-                    ]
+                    "Literal": "@enable_recovery"
                   },
                   {
                     "Construct": [
@@ -958,10 +927,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "str"
+                        "Literal": "@str"
                       },
                       {
                         "Literal": "("
@@ -999,10 +965,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "pos"
+                        "Literal": "@pos"
                       },
                       {
                         "Literal": "("
@@ -1040,10 +1003,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "neg"
+                        "Literal": "@neg"
                       },
                       {
                         "Literal": "("
@@ -1234,10 +1194,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "repeat"
+                        "Literal": "@repeat"
                       },
                       {
                         "Literal": "("
@@ -1304,10 +1261,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "repeat"
+                        "Literal": "@repeat"
                       },
                       {
                         "Literal": "("
@@ -1374,10 +1328,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "repeat"
+                        "Literal": "@repeat"
                       },
                       {
                         "Literal": "("
@@ -1455,10 +1406,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@"
-                      },
-                      {
-                        "Literal": "repeat"
+                        "Literal": "@repeat"
                       },
                       {
                         "Literal": "("
