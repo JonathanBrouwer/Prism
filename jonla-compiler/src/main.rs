@@ -1,7 +1,7 @@
 use jonla_parser::grammar::GrammarFile;
 use jonla_parser::parse_grammar;
+use jonla_parser::parser_core::error::error_printer::print_set_error;
 use jonla_parser::parser_core::stream::StringStream;
-use jonla_parser::parser_sugar::error_printer::*;
 use jonla_parser::parser_sugar::run::run_parser_rule;
 
 fn main() {
@@ -26,7 +26,6 @@ fn main() {
             for e in es {
                 print_set_error(e, filename, input, false)
             }
-        }
-        // Err(e) => print_tree_error(e, filename, input, true),
+        } // Err(e) => print_tree_error(e, filename, input, true),
     }
 }

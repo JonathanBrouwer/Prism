@@ -1,17 +1,18 @@
+use crate::parser_core::context::{PCache, ParserContext};
+use crate::parser_core::error::error_printer::ErrorLabel;
+use crate::parser_core::error::error_printer::ErrorLabel::Debug;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::span::Span;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::error_printer::ErrorLabel::Debug;
-use crate::parser_sugar::parser_context::{ParserContext, PCache};
 
 pub fn empty<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
-    move |pos: StringStream<'grm>, _: &mut PCache<'b, 'grm, E>, _: &ParserContext<'b, 'grm>| -> PResult<'grm, (), E> {
-        PResult::new_ok((), pos)
-    }
+    move |pos: StringStream<'grm>,
+          _: &mut PCache<'b, 'grm, E>,
+          _: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, (), E> { PResult::new_ok((), pos) }
 }
 
 pub fn single<'b, 'grm: 'b, E: ParseError>(
@@ -19,7 +20,7 @@ pub fn single<'b, 'grm: 'b, E: ParseError>(
 ) -> impl Parser<'b, 'grm, (Span, char), E> {
     move |pos: StringStream<'grm>,
           _: &mut PCache<'b, 'grm, E>,
-          ctx: &ParserContext<'b, 'grm>|
+          _: &ParserContext<'b, 'grm>|
           -> PResult<'grm, (Span, char), E> {
         match pos.next() {
             // We can parse the character

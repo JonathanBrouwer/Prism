@@ -4,9 +4,9 @@ extern crate lazy_static;
 use crate::from_action_result::parse_grammarfile;
 use crate::grammar::GrammarFile;
 use crate::parser_core::adaptive::GrammarState;
+use crate::parser_core::error::error_printer::ErrorLabel;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::error_printer::ErrorLabel;
 use parser_sugar::run::run_parser_rule;
 
 pub mod from_action_result;

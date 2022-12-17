@@ -2,18 +2,18 @@ use crate::grammar::AnnotatedRuleExpr;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use std::collections::HashMap;
 
+use crate::parser_core::cache::parser_cache_recurse;
+use crate::parser_core::error::error_printer::ErrorLabel;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
-use crate::parser_core::parser_cache::parser_cache_recurse;
 use crate::parser_core::presult::PResult;
-use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
 
 use crate::parser_core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
+use crate::parser_core::context::{Ignore, PCache, ParserContext, PR};
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PCache};
 use crate::parser_sugar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
@@ -127,7 +127,7 @@ fn parser_body_sub_annotations<
             parser_with_layout(rules, &move |stream: StringStream<'grm>,
                                              cache: &mut PCache<'b, 'grm, E>,
                                              context: &ParserContext<'b, 'grm>|
-                                             -> PResult<'grm, _, E> {
+                  -> PResult<'grm, _, E> {
                 parser_body_sub_annotations(rules, rest, expr).parse(
                     stream,
                     cache,
@@ -143,7 +143,7 @@ fn parser_body_sub_annotations<
             parser_with_layout(rules, &move |stream: StringStream<'grm>,
                                              cache: &mut PCache<'b, 'grm, E>,
                                              context: &ParserContext<'b, 'grm>|
-                                             -> PResult<'grm, _, E> {
+                  -> PResult<'grm, _, E> {
                 parser_body_sub_annotations(rules, rest, expr).parse(
                     stream,
                     cache,
@@ -164,7 +164,7 @@ fn parser_body_sub_annotations<
                     ..context.clone()
                 },
             )
-        },
+        }
         [RuleAnnotation::EnableRecovery, rest @ ..] => {
             parser_body_sub_annotations(rules, rest, expr).parse(
                 stream,
@@ -174,7 +174,7 @@ fn parser_body_sub_annotations<
                     ..context.clone()
                 },
             )
-        },
+        }
         &[] => parser_expr(rules, expr, &HashMap::new()).parse(stream, cache, context),
     }
 }

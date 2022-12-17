@@ -1,4 +1,5 @@
 use crate::grammar::{EscapedString, RuleExpr};
+use crate::parser_core::error::error_printer::ErrorLabel;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
@@ -6,12 +7,12 @@ use crate::parser_core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
 };
 use crate::parser_sugar::action_result::ActionResult;
-use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_layout::parser_with_layout;
 
 use crate::from_action_result::parse_grammarfile;
 use crate::parser_core::adaptive::GrammarState;
-use crate::parser_core::parser_cache::ParserCache;
+use crate::parser_core::cache::ParserCache;
+use crate::parser_core::context::{Ignore, PCache, ParserContext, PR};
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::apply_action::apply_action;
 use crate::parser_sugar::parser_rule::parser_rule;
@@ -19,7 +20,6 @@ use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PCache};
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,

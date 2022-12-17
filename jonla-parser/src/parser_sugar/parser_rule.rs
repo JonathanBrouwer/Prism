@@ -1,11 +1,11 @@
 use crate::parser_core::adaptive::{BlockState, GrammarState};
+use crate::parser_core::context::{Ignore, PCache, ParserContext, PR};
+use crate::parser_core::error::error_printer::ErrorLabel;
 use crate::parser_core::error::ParseError;
 use crate::parser_core::parser::Parser;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
-use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PCache};
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,

@@ -1,14 +1,14 @@
 use crate::parser_core::adaptive::BlockState;
+use crate::parser_core::context::{PCache, ParserContext, PR};
+use crate::parser_core::error::error_printer::ErrorLabel;
+use crate::parser_core::error::error_printer::ErrorLabel::Debug;
 use crate::parser_core::error::{err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use by_address::ByAddress;
 use std::collections::HashMap;
-use crate::parser_sugar::parser_context::{ParserContext, PR, PCache};
 
 type CacheKey<'grm, 'b> = (
     usize,

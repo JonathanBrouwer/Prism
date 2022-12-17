@@ -24,9 +24,9 @@ macro_rules! parse_test {
             use jonla_parser::parser_core::presult::PResult;
             use jonla_parser::parser_core::presult::PResult::*;
             use jonla_parser::parser_core::stream::StringStream;
-            use jonla_parser::parser_sugar::error_printer::*;
+            use jonla_parser::parser_core::error::error_printer::*;
             use jonla_parser::parser_sugar::parser_rule::parser_rule;
-            use jonla_parser::parser_sugar::parser_context::ParserContext;
+            use jonla_parser::parser_core::context::ParserContext;
             use std::collections::HashMap;
             use jonla_parser::parser_sugar::run::run_parser_rule;
             use jonla_parser::parse_grammar;
@@ -89,10 +89,12 @@ macro_rules! parse_test {
 }
 
 fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
-    e.iter().map(|e| format!("{}..{}", e.span.start, e.span.end)).join(" ")
+    e.iter()
+        .map(|e| format!("{}..{}", e.span.start, e.span.end))
+        .join(" ")
 }
 
 use itertools::Itertools;
+use jonla_parser::parser_core::error::error_printer::ErrorLabel;
 use jonla_parser::parser_core::error::set_error::SetError;
-use jonla_parser::parser_sugar::error_printer::ErrorLabel;
 pub(crate) use parse_test;

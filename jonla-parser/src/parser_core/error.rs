@@ -1,4 +1,5 @@
 pub mod empty_error;
+pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
 
