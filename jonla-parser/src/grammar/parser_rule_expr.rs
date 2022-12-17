@@ -177,7 +177,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 
                 // Parse it into a grammar
                 let g = parse_grammarfile(&*gr, stream.src());
-                let g: &'b GrammarFile = cache.alloc.alloc(g);
+                let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
 
                 // Create new grammarstate
                 let mut rules: GrammarState = (*rules).clone();
@@ -191,7 +191,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     ));
                     return PResult::new_err(e, stream);
                 }
-                let rules: &'b GrammarState = cache.alloc.alloc(rules);
+                let rules: &'b GrammarState = cache.alloc.grammarstate_arena.alloc(rules);
 
                 // Parse body
                 parser_rule(&rules, &b[..]).parse(stream, cache, context)
