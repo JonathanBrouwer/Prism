@@ -1812,7 +1812,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       },
                       {
                         "NameBind": [
@@ -1823,13 +1823,13 @@
                         ]
                       },
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       },
                       {
                         "Literal": "-"
                       },
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       },
                       {
                         "NameBind": [
@@ -1840,7 +1840,7 @@
                         ]
                       },
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       }
                     ]
                   },
@@ -1867,7 +1867,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       },
                       {
                         "NameBind": [
@@ -1878,7 +1878,7 @@
                         ]
                       },
                       {
-                        "Literal": "'"
+                        "Literal": "\\'"
                       }
                     ]
                   },
@@ -1921,27 +1921,29 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "\""
+                        "Literal": "\\\""
                       },
                       {
                         "NameBind": [
                           "s",
                           {
-                            "Repeat": {
-                              "expr": {
-                                "Rule": "str_char"
-                              },
-                              "min": 0,
-                              "max": null,
-                              "delim": {
-                                "Sequence": []
+                            "SliceInput": {
+                              "Repeat": {
+                                "expr": {
+                                  "Rule": "str_char"
+                                },
+                                "min": 0,
+                                "max": null,
+                                "delim": {
+                                  "Sequence": []
+                                }
                               }
                             }
                           }
                         ]
                       },
                       {
-                        "Literal": "\""
+                        "Literal": "\\\""
                       }
                     ]
                   },
@@ -1992,10 +1994,10 @@
               {
                 "Action": [
                   {
-                    "Literal": "\\n"
+                    "Literal": "\\\\n"
                   },
                   {
-                    "InputLiteral": "\n"
+                    "InputLiteral": "\\n"
                   }
                 ]
               }
@@ -2005,10 +2007,10 @@
               {
                 "Action": [
                   {
-                    "Literal": "\\r"
+                    "Literal": "\\\\r"
                   },
                   {
-                    "InputLiteral": "\r"
+                    "InputLiteral": "\\r"
                   }
                 ]
               }
@@ -2018,10 +2020,10 @@
               {
                 "Action": [
                   {
-                    "Literal": "\\\\"
+                    "Literal": "\\\\\\\\"
                   },
                   {
-                    "InputLiteral": "\\"
+                    "InputLiteral": "\\\\"
                   }
                 ]
               }
@@ -2031,10 +2033,10 @@
               {
                 "Action": [
                   {
-                    "Literal": "\\\""
+                    "Literal": "\\\\\\\""
                   },
                   {
-                    "InputLiteral": "\""
+                    "InputLiteral": "\\\""
                   }
                 ]
               }
@@ -2044,10 +2046,10 @@
               {
                 "Action": [
                   {
-                    "Literal": "\\'"
+                    "Literal": "\\\\\\'"
                   },
                   {
-                    "InputLiteral": "'"
+                    "InputLiteral": "\\'"
                   }
                 ]
               }

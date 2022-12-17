@@ -70,7 +70,7 @@ fn parse_annotated_rule_expr<'grm>(
     }
 }
 
-fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAnnotation {
+fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAnnotation<'grm> {
     match r {
         Construct("Error", b) => RuleAnnotation::Error(parse_string(&b[0], src)),
         Construct("DisableLayout", _) => RuleAnnotation::DisableLayout,
@@ -154,10 +154,14 @@ fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
     }
 }
 
-fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> EscapedString {
+fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> EscapedString<'grm> {
+    // result_match! {
+    //     match r => List(cs),
+    //     create EscapedString::from_escaped(Box::leak(cs.iter().map(|c| parse_string_char(c, src)).collect::<String>().into_boxed_str()))
+    // }
     result_match! {
-        match r => List(cs),
-        create EscapedString::from_char_iter(cs.iter().map(|c| parse_string_char(c, src)))
+        match r => Value(Span{start, end}),
+        create EscapedString::from_escaped(&src[*start..*end])
     }
 }
 

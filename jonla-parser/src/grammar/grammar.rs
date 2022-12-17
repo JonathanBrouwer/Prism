@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use std::sync::Arc;
+use itertools::Itertools;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {
@@ -20,7 +20,7 @@ pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct AnnotatedRuleExpr<'grm>(
-    pub Vec<RuleAnnotation>,
+    pub Vec<RuleAnnotation<'grm>>,
     #[serde(borrow)] pub RuleExpr<'grm>,
 );
 
@@ -37,8 +37,9 @@ impl CharClass {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleAnnotation {
-    Error(EscapedString),
+pub enum RuleAnnotation<'grm> {
+    #[serde(borrow)]
+    Error(EscapedString<'grm>),
     DisableLayout,
     EnableLayout,
     DisableRecovery,
@@ -49,7 +50,7 @@ pub enum RuleAnnotation {
 pub enum RuleExpr<'grm> {
     Rule(&'grm str),
     CharClass(CharClass),
-    Literal(EscapedString),
+    Literal(EscapedString<'grm>),
     Repeat {
         expr: Box<Self>,
         min: u64,
@@ -72,22 +73,36 @@ pub enum RuleExpr<'grm> {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAction<'grm> {
     Name(&'grm str),
-    InputLiteral(EscapedString),
+    InputLiteral(EscapedString<'grm>),
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
 }
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
-pub struct EscapedString(Arc<String>);
+pub struct EscapedString<'grm>(&'grm str);
 
-impl EscapedString {
-    pub fn from_char_iter(s: impl Iterator<Item=char>) -> Self {
-        Self(Arc::new(s.collect()))
+impl<'grm> EscapedString<'grm> {
+    pub fn from_escaped(s: &'grm str) -> Self {
+        Self(s)
     }
 
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.0.chars()
+        self.0.chars().batching(|it| {
+            it.next()
+            // let c = it.next()?;
+            // if c != '\\' {
+            //     return Some(c);
+            // }
+            // Some(match it.next()? {
+            //     'n' => '\n',
+            //     'r' => '\r',
+            //     '\\' => '\\',
+            //     '"' => '"',
+            //     '\'' => '\'',
+            //     _ => unreachable!(),
+            // })
+        })
     }
 
     pub fn parse<F: FromStr>(&self) -> Result<F, F::Err> {
@@ -95,7 +110,7 @@ impl EscapedString {
     }
 }
 
-impl Display for EscapedString {
+impl Display for EscapedString<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }

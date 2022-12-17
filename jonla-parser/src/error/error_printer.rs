@@ -9,8 +9,8 @@ use std::ops::Range;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
-    Explicit(Span, EscapedString),
-    Literal(Span, EscapedString),
+    Explicit(Span, EscapedString<'grm>),
+    Literal(Span, EscapedString<'grm>),
     Debug(Span, &'grm str),
 }
 

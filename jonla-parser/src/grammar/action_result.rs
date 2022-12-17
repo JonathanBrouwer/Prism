@@ -7,7 +7,7 @@ use std::sync::Arc;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
     Value(Span),
-    Literal(EscapedString),
+    Literal(EscapedString<'grm>),
     Construct(&'grm str, Vec<Arc<ActionResult<'grm>>>),
     List(Vec<Arc<ActionResult<'grm>>>),
     Void(&'static str),

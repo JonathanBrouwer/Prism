@@ -71,7 +71,7 @@ rule pstring:
     @error("String")
     @disable_layout
     @disable_recovery
-    s <- "\"" s:str_char* "\""
+    s <- "\"" s:@str(str_char*) "\""
 
 rule str_char:
     [^ '\"' | '\'' | '\\' | '\n']
