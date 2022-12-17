@@ -88,6 +88,7 @@ macro_rules! parse_test {
     }
 }
 
+#[allow(dead_code)]
 fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
     e.iter()
         .map(|e| format!("{}..{}", e.span.start, e.span.end))

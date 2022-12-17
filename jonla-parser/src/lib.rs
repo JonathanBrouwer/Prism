@@ -15,8 +15,8 @@ pub mod error;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {
-        let meta_grammar = include_str!("../resources/bootstrap.json");
-        serde_json::from_str(meta_grammar).unwrap()
+        let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
+        bincode::deserialize(meta_grammar).unwrap()
     };
     pub static ref META_GRAMMAR_STATE: GrammarState<'static, 'static> =
         GrammarState::new(&META_GRAMMAR);
