@@ -19,15 +19,15 @@ use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PState};
+use crate::parser_sugar::parser_context::{Ignore, ParserContext, PR, PCache};
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     expr: &'b RuleExpr<'grm>,
     vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: StringStream<'grm>,
-          cache: &mut PState<'b, 'grm, E>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(rules, rule).parse(stream, cache, context),
@@ -38,7 +38,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 //First construct the literal parser
                 let parser_literal =
                     move |stream: StringStream<'grm>,
-                          cache: &mut PState<'b, 'grm, E>,
+                          cache: &mut PCache<'b, 'grm, E>,
                           context: &ParserContext<'b, 'grm>| {
                         let mut res = PResult::new_ok((), stream);
                         for char in literal.chars() {

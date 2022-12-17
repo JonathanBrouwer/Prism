@@ -12,7 +12,7 @@ pub type PR<'grm> = (
     Arc<ActionResult<'grm>>,
 );
 
-pub type PState<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>;
+pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {

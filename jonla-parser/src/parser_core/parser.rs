@@ -1,13 +1,13 @@
 use crate::parser_core::error::ParseError;
 use crate::parser_core::presult::PResult;
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_context::ParserContext;
+use crate::parser_sugar::parser_context::{ParserContext, PCache};
 
-pub trait Parser<'b, 'grm, O, E: ParseError, Q> {
+pub trait Parser<'b, 'grm, O, E: ParseError> {
     fn parse(
         &self,
         stream: StringStream<'grm>,
-        cache: &mut Q,
+        cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> PResult<'grm, O, E>;
 }
@@ -17,15 +17,14 @@ impl<
         'grm,
         O,
         E: ParseError,
-        Q,
-        T: Fn(StringStream<'grm>, &mut Q, &ParserContext<'b, 'grm>) -> PResult<'grm, O, E>,
-    > Parser<'b, 'grm, O, E, Q> for T
+        T: Fn(StringStream<'grm>, &mut PCache<'b, 'grm, E>, &ParserContext<'b, 'grm>) -> PResult<'grm, O, E>,
+    > Parser<'b, 'grm, O, E> for T
 {
     #[inline(always)]
     fn parse(
         &self,
         stream: StringStream<'grm>,
-        cache: &mut Q,
+        cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> PResult<'grm, O, E> {
         self(stream, cache, context)

@@ -1,5 +1,5 @@
 rule block:
-    "a" &
+    "abd"
 
 rule x:
     "y"

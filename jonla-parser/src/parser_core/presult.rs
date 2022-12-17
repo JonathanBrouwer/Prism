@@ -2,7 +2,7 @@ use crate::parser_core::error::{err_combine, err_combine_opt, ParseError};
 use crate::parser_core::parser::Parser;
 use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_context::ParserContext;
+use crate::parser_sugar::parser_context::{ParserContext, PCache};
 
 #[derive(Clone)]
 pub enum PResult<'grm, O, E: ParseError> {
@@ -133,11 +133,11 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<'b, Q, P: Parser<'b, 'grm, O, E, Q>>(
+    pub fn merge_choice_parser<'b, P: Parser<'b, 'grm, O, E>>(
         self,
         other: &P,
         stream: StringStream<'grm>,
-        cache: &mut Q,
+        cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> Self
     where
@@ -152,10 +152,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<'b, O2, Q, P2: Parser<'b, 'grm, O2, E, Q>>(
+    pub fn merge_seq_parser<'b, O2, P2: Parser<'b, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut Q,
+        cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> PResult<'grm, (O, O2), E>
     where
@@ -171,10 +171,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<'b, O2, Q, P2: Parser<'b, 'grm, O2, E, Q>>(
+    pub fn merge_seq_opt_parser<'b, O2, P2: Parser<'b, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut Q,
+        cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> (PResult<'grm, (O, Option<O2>), E>, bool)
     where

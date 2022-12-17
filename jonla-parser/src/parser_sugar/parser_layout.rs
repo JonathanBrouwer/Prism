@@ -6,15 +6,15 @@ use crate::parser_core::presult::PResult::{PErr, POk};
 use crate::parser_core::primitives::end;
 use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
-use crate::parser_sugar::parser_context::{ParserContext, PState};
+use crate::parser_sugar::parser_context::{ParserContext, PCache};
 use crate::parser_sugar::parser_rule::parser_rule;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
-    sub: &'a impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>>,
-) -> impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>> + 'a {
+    sub: &'a impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |pos: StringStream<'grm>,
-          cache: &mut PState<'b, 'grm, E>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
           -> PResult<'grm, O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
@@ -58,10 +58,10 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
-    sub: &'a impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>>,
-) -> impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>> + 'a {
+    sub: &'a impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: StringStream<'grm>,
-          cache: &mut PState<'b, 'grm, E>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
           -> PResult<'grm, O, E> {
         let res = sub.parse(stream, cache, context);

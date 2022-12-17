@@ -8,7 +8,7 @@ use crate::parser_sugar::error_printer::ErrorLabel;
 use crate::parser_sugar::error_printer::ErrorLabel::Debug;
 use by_address::ByAddress;
 use std::collections::HashMap;
-use crate::parser_sugar::parser_context::{ParserContext, PR, PState};
+use crate::parser_sugar::parser_context::{ParserContext, PR, PCache};
 
 type CacheKey<'grm, 'b> = (
     usize,
@@ -73,14 +73,14 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
 }
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    sub: &'a impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>>,
+    sub: &'a impl Parser<'b, 'grm, PR<'grm>, E>,
     id: (
         ByAddress<&'b [BlockState<'b, 'grm>]>,
         ParserContext<'b, 'grm>,
     ),
-) -> impl Parser<'b, 'grm, PR<'grm>, E, PState<'b, 'grm, E>> + 'a {
+) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |pos_start: StringStream<'grm>,
-          state: &mut PState<'b, 'grm, E>,
+          state: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         //Check if this result is cached
         let key = (pos_start.pos(), id.clone());

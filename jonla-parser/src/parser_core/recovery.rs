@@ -5,12 +5,12 @@ use crate::parser_core::stream::StringStream;
 use crate::parser_sugar::error_printer::ErrorLabel;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::parser_sugar::parser_context::{Ignore, ParserContext, PState};
+use crate::parser_sugar::parser_context::{Ignore, ParserContext, PCache};
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    sub: &'a impl Parser<'b, 'grm, O, E, PState<'b, 'grm, E>>,
+    sub: &'a impl Parser<'b, 'grm, O, E>,
     stream: StringStream<'grm>,
-    cache: &mut PState<'b, 'grm, E>,
+    cache: &mut PCache<'b, 'grm, E>,
     context: &ParserContext<'b, 'grm>,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<usize, usize> = HashMap::new();
