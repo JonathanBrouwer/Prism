@@ -17,20 +17,20 @@ macro_rules! parse_test {
         #[allow(unused_variables)]
         #[test]
         fn $name() {
-            use jonla_parser::grammar;
-            use jonla_parser::grammar::GrammarFile;
-            use jonla_parser::parser_core::error::empty_error::EmptyError;
-            use jonla_parser::parser_core::parser::Parser;
-            use jonla_parser::parser_core::presult::PResult;
-            use jonla_parser::parser_core::presult::PResult::*;
-            use jonla_parser::parser_core::stream::StringStream;
-            use jonla_parser::parser_core::error::error_printer::*;
-            use jonla_parser::parser_sugar::parser_rule::parser_rule;
-            use jonla_parser::parser_core::context::ParserContext;
-            use std::collections::HashMap;
-            use jonla_parser::parser_sugar::run::run_parser_rule;
             use jonla_parser::parse_grammar;
-            use jonla_parser::parser_core::error::set_error::SetError;
+            use jonla_parser::grammar::grammar::GrammarFile;
+            use jonla_parser::grammar;
+            use jonla_parser::error::empty_error::EmptyError;
+            use jonla_parser::core::parser::Parser;
+            use jonla_parser::core::presult::PResult;
+            use jonla_parser::core::presult::PResult::*;
+            use jonla_parser::core::stream::StringStream;
+            use jonla_parser::error::error_printer::*;
+            use jonla_parser::grammar::parser_rule::parser_rule;
+            use jonla_parser::core::context::ParserContext;
+            use std::collections::HashMap;
+            use jonla_parser::grammar::run::run_parser_rule;
+            use jonla_parser::error::set_error::SetError;
             use crate::parser::errors_to_str;
 
             let syntax: &'static str = $syntax;
@@ -95,6 +95,6 @@ fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
 }
 
 use itertools::Itertools;
-use jonla_parser::parser_core::error::error_printer::ErrorLabel;
-use jonla_parser::parser_core::error::set_error::SetError;
+use jonla_parser::error::error_printer::ErrorLabel;
+use jonla_parser::error::set_error::SetError;
 pub(crate) use parse_test;

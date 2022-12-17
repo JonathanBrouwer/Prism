@@ -3,8 +3,8 @@ pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
 
-use crate::parser_core::span::Span;
-use crate::parser_core::stream::StringStream;
+use crate::core::span::Span;
+use crate::core::stream::StringStream;
 use std::cmp::Ordering;
 
 pub trait ParseError: Sized + Clone {

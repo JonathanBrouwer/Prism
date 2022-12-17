@@ -1,7 +1,7 @@
-use crate::parser_core::context::{PCache, ParserContext};
-use crate::parser_core::error::ParseError;
-use crate::parser_core::presult::PResult;
-use crate::parser_core::stream::StringStream;
+use crate::core::context::{PCache, ParserContext};
+use crate::error::ParseError;
+use crate::core::presult::PResult;
+use crate::core::stream::StringStream;
 
 pub trait Parser<'b, 'grm, O, E: ParseError> {
     fn parse(

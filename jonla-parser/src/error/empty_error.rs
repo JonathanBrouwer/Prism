@@ -1,5 +1,5 @@
-use crate::parser_core::error::ParseError;
-use crate::parser_core::span::Span;
+use crate::error::ParseError;
+use crate::core::span::Span;
 use std::marker::PhantomData;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.

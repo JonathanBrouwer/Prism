@@ -1,5 +1,5 @@
-use crate::grammar::RuleAction;
-use crate::parser_sugar::action_result::ActionResult;
+use crate::grammar::grammar::RuleAction;
+use crate::grammar::action_result::ActionResult;
 use std::collections::HashMap;
 use std::sync::Arc;
 

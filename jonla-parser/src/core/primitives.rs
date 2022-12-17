@@ -1,12 +1,12 @@
-use crate::parser_core::context::{PCache, ParserContext};
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::error_printer::ErrorLabel::Debug;
-use crate::parser_core::error::ParseError;
-use crate::parser_core::parser::Parser;
-use crate::parser_core::presult::PResult;
-use crate::parser_core::presult::PResult::{PErr, POk};
-use crate::parser_core::span::Span;
-use crate::parser_core::stream::StringStream;
+use crate::core::context::{PCache, ParserContext};
+use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
+use crate::error::ParseError;
+use crate::core::parser::Parser;
+use crate::core::presult::PResult;
+use crate::core::presult::PResult::{PErr, POk};
+use crate::core::span::Span;
+use crate::core::stream::StringStream;
 
 pub fn empty<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
     move |pos: StringStream<'grm>,

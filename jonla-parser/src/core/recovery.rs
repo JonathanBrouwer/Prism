@@ -1,9 +1,9 @@
-use crate::parser_core::context::{Ignore, PCache, ParserContext};
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::ParseError;
-use crate::parser_core::parser::Parser;
-use crate::parser_core::presult::PResult::{PErr, POk};
-use crate::parser_core::stream::StringStream;
+use crate::core::context::{Ignore, PCache, ParserContext};
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
+use crate::core::parser::Parser;
+use crate::core::presult::PResult::{PErr, POk};
+use crate::core::stream::StringStream;
 use std::collections::HashMap;
 use std::sync::Arc;
 

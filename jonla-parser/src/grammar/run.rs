@@ -1,13 +1,13 @@
-use crate::grammar::GrammarFile;
-use crate::parser_core::adaptive::GrammarState;
-use crate::parser_core::cache::ParserCache;
-use crate::parser_core::context::{ParserContext, PR};
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::ParseError;
-use crate::parser_core::recovery::parse_with_recovery;
-use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_layout::full_input_layout;
-use crate::parser_sugar::parser_rule;
+use crate::grammar::grammar::GrammarFile;
+use crate::core::adaptive::GrammarState;
+use crate::core::cache::ParserCache;
+use crate::core::context::{ParserContext, PR};
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
+use crate::core::recovery::parse_with_recovery;
+use crate::core::stream::StringStream;
+use crate::grammar::parser_layout::full_input_layout;
+use crate::grammar::parser_rule;
 
 pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,

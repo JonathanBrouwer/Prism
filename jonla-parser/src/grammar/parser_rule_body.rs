@@ -1,20 +1,20 @@
-use crate::grammar::AnnotatedRuleExpr;
-use crate::grammar::{RuleAnnotation, RuleExpr};
+use crate::grammar::grammar::AnnotatedRuleExpr;
+use crate::grammar::grammar::{RuleAnnotation, RuleExpr};
 use std::collections::HashMap;
 
-use crate::parser_core::cache::parser_cache_recurse;
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::ParseError;
-use crate::parser_core::parser::Parser;
-use crate::parser_core::presult::PResult;
-use crate::parser_sugar::parser_layout::parser_with_layout;
+use crate::core::cache::parser_cache_recurse;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
+use crate::core::parser::Parser;
+use crate::core::presult::PResult;
+use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::parser_core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::parser_core::context::{Ignore, PCache, ParserContext, PR};
-use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::parser_rule_expr::parser_expr;
+use crate::core::context::{Ignore, PCache, ParserContext, PR};
+use crate::core::stream::StringStream;
+use crate::grammar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
     'a,

@@ -1,12 +1,12 @@
-use crate::parser_core::adaptive::BlockState;
-use crate::parser_core::context::{PCache, ParserContext, PR};
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::error_printer::ErrorLabel::Debug;
-use crate::parser_core::error::{err_combine_opt, ParseError};
-use crate::parser_core::parser::Parser;
-use crate::parser_core::presult::PResult;
-use crate::parser_core::presult::PResult::{PErr, POk};
-use crate::parser_core::stream::StringStream;
+use crate::core::adaptive::BlockState;
+use crate::core::context::{PCache, ParserContext, PR};
+use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
+use crate::error::{err_combine_opt, ParseError};
+use crate::core::parser::Parser;
+use crate::core::presult::PResult;
+use crate::core::presult::PResult::{PErr, POk};
+use crate::core::stream::StringStream;
 use by_address::ByAddress;
 use std::collections::HashMap;
 
@@ -96,7 +96,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         let cache_state = state.cache_state_get();
         state.cache_insert(key.clone(), res_recursive);
 
-        //Now execute the parser_sugar rule, taking into account left recursion
+        //Now execute the grammar rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
         //A quick summary
         //- First put an error value for the current (rule, position) in the cache (already done)

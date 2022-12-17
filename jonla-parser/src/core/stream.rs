@@ -1,4 +1,4 @@
-use crate::parser_core::span::Span;
+use crate::core::span::Span;
 use std::cmp::Ordering;
 
 ///

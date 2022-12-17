@@ -1,7 +1,7 @@
-use crate::grammar::EscapedString;
-use crate::parser_core::error::set_error::SetError;
-use crate::parser_core::error::tree_error::TreeError;
-use crate::parser_core::span::Span;
+use crate::grammar::grammar::EscapedString;
+use crate::error::set_error::SetError;
+use crate::error::tree_error::TreeError;
+use crate::core::span::Span;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind, Source};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};

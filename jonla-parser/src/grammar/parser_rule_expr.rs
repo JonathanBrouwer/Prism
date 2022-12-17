@@ -1,22 +1,22 @@
-use crate::grammar::{EscapedString, RuleExpr};
-use crate::parser_core::error::error_printer::ErrorLabel;
-use crate::parser_core::error::ParseError;
-use crate::parser_core::parser::Parser;
-use crate::parser_core::presult::PResult;
-use crate::parser_core::primitives::{
+use crate::grammar::grammar::{EscapedString, RuleExpr};
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
+use crate::core::parser::Parser;
+use crate::core::presult::PResult;
+use crate::core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
 };
-use crate::parser_sugar::action_result::ActionResult;
-use crate::parser_sugar::parser_layout::parser_with_layout;
+use crate::grammar::action_result::ActionResult;
+use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::from_action_result::parse_grammarfile;
-use crate::parser_core::adaptive::GrammarState;
-use crate::parser_core::cache::ParserCache;
-use crate::parser_core::context::{Ignore, PCache, ParserContext, PR};
-use crate::parser_core::stream::StringStream;
-use crate::parser_sugar::apply_action::apply_action;
-use crate::parser_sugar::parser_rule::parser_rule;
-use crate::parser_sugar::parser_rule_body::parser_body_cache_recurse;
+use crate::grammar::from_action_result::parse_grammarfile;
+use crate::core::adaptive::GrammarState;
+use crate::core::cache::ParserCache;
+use crate::core::context::{Ignore, PCache, ParserContext, PR};
+use crate::core::stream::StringStream;
+use crate::grammar::apply_action::apply_action;
+use crate::grammar::parser_rule::parser_rule;
+use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;

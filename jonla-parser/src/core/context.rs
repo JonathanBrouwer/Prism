@@ -1,7 +1,7 @@
-use crate::parser_core::adaptive::BlockState;
-use crate::parser_core::cache::ParserCache;
-use crate::parser_core::presult::PResult;
-use crate::parser_sugar::action_result::ActionResult;
+use crate::core::adaptive::BlockState;
+use crate::core::cache::ParserCache;
+use crate::core::presult::PResult;
+use crate::grammar::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};

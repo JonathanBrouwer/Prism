@@ -1,4 +1,4 @@
-use crate::grammar::Rule;
+use crate::grammar::grammar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
