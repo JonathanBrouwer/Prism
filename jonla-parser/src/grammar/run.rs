@@ -1,3 +1,4 @@
+use bumpalo::Bump;
 use crate::grammar::grammar::GrammarFile;
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::ParserCache;
@@ -15,7 +16,9 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     stream: StringStream<'grm>,
 ) -> Result<PR<'grm>, Vec<E>> {
     let context = ParserContext::new();
-    let mut cache = ParserCache::new();
+    let bump = Bump::new();
+    let mut cache = ParserCache::new(&bump);
+
     let grammar_state = GrammarState::new(&rules);
 
     let x = parse_with_recovery(

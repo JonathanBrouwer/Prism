@@ -1,4 +1,4 @@
-use crate::grammar::grammar::{EscapedString, RuleExpr};
+use crate::grammar::grammar::{EscapedString, GrammarFile, RuleExpr};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::core::parser::Parser;
@@ -11,7 +11,6 @@ use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::core::adaptive::GrammarState;
-use crate::core::cache::ParserCache;
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::stream::StringStream;
 use crate::grammar::apply_action::apply_action;
@@ -178,6 +177,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 
                 // Parse it into a grammar
                 let g = parse_grammarfile(&*gr, stream.src());
+                let g: &'b GrammarFile = cache.alloc.alloc(g);
 
                 // Create new grammarstate
                 let mut rules: GrammarState = (*rules).clone();
@@ -191,12 +191,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     ));
                     return PResult::new_err(e, stream);
                 }
+                let rules: &'b GrammarState = cache.alloc.alloc(rules);
 
-                let mut cache = ParserCache::new();
-
-                let p: PResult<'grm, PR, E> =
-                    parser_rule(&rules, &b[..]).parse(stream, &mut cache, context);
-                p
+                // Parse body
+                parser_rule(&rules, &b[..]).parse(stream, cache, context)
             }
         }
     }

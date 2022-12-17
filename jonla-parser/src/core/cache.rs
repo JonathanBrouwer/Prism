@@ -9,6 +9,7 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::stream::StringStream;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use bumpalo::Bump;
 
 type CacheKey<'grm, 'b> = (
     usize,
@@ -22,6 +23,8 @@ pub struct ParserCache<'grm, 'b, PR> {
     //Cache for parser_cache_recurse
     cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PR>>,
     cache_stack: Vec<CacheKey<'grm, 'b>>,
+    // For allocating things that might be in the result
+    pub(crate) alloc: &'b Bump,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -30,10 +33,11 @@ pub struct ParserCacheEntry<PR> {
 }
 
 impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
-    pub fn new() -> Self {
+    pub fn new(alloc: &'b Bump) -> Self {
         ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
+            alloc,
         }
     }
 
