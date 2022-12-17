@@ -89,19 +89,18 @@ impl<'grm> EscapedString<'grm> {
 
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.0.chars().batching(|it| {
-            it.next()
-            // let c = it.next()?;
-            // if c != '\\' {
-            //     return Some(c);
-            // }
-            // Some(match it.next()? {
-            //     'n' => '\n',
-            //     'r' => '\r',
-            //     '\\' => '\\',
-            //     '"' => '"',
-            //     '\'' => '\'',
-            //     _ => unreachable!(),
-            // })
+            let c = it.next()?;
+            if c != '\\' {
+                return Some(c);
+            }
+            Some(match it.next()? {
+                'n' => '\n',
+                'r' => '\r',
+                '\\' => '\\',
+                '"' => '"',
+                '\'' => '\'',
+                _ => unreachable!(),
+            })
         })
     }
 

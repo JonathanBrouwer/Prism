@@ -155,10 +155,6 @@ fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
 }
 
 fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> EscapedString<'grm> {
-    // result_match! {
-    //     match r => List(cs),
-    //     create EscapedString::from_escaped(Box::leak(cs.iter().map(|c| parse_string_char(c, src)).collect::<String>().into_boxed_str()))
-    // }
     result_match! {
         match r => Value(Span{start, end}),
         create EscapedString::from_escaped(&src[*start..*end])
