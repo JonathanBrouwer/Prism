@@ -119,9 +119,6 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map(|mut res| {
-                    if let ActionResult::Void(v) = *res.1 {
-                        panic!("Tried to bind a void value '{v}' with name '{name}'")
-                    }
                     res.0.insert(name, res.1.clone());
                     res
                 })

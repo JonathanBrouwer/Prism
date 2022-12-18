@@ -13,6 +13,7 @@ use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
+use crate::core::recovery::recovery_point;
 use crate::core::stream::StringStream;
 use crate::grammar::parser_rule_expr::parser_expr;
 
@@ -156,15 +157,18 @@ fn parser_body_sub_annotations<
             .parse(stream, cache, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => {
-            //TODO recovery point
-            parser_body_sub_annotations(rules, rest, expr).parse(
-                stream,
-                cache,
-                &ParserContext {
-                    recovery_disabled: true,
-                    ..context.clone()
-                },
-            )
+            recovery_point(
+                move |stream: StringStream<'grm>,
+                 cache: &mut PCache<'b, 'grm, E>,
+                 context: &ParserContext<'b, 'grm>| parser_body_sub_annotations(rules, rest, expr).parse(
+                    stream,
+                    cache,
+                    &ParserContext {
+                        recovery_disabled: true,
+                        ..context.clone()
+                    },
+                )
+            ).parse(stream, cache, context)
         }
         [RuleAnnotation::EnableRecovery, rest @ ..] => {
             parser_body_sub_annotations(rules, rest, expr).parse(
