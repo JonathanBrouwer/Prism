@@ -1,4 +1,4 @@
-// use crate::parser::parse_test;
+use crate::parser::parse_test;
 // parse_test! {
 // name: recovery1
 // syntax: r#"
@@ -39,3 +39,21 @@
 //     "a@a;aa;" => "1..2"
 //     "a@;aa;" => "1..3"
 // }
+
+
+parse_test! {
+name: recovery_new
+syntax: r#"
+rule start:
+    ("{" stmt "}")*
+rule stmt:
+    "abc" ";"
+rule layout = [' ' | '\n']
+"#
+passing tests:
+    "{abc;}{abc;}{abc;}" => "[ERROR[sequence], ERROR[sequence], ERROR[sequence]]"
+
+failing tests:
+    "{abc}{abc;}{abc;}" => "4..20"
+    "{abx;}{abc;}{abc;}" => "1..3"
+}

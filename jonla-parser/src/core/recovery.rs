@@ -62,7 +62,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     unreachable!()
                 }
                 recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
-                recovery_points.insert(err_state.unwrap().1, 0);
+                recovery_points.insert(err_state.unwrap().1, err_state.unwrap().1);
                 cache.clear();
             }
         }
