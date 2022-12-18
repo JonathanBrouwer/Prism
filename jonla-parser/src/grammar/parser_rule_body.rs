@@ -156,11 +156,12 @@ fn parser_body_sub_annotations<
             .parse(stream, cache, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => {
+            //TODO recovery point
             parser_body_sub_annotations(rules, rest, expr).parse(
                 stream,
                 cache,
                 &ParserContext {
-                    recovery_disabled: Some(stream.pos()),
+                    recovery_disabled: true,
                     ..context.clone()
                 },
             )
@@ -170,7 +171,7 @@ fn parser_body_sub_annotations<
                 stream,
                 cache,
                 &ParserContext {
-                    recovery_disabled: None,
+                    recovery_disabled: false,
                     ..context.clone()
                 },
             )

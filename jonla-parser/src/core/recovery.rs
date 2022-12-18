@@ -1,4 +1,4 @@
-use crate::core::context::{Ignore, PCache, ParserContext};
+use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::core::parser::Parser;
@@ -6,6 +6,8 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::stream::StringStream;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::core::presult::PResult;
+use crate::grammar::action_result::ActionResult;
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
@@ -60,10 +62,38 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     unreachable!()
                 }
                 recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
+                recovery_points.insert(err_state.unwrap().1, 0);
                 cache.clear();
             }
         }
     }
 }
 
-// pub fn recovery_point()
+pub fn recovery_point<
+    'a,
+    'b: 'a,
+    'grm: 'b,
+    E: ParseError<L = ErrorLabel<'grm>>,
+>(
+    item: impl Parser<'b, 'grm, PR<'grm>, E> + 'a,
+) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    move |stream: StringStream<'grm>,
+          cache: &mut PCache<'b, 'grm, E>,
+          context: &ParserContext<'b, 'grm>|
+          -> PResult<'grm, PR<'grm>, E> {
+        // First try original parse
+        match item.parse(stream, cache, &ParserContext{
+            recovery_disabled: true,
+            ..context.clone()
+        }) {
+            r@POk(_, _, _) => r,
+            PErr(e, s) => {
+                if let Some(to) = context.recovery_points.get(&s.pos()) {
+                    POk((HashMap::new(), Arc::new(ActionResult::Void("Recovered"))), s.with_pos(*to), Some((e, s)))
+                }else {
+                    PErr(e, s)
+                }
+            }
+        }
+    }
+}

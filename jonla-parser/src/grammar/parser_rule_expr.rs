@@ -1,7 +1,7 @@
 use crate::grammar::grammar::{EscapedString, GrammarFile, RuleExpr};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::core::parser::Parser;
+use crate::core::parser::{map_parser, Parser};
 use crate::core::presult::PResult;
 use crate::core::primitives::{
     negative_lookahead, positive_lookahead, repeat_delim, single,
@@ -19,6 +19,7 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::core::recovery::recovery_point;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -30,12 +31,16 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
           context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(rules, rule).parse(stream, cache, context),
-            RuleExpr::CharClass(cc) => parser_with_layout(rules, &single(|c| cc.contains(*c)))
-                .parse(stream, cache, context)
-                .map(|(span, _)| (HashMap::new(), Arc::new(ActionResult::Value(span)))),
+            RuleExpr::CharClass(cc) => {
+                let p = single(|c| cc.contains(*c));
+                let p = map_parser(p, &|(span, _)| (HashMap::new(), Arc::new(ActionResult::Value(span))));
+                let p = recovery_point(p);
+                let p = parser_with_layout(rules, &p);
+                p.parse(stream, cache, context)
+            }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let parser_literal =
+                let p =
                     move |stream: StringStream<'grm>,
                           cache: &mut PCache<'b, 'grm, E>,
                           context: &ParserContext<'b, 'grm>| {
@@ -54,9 +59,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         ));
                         res
                     };
-                //Next, allow there to be layout before the literal
-                let res = parser_with_layout(rules, &parser_literal).parse(stream, cache, context);
-                res
+                let p = recovery_point(p);
+                let p = parser_with_layout(rules, &p);
+                p.parse(stream, cache, context)
             }
             RuleExpr::Repeat {
                 expr,

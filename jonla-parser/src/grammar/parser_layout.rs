@@ -43,7 +43,6 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                     res = new_res.map(|_| ());
                 }
                 POk(_, _, _) => {
-                    debug_assert!(pos_before_layout == new_res.get_stream().pos());
                     return new_res
                         .merge_seq_parser(sub, cache, context)
                         .map(|(_, r)| r);

@@ -1,7 +1,7 @@
 rule block:
-    ("{" stmt "}")
+    ("{" stmt "}")*
 
 rule stmt:
-    "a" "b" "c" ";"
+    "abc" ";"
 
 rule layout = [' ' | '\n']

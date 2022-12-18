@@ -64,11 +64,9 @@ pub fn repeat_delim<
     OP,
     OD,
     E: ParseError<L = ErrorLabel<'grm>>,
-    P: Parser<'b, 'grm, OP, E>,
-    D: Parser<'b, 'grm, OD, E>,
 >(
-    item: P,
-    delimiter: D,
+    item: impl Parser<'b, 'grm, OP, E>,
+    delimiter: impl Parser<'b, 'grm, OD, E>,
     min: usize,
     max: Option<usize>,
 ) -> impl Parser<'b, 'grm, Vec<OP>, E> {
@@ -110,7 +108,7 @@ pub fn repeat_delim<
             // If the result is OK and the last pos has not changed, we got into an infinite loop
             // We break out with an infinite loop error
             // The i != 0 check is to make sure to take the delim into account
-            if i != 0 && pos.pos() == last_res.get_stream().pos() {
+            if i != 0 && last_res.get_stream().pos() <= pos.pos() {
                 let span = Span::new(pos.pos(), pos.pos());
                 let mut e = E::new(span);
                 e.add_label_explicit(Debug(span, "INFLOOP"));

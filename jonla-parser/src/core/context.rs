@@ -16,7 +16,7 @@ pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
-    pub(crate) recovery_disabled: Option<usize>,
+    pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
     pub(crate) prec_climb_this: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
     pub(crate) prec_climb_next: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
@@ -26,7 +26,7 @@ pub struct ParserContext<'b, 'grm> {
 impl ParserContext<'_, '_> {
     pub fn new() -> Self {
         Self {
-            recovery_disabled: None,
+            recovery_disabled: false,
             layout_disabled: false,
             prec_climb_this: Ignore(None),
             prec_climb_next: Ignore(None),
