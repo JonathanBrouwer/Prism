@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 jonla-parser = { path = "../jonla-parser" }
 rpds = "0.12.0"
+by_address = "1.1.0"
