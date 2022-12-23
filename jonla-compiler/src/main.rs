@@ -1,3 +1,5 @@
+mod coc;
+
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::parse_grammar;
 use jonla_parser::error::error_printer::print_set_error;
