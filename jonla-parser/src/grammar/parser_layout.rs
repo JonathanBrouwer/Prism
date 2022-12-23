@@ -1,12 +1,12 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{PCache, ParserContext};
-use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
 use crate::core::stream::StringStream;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
 use crate::grammar::parser_rule::parser_rule;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(

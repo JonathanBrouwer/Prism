@@ -1,9 +1,9 @@
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
-use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
 use crate::core::parser::Parser;
 use crate::core::stream::StringStream;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
 

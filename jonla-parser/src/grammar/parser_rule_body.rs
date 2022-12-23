@@ -3,10 +3,10 @@ use crate::grammar::grammar::{RuleAnnotation, RuleExpr};
 use std::collections::HashMap;
 
 use crate::core::cache::parser_cache_recurse;
-use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
@@ -156,11 +156,11 @@ fn parser_body_sub_annotations<
             })
             .parse(stream, cache, context)
         }
-        [RuleAnnotation::DisableRecovery, rest @ ..] => {
-            recovery_point(
-                move |stream: StringStream<'grm>,
-                 cache: &mut PCache<'b, 'grm, E>,
-                 context: &ParserContext<'b, 'grm>| parser_body_sub_annotations(rules, rest, expr).parse(
+        [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
+            move |stream: StringStream<'grm>,
+                  cache: &mut PCache<'b, 'grm, E>,
+                  context: &ParserContext<'b, 'grm>| {
+                parser_body_sub_annotations(rules, rest, expr).parse(
                     stream,
                     cache,
                     &ParserContext {
@@ -168,8 +168,9 @@ fn parser_body_sub_annotations<
                         ..context.clone()
                     },
                 )
-            ).parse(stream, cache, context)
-        }
+            },
+        )
+        .parse(stream, cache, context),
         [RuleAnnotation::EnableRecovery, rest @ ..] => {
             parser_body_sub_annotations(rules, rest, expr).parse(
                 stream,

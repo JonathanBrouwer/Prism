@@ -1,7 +1,7 @@
-use crate::grammar::grammar::*;
 use crate::core::span::Span;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::action_result::ActionResult::*;
+use crate::grammar::grammar::*;
 
 macro_rules! result_match {
     {match $e1:expr => $p1:pat_param, $(match $es:expr => $ps:pat_param,)* create $body:expr} => {

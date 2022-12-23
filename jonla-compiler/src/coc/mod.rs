@@ -1,112 +1,93 @@
-use std::rc::Rc;
-use rpds::Vector;
 use crate::coc::EnvEntry::{NSubst, NType};
+use crate::coc::Expr::*;
+use rpds::Vector;
+
+pub type W<T> = Box<T>;
 
 pub enum Expr {
     Type,
-    Let(WExpr, WExpr),
+    Let(W<Self>, W<Self>),
     Var(usize),
-    FnType(WExpr, WExpr),
-    FnConstruct(WExpr, WExpr),
-    FnDestruct(WExpr, WExpr),
+    FnType(W<Self>, W<Self>),
+    FnConstruct(W<Self>, W<Self>),
+    FnDestruct(W<Self>, W<Self>),
 }
-
-pub type WExpr = Rc<Expr>;
 
 #[derive(Clone)]
-pub enum EnvEntry {
-    NType(WExpr),
-    NSubst(SExpr),
+pub enum EnvEntry<'a> {
+    NType(&'a Expr),
+    NSubst(SExpr<'a>),
 }
 
-pub type Env = Vector<EnvEntry>;
+pub type Env<'a> = Vector<EnvEntry<'a>>;
 
-pub type SExpr = (WExpr, Env);
+pub type SExpr<'a> = (&'a Expr, Env<'a>);
 
-pub fn brh((eo, so): &SExpr) -> SExpr {
+pub fn brh<'a>((eo, so): &SExpr<'a>) -> SExpr<'a> {
     let mut args = Vec::new();
 
-    let mut e = eo;
-    let mut s = so.clone();
+    let mut e: &'a Expr = eo;
+    let mut s: Vector<EnvEntry<'a>> = so.clone();
 
     loop {
-        match &**e {
-            Expr::Type => {
+        match e {
+            Type => {
                 debug_assert!(args.is_empty());
-                return (e.clone(), s);
+                return (e, s);
             }
-            Expr::Let(v, b) => {
+            Let(v, b) => {
                 e = b;
-                s.push_back_mut(NSubst((v.clone(), s.clone())));
+                s.push_back_mut(NSubst((v, s.clone())));
             }
-            Expr::Var(i) => {
-                match &s[*i] {
-                    NType(_) => {}
-                    NSubst((ne, ns)) => {
-                        e = ne;
-                        // s = ns.clone();
+            Var(i) => match &s[*i] {
+                NType(_) => {
+                    return if args.len() == 0 {
+                        (e, s)
+                    } else {
+                        (eo, so.clone())
                     }
                 }
-            }
-            Expr::FnType(_, _) => {
+                NSubst((ne, ns)) => {
+                    e = ne;
+                    s = ns.clone();
+                }
+            },
+            FnType(_, _) => {
                 debug_assert!(args.is_empty());
-                return (e.clone(), s);
+                return (e, s);
             }
-            Expr::FnConstruct(_, b) => match args.pop() {
-                None => return (e.clone(), s.clone()),
+            FnConstruct(_, b) => match args.pop() {
+                None => return (e, s.clone()),
                 Some(arg) => {
                     e = b;
                     s.push_back_mut(NSubst(arg));
                 }
-            }
-            Expr::FnDestruct(f, a) => {
+            },
+            FnDestruct(f, a) => {
                 e = f;
-                args.push((a.clone(), s.clone()));
+                args.push((a, s.clone()));
             }
         }
     }
 }
 
-// pub fn brh(e_orig: &SExpr) -> SExpr {
-//     let mut args = Vec::new();
-//
-//     let mut e = &e_orig.0;
-//     let mut s = e_orig.1.clone();
-//
-//     loop {
-//         match &**e {
-//             Expr::Type => {
-//                 debug_assert!(args.is_empty());
-//                 return (e.clone(), s);
-//             }
-//             Expr::Let(v, b) => {
-//                 e = b;
-//                 s.push_back_mut(NSubst((v.clone(), s.clone())));
-//             }
-//             Expr::Var(i) => {
-//                 match &s[*i] {
-//                     NType(_) => {}
-//                     NSubst((ne, ns)) => {
-//                         e = ne;
-//                         s = ns.clone();
-//                     }
-//                 }
-//             }
-//             Expr::FnType(_, _) => {
-//                 debug_assert!(args.is_empty());
-//                 return (e.clone(), s);
-//             }
-//             Expr::FnConstruct(_, b) => match args.pop() {
-//                 None => return (e.clone(), s.clone()),
-//                 Some(arg) => {
-//                     e = b;
-//                     s.push_back_mut(NSubst(arg));
-//                 }
-//             }
-//             Expr::FnDestruct(f, a) => {
-//                 e = f;
-//                 args.push((a.clone(), s.clone()));
-//             }
-//         }
-//     }
-// }
+pub fn br<'a>(e: &SExpr<'a>) -> Expr {
+    let (e, s) = brh(e);
+    match e {
+        Type => Type,
+        Let(_, _) => unreachable!(),
+        Var(i) => Var(*i),
+        FnType(a, b) => FnType(
+            W::new(br(&(a, s.clone()))),
+            W::new(br(&(b, s.push_back(NType(a))))),
+        ),
+        FnConstruct(a, b) => FnConstruct(
+            W::new(br(&(a, s.clone()))),
+            W::new(br(&(b, s.push_back(NType(a))))),
+        ),
+        FnDestruct(f, a) => FnDestruct(
+            W::new(br(&(f, s.clone()))),
+            W::new(br(&(a, s.clone()))),
+        )
+    }
+}

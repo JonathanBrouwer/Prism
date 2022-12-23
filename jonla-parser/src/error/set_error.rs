@@ -1,5 +1,5 @@
-use crate::error::ParseError;
 use crate::core::span::Span;
+use crate::error::ParseError;
 use std::cmp::max;
 use std::collections::HashSet;
 use std::hash::Hash;

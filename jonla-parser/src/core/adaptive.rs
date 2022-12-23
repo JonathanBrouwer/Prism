@@ -1,5 +1,5 @@
-use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::core::toposet::TopoSet;
+use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::mem;

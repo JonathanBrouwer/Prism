@@ -1,17 +1,17 @@
 #[macro_use]
 extern crate lazy_static;
 
-use grammar::from_action_result::parse_grammarfile;
-use grammar::grammar::GrammarFile;
 use crate::core::adaptive::GrammarState;
+use crate::core::stream::StringStream;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::core::stream::StringStream;
+use grammar::from_action_result::parse_grammarfile;
+use grammar::grammar::GrammarFile;
 use grammar::run::run_parser_rule;
 
 pub mod core;
-pub mod grammar;
 pub mod error;
+pub mod grammar;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {

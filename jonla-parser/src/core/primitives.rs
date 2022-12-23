@@ -1,12 +1,12 @@
 use crate::core::context::{PCache, ParserContext};
-use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
-use crate::error::ParseError;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
 use crate::core::stream::StringStream;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
+use crate::error::ParseError;
 
 pub fn empty<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
     move |pos: StringStream<'grm>,
@@ -58,13 +58,7 @@ pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError>(
     }
 }
 
-pub fn repeat_delim<
-    'b,
-    'grm: 'b,
-    OP,
-    OD,
-    E: ParseError<L = ErrorLabel<'grm>>,
->(
+pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
     item: impl Parser<'b, 'grm, OP, E>,
     delimiter: impl Parser<'b, 'grm, OD, E>,
     min: usize,

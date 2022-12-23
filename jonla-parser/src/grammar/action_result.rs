@@ -1,5 +1,5 @@
-use crate::grammar::grammar::EscapedString;
 use crate::core::span::Span;
+use crate::grammar::grammar::EscapedString;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

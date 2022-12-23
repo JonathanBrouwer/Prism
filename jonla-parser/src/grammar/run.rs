@@ -1,11 +1,11 @@
-use crate::grammar::grammar::GrammarFile;
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::{Allocs, ParserCache};
 use crate::core::context::{ParserContext, PR};
-use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
 use crate::core::recovery::parse_with_recovery;
 use crate::core::stream::StringStream;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
+use crate::grammar::grammar::GrammarFile;
 use crate::grammar::parser_layout::full_input_layout;
 use crate::grammar::parser_rule;
 

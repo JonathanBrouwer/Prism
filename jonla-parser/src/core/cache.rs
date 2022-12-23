@@ -1,16 +1,16 @@
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{PCache, ParserContext, PR};
-use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
-use crate::error::{err_combine_opt, ParseError};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::stream::StringStream;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
+use crate::error::{err_combine_opt, ParseError};
+use crate::grammar::grammar::GrammarFile;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
-use crate::grammar::grammar::GrammarFile;
 
 type CacheKey<'grm, 'b> = (
     usize,

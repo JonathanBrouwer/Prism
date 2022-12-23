@@ -1,8 +1,8 @@
 use crate::core::context::{PCache, ParserContext};
-use crate::error::{err_combine, err_combine_opt, ParseError};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::stream::StringStream;
+use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]
 pub enum PResult<'grm, O, E: ParseError> {

@@ -41,7 +41,6 @@ failing tests:
     "a@;aa;" => "1..2"
 }
 
-
 parse_test! {
 name: recovery_new
 syntax: r#"
