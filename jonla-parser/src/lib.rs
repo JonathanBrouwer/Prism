@@ -11,6 +11,7 @@ use grammar::run::run_parser_rule;
 pub mod core;
 pub mod error;
 pub mod grammar;
+pub mod arena;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {

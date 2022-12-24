@@ -6,6 +6,7 @@ use rpds::Vector;
 
 pub type W<T> = Rc<T>;
 
+#[derive(Clone)]
 pub enum Expr {
     Type,
     Let(W<Self>, W<Self>),
@@ -25,7 +26,7 @@ pub type Env<'a> = Vector<EnvEntry<'a>>;
 
 pub type SExpr<'a> = (&'a Expr, Env<'a>);
 
-pub fn brh<'a>((eo, so): &SExpr<'a>) -> SExpr<'a> {
+pub fn brh<'a>((eo, so): SExpr<'a>) -> SExpr<'a> {
     let mut args = Vec::new();
 
     let mut e: &'a Expr = eo;
@@ -73,62 +74,88 @@ pub fn brh<'a>((eo, so): &SExpr<'a>) -> SExpr<'a> {
     }
 }
 
-pub fn br(e: &SExpr) -> Expr {
+pub fn br(e: SExpr) -> Expr {
     let (e, s) = brh(e);
     match e {
         Type => Type,
         Let(_, _) => unreachable!(),
         Var(i) => Var(*i),
         FnType(a, b) => FnType(
-            W::new(br(&(a, s.clone()))),
-            W::new(br(&(b, s.push_back(NType(a))))),
+            W::new(br((a, s.clone()))),
+            W::new(br((b, s.push_back(NType(a))))),
         ),
         FnConstruct(a, b) => FnConstruct(
-            W::new(br(&(a, s.clone()))),
-            W::new(br(&(b, s.push_back(NType(a))))),
+            W::new(br((a, s.clone()))),
+            W::new(br((b, s.push_back(NType(a))))),
         ),
         FnDestruct(f, a) => FnDestruct(
-            W::new(br(&(f, s.clone()))),
-            W::new(br(&(a, s.clone()))),
+            W::new(br((f, s.clone()))),
+            W::new(br((a, s.clone()))),
         )
     }
 }
 
-pub fn beq(e1: &SExpr, e2: &SExpr) -> Result<(), ()> {
+pub fn beq(e1: SExpr, e2: SExpr) -> Result<(), ()> {
     match (brh(e1), brh(e2)) {
         ((Type, _), (Type, _)) => Ok(()),
         ((Var(i), s1), (Var(j), s2)) if ByAddress(&s1[*i]) == ByAddress(&s2[*j]) => Ok(()),
         ((FnType(a1, b1), s1), (FnType(a2, b2), s2)) => {
-            beq(&(&*a1, s1.clone()), &(&*a2, s2.clone()))?;
-            beq(&(&*b1, s1.push_back(NType(a1))), &(&*b2, s2.push_back(NType(a2))))?;
+            beq((&*a1, s1.clone()), (&*a2, s2.clone()))?;
+            beq((&*b1, s1.push_back(NType(a1))), (&*b2, s2.push_back(NType(a2))))?;
             Ok(())
         }
         ((FnConstruct(a1, b1), s1), (FnConstruct(a2, b2), s2)) => {
-            beq(&(&*a1, s1.clone()), &(&*a2, s2.clone()))?;
-            beq(&(&*b1, s1.push_back(NType(a1))), &(&*b2, s2.push_back(NType(a2))))?;
+            beq((&*a1, s1.clone()), (&*a2, s2.clone()))?;
+            beq((&*b1, s1.push_back(NType(a1))), (&*b2, s2.push_back(NType(a2))))?;
             Ok(())
         }
         ((FnDestruct(a1, b1), s1), (FnDestruct(a2, b2), s2)) => {
-            beq(&(&*a1, s1.clone()), &(&*a2, s2.clone()))?;
-            beq(&(&*b1, s1), &(&*b2, s2))?;
+            beq((&*a1, s1.clone()), (&*a2, s2.clone()))?;
+            beq((&*b1, s1), (&*b2, s2))?;
             Ok(())
         }
         (_, _) => Err(()),
     }
 }
 
-pub fn tc((e, s): &SExpr) -> Result<Expr, ()> {
+pub fn tc<'a>(e: &'a Expr, s: &Env<'a>) -> Result<Expr, ()> {
     match e {
         Type => Ok(Type),
         Let(v, b) => {
-            let vt = tc(&(v, s.clone()))?;
-
-            Ok(vt)
+            tc(v, s)?;
+            let bt = tc(v, &s.push_back(NSubst((v, s.clone()))))?;
+            Ok(shift(bt, -1))
         }
-        Var(_) => todo!(),
-        FnType(_, _) => todo!(),
-        FnConstruct(_, _) => todo!(),
-        FnDestruct(_, _) => todo!(),
+        Var(i) => Ok(shift(match &s[*i] {
+            NType(e) => (**e).clone(),
+            NSubst((e, s)) => tc(e, s)?,
+        }, (i+1) as isize)),
+        FnType(a, b) => {
+            let at = tc(a, s)?;
+            beq((&at, s.clone()), (&Type, Vector::new()))?;
+            let bt = tc(b, &s.push_back(NType(a)))?;
+            beq((&bt, s.clone()), (&Type, Vector::new()))?;
+            Ok(Type)
+        },
+        FnConstruct(a, b) => {
+            let at = tc(a, s)?;
+            beq((&at, s.clone()), (&Type, Vector::new()))?;
+            let a = br((a, s.clone()));
+            let bt = tc(b, &s.push_back(NType(&a)))?;
+            Ok(FnType(W::new(a), W::new(bt)))
+        },
+        FnDestruct(f, a) => {
+            let ft = tc(f, s)?;
+            let at = tc(a, s)?;
+            let x = match brh((&ft, Vector::new())) {
+                (FnType(da, db), sf) => {
+                    beq((&at, Env::new()), (da, sf.clone()))?;
+                    Ok(br((db, sf.push_back(NSubst((a, s.clone()))))))
+                }
+                _ => Err(())
+            };
+            x
+        },
     }
 }
 
