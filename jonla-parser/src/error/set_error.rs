@@ -3,6 +3,7 @@ use crate::error::ParseError;
 use std::cmp::max;
 use std::collections::HashSet;
 use std::hash::Hash;
+use crate::core::pos::Pos;
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone, Debug)]
@@ -50,7 +51,7 @@ impl<L: Eq + Hash + Clone> ParseError for SetError<L> {
         }
     }
 
-    fn set_end(&mut self, end: usize) {
+    fn set_end(&mut self, end: Pos) {
         self.span.end = end;
     }
 }

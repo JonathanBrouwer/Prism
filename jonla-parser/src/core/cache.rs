@@ -3,7 +3,7 @@ use crate::core::context::{PCache, ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use typed_arena::Arena;
 
 type CacheKey<'grm, 'b> = (
-    usize,
+    Pos,
     (
         ByAddress<&'b [BlockState<'b, 'grm>]>,
         ParserContext<'b, 'grm>,
@@ -100,11 +100,11 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         ParserContext<'b, 'grm>,
     ),
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |pos_start: StringStream<'grm>,
+    move |pos_start: Pos,
           state: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         //Check if this result is cached
-        let key = (pos_start.pos(), id.clone());
+        let key = (pos_start, id.clone());
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();
         }
@@ -143,7 +143,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state, context);
                         match new_res {
-                            POk(new_o, new_pos, new_be) if new_pos.cmp(pos).is_gt() => {
+                            POk(new_o, new_pos, new_be) if new_pos.cmp(&pos).is_gt() => {
                                 o = new_o;
                                 pos = new_pos;
                                 be = new_be;

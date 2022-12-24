@@ -10,7 +10,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::recovery::recovery_point;
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::grammar::apply_action::apply_action;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::parser_rule::parser_rule;
@@ -24,7 +24,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     expr: &'b RuleExpr<'grm>,
     vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         match expr {
@@ -40,7 +40,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p = move |stream: StringStream<'grm>,
+                let p = move |stream: Pos,
                               cache: &mut PCache<'b, 'grm, E>,
                               context: &ParserContext<'b, 'grm>| {
                     let mut res = PResult::new_ok((), stream);
@@ -49,11 +49,11 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .merge_seq_parser(&single(|c| *c == char), cache, context)
                             .map(|_| ());
                     }
-                    let span = stream.span_to(res.get_stream());
+                    let span = stream.span_to(res.get_pos());
                     let mut res =
                         res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))));
                     res.add_label_implicit(ErrorLabel::Literal(
-                        stream.span_to(res.get_stream().next().0),
+                        stream.span_to(res.get_pos().next(cache.input).0),
                         literal.clone(),
                     ));
                     res
@@ -100,7 +100,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res.map(|map| (map, Arc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<'grm, PR, E> =
+                let mut res: PResult<PR, E> =
                     PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
                     res = res.merge_choice_parser(
@@ -131,7 +131,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                let span = stream.span_to(res.get_stream());
+                let span = stream.span_to(res.get_pos());
                 res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, context.prec_climb_this.unwrap())
@@ -177,7 +177,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
 
                 // Parse it into a grammar
-                let g = parse_grammarfile(&*gr, stream.src());
+                let g = parse_grammarfile(&*gr, cache.input);
                 let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
 
                 // Create new grammarstate

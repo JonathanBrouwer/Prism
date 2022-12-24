@@ -24,7 +24,7 @@ macro_rules! parse_test {
             use jonla_parser::core::parser::Parser;
             use jonla_parser::core::presult::PResult;
             use jonla_parser::core::presult::PResult::*;
-            use jonla_parser::core::stream::StringStream;
+            use jonla_parser::core::stream::Pos;
             use jonla_parser::error::error_printer::*;
             use jonla_parser::grammar::parser_rule::parser_rule;
             use jonla_parser::core::context::ParserContext;
@@ -38,7 +38,7 @@ macro_rules! parse_test {
                 Ok(ok) => ok,
                 Err(es) => {
                     for e in es {
-                        print_set_error(e, "grammar", syntax, true);
+                        print_set_error(e, syntax, true);
                     }
                     panic!();
                 }
@@ -56,7 +56,7 @@ macro_rules! parse_test {
                 Err(es) => {
                     for e in es {
                         // print_set_error(e, "tests", input, true);
-                        print_tree_error(e, "tests", input, true);
+                        print_tree_error(e, input, true);
                     }
                     panic!();
                 }

@@ -2,7 +2,7 @@ use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
@@ -11,13 +11,13 @@ use std::sync::Arc;
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
-    stream: StringStream<'grm>,
+    stream: Pos,
     cache: &mut PCache<'b, 'grm, E>,
     context: &ParserContext<'b, 'grm>,
 ) -> Result<O, Vec<E>> {
-    let mut recovery_points: HashMap<usize, usize> = HashMap::new();
+    let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
     let mut result_errors: Vec<E> = Vec::new();
-    let mut err_state: Option<(usize, usize)> = None;
+    let mut err_state: Option<(Pos, Pos)> = None;
 
     loop {
         let context = ParserContext {
@@ -37,9 +37,9 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     Err(result_errors)
                 };
             }
-            PErr(e, s) => {
+            PErr(e, p) => {
                 //If this is the first time we encounter *this* error, log it and retry
-                if err_state.is_none() || err_state.unwrap().1 < s.pos() {
+                if err_state.is_none() || err_state.unwrap().1 < p {
                     // Update last error
                     if let Some(last) = result_errors.last_mut() {
                         last.set_end(err_state.unwrap().1);
@@ -47,17 +47,17 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
 
                     // Add new error
                     result_errors.push(e);
-                    err_state = Some((s.pos(), s.pos()));
+                    err_state = Some((p, p));
                 } else if let Some((_err_state_start, err_state_end)) = &mut err_state {
                     //If the error now spans rest of file, we could not recover
-                    if *err_state_end == s.src().len() {
-                        result_errors.last_mut().unwrap().set_end(s.src().len());
+                    if *err_state_end == Pos::end(cache.input) {
+                        result_errors.last_mut().unwrap().set_end(Pos::end(cache.input));
                         return Err(result_errors);
                     }
 
                     //Increase offset by one char and repeat
-                    *err_state_end = stream.with_pos(*err_state_end).next().0.pos();
-                    debug_assert!(*err_state_end <= s.src().len());
+                    *err_state_end = err_state_end.next(cache.input).0;
+                    debug_assert!(*err_state_end <= Pos::end(cache.input));
                 } else {
                     unreachable!()
                 }
@@ -72,10 +72,10 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
 pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>(
     item: impl Parser<'b, 'grm, PR<'grm>, E> + 'a,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
-          -> PResult<'grm, PR<'grm>, E> {
+          -> PResult<PR<'grm>, E> {
         // First try original parse
         match item.parse(
             stream,
@@ -87,10 +87,10 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>
         ) {
             r @ POk(_, _, _) => r,
             PErr(e, s) => {
-                if let Some(to) = context.recovery_points.get(&s.pos()) {
+                if let Some(to) = context.recovery_points.get(&s) {
                     POk(
                         (HashMap::new(), Arc::new(ActionResult::Void("Recovered"))),
-                        s.with_pos(*to),
+                        *to,
                         Some((e, s)),
                     )
                 } else {

@@ -4,6 +4,7 @@ use itertools::Itertools;
 use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
+use crate::core::pos::Pos;
 
 #[derive(Clone, Debug)]
 pub struct ErrorTree<L: Eq + Hash + Clone>(Option<L>, Vec<Self>);
@@ -84,7 +85,7 @@ impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
         }
     }
 
-    fn set_end(&mut self, end: usize) {
+    fn set_end(&mut self, end: Pos) {
         self.span.end = end;
     }
 }

@@ -1,6 +1,7 @@
 use crate::core::span::Span;
 use crate::error::ParseError;
 use std::marker::PhantomData;
+use crate::core::pos::Pos;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.
 #[derive(Clone)]
@@ -21,5 +22,5 @@ impl<L: Clone> ParseError for EmptyError<L> {
         Self(PhantomData)
     }
 
-    fn set_end(&mut self, _: usize) {}
+    fn set_end(&mut self, _: Pos) {}
 }

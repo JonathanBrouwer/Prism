@@ -2,7 +2,7 @@ use crate::core::adaptive::GrammarState;
 use crate::core::cache::{Allocs, ParserCache};
 use crate::core::context::{ParserContext, PR};
 use crate::core::recovery::parse_with_recovery;
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::grammar::GrammarFile;
@@ -17,7 +17,6 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     let context = ParserContext::new();
     let bump = Allocs::new();
     let mut cache = ParserCache::new(input, &bump);
-    let stream = StringStream::new(input);
 
     let grammar_state = GrammarState::new(&rules);
 
@@ -26,7 +25,7 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
             &grammar_state,
             &parser_rule::parser_rule(&grammar_state, rule),
         ),
-        stream,
+        Pos::start(),
         &mut cache,
         &context,
     );

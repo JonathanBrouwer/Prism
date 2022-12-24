@@ -12,7 +12,7 @@ fn get_new_grammar(input: &str) -> GrammarFile {
         Err(es) => {
             for e in es {
                 // print_tree_error(e, "file", input, true);
-                print_set_error(e, "file", input, true);
+                print_set_error(e, input, true);
             }
             panic!();
         }

@@ -1,4 +1,3 @@
-use crate::core::span::Span;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::action_result::ActionResult::*;
 use crate::grammar::grammar::*;
@@ -147,7 +146,7 @@ fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAction
 
 fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
     match r {
-        Value(Span { start, end }) => &src[*start..*end],
+        Value(span) => &src[*span],
         // If the identifier of a block is a literal, its always empty
         Literal(s) if s.chars().next().is_none() => "",
         _ => unreachable!(),
@@ -156,14 +155,14 @@ fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> &'grm str {
 
 fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> EscapedString<'grm> {
     result_match! {
-        match r => Value(Span{start, end}),
-        create EscapedString::from_escaped(&src[*start..*end])
+        match r => Value(span),
+        create EscapedString::from_escaped(&src[*span])
     }
 }
 
 fn parse_string_char(r: &ActionResult, src: &str) -> char {
     match r {
-        Value(Span { start, end }) => src[*start..*end].chars().next().unwrap(),
+        Value(span) => src[*span].chars().next().unwrap(),
         Literal(c) => c.chars().next().unwrap(),
         _ => unreachable!(),
     }
@@ -199,7 +198,7 @@ fn parse_option<T>(
 fn parse_u64(r: &ActionResult, src: &str) -> u64 {
     match r {
         Literal(v) => v.parse().unwrap(),
-        Value(Span { start, end }) => src[*start..*end].parse().unwrap(),
+        Value(span) => src[*span].parse().unwrap(),
         _ => unreachable!(),
     }
 }

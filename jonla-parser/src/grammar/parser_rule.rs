@@ -1,7 +1,7 @@
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::parser::Parser;
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
@@ -11,7 +11,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         let body: &'b Vec<BlockState<'b, 'grm>> =
@@ -25,7 +25,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 ..context.clone()
             },
         );
-        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_stream()), rule));
+        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_pos()), rule));
         res.map(|(_, v)| (HashMap::new(), v))
     }
 }

@@ -4,7 +4,7 @@ use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_rule::parser_rule;
@@ -13,10 +13,10 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     rules: &'b GrammarState<'b, 'grm>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |pos: StringStream<'grm>,
+    move |pos: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
-          -> PResult<'grm, O, E> {
+          -> PResult<O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
             return sub.parse(pos, cache, context);
         }
@@ -29,7 +29,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                 return new_res.map(|(_, o)| o.unwrap());
             }
 
-            let pos_before_layout = new_res.get_stream().pos();
+            let pos_before_layout = new_res.get_pos();
             let new_res = new_res.merge_seq_parser(
                 &parser_rule(rules, "layout"),
                 cache,
@@ -39,7 +39,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                 },
             );
             match new_res {
-                POk(_, _, _) if pos_before_layout < new_res.get_stream().pos() => {
+                POk(_, _, _) if pos_before_layout < new_res.get_pos() => {
                     res = new_res.map(|_| ());
                 }
                 POk(_, _, _) => {
@@ -59,10 +59,10 @@ pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'
     rules: &'b GrammarState<'b, 'grm>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
-          -> PResult<'grm, O, E> {
+          -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, &end()), cache, context)
             .map(|(o, _)| o)

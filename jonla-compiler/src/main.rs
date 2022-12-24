@@ -11,13 +11,12 @@ fn main() {
         Ok(ok) => ok,
         Err(es) => {
             for e in es {
-                print_set_error(e, "grammar", grammar, false);
+                print_set_error(e, grammar, false);
             }
             return;
         }
     };
 
-    let filename = "program.jnl";
     let input = include_str!("../resources/program.jnl");
     let result: Result<_, _> = run_parser_rule(&grammar, "block", input);
 
@@ -25,7 +24,7 @@ fn main() {
         Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
         Err(es) => {
             for e in es {
-                print_set_error(e, filename, input, false)
+                print_set_error(e, input, false)
             }
         } // Err(e) => print_tree_error(e, filename, input, true),
     }

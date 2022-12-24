@@ -6,13 +6,14 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
+use crate::core::pos::Pos;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Arc<ActionResult<'grm>>>,
     Arc<ActionResult<'grm>>,
 );
 
-pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<'grm, PR<'grm>, E>>;
+pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'grm>, E>>;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
@@ -20,7 +21,7 @@ pub struct ParserContext<'b, 'grm> {
     pub(crate) layout_disabled: bool,
     pub(crate) prec_climb_this: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
     pub(crate) prec_climb_next: Ignore<Option<&'b [BlockState<'b, 'grm>]>>,
-    pub(crate) recovery_points: Ignore<Arc<HashMap<usize, usize>>>,
+    pub(crate) recovery_points: Ignore<Arc<HashMap<Pos, Pos>>>,
 }
 
 impl ParserContext<'_, '_> {

@@ -1,28 +1,28 @@
 use crate::core::context::{PCache, ParserContext};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]
-pub enum PResult<'grm, O, E: ParseError> {
-    POk(O, StringStream<'grm>, Option<(E, StringStream<'grm>)>),
-    PErr(E, StringStream<'grm>),
+pub enum PResult<O, E: ParseError> {
+    POk(O, Pos, Option<(E, Pos)>),
+    PErr(E, Pos),
 }
 
-impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
+impl<O, E: ParseError> PResult<O, E> {
     #[inline(always)]
-    pub fn new_ok(o: O, s: StringStream<'grm>) -> Self {
+    pub fn new_ok(o: O, s: Pos) -> Self {
         POk(o, s, None)
     }
 
     #[inline(always)]
-    pub fn new_err(e: E, s: StringStream<'grm>) -> Self {
+    pub fn new_err(e: E, s: Pos) -> Self {
         PErr(e, s)
     }
 
     #[inline(always)]
-    pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<'grm, P, E> {
+    pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E> {
         match self {
             POk(o, s, e) => POk(f(o), s, e),
             PErr(err, s) => PErr(err, s),
@@ -82,7 +82,7 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn get_stream(&self) -> StringStream<'grm> {
+    pub fn get_pos(&self) -> Pos {
         match self {
             POk(_, s, _) => *s,
             PErr(_, s) => *s,
@@ -107,7 +107,7 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq<O2>(self, other: PResult<'grm, O2, E>) -> PResult<'grm, (O, O2), E> {
+    pub fn merge_seq<O2>(self, other: PResult<O2, E>) -> PResult<(O, O2), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, o2), s2, err_combine_opt(e1, e2)),
             (POk(_, _, e1), PErr(e2, s2)) => {
@@ -121,8 +121,8 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     #[inline(always)]
     pub fn merge_seq_opt<O2>(
         self,
-        other: PResult<'grm, O2, E>,
-    ) -> PResult<'grm, (O, Option<O2>), E> {
+        other: PResult<O2, E>,
+    ) -> PResult<(O, Option<O2>), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
             (POk(o1, s1, e1), PErr(e2, s2)) => {
@@ -133,10 +133,10 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<'b, P: Parser<'b, 'grm, O, E>>(
+    pub fn merge_choice_parser<'grm, 'b, P: Parser<'b, 'grm, O, E>>(
         self,
         other: &P,
-        stream: StringStream<'grm>,
+        stream: Pos,
         cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
     ) -> Self
@@ -152,12 +152,12 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<'b, O2, P2: Parser<'b, 'grm, O2, E>>(
+    pub fn merge_seq_parser<'grm, 'b, O2, P2: Parser<'b, 'grm, O2, E>>(
         self,
         other: &P2,
         cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
-    ) -> PResult<'grm, (O, O2), E>
+    ) -> PResult<(O, O2), E>
     where
         'grm: 'b,
     {
@@ -166,17 +166,17 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
             return self.map(|_| unreachable!());
         }
 
-        let pos = self.get_stream();
+        let pos = self.get_pos();
         self.merge_seq(other.parse(pos, cache, context))
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<'b, O2, P2: Parser<'b, 'grm, O2, E>>(
+    pub fn merge_seq_opt_parser<'grm, 'b, O2, P2: Parser<'b, 'grm, O2, E>>(
         self,
         other: &P2,
         cache: &mut PCache<'b, 'grm, E>,
         context: &ParserContext<'b, 'grm>,
-    ) -> (PResult<'grm, (O, Option<O2>), E>, bool)
+    ) -> (PResult<(O, Option<O2>), E>, bool)
     where
         'grm: 'b,
     {
@@ -185,7 +185,7 @@ impl<'grm, O, E: ParseError> PResult<'grm, O, E> {
             return (self.map(|_| unreachable!()), false);
         }
 
-        let pos = self.get_stream();
+        let pos = self.get_pos();
         let other_res = other.parse(pos, cache, context);
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)

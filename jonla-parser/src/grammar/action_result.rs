@@ -16,7 +16,7 @@ pub enum ActionResult<'grm> {
 impl<'grm> ActionResult<'grm> {
     pub fn to_string(&self, src: &str) -> String {
         match self {
-            ActionResult::Value(span) => format!("\'{}\'", &src[span.start..span.end]),
+            ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit),
             ActionResult::Construct(c, es) => format!(
                 "{}({})",

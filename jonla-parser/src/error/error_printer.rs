@@ -5,7 +5,7 @@ use crate::grammar::grammar::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind, Source};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
-use std::ops::Range;
+use crate::core::pos::Pos;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
@@ -42,8 +42,8 @@ impl Display for ErrorLabel<'_> {
     }
 }
 
-pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usize>)> {
-    Report::build::<&str>(ReportKind::Error, filename, span.start)
+pub fn print_base(span: Span) -> ReportBuilder<Span> {
+    Report::build(ReportKind::Error, (), span.start.into())
         //Config
         .with_config(
             Config::default()
@@ -54,7 +54,7 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
         .with_message("Parsing error")
         //Pointing label
         .with_label(
-            Label::new((filename, span.start..span.end))
+            Label::new(span)
                 .with_message(match span.end - span.start {
                     0 => "Failed to parse at this location (but recovered immediately), errors are marked at attempted parse positions.",
                     1 => "This character was unparsable, errors are marked at attempted parse positions.",
@@ -68,11 +68,10 @@ pub fn print_base(span: Span, filename: &str) -> ReportBuilder<(&str, Range<usiz
 
 pub fn print_set_error(
     error: SetError<ErrorLabel>,
-    filename: &str,
     input: &str,
     enable_debug: bool,
 ) {
-    let mut report = print_base(error.span, filename);
+    let mut report = print_base(error.span);
 
     //Add labels
     for (start, labels) in error
@@ -83,25 +82,24 @@ pub fn print_set_error(
         .into_iter()
     {
         report = report.with_label(
-            Label::new((filename, start..start))
+            Label::new(start.span_to(start))
                 .with_message(format!("Expected {}", labels.into_iter().format(" / ")))
-                .with_order(-(start as i32)),
+                .with_order(-(<Pos as Into<usize>>::into(start) as i32)),
         );
     }
 
     report
         .finish()
-        .eprint((filename, Source::from(input)))
+        .eprint(Source::from(input))
         .unwrap();
 }
 
 pub fn print_tree_error(
     error: TreeError<ErrorLabel>,
-    filename: &str,
     input: &str,
     enable_debug: bool,
 ) {
-    let mut report = print_base(error.span, filename);
+    let mut report: ReportBuilder<Span> = print_base(error.span);
 
     //Add labels
     for path in error.labels.into_paths() {
@@ -115,14 +113,30 @@ pub fn print_tree_error(
         let label = &path[0];
 
         report = report.with_label(
-            Label::new((filename, label.span().start..label.span().end))
+            Label::new(label.span())
                 .with_message(format!("{}", path.iter().format(" <- ")))
-                .with_order(-(label.span().start as i32)),
+                .with_order(-(<Pos as Into<usize>>::into(label.span().start) as i32)),
         );
     }
 
     report
         .finish()
-        .eprint((filename, Source::from(input)))
+        .eprint(Source::from(input))
         .unwrap();
+}
+
+impl ariadne::Span for Span {
+    type SourceId = ();
+
+    fn source(&self) -> &Self::SourceId {
+        &()
+    }
+
+    fn start(&self) -> usize {
+        self.start.into()
+    }
+
+    fn end(&self) -> usize {
+        self.end.into()
+    }
 }

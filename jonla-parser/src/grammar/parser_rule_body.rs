@@ -14,7 +14,7 @@ use by_address::ByAddress;
 
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::recovery::recovery_point;
-use crate::core::stream::StringStream;
+use crate::core::pos::Pos;
 use crate::grammar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
@@ -26,7 +26,7 @@ pub fn parser_body_cache_recurse<
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| {
         parser_cache_recurse(
@@ -41,10 +41,10 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
-          -> PResult<'grm, PR, E> {
+          -> PResult<PR, E> {
         match bs {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, &b.constructors[..])
@@ -82,7 +82,7 @@ fn parser_body_sub_constructors<
     rules: &'b GrammarState<'b, 'grm>,
     es: &'b [&'b AnnotatedRuleExpr<'grm>],
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
@@ -112,23 +112,23 @@ fn parser_body_sub_annotations<
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: StringStream<'grm>,
+    move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res =
                 parser_body_sub_annotations(rules, rest, expr).parse(stream, cache, context);
             res.add_label_explicit(ErrorLabel::Explicit(
-                stream.span_to(res.get_stream().next().0),
+                stream.span_to(res.get_pos().next(cache.input).0),
                 err_label.clone(),
             ));
             res
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
-            parser_with_layout(rules, &move |stream: StringStream<'grm>,
+            parser_with_layout(rules, &move |stream: Pos,
                                              cache: &mut PCache<'b, 'grm, E>,
                                              context: &ParserContext<'b, 'grm>|
-                  -> PResult<'grm, _, E> {
+                  -> PResult<_, E> {
                 parser_body_sub_annotations(rules, rest, expr).parse(
                     stream,
                     cache,
@@ -141,10 +141,10 @@ fn parser_body_sub_annotations<
             .parse(stream, cache, context)
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
-            parser_with_layout(rules, &move |stream: StringStream<'grm>,
+            parser_with_layout(rules, &move |stream: Pos,
                                              cache: &mut PCache<'b, 'grm, E>,
                                              context: &ParserContext<'b, 'grm>|
-                  -> PResult<'grm, _, E> {
+                  -> PResult<_, E> {
                 parser_body_sub_annotations(rules, rest, expr).parse(
                     stream,
                     cache,
@@ -157,7 +157,7 @@ fn parser_body_sub_annotations<
             .parse(stream, cache, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-            move |stream: StringStream<'grm>,
+            move |stream: Pos,
                   cache: &mut PCache<'b, 'grm, E>,
                   context: &ParserContext<'b, 'grm>| {
                 parser_body_sub_annotations(rules, rest, expr).parse(
