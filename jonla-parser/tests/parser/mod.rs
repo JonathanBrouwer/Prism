@@ -24,7 +24,7 @@ macro_rules! parse_test {
             use jonla_parser::core::parser::Parser;
             use jonla_parser::core::presult::PResult;
             use jonla_parser::core::presult::PResult::*;
-            use jonla_parser::core::stream::Pos;
+            use jonla_parser::core::pos::Pos;
             use jonla_parser::error::error_printer::*;
             use jonla_parser::grammar::parser_rule::parser_rule;
             use jonla_parser::core::context::ParserContext;
