@@ -126,10 +126,10 @@ pub fn tc<'a>(e: &'a Expr, s: &Env<'a>) -> Result<Expr, ()> {
         Type => Ok(Type),
         Let(v, b) => {
             tc(v, s)?;
-            let bt = tc(v, &s.push_back(NSubst((v, s.clone()))))?;
-            Ok(shift(bt, -1))
+            let bt = tc(b, &s.push_back(NSubst((v, s.clone()))))?;
+            Ok(shift_free(bt, -1))
         }
-        Var(i) => Ok(shift(
+        Var(i) => Ok(shift_free(
             match &s[*i] {
                 NType(e) => (**e).clone(),
                 NSubst((e, s)) => tc(e, s)?,
@@ -165,6 +165,22 @@ pub fn tc<'a>(e: &'a Expr, s: &Env<'a>) -> Result<Expr, ()> {
     }
 }
 
-pub fn shift(e: Expr, d: isize) -> Expr {
-    todo!()
+pub fn shift_free(e: Expr, d: isize) -> Expr {
+    fn sub(e: &Expr, d: isize, from: usize) -> Expr {
+        match e {
+            Type => Type,
+            Let(v, b) => Let(W::new(sub(v, d, from)), W::new(sub(b, d, from + 1))),
+            Var(i) => {
+                if *i >= from {
+                    Var(i.checked_add_signed(d).unwrap())
+                } else {
+                    Var(*i)
+                }
+            }
+            FnType(a, b) => FnType(W::new(sub(a, d, from)), W::new(sub(b, d, from + 1))),
+            FnConstruct(a, b) => FnConstruct(W::new(sub(a, d, from)), W::new(sub(b, d, from + 1))),
+            FnDestruct(f, a) => FnDestruct(W::new(sub(f, d, from)), W::new(sub(a, d, from))),
+        }
+    }
+    sub(&e, d, 0)
 }

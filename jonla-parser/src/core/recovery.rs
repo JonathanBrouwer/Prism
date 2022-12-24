@@ -1,4 +1,5 @@
-use crate::core::context::{Ignore, PCache, ParserContext, PR};
+use crate::core::cache::PCache;
+use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;

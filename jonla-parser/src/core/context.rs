@@ -1,7 +1,5 @@
 use crate::core::adaptive::BlockState;
-use crate::core::cache::ParserCache;
 use crate::core::pos::Pos;
-use crate::core::presult::PResult;
 use crate::grammar::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -12,8 +10,6 @@ pub type PR<'grm> = (
     HashMap<&'grm str, Arc<ActionResult<'grm>>>,
     Arc<ActionResult<'grm>>,
 );
-
-pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'grm>, E>>;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {

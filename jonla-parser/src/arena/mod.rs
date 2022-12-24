@@ -113,10 +113,10 @@ impl<T> Deref for Rc<'_, T> {
     }
 }
 
-pub mod global {
-    pub type RcArena<T> = super::RcArena<'static, T>;
-    pub type Rc<T> = super::Rc<'static, T>;
-}
+// pub mod global {
+//     pub type RcArena<T> = super::RcArena<'static, T>;
+//     pub type Rc<T> = super::Rc<'static, T>;
+// }
 
 #[cfg(test)]
 mod tests {

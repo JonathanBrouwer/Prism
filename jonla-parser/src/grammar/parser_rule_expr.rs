@@ -8,7 +8,8 @@ use crate::grammar::grammar::{EscapedString, GrammarFile, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::GrammarState;
-use crate::core::context::{Ignore, PCache, ParserContext, PR};
+use crate::core::cache::PCache;
+use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::apply_action::apply_action;

@@ -1,5 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState};
-use crate::core::context::{PCache, ParserContext, PR};
+use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -28,6 +28,8 @@ pub struct ParserCache<'grm, 'b, PR> {
     pub alloc: &'b Allocs<'b, 'grm>,
     pub input: &'grm str,
 }
+
+pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'grm>, E>>;
 
 pub struct Allocs<'b, 'grm> {
     pub grammarfile_arena: Arena<GrammarFile<'grm>>,
