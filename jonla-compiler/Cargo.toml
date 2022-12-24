@@ -9,3 +9,4 @@ edition = "2021"
 jonla-parser = { path = "../jonla-parser" }
 rpds = "0.12.0"
 by_address = "1.1.0"
+bumpalo = "3.11.1"

@@ -1,7 +1,18 @@
 rule block:
-    ("{" stmt "}")*
+    b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
+    s :: b <- s:stmt ";" b:block
+    [] <- ""
 
 rule stmt:
-    "abc" ";"
+    Expr(e) <- e:expr
+    Do() <- "do"
+
+rule expr:
+    -- additive
+    Add(x, y) <- x:@next "+" y:@this
+    -- base
+    Block(b) <- "{" b:block "}"
+    X() <- "x"
+    Y() <- "y"
 
 rule layout = [' ' | '\n']
