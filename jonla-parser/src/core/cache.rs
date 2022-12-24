@@ -26,6 +26,7 @@ pub struct ParserCache<'grm, 'b, PR> {
     cache_stack: Vec<CacheKey<'grm, 'b>>,
     // For allocating things that might be in the result
     pub alloc: &'b Allocs<'b, 'grm>,
+    pub input: &'grm str,
 }
 
 pub struct Allocs<'b, 'grm> {
@@ -48,11 +49,12 @@ pub struct ParserCacheEntry<PR> {
 }
 
 impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
-    pub fn new(alloc: &'b Allocs<'b, 'grm>) -> Self {
+    pub fn new(input: &'grm str, alloc: &'b Allocs<'b, 'grm>) -> Self {
         ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             alloc,
+            input
         }
     }
 

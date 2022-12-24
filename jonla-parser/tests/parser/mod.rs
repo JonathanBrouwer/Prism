@@ -48,9 +48,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            let stream: StringStream = StringStream::new(input);
-
-            match run_parser_rule(&grammar, "start", stream) {
+            match run_parser_rule(&grammar, "start", input) {
                 Ok(o) => {
                     let got = o.1.to_string(input);
                     assert_eq!($expected, got);
@@ -69,8 +67,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            let stream: StringStream = StringStream::new(input);
-            match run_parser_rule::<SetError<_>>(&grammar, "start", stream) {
+            match run_parser_rule::<SetError<_>>(&grammar, "start", input) {
                 Ok(o) => {
                     let got = o.1.to_string(input);
                     println!("Got: {:?}", got);

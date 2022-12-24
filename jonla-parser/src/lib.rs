@@ -2,7 +2,6 @@
 extern crate lazy_static;
 
 use crate::core::adaptive::GrammarState;
-use crate::core::stream::StringStream;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use grammar::from_action_result::parse_grammarfile;
@@ -25,8 +24,6 @@ lazy_static! {
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
     grammar: &'a str,
 ) -> Result<GrammarFile, Vec<E>> {
-    let grammar_stream: StringStream = StringStream::new(grammar);
-
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar_stream)
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar)
         .map(|pr| parse_grammarfile(&pr.1, grammar))
 }

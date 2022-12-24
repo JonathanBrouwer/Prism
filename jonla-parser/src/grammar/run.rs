@@ -12,11 +12,12 @@ use crate::grammar::parser_rule;
 pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile,
     rule: &'grm str,
-    stream: StringStream<'grm>,
+    input: &'grm str,
 ) -> Result<PR<'grm>, Vec<E>> {
     let context = ParserContext::new();
     let bump = Allocs::new();
-    let mut cache = ParserCache::new(&bump);
+    let mut cache = ParserCache::new(input, &bump);
+    let stream = StringStream::new(input);
 
     let grammar_state = GrammarState::new(&rules);
 

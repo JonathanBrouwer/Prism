@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use jonla_parser::core::stream::StringStream;
 use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::action_result::ActionResult;
 use jonla_parser::grammar::from_action_result::parse_grammarfile;
@@ -11,8 +10,7 @@ use std::fs::{read, File};
 use std::process::exit;
 
 pub fn get_new_grammar(input: &str) -> GrammarFile {
-    let input_stream: StringStream = StringStream::new(input);
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input_stream);
+    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
 
     match result {
         Ok(o) => parse_grammarfile(&o.1, input),
@@ -48,8 +46,7 @@ fn normal() {
 fn part1() {
     let input = include_str!("../resources/meta.grammar");
 
-    let input_stream: StringStream = StringStream::new(input);
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input_stream);
+    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
     let result = match result {
         Ok(o) => o.1,
         Err(es) => {
