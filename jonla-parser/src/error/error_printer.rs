@@ -1,3 +1,4 @@
+use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::set_error::SetError;
 use crate::error::tree_error::TreeError;
@@ -5,7 +6,6 @@ use crate::grammar::grammar::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind, Source};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
-use crate::core::pos::Pos;
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'grm> {
@@ -66,11 +66,7 @@ pub fn print_base(span: Span) -> ReportBuilder<Span> {
         )
 }
 
-pub fn print_set_error(
-    error: SetError<ErrorLabel>,
-    input: &str,
-    enable_debug: bool,
-) {
+pub fn print_set_error(error: SetError<ErrorLabel>, input: &str, enable_debug: bool) {
     let mut report = print_base(error.span);
 
     //Add labels
@@ -88,17 +84,10 @@ pub fn print_set_error(
         );
     }
 
-    report
-        .finish()
-        .eprint(Source::from(input))
-        .unwrap();
+    report.finish().eprint(Source::from(input)).unwrap();
 }
 
-pub fn print_tree_error(
-    error: TreeError<ErrorLabel>,
-    input: &str,
-    enable_debug: bool,
-) {
+pub fn print_tree_error(error: TreeError<ErrorLabel>, input: &str, enable_debug: bool) {
     let mut report: ReportBuilder<Span> = print_base(error.span);
 
     //Add labels
@@ -119,10 +108,7 @@ pub fn print_tree_error(
         );
     }
 
-    report
-        .finish()
-        .eprint(Source::from(input))
-        .unwrap();
+    report.finish().eprint(Source::from(input)).unwrap();
 }
 
 impl ariadne::Span for Span {

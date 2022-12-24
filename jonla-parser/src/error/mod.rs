@@ -3,8 +3,8 @@ pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
 
-use crate::core::span::Span;
 use crate::core::pos::Pos;
+use crate::core::span::Span;
 use std::cmp::Ordering;
 
 pub trait ParseError: Sized + Clone {
@@ -17,10 +17,7 @@ pub trait ParseError: Sized + Clone {
     fn set_end(&mut self, end: Pos);
 }
 
-pub fn err_combine<'grm, E: ParseError>(
-    (xe, xs): (E, Pos),
-    (ye, ys): (E, Pos),
-) -> (E, Pos) {
+pub fn err_combine<'grm, E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) -> (E, Pos) {
     match xs.cmp(&ys) {
         Ordering::Less => (ye, ys),
         Ordering::Equal => (xe.merge(ye), xs),

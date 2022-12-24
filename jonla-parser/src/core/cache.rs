@@ -1,9 +1,9 @@
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{PCache, ParserContext, PR};
 use crate::core::parser::Parser;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
@@ -54,7 +54,7 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             alloc,
-            input
+            input,
         }
     }
 
@@ -100,9 +100,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         ParserContext<'b, 'grm>,
     ),
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |pos_start: Pos,
-          state: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext<'b, 'grm>| {
+    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
         if let Some(cached) = state.cache_get(&key) {

@@ -1,12 +1,12 @@
 use crate::core::adaptive::BlockState;
 use crate::core::cache::ParserCache;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::grammar::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
-use crate::core::pos::Pos;
 
 pub type PR<'grm> = (
     HashMap<&'grm str, Arc<ActionResult<'grm>>>,

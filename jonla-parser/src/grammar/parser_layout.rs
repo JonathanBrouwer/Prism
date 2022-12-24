@@ -1,10 +1,10 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{PCache, ParserContext};
 use crate::core::parser::Parser;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
-use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_rule::parser_rule;

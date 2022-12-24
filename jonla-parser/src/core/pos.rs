@@ -1,7 +1,7 @@
+use crate::core::span::Span;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::ops::Sub;
-use serde::{Deserialize, Serialize};
-use crate::core::span::Span;
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Pos(usize);
@@ -11,7 +11,9 @@ impl Pos {
         Self(0)
     }
 
-    pub fn end(input: &str) -> Self { Self(input.len()) }
+    pub fn end(input: &str) -> Self {
+        Self(input.len())
+    }
 
     pub fn span_to(self, other: Self) -> Span {
         Span::new(self, other)

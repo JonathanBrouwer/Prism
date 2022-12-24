@@ -1,7 +1,7 @@
+use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
 use std::marker::PhantomData;
-use crate::core::pos::Pos;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.
 #[derive(Clone)]

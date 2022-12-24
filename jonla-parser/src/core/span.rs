@@ -1,6 +1,6 @@
-use std::ops::Index;
-use serde::{Deserialize, Serialize};
 use crate::core::pos::Pos;
+use serde::{Deserialize, Serialize};
+use std::ops::Index;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {

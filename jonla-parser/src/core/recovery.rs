@@ -1,8 +1,8 @@
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
 use crate::core::parser::Parser;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
@@ -51,7 +51,10 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                 } else if let Some((_err_state_start, err_state_end)) = &mut err_state {
                     //If the error now spans rest of file, we could not recover
                     if *err_state_end == Pos::end(cache.input) {
-                        result_errors.last_mut().unwrap().set_end(Pos::end(cache.input));
+                        result_errors
+                            .last_mut()
+                            .unwrap()
+                            .set_end(Pos::end(cache.input));
                         return Err(result_errors);
                     }
 

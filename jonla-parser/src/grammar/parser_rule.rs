@@ -11,9 +11,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext<'b, 'grm>| {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         let body: &'b Vec<BlockState<'b, 'grm>> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
         let mut res = parser_body_cache_recurse(rules, body).parse(

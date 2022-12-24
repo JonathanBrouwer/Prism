@@ -8,10 +8,10 @@ use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar::GrammarFile;
 use grammar::run::run_parser_rule;
 
+pub mod arena;
 pub mod core;
 pub mod error;
 pub mod grammar;
-pub mod arena;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {
@@ -25,6 +25,5 @@ lazy_static! {
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
     grammar: &'a str,
 ) -> Result<GrammarFile, Vec<E>> {
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar)
-        .map(|pr| parse_grammarfile(&pr.1, grammar))
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar).map(|pr| parse_grammarfile(&pr.1, grammar))
 }

@@ -1,7 +1,7 @@
 use crate::core::context::{PCache, ParserContext};
 use crate::core::parser::Parser;
-use crate::core::presult::PResult::{PErr, POk};
 use crate::core::pos::Pos;
+use crate::core::presult::PResult::{PErr, POk};
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]
@@ -119,10 +119,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt<O2>(
-        self,
-        other: PResult<O2, E>,
-    ) -> PResult<(O, Option<O2>), E> {
+    pub fn merge_seq_opt<O2>(self, other: PResult<O2, E>) -> PResult<(O, Option<O2>), E> {
         match (self, other) {
             (POk(o1, _, e1), POk(o2, s2, e2)) => POk((o1, Some(o2)), s2, err_combine_opt(e1, e2)),
             (POk(o1, s1, e1), PErr(e2, s2)) => {

@@ -1,8 +1,8 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::{Allocs, ParserCache};
 use crate::core::context::{ParserContext, PR};
-use crate::core::recovery::parse_with_recovery;
 use crate::core::pos::Pos;
+use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::grammar::GrammarFile;

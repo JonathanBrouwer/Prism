@@ -1,18 +1,17 @@
 use crate::core::context::{PCache, ParserContext};
 use crate::core::parser::Parser;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
-use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 
 pub fn empty<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
-    move |pos: Pos,
-          _: &mut PCache<'b, 'grm, E>,
-          _: &ParserContext<'b, 'grm>|
-          -> PResult<(), E> { PResult::new_ok((), pos) }
+    move |pos: Pos, _: &mut PCache<'b, 'grm, E>, _: &ParserContext<'b, 'grm>| -> PResult<(), E> {
+        PResult::new_ok((), pos)
+    }
 }
 
 pub fn single<'b, 'grm: 'b, E: ParseError>(

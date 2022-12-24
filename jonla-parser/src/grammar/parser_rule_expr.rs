@@ -9,8 +9,8 @@ use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{Ignore, PCache, ParserContext, PR};
-use crate::core::recovery::recovery_point;
 use crate::core::pos::Pos;
+use crate::core::recovery::recovery_point;
 use crate::grammar::apply_action::apply_action;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::parser_rule::parser_rule;
@@ -24,9 +24,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     expr: &'b RuleExpr<'grm>,
     vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext<'b, 'grm>| {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule) => parser_rule(rules, rule).parse(stream, cache, context),
             RuleExpr::CharClass(cc) => {
@@ -100,8 +98,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res.map(|map| (map, Arc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E> =
-                    PResult::PErr(E::new(stream.span_to(stream)), stream);
+                let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
                     res = res.merge_choice_parser(
                         &parser_expr(rules, sub, vars),
