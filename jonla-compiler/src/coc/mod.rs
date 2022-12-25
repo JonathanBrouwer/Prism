@@ -1,8 +1,8 @@
-use std::ops::Index;
 use crate::coc::EnvEntry::{NSubst, NType};
 use crate::coc::Expr::*;
 use by_address::ByAddress;
 use rpds::Vector;
+use std::ops::Index;
 use std::rc::Rc;
 
 pub type W<T> = Rc<T>;
@@ -119,18 +119,12 @@ pub fn beq(e1: SExpr, e2: SExpr) -> Result<(), ()> {
         ((Var(i), s1), (Var(j), s2)) if ByAddress(&s1[*i]) == ByAddress(&s2[*j]) => Ok(()),
         ((FnType(a1, b1), s1), (FnType(a2, b2), s2)) => {
             beq((&*a1, s1.clone()), (&*a2, s2.clone()))?;
-            beq(
-                (&*b1, s1.cons(NType(a1))),
-                (&*b2, s2.cons(NType(a2))),
-            )?;
+            beq((&*b1, s1.cons(NType(a1))), (&*b2, s2.cons(NType(a2))))?;
             Ok(())
         }
         ((FnConstruct(a1, b1), s1), (FnConstruct(a2, b2), s2)) => {
             beq((&*a1, s1.clone()), (&*a2, s2.clone()))?;
-            beq(
-                (&*b1, s1.cons(NType(a1))),
-                (&*b2, s2.cons(NType(a2))),
-            )?;
+            beq((&*b1, s1.cons(NType(a1))), (&*b2, s2.cons(NType(a2))))?;
             Ok(())
         }
         ((FnDestruct(a1, b1), s1), (FnDestruct(a2, b2), s2)) => {

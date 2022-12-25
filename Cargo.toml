@@ -1,6 +1,6 @@
 [workspace]
-members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap"]
-default-members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap"]
+members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap", "demo"]
+default-members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap", "demo"]
 
 [profile.test]
 opt-level = 1
