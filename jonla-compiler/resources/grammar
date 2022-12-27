@@ -5,14 +5,14 @@ rule block:
 
 rule stmt:
     Expr(e) <- e:expr
-    Do() <- "do"
 
 rule expr:
-    -- additive
-    Add(x, y) <- x:@next "+" y:@this
-    -- base
-    Block(b) <- "{" b:block "}"
-    X() <- "x"
-    Y() <- "y"
+    Var(i) <- i:integer
+
+rule integer:
+    @error("Integer")
+    @disable_layout
+    @disable_recovery
+    n <- n:@str([ '0'-'9' ]+)
 
 rule layout = [' ' | '\n']

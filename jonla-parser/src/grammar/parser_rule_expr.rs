@@ -76,7 +76,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             .map(|list| {
                 (
                     HashMap::new(),
-                    Arc::new(ActionResult::List(
+                    Arc::new(ActionResult::Construct("List",
                         list.into_iter().map(|pr| pr.1).collect(),
                     )),
                 )

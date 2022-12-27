@@ -24,12 +24,12 @@ pub fn apply_action<'b, 'grm>(
             let mut res = Vec::new();
             res.push(apply_action(h, map));
             res.extend_from_slice(match &*apply_action(t, map) {
-                ActionResult::List(v) => &v[..],
+                ActionResult::Construct("List", v) => &v[..],
                 x => unreachable!("{:?} is not a list", x),
             });
 
-            Arc::new(ActionResult::List(res))
+            Arc::new(ActionResult::Construct("List", res))
         }
-        RuleAction::Nil() => Arc::new(ActionResult::List(Vec::new())),
+        RuleAction::Nil() => Arc::new(ActionResult::Construct("List", Vec::new())),
     }
 }

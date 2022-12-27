@@ -20,7 +20,7 @@ pub fn parse_grammarfile<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Gramma
     result_match! {
         match r => Construct("GrammarFile", rules),
         match &rules[..] => [rules],
-        match &**rules => List(rules),
+        match &**rules => Construct("List", rules),
         create GrammarFile {
             rules: rules.iter().map(|rule| parse_rule(rule, src)).collect(),
         }
@@ -31,7 +31,7 @@ fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Rule<'grm> {
     result_match! {
         match r => Construct("Rule", rule_body),
         match &rule_body[..] => [name, blocks],
-        match &**blocks => List(blocks),
+        match &**blocks => Construct("List", blocks),
         create Rule {
             name: parse_identifier(name, src),
             blocks: blocks.iter().map(|block| parse_block(block, src)).collect(),
@@ -52,7 +52,7 @@ fn parse_constructors<'grm>(
     src: &'grm str,
 ) -> Vec<AnnotatedRuleExpr<'grm>> {
     result_match! {
-        match r => List(constructors),
+        match r => Construct("List", constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect()
     }
 }
@@ -64,7 +64,7 @@ fn parse_annotated_rule_expr<'grm>(
     result_match! {
         match r => Construct("AnnotatedExpr", body),
         match &body[..] => [annots, e],
-        match &**annots => List(annots),
+        match &**annots => Construct("List", annots),
         create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect(), parse_rule_expr(e, src))
     }
 }
@@ -87,11 +87,11 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleExpr<'gr
             parse_rule_action(&b[1], src),
         ),
         Construct("Choice", b) => RuleExpr::Choice(result_match! {
-            match &*b[0] => List(subs),
+            match &*b[0] => Construct("List", subs),
             create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect()
         }),
         Construct("Sequence", b) => RuleExpr::Sequence(result_match! {
-            match &*b[0] => List(subs),
+            match &*b[0] => Construct("List", subs),
             create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect()
         }),
         Construct("NameBind", b) => RuleExpr::NameBind(
@@ -134,7 +134,7 @@ fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> RuleAction
         Construct("Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src),
             result_match! {
-                match &*b[1] => List(subs),
+                match &*b[1] => Construct("List", subs),
                 create subs.iter().map(|sub| parse_rule_action(sub, src)).collect()
             },
         ),
@@ -171,8 +171,8 @@ fn parse_string_char(r: &ActionResult, src: &str) -> char {
 fn parse_charclass(r: &ActionResult, src: &str) -> CharClass {
     result_match! {
         match r => Construct("CharClass", b),
-        match &*b[0] => List(negate),
-        match &*b[1] => List(ps),
+        match &*b[0] => Construct("List", negate),
+        match &*b[1] => Construct("List", ps),
         create CharClass {
             neg: !negate.is_empty(),
             ranges: ps.iter().map(|p| result_match! {

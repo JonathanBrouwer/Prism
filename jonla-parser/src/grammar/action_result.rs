@@ -9,7 +9,6 @@ pub enum ActionResult<'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(&'grm str, Vec<Arc<ActionResult<'grm>>>),
-    List(Vec<Arc<ActionResult<'grm>>>),
     Void(&'static str),
 }
 
@@ -18,14 +17,14 @@ impl<'grm> ActionResult<'grm> {
         match self {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit),
+            ActionResult::Construct("List", es) => {
+                format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
+            }
             ActionResult::Construct(c, es) => format!(
                 "{}({})",
                 c,
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
-            ActionResult::List(es) => {
-                format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
-            }
             ActionResult::Void(s) => format!("ERROR[{s}]"),
         }
     }
