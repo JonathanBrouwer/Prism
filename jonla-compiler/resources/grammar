@@ -1,18 +1,21 @@
 rule block:
     b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
-    s :: b <- s:stmt ";" b:block
-    [] <- ""
-
-rule stmt:
-    Expr(e) <- e:expr
+    Let(v, b) <- "let" v:expr ";" b:block
+    expr
 
 rule expr:
-    Var(i) <- i:integer
+    -- fnconstruct
+    FunConstruct(t, r) <- t:@this "." r:@this
+    FunType(at, bt) <- at:@this "->" bt:@this
+    -- fndestruct
+    FunDestruct(f, a) <- f:@this " " a:@next
+    -- base
+    t <- "(" t:term ")"
+    Type() <- "Type"
 
-rule integer:
     @error("Integer")
     @disable_layout
     @disable_recovery
-    n <- n:@str([ '0'-'9' ]+)
+    Var(i) <- "#" i:@str([ '0'-'9' ]+)
 
 rule layout = [' ' | '\n']

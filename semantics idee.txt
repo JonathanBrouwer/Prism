@@ -1,0 +1,16 @@
+grammar {
+  Add(a, b) <- a:@next "+" b:@next
+}
+
+semantics {
+  state ... (todo)
+  
+  expr Add : /a: Expr b:Expr {
+    typecheck a == at;
+    typecheck b == bt;
+    check a == Type();
+    check b == Type();
+    let x = ..;
+    
+  }
+}

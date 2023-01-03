@@ -1,8 +1,10 @@
-use crate::core::span::Span;
-use crate::grammar::grammar::EscapedString;
+use std::sync::Arc;
+
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+
+use crate::core::span::Span;
+use crate::grammar::grammar::EscapedString;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
