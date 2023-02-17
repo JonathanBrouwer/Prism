@@ -41,3 +41,22 @@ failing tests:
     "X"
 
 }
+
+parse_test! {
+name: tree_climb_one_block
+syntax: r#"
+    rule start:
+        --
+        X(e) <- e:@this "X"
+        Y() <- ""
+    "#
+passing tests:
+    "" => "Y()"
+    "X" => "X(Y())"
+    "XX" => "X(X(Y()))"
+
+failing tests:
+    "XY"
+    "Y"
+
+}
