@@ -10,10 +10,10 @@ rule expr:
     -- fndestruct
     FnDestruct(f, a) <- f:@this " " a:@next
     -- base
-    t <- "(" t:term ")"
+    t <- "(" t:expr ")"
     Type() <- "Type"
 
-    @error("Integer")
+    @error("De Bruijn Index")
     @disable_layout
     @disable_recovery
     Var(i) <- "#" i:@str([ '0'-'9' ]+)

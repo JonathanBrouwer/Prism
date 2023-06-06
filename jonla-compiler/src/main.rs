@@ -4,7 +4,7 @@ use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::grammar::run::run_parser_rule;
 use jonla_parser::parse_grammar;
-use crate::coc::Expr;
+use crate::coc::{Env, Expr, tc};
 
 fn main() {
     let grammar = include_str!("../resources/grammar");
@@ -30,6 +30,15 @@ fn main() {
         }
     };
     let expr = Expr::from_action_result(&r.1, input);
-    println!("{}", expr);
+    println!("Program: {}", &expr);
+
+    let typ = match tc(&expr, &Env::new()) {
+        Ok(typ) => typ,
+        Err(err) => {
+            println!("Type error: {err:?}");
+            return;
+        }
+    };
+    println!("Type: {typ}");
 
 }
