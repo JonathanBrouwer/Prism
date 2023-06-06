@@ -5,21 +5,18 @@ use jonla_parser::grammar::action_result::ActionResult;
 use jonla_parser::grammar::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::grammar::run::run_parser_rule;
-use jonla_parser::META_GRAMMAR;
+use jonla_parser::{META_GRAMMAR, parse_grammar};
 use std::fs::{read, File};
-use std::process::exit;
 
-pub fn get_new_grammar(input: &str) -> GrammarFile {
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
-
-    match result {
-        Ok(o) => parse_grammarfile(&o.1, input),
+fn get_new_grammar(input: &str) -> GrammarFile {
+    match parse_grammar(input) {
+        Ok(o) => o,
         Err(es) => {
             for e in es {
                 // print_tree_error(e, "file", input, true);
                 print_set_error(e, input, true);
             }
-            exit(1);
+            panic!();
         }
     }
 }
@@ -73,7 +70,7 @@ fn part2() {
     );
     let result: ActionResult<'static> = bincode::deserialize(&temp).unwrap();
 
-    let grammar2 = parse_grammarfile(&result, input);
+    let grammar2 = parse_grammarfile(&result, input).unwrap();
     let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("jonla-parser/resources/bootstrap.bincode").unwrap();

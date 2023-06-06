@@ -177,7 +177,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
 
                 // Parse it into a grammar
-                let g = parse_grammarfile(&*gr, cache.input);
+                //TODO Make this parse fallible
+                let g = parse_grammarfile(&*gr, cache.input).unwrap();
                 let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
 
                 // Create new grammarstate

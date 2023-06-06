@@ -1,14 +1,11 @@
 use jonla_parser::error::error_printer::print_set_error;
-use jonla_parser::grammar::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::grammar::GrammarFile;
-use jonla_parser::grammar::run::run_parser_rule;
 use jonla_parser::META_GRAMMAR;
+use jonla_parser::parse_grammar;
 
 fn get_new_grammar(input: &str) -> GrammarFile {
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
-
-    match result {
-        Ok(o) => parse_grammarfile(&*o.1, input),
+    match parse_grammar(input) {
+        Ok(o) => o,
         Err(es) => {
             for e in es {
                 // print_tree_error(e, "file", input, true);
