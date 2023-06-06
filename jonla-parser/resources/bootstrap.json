@@ -2353,26 +2353,37 @@
             [
               [],
               {
-                "Choice": [
-                  {
-                    "Literal": "end"
-                  },
-                  {
-                    "Literal": "str"
-                  },
-                  {
-                    "Literal": "rule"
-                  },
-                  {
-                    "Literal": "ast"
-                  },
-                  {
-                    "Literal": "neg"
-                  },
-                  {
-                    "Literal": "pos"
-                  }
-                ]
+                "Literal": "end"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "str"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "rule"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "ast"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "neg"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "pos"
               }
             ]
           ]

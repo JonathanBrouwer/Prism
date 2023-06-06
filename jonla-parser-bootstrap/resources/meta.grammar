@@ -103,4 +103,11 @@ rule identifier:
     @disable_layout
     @disable_recovery
     n <- @neg(reserved @neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:@str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
-rule reserved = "end" / "str" / "rule" / "ast" / "neg" / "pos"
+
+rule reserved:
+    "end"
+    "str"
+    "rule"
+    "ast"
+    "neg"
+    "pos"
