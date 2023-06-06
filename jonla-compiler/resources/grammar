@@ -13,9 +13,9 @@ rule expr:
     t <- "(" t:expr ")"
     Type() <- "Type"
 
-    @error("De Bruijn Index")
     @disable_layout
     @disable_recovery
+    @error("De Bruijn Index")
     Var(i) <- "#" i:@str([ '0'-'9' ]+)
 
 rule layout = [' ' | '\n']
