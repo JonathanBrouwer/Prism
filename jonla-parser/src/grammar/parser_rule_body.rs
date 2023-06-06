@@ -45,12 +45,15 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
           -> PResult<PR, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, &b.constructors[..])
-                .parse(stream, cache, &ParserContext {
+            [b] => parser_body_sub_constructors(rules, &b.constructors[..]).parse(
+                stream,
+                cache,
+                &ParserContext {
                     prec_climb_this: Ignore(Some(bs)),
                     prec_climb_next: Ignore(None),
                     ..context.clone()
-                },),
+                },
+            ),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(rules, &b.constructors[..]).parse(

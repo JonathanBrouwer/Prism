@@ -5,10 +5,10 @@ rule block:
 
 rule expr:
     -- fnconstruct
-    FunConstruct(t, r) <- t:@this "." r:@this
-    FunType(at, bt) <- at:@this "->" bt:@this
+    FnConstruct(t, r) <- t:@this "." r:@this
+    FnType(at, bt) <- at:@this "->" bt:@this
     -- fndestruct
-    FunDestruct(f, a) <- f:@this " " a:@next
+    FnDestruct(f, a) <- f:@this " " a:@next
     -- base
     t <- "(" t:term ")"
     Type() <- "Type"

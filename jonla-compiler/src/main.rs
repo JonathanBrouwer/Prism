@@ -4,6 +4,7 @@ use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::grammar::run::run_parser_rule;
 use jonla_parser::parse_grammar;
+use crate::coc::Expr;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");
@@ -18,14 +19,17 @@ fn main() {
     };
 
     let input = include_str!("../resources/program.jnl");
-    let result: Result<_, _> = run_parser_rule(&grammar, "block", input);
-
-    match result {
-        Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
+    let r: Result<_, _> = run_parser_rule(&grammar, "block", input);
+    let r = match r {
+        Ok(o) => o,
         Err(es) => {
             for e in es {
                 print_set_error(e, input, false)
             }
-        } // Err(e) => print_tree_error(e, filename, input, true),
-    }
+            return;
+        }
+    };
+    let expr = Expr::from_action_result(&r.1, input);
+    println!("{}", expr);
+
 }

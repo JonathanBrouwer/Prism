@@ -1,6 +1,7 @@
 [workspace]
 members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap", "demo"]
 default-members = ["jonla-compiler", "jonla-parser", "jonla-parser-bootstrap", "demo"]
+resolver = "2"
 
 [profile.test]
 opt-level = 1

@@ -1,7 +1,9 @@
 use crate::coc::EnvEntry::{NSubst, NType};
 use crate::coc::Expr::*;
 use by_address::ByAddress;
+use jonla_parser::grammar::action_result::ActionResult;
 use rpds::Vector;
+use std::fmt::{Display, Formatter};
 use std::ops::Index;
 use std::rc::Rc;
 
@@ -15,6 +17,69 @@ pub enum Expr {
     FnType(W<Self>, W<Self>),
     FnConstruct(W<Self>, W<Self>),
     FnDestruct(W<Self>, W<Self>),
+}
+
+impl Expr {
+    pub fn from_action_result(value: &ActionResult, src: &str) -> Self {
+        match value {
+            ActionResult::Construct("Type", args) => {
+                assert_eq!(args.len(), 0);
+                Expr::Type
+            }
+            ActionResult::Construct("Let", args) => {
+                assert_eq!(args.len(), 2);
+                Expr::Let(
+                    W::new(Expr::from_action_result(&args[0], src)),
+                    W::new(Expr::from_action_result(&args[1], src)),
+                )
+            }
+            ActionResult::Construct("Var", args) => {
+                assert_eq!(args.len(), 1);
+                let ActionResult::Value(s) = args[0].as_ref() else {
+                    unreachable!();
+                };
+                Expr::Var(src[*s].parse().unwrap())
+            }
+            ActionResult::Construct("FnType", args) => {
+                assert_eq!(args.len(), 2);
+                Expr::FnType(
+                    W::new(Expr::from_action_result(&args[0], src)),
+                    W::new(Expr::from_action_result(&args[1], src)),
+                )
+            }
+            ActionResult::Construct("FnConstruct", args) => {
+                assert_eq!(args.len(), 2);
+                Expr::FnConstruct(
+                    W::new(Expr::from_action_result(&args[0], src)),
+                    W::new(Expr::from_action_result(&args[1], src)),
+                )
+            }
+            ActionResult::Construct("FnDestruct", args) => {
+                assert_eq!(args.len(), 2);
+                Expr::FnDestruct(
+                    W::new(Expr::from_action_result(&args[0], src)),
+                    W::new(Expr::from_action_result(&args[1], src)),
+                )
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Display for Expr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Type => write!(f, "Type"),
+            Let(v, b) => {
+                writeln!(f, "let {v};")?;
+                write!(f, "{b}")
+            },
+            Var(i) => write!(f, "#{i}"),
+            FnType(a, b) => write!(f, "({a}) -> ({b})"),
+            FnConstruct(a, b) => write!(f, "({a}). ({b})"),
+            FnDestruct(a, b) => write!(f, "({a}) ({b})"),
+        }
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
