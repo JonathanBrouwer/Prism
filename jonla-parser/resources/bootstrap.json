@@ -1818,7 +1818,7 @@
                         "NameBind": [
                           "c1",
                           {
-                            "Rule": "str_char"
+                            "Rule": "charclass_char"
                           }
                         ]
                       },
@@ -1835,7 +1835,7 @@
                         "NameBind": [
                           "c2",
                           {
-                            "Rule": "str_char"
+                            "Rule": "charclass_char"
                           }
                         ]
                       },
@@ -1873,7 +1873,7 @@
                         "NameBind": [
                           "c",
                           {
-                            "Rule": "str_char"
+                            "Rule": "charclass_char"
                           }
                         ]
                       },
@@ -1896,6 +1896,44 @@
                     ]
                   }
                 ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "charclass_char",
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "CharClass": {
+                  "neg": true,
+                  "ranges": [
+                    [
+                      "'",
+                      "'"
+                    ],
+                    [
+                      "\\",
+                      "\\"
+                    ],
+                    [
+                      "\n",
+                      "\n"
+                    ]
+                  ]
+                }
+              }
+            ],
+            [
+              [],
+              {
+                "Rule": "char_escapes"
               }
             ]
           ]
@@ -1974,10 +2012,6 @@
                       "\""
                     ],
                     [
-                      "'",
-                      "'"
-                    ],
-                    [
                       "\\",
                       "\\"
                     ],
@@ -1989,6 +2023,22 @@
                 }
               }
             ],
+            [
+              [],
+              {
+                "Rule": "char_escapes"
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "char_escapes",
+      "blocks": [
+        [
+          "",
+          [
             [
               [],
               {

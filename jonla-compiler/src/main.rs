@@ -30,15 +30,15 @@ fn main() {
         }
     };
     let expr = Expr::from_action_result(&r.1, input);
-    println!("Program: {}", &expr);
+    println!("Program:\n{}", &expr);
 
     let typ = match tc(&expr, &Env::new()) {
         Ok(typ) => typ,
         Err(err) => {
-            println!("Type error: {err:?}");
+            println!("Type error:\n{err:?}");
             return;
         }
     };
-    println!("Type: {typ}");
+    println!("Type:\n{typ}");
 
 }

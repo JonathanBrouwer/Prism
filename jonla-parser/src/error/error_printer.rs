@@ -2,7 +2,7 @@ use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::set_error::SetError;
 use crate::error::tree_error::TreeError;
-use crate::grammar::grammar::EscapedString;
+use crate::grammar::escaped_string::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind, Source};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};

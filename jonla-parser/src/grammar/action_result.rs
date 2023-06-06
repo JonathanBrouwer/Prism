@@ -1,10 +1,11 @@
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
-use crate::grammar::grammar::EscapedString;
+use crate::grammar::escaped_string::EscapedString;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
@@ -15,6 +16,14 @@ pub enum ActionResult<'grm> {
 }
 
 impl<'grm> ActionResult<'grm> {
+    pub fn get_value<'a>(&self, src: &'grm str) -> Cow<'grm, str> {
+        match self {
+            ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
+            ActionResult::Literal(s) => s.to_cow(),
+            _ => panic!("Tried to get value of non-valued action result"),
+        }
+    }
+
     pub fn to_string(&self, src: &str) -> String {
         match self {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),

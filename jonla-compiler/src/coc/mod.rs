@@ -35,10 +35,7 @@ impl Expr {
             }
             ActionResult::Construct("Var", args) => {
                 assert_eq!(args.len(), 1);
-                let ActionResult::Value(s) = args[0].as_ref() else {
-                    unreachable!();
-                };
-                Expr::Var(src[*s].parse().unwrap())
+                Expr::Var(args[0].get_value(src).parse().unwrap())
             }
             ActionResult::Construct("FnType", args) => {
                 assert_eq!(args.len(), 2);

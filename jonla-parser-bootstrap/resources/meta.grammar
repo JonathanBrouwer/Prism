@@ -64,8 +64,12 @@ rule charclass:
     CharClass(negate, ps) <- negate:"^"? ps:@repeat(charclass_part, "|", *)
 
 rule charclass_part:
-    Range(c1, c2) <- "\'" c1:str_char "\'" "-" "\'" c2:str_char "\'"
-    Range(c, c) <- "\'" c:str_char "\'"
+    Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'"
+    Range(c, c) <- "\'" c:charclass_char "\'"
+
+rule charclass_char:
+    [^ '\'' | '\\' | '\n']
+    char_escapes
 
 rule pstring:
     @error("String")
@@ -74,7 +78,10 @@ rule pstring:
     s <- "\"" s:@str(str_char*) "\""
 
 rule str_char:
-    [^ '\"' | '\'' | '\\' | '\n']
+    [^ '\"' | '\\' | '\n']
+    char_escapes
+
+rule char_escapes:
     "\n" <- "\\n"
     "\r" <- "\\r"
     "\\" <- "\\\\"

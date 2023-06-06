@@ -1,5 +1,6 @@
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::action_result::ActionResult::*;
+use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar::*;
 
 macro_rules! result_match {
@@ -8,7 +9,7 @@ macro_rules! result_match {
             $p1 => {
                 result_match! { $(match $es => $ps,)* create $body }
             },
-            _ => unreachable!(),
+            v => panic!("Encountered unexpected constructor while parsing grammar file: {v:?}"),
         }
     };
     {create $body:expr} => {
@@ -16,6 +17,7 @@ macro_rules! result_match {
     };
 }
 
+//TODO these rules should be fallible, so if a rule calls @adapt with a illegal grammar it gets a nice error
 pub fn parse_grammarfile<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> GrammarFile<'grm> {
     result_match! {
         match r => Construct("GrammarFile", rules),
