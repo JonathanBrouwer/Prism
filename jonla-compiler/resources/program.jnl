@@ -7,4 +7,4 @@ grammar {
         Var("0") <- "#z"
 };
 let Type;
-Type. #a. #0
+Type. #z. #0

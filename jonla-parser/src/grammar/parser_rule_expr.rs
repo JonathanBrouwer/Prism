@@ -177,8 +177,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
 
                 // Parse it into a grammar
-                //TODO Make this parse fallible
-                let g = parse_grammarfile(&*gr, cache.input).unwrap();
+                let g = match parse_grammarfile(&*gr, cache.input) {
+                    Some(g) => g,
+                    None => {
+                        let mut e = E::new(stream.span_to(stream));
+                        e.add_label_implicit(ErrorLabel::Explicit(
+                            stream.span_to(stream),
+                            EscapedString::from_escaped(
+                                "language grammar to be correct, but adaptation AST was malformed.",
+                            ),
+                        ));
+                        return PResult::new_err(e, stream);
+                    }
+                };
                 let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
 
                 // Create new grammarstate
@@ -188,7 +199,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     e.add_label_implicit(ErrorLabel::Explicit(
                         stream.span_to(stream),
                         EscapedString::from_escaped(
-                            "Grammar was invalid, created cycle in block order.",
+                            "language grammar to be correct, but adaptation created cycle in block order.",
                         ),
                     ));
                     return PResult::new_err(e, stream);
