@@ -1,10 +1,12 @@
 pub mod coc;
 
+use coc::type_check::tc;
 use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::grammar::run::run_parser_rule;
 use jonla_parser::parse_grammar;
-use crate::coc::{Env, Expr, tc};
+use crate::coc::Expr;
+use crate::coc::env::Env;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");
