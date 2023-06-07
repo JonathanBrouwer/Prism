@@ -1,8 +1,8 @@
-use by_address::ByAddress;
-use crate::coc::{Expr, SExpr, W};
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::{NSubst, NType};
 use crate::coc::Expr::{FnConstruct, FnDestruct, FnType, Let, Type, Var};
+use crate::coc::{Expr, SExpr, W};
+use by_address::ByAddress;
 
 pub fn brh<'a>((eo, so): SExpr<'a>) -> SExpr<'a> {
     let mut args = Vec::new();

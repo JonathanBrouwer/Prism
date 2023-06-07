@@ -1,12 +1,12 @@
-pub mod env;
 pub mod beta;
+pub mod env;
 pub mod type_check;
 
+use crate::coc::env::Env;
 use crate::coc::Expr::*;
 use jonla_parser::grammar::action_result::ActionResult;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
-use crate::coc::env::Env;
 
 pub type W<T> = Rc<T>;
 
@@ -71,7 +71,7 @@ impl Display for Expr {
             Let(v, b) => {
                 writeln!(f, "let {v};")?;
                 write!(f, "{b}")
-            },
+            }
             Var(i) => write!(f, "#{i}"),
             FnType(a, b) => write!(f, "({a}) -> ({b})"),
             FnConstruct(a, b) => write!(f, "({a}). ({b})"),

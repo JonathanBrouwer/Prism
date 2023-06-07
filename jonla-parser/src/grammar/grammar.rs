@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::grammar::escaped_string::EscapedString;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {

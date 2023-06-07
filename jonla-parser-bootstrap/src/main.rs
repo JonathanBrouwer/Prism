@@ -5,7 +5,7 @@ use jonla_parser::grammar::action_result::ActionResult;
 use jonla_parser::grammar::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::grammar::GrammarFile;
 use jonla_parser::grammar::run::run_parser_rule;
-use jonla_parser::{META_GRAMMAR, parse_grammar};
+use jonla_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
 
 fn get_new_grammar(input: &str) -> GrammarFile {

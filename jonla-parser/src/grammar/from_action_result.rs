@@ -17,7 +17,10 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<GrammarFile<'grm>> {
+pub fn parse_grammarfile<'grm>(
+    r: &ActionResult<'grm>,
+    src: &'grm str,
+) -> Option<GrammarFile<'grm>> {
     result_match! {
         match r => Construct("GrammarFile", rules),
         match &rules[..] => [rules],
@@ -70,7 +73,10 @@ fn parse_annotated_rule_expr<'grm>(
     }
 }
 
-fn parse_rule_annotation<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleAnnotation<'grm>> {
+fn parse_rule_annotation<'grm>(
+    r: &ActionResult<'grm>,
+    src: &'grm str,
+) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
         Construct("Error", b) => RuleAnnotation::Error(parse_string(&b[0], src)?),
         Construct("DisableLayout", _) => RuleAnnotation::DisableLayout,
@@ -118,9 +124,10 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         Construct("AtThis", _) => RuleExpr::AtThis,
         Construct("AtNext", _) => RuleExpr::AtNext,
         Construct("Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)?),
-        Construct("AtAdapt", b) => {
-            RuleExpr::AtAdapt(parse_rule_action(&b[0], src)?, parse_identifier(&b[1], src)?)
-        }
+        Construct("AtAdapt", b) => RuleExpr::AtAdapt(
+            parse_rule_action(&b[0], src)?,
+            parse_identifier(&b[1], src)?,
+        ),
         _ => return None,
     })
 }

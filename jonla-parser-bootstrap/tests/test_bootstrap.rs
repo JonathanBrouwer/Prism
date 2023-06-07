@@ -1,7 +1,7 @@
 use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::grammar::GrammarFile;
-use jonla_parser::META_GRAMMAR;
 use jonla_parser::parse_grammar;
+use jonla_parser::META_GRAMMAR;
 
 fn get_new_grammar(input: &str) -> GrammarFile {
     match parse_grammar(input) {

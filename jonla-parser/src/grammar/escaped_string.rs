@@ -1,8 +1,8 @@
+use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
-use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use itertools::Itertools;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
 pub struct EscapedString<'grm>(&'grm str);

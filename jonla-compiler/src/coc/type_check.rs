@@ -1,7 +1,7 @@
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::{NSubst, NType};
-use crate::coc::{beta, Expr, W};
 use crate::coc::Expr::{FnConstruct, FnDestruct, FnType, Let, Type, Var};
+use crate::coc::{beta, Expr, W};
 
 pub fn tc<'a>(e: &'a Expr, s: &Env<'a>) -> Result<Expr, ()> {
     match e {

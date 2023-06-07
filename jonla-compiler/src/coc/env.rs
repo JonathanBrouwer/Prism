@@ -1,6 +1,6 @@
-use std::ops::Index;
-use rpds::Vector;
 use crate::coc::{Expr, SExpr};
+use rpds::Vector;
+use std::ops::Index;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry<'a> {

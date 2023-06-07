@@ -25,5 +25,8 @@ lazy_static! {
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
     grammar: &'a str,
 ) -> Result<GrammarFile, Vec<E>> {
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar).map(|pr| parse_grammarfile(&pr.1, grammar).expect("Grammars parsed by the meta grammar should have a legal AST."))
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar).map(|pr| {
+        parse_grammarfile(&pr.1, grammar)
+            .expect("Grammars parsed by the meta grammar should have a legal AST.")
+    })
 }
