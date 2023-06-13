@@ -1,10 +1,1 @@
-grammar {
-    rule expr:
-        -- base
-        @disable_layout
-        @disable_recovery
-        @error("'#z'")
-        Var("0") <- "#z"
-};
-let Type;
-Type. #z. #0
+grammar {     rule expr:         -- base         @disable_layout         @disable_recovery         @error("'#z'")         Var("0") <- "#z" }; let Type; Type. #z. #0

@@ -24,43 +24,47 @@ pub enum ExprInner<M: Clone> {
     FnDestruct(W<Expr<M>>, W<Expr<M>>),
 }
 
+#[derive(Clone)]
 pub struct SourceInfo {
     span: Span,
 }
 
-impl Expr<()> {
+impl Expr<SourceInfo> {
     pub fn from_action_result(value: &ActionResult, src: &str) -> Self {
-        Expr((), match value {
-            ActionResult::Construct(_, "Type", args) => {
+        let ActionResult::Construct(span, constructor, args) = value else {
+            unreachable!();
+        };
+        let inner = match *constructor {
+            "Type" => {
                 assert_eq!(args.len(), 0);
                 Type
             }
-            ActionResult::Construct(_, "Let", args) => {
+            "Let" => {
                 assert_eq!(args.len(), 2);
                 Let(
                     W::new(Expr::from_action_result(&args[0], src)),
                     W::new(Expr::from_action_result(&args[1], src)),
                 )
             }
-            ActionResult::Construct(_, "Var", args) => {
+            "Var" => {
                 assert_eq!(args.len(), 1);
                 Var(args[0].get_value(src).parse().unwrap())
             }
-            ActionResult::Construct(_, "FnType", args) => {
+            "FnType" => {
                 assert_eq!(args.len(), 2);
                 FnType(
                     W::new(Expr::from_action_result(&args[0], src)),
                     W::new(Expr::from_action_result(&args[1], src)),
                 )
             }
-            ActionResult::Construct(_, "FnConstruct", args) => {
+            "FnConstruct" => {
                 assert_eq!(args.len(), 2);
                 FnConstruct(
                     W::new(Expr::from_action_result(&args[0], src)),
                     W::new(Expr::from_action_result(&args[1], src)),
                 )
             }
-            ActionResult::Construct(_, "FnDestruct", args) => {
+            "FnDestruct" => {
                 assert_eq!(args.len(), 2);
                 FnDestruct(
                     W::new(Expr::from_action_result(&args[0], src)),
@@ -68,7 +72,8 @@ impl Expr<()> {
                 )
             }
             _ => unreachable!(),
-        })
+        };
+        Expr(SourceInfo { span: *span }, inner)
     }
 }
 
