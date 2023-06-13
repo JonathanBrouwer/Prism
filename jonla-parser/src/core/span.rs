@@ -12,6 +12,13 @@ impl Span {
     pub fn new(start: Pos, end: Pos) -> Self {
         Span { start, end }
     }
+
+    pub fn invalid() -> Self {
+        Span {
+            start: Pos::invalid(),
+            end: Pos::invalid(),
+        }
+    }
 }
 
 impl Index<Span> for str {

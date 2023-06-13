@@ -28,6 +28,10 @@ impl Pos {
             ),
         }
     }
+
+    pub fn invalid() -> Self {
+        Self(usize::MAX)
+    }
 }
 
 impl Display for Pos {

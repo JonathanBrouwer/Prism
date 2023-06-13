@@ -20,6 +20,7 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::core::span::Span;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -67,22 +68,25 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 min,
                 max,
                 delim,
-            } => repeat_delim(
-                parser_expr(rules, expr, &vars),
-                parser_expr(rules, delim, &vars),
-                *min as usize,
-                max.map(|max| max as usize),
-            )
-            .parse(stream, cache, context)
-            .map(|list| {
-                (
-                    HashMap::new(),
-                    Arc::new(ActionResult::Construct(
-                        "List",
-                        list.into_iter().map(|pr| pr.1).collect(),
-                    )),
-                )
-            }),
+            } => {
+                let res = repeat_delim(
+                    parser_expr(rules, expr, &vars),
+                    parser_expr(rules, delim, &vars),
+                    *min as usize,
+                    max.map(|max| max as usize),
+                ).parse(stream, cache, context);
+                let span = Span::new(stream, res.get_pos());
+                res.map(|list| {
+                        (
+                            HashMap::new(),
+                            Arc::new(ActionResult::Construct(
+                                span,
+                                "List",
+                                list.into_iter().map(|pr| pr.1).collect(),
+                            )),
+                        )
+                    })
+            },
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_ok(HashMap::new(), stream);
                 let mut res_vars = vars.clone();
@@ -124,8 +128,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
+                let span = Span::new(stream, res.get_pos());
                 res.map(|mut res| {
-                    res.1 = apply_action(action, &res.0);
+                    res.1 = apply_action(action, &res.0, span);
                     res
                 })
             }
@@ -174,7 +179,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars);
+                let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars, Span::invalid());
 
                 // Parse it into a grammar
                 let g = match parse_grammarfile(&*gr, cache.input) {

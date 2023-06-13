@@ -11,7 +11,7 @@ use crate::grammar::escaped_string::EscapedString;
 pub enum ActionResult<'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(&'grm str, Vec<Arc<ActionResult<'grm>>>),
+    Construct(Span, &'grm str, Vec<Arc<ActionResult<'grm>>>),
     Void(&'static str),
 }
 
@@ -28,10 +28,10 @@ impl<'grm> ActionResult<'grm> {
         match self {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit),
-            ActionResult::Construct("List", es) => {
+            ActionResult::Construct(_, "List", es) => {
                 format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
             }
-            ActionResult::Construct(c, es) => format!(
+            ActionResult::Construct(_, c, es) => format!(
                 "{}({})",
                 c,
                 es.iter().map(|e| e.to_string(src)).format(", ")
