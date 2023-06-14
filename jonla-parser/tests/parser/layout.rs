@@ -170,3 +170,44 @@ passing tests:
 
 failing tests:
 }
+
+parse_test! {
+name: slice_layout_2
+syntax: r#"
+    rule layout = " "
+
+    rule start = s <- "hi" s:@str("hey")
+
+    "#
+passing tests:
+    "hihey" => "'hey'"
+    "hi hey" => "'hey'"
+    "hihey " => "'hey'"
+    "hi hey " => "'hey'"
+    "hi hey" => "'hey'"
+    "hi  hey" => "'hey'"
+    "hi hey " => "'hey'"
+    "hi  hey " => "'hey'"
+
+failing tests:
+}
+
+parse_test! {
+name: slice_layout_3
+syntax: r#"
+    rule layout = " "
+
+    rule start = @str("x"*)
+
+    "#
+passing tests:
+    "xxx" => "'xxx'"
+    " xxx" => "'xxx'"
+    "x x x" => "'x x x'"
+    " x  x x" => "'x  x x'"
+    " xx  x " => "' xx x'"
+    "x xx" => "'x xx'"
+    " x" => "'x'"
+
+failing tests:
+}
