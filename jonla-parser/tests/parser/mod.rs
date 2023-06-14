@@ -40,7 +40,7 @@ macro_rules! parse_test {
                     for e in es {
                         print_set_error(e, syntax, true);
                     }
-                    panic!();
+                    panic!("Failed to parse grammar under test.");
                 }
             };
 

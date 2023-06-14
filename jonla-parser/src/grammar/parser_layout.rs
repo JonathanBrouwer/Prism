@@ -25,13 +25,15 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
         //Start attemping to parse layout
         let mut res = PResult::new_ok((), pos, pos);
         loop {
-            let (new_res, success) = res.merge_seq_opt_parser(sub, cache, context);
-            if success {
-                return new_res.map(|(_, o)| o.unwrap());
+            let sub_res = sub.parse(res.end_pos(), cache, context);
+            // let (new_res, success) = res.merge_seq_opt_parser(sub, cache, context);
+            if sub_res.is_ok() {
+                return sub_res;
             }
 
-            let pos_before_layout = new_res.end_pos();
-            let new_res = new_res.merge_seq_parser(
+            let pos_before_layout = sub_res.end_pos();
+            // Add in optional error information from sub_res, then require another layout token
+            let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
                 &parser_rule(rules, "layout"),
                 cache,
                 &ParserContext {
@@ -44,17 +46,14 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                 POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
                     res = POk((), new_end_pos, new_end_pos, new_err);
                 }
-                // We have not parsed more layout but we did parse some amount of layout successfully
-                // TODO this is wasteful, and I think these bottom two cases can be combined??
-                POk(_, _, _, _) => {
-                    return new_res
-                        .merge_seq_parser(sub, cache, context)
-                        .map(|(_, r)| r);
+                // We have not parsed more layout ...
+                // ... because layout parser did not parse more characters
+                POk(_, _, _, err) => {
+                    let (e, pos) = err.unwrap();
+                    return PErr(e, pos);
                 }
-                // Parsing layout failed
-                PErr(_, _) => {
-                    return new_res.map(|_| unreachable!());
-                }
+                // ... because layout parser failed
+                PErr(e, pos) => return PErr(e, pos),
             }
         }
     }

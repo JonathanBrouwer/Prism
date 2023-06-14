@@ -122,3 +122,34 @@ failing tests:
     "1 2{23}4"
     "12 {3}4"
 }
+
+parse_test! {
+name: layout_in_rule
+syntax: r#"
+    rule layout = " "
+
+    rule start = Ok() <- " " "x" " " "y" "z" " "
+
+    "#
+passing tests:
+    " x y z " => "Ok()"
+    " x yz " => "Ok()"
+    "  x  y  z  " => "Ok()"
+    "  x  yz  " => "Ok()"
+
+failing tests:
+    "xyz"
+    "xyz "
+    "xy z"
+    "xy z "
+    "x yz"
+    "x yz "
+    "x y z"
+    "x y z "
+    " xyz"
+    " xyz "
+    " xy z"
+    " xy z "
+    " x yz"
+    " x y z"
+}
