@@ -136,8 +136,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                let span = stream.span_to(res.end_pos());
-                res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
+                res.map_with_span(|_, span| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, context.prec_climb_this.unwrap())
                 .parse(

@@ -3,6 +3,7 @@ use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
+use crate::core::span::Span;
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]
@@ -26,6 +27,14 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E> {
         match self {
             POk(o, start, end, e) => POk(f(o), start, end, e),
+            PErr(err, s) => PErr(err, s),
+        }
+    }
+
+    #[inline(always)]
+    pub fn map_with_span<P>(self, f: impl FnOnce(O, Span) -> P) -> PResult<P, E> {
+        match self {
+            POk(o, start, end, e) => POk(f(o, start.span_to(end)), start, end, e),
             PErr(err, s) => PErr(err, s),
         }
     }

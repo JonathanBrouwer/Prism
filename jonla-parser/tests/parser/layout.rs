@@ -153,3 +153,20 @@ failing tests:
     " x yz"
     " x y z"
 }
+
+parse_test! {
+name: slice_layout
+syntax: r#"
+    rule layout = " "
+
+    rule start = @str("hey")
+
+    "#
+passing tests:
+    "hey" => "'hey'"
+    " hey" => "'hey'"
+    "hey " => "'hey'"
+    " hey " => "'hey'"
+
+failing tests:
+}
