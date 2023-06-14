@@ -23,14 +23,14 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
         }
 
         //Start attemping to parse layout
-        let mut res = PResult::new_ok((), pos);
+        let mut res = PResult::new_ok((), pos, pos);
         loop {
             let (new_res, success) = res.merge_seq_opt_parser(sub, cache, context);
             if success {
                 return new_res.map(|(_, o)| o.unwrap());
             }
 
-            let pos_before_layout = new_res.get_pos();
+            let pos_before_layout = new_res.end_pos();
             let new_res = new_res.merge_seq_parser(
                 &parser_rule(rules, "layout"),
                 cache,
@@ -40,14 +40,18 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
                 },
             );
             match new_res {
-                POk(_, _, _) if pos_before_layout < new_res.get_pos() => {
-                    res = new_res.map(|_| ());
+                // We have parsed more layout, we can try again
+                POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
+                    res = POk((), new_end_pos, new_end_pos, new_err);
                 }
-                POk(_, _, _) => {
+                // We have not parsed more layout but we did parse some amount of layout successfully
+                // TODO this is wasteful, and I think these bottom two cases can be combined??
+                POk(_, _, _, _) => {
                     return new_res
                         .merge_seq_parser(sub, cache, context)
                         .map(|(_, r)| r);
                 }
+                // Parsing layout failed
                 PErr(_, _) => {
                     return new_res.map(|_| unreachable!());
                 }

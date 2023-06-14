@@ -44,17 +44,17 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let p = move |stream: Pos,
                               cache: &mut PCache<'b, 'grm, E>,
                               context: &ParserContext<'b, 'grm>| {
-                    let mut res = PResult::new_ok((), stream);
+                    let mut res = PResult::new_ok((), stream, stream);
                     for char in literal.chars() {
                         res = res
                             .merge_seq_parser(&single(|c| *c == char), cache, context)
                             .map(|_| ());
                     }
-                    let span = stream.span_to(res.get_pos());
+                    let span = stream.span_to(res.end_pos());
                     let mut res =
                         res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))));
                     res.add_label_implicit(ErrorLabel::Literal(
-                        stream.span_to(res.get_pos().next(cache.input).0),
+                        stream.span_to(res.end_pos().next(cache.input).0),
                         literal.clone(),
                     ));
                     res
@@ -75,7 +75,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     *min as usize,
                     max.map(|max| max as usize),
                 ).parse(stream, cache, context);
-                let span = Span::new(stream, res.get_pos());
+                let span = Span::new(stream, res.end_pos());
                 res.map(|list| {
                         (
                             HashMap::new(),
@@ -88,7 +88,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     })
             },
             RuleExpr::Sequence(subs) => {
-                let mut res = PResult::new_ok(HashMap::new(), stream);
+                let mut res = PResult::new_ok(HashMap::new(), stream, stream);
                 let mut res_vars = vars.clone();
                 for sub in subs {
                     res = res
@@ -128,7 +128,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                let span = Span::new(stream, res.get_pos());
+                let span = Span::new(stream, res.end_pos());
                 res.map(|mut res| {
                     res.1 = apply_action(action, &res.0, span);
                     res
@@ -136,7 +136,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                let span = stream.span_to(res.get_pos());
+                let span = stream.span_to(res.end_pos());
                 res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, context.prec_climb_this.unwrap())

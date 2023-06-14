@@ -24,7 +24,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 ..context.clone()
             },
         );
-        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.get_pos()), rule));
+        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.end_pos()), rule));
         res.map(|(_, v)| (HashMap::new(), v))
     }
 }

@@ -126,11 +126,11 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
         let res = sub.parse(pos_start, state, context);
         match res {
-            POk(mut o, mut pos, mut be) => {
+            POk(mut o, mut spos, mut epos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !state.cache_is_read(&key).unwrap() {
                     //No leftrec, cache and return
-                    let res = POk(o, pos, be);
+                    let res = POk(o, spos, epos, be);
                     state.cache_insert(key, res.clone());
                     res
                 } else {
@@ -138,17 +138,18 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(key.clone(), POk(o.clone(), pos, be.clone()));
+                        state.cache_insert(key.clone(), POk(o.clone(), spos, epos, be.clone()));
 
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state, context);
                         match new_res {
-                            POk(new_o, new_pos, new_be) if new_pos.cmp(&pos).is_gt() => {
+                            POk(new_o, new_spos, new_epos, new_be) if new_epos.cmp(&epos).is_gt() => {
                                 o = new_o;
-                                pos = new_pos;
+                                spos = new_spos;
+                                epos = new_epos;
                                 be = new_be;
                             }
-                            POk(_, _, new_be) => {
+                            POk(_, _, _, new_be) => {
                                 be = err_combine_opt(be, new_be);
                                 break;
                             }
@@ -161,7 +162,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, pos, be)
+                    POk(o, spos, epos, be)
                 }
             }
             res @ PErr(_, _) => {

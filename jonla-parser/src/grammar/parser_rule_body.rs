@@ -122,7 +122,7 @@ fn parser_body_sub_annotations<
                 let mut res =
                     parser_body_sub_annotations(rules, rest, expr).parse(stream, cache, context);
                 res.add_label_explicit(ErrorLabel::Explicit(
-                    stream.span_to(res.get_pos().next(cache.input).0),
+                    stream.span_to(res.end_pos().next(cache.input).0),
                     err_label.clone(),
                 ));
                 res
