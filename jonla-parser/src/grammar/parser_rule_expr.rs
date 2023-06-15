@@ -50,9 +50,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .merge_seq_parser(&single(|c| *c == char), cache, context)
                             .map(|_| ());
                     }
-                    let span = stream.span_to(res.end_pos());
                     let mut res =
-                        res.map(|_| (HashMap::new(), Arc::new(ActionResult::Value(span))));
+                        res.map_with_span(|_, span| (HashMap::new(), Arc::new(ActionResult::Value(span))));
                     res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.end_pos().next(cache.input).0),
                         literal.clone(),
@@ -75,8 +74,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     *min as usize,
                     max.map(|max| max as usize),
                 ).parse(stream, cache, context);
-                let span = Span::new(stream, res.end_pos());
-                res.map(|list| {
+                res.map_with_span(|list, span| {
                         (
                             HashMap::new(),
                             Arc::new(ActionResult::Construct(
@@ -128,8 +126,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                let span = Span::new(stream, res.end_pos());
-                res.map(|mut res| {
+                res.map_with_span(|mut res, span| {
                     res.1 = apply_action(action, &res.0, span);
                     res
                 })

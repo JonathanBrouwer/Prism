@@ -1,9 +1,1 @@
-grammar {
-     rule expr:
-         -- base
-         @disable_layout
-         @disable_recovery
-         @error("'#z'")
-         Var("0") <- "#z"
-};
-Type. (#z. #0)
+ Type
