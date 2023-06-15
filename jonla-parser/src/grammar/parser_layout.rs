@@ -23,10 +23,9 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
         }
 
         //Start attemping to parse layout
-        let mut res = PResult::new_ok((), pos, pos);
+        let mut res = PResult::new_empty((), pos);
         loop {
             let sub_res = sub.parse(res.end_pos(), cache, context);
-            // let (new_res, success) = res.merge_seq_opt_parser(sub, cache, context);
             if sub_res.is_ok() {
                 return sub_res;
             }

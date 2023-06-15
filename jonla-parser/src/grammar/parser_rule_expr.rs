@@ -44,7 +44,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let p = move |stream: Pos,
                               cache: &mut PCache<'b, 'grm, E>,
                               context: &ParserContext<'b, 'grm>| {
-                    let mut res = PResult::new_ok((), stream, stream);
+                    let mut res = PResult::new_empty((), stream);
                     for char in literal.chars() {
                         res = res
                             .merge_seq_parser(&single(|c| *c == char), cache, context)
@@ -88,7 +88,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     })
             },
             RuleExpr::Sequence(subs) => {
-                let mut res = PResult::new_ok(HashMap::new(), stream, stream);
+                let mut res = PResult::new_empty(HashMap::new(), stream);
                 let mut res_vars = vars.clone();
                 for sub in subs {
                     res = res

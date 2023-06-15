@@ -62,7 +62,7 @@ pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
           -> PResult<Vec<OP>, E> {
-        let mut last_res: PResult<Vec<OP>, E> = PResult::new_ok(vec![], stream, stream);
+        let mut last_res: PResult<Vec<OP>, E> = PResult::new_empty(vec![], stream);
 
         for i in 0..max.unwrap_or(usize::MAX) {
             let pos = last_res.end_pos();
@@ -115,7 +115,7 @@ pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
           -> PResult<(), E> {
         match stream.next(cache.input) {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
-            (s, None) => PResult::new_ok((), s, s),
+            (s, None) => PResult::new_empty((), s),
         }
     }
 }
