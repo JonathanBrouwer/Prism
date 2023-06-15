@@ -205,9 +205,50 @@ passing tests:
     " xxx" => "'xxx'"
     "x x x" => "'x x x'"
     " x  x x" => "'x  x x'"
-    " xx  x " => "' xx x'"
+    " xx  x " => "'xx  x'"
     "x xx" => "'x xx'"
     " x" => "'x'"
 
 failing tests:
+}
+
+parse_test! {
+name: slice_layout_4
+syntax: r#"
+    rule layout = " "
+
+    rule start = @str(@pos(" ") "x"*)
+
+    "#
+passing tests:
+
+    " xxx" => "' xxx'"
+    " x  x x" => "' x  x x'"
+    " xx  x " => "' xx  x'"
+    " x" => "' x'"
+
+failing tests:
+    "xxx"
+    "x x x"
+    "x xx"
+}
+
+parse_test! {
+name: slice_layout_5
+syntax: r#"
+    rule layout = " "
+
+    rule start = s <- @pos(" ") s:@str("x"*)
+
+    "#
+passing tests:
+    " xxx" => "'xxx'"
+    " x  x x" => "'x  x x'"
+    " xx  x " => "'xx  x'"
+    " x" => "'x'"
+
+failing tests:
+    "xxx"
+    "x x x"
+    "x xx"
 }
