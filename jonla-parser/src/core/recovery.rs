@@ -27,7 +27,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
         };
 
         match sub.parse(stream, cache, &context) {
-            POk(o, _, _, _) => {
+            POk(o, _, _, _, _) => {
                 return if result_errors.is_empty() {
                     Ok(o)
                 } else {
@@ -89,13 +89,14 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>
                 ..context.clone()
             },
         ) {
-            r @ POk(_, _, _, _) => r,
+            r @ POk(_, _, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
                         (HashMap::new(), Arc::new(ActionResult::Void("Recovered"))),
                         stream,
                         *to,
+                        true,
                         Some((e, s)),
                     )
                 } else {

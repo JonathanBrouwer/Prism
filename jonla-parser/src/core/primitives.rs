@@ -9,12 +9,6 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 
-pub fn empty<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
-    move |pos: Pos, _: &mut PCache<'b, 'grm, E>, _: &ParserContext<'b, 'grm>| -> PResult<(), E> {
-        PResult::new_ok((), pos, pos)
-    }
-}
-
 pub fn single<'b, 'grm: 'b, E: ParseError>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'b, 'grm, (Span, char), E> {
@@ -134,7 +128,7 @@ pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
           context: &ParserContext<'b, 'grm>|
           -> PResult<O, E> {
         match p.parse(stream, cache, context) {
-            POk(o, _, _, err) => POk(o, stream, stream, err),
+            POk(o, _, _, _, err) => POk(o, stream, stream, false, err),
             PErr(e, s) => PErr(e, s),
         }
     }
@@ -148,7 +142,7 @@ pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError>(
           context: &ParserContext<'b, 'grm>|
           -> PResult<(), E> {
         match p.parse(stream, cache, context) {
-            POk(_, _, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
+            POk(_, _, _, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
             PErr(_, _) => PResult::new_ok((), stream, stream),
         }
     }

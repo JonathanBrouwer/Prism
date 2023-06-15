@@ -43,12 +43,12 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
             );
             match new_res {
                 // We have parsed more layout, we can try again
-                POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
-                    res = POk((), new_end_pos, new_end_pos, new_err);
+                POk(_, _, new_end_pos, empty, new_err) if pos_before_layout < new_res.end_pos() => {
+                    res = POk((), new_end_pos, new_end_pos, empty,new_err);
                 }
                 // We have not parsed more layout ...
                 // ... because layout parser did not parse more characters
-                POk(_, _, _, err) => {
+                POk(_, _, _, _, err) => {
                     let (e, pos) = err.unwrap();
                     return PErr(e, pos);
                 }
