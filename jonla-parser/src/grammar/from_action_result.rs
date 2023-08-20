@@ -38,6 +38,7 @@ fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>
         match &**blocks => Construct(_, "List", blocks),
         create Rule {
             name: parse_identifier(name, src)?,
+            args: Vec::new(),
             blocks: blocks.iter().map(|block| parse_block(block, src)).collect::<Option<Vec<_>>>()?,
         }
     }

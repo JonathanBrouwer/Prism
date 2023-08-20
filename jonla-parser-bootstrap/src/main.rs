@@ -22,9 +22,9 @@ fn get_new_grammar(input: &str) -> GrammarFile {
 }
 
 fn main() {
-    normal();
+    // normal();
     // part1();
-    // part2();
+    part2();
 }
 
 fn normal() {

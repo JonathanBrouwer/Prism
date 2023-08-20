@@ -10,6 +10,7 @@ pub struct GrammarFile<'grm> {
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Rule<'grm> {
     pub name: &'grm str,
+    pub args: Vec<&'grm str>,
     pub blocks: Vec<Block<'grm>>,
 }
 
