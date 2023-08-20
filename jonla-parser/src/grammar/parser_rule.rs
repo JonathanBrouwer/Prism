@@ -7,11 +7,14 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use std::collections::HashMap;
+use crate::grammar::grammar::RuleAction;
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
+    _args: &Vec<RuleAction<'grm>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    //TODO use args
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         let body: &'b Vec<BlockState<'b, 'grm>> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));

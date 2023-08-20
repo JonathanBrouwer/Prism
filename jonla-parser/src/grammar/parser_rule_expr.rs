@@ -29,7 +29,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
-            RuleExpr::Rule(rule) => parser_rule(rules, rule).parse(stream, cache, context),
+            RuleExpr::Rule(rule, args) => parser_rule(rules, rule, args).parse(stream, cache, context),
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let p = map_parser(p, &|(span, _)| {
@@ -171,7 +171,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     )
                 }),
             RuleExpr::AtGrammar => {
-                parser_rule(&META_GRAMMAR_STATE, "toplevel").parse(stream, cache, context)
+                parser_rule(&META_GRAMMAR_STATE, "toplevel", &vec![]).parse(stream, cache, context)
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
@@ -208,7 +208,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let rules: &'b GrammarState = cache.alloc.grammarstate_arena.alloc(rules);
 
                 // Parse body
-                parser_rule(&rules, &b[..]).parse(stream, cache, context)
+                parser_rule(&rules, &b[..], &vec![]).parse(stream, cache, context)
             }
         }
     }

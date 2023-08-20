@@ -2,6 +2,7 @@ rule toplevel:
     GrammarFile(rs) <- _n* rs:(prule*)
 
 rule prule:
+    Rule(name, args, blocks) <- "rule" name:identifier "(" args:@repeat(identifier, ",", *) ")" ":" _n blocks:prule_blocks
     Rule(name, [], blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
     Rule(name, [], Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
 
@@ -43,7 +44,7 @@ rule prule_expr:
     AtNext() <- "@next"
     AtGrammar() <- "@grammar"
     AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
-    Rule(n) <- n:identifier
+    Rule(n, []) <- n:identifier
     Repeat(e, "0", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
     Repeat(e, "1", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
     Repeat(e, min, None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," "inf" ")"

@@ -125,7 +125,8 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         Construct(_, "AtGrammar", _) => RuleExpr::AtGrammar,
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
-        Construct(_, "Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)?),
+        //TODO apply args
+        Construct(_, "Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)?, vec![]),
         Construct(_, "AtAdapt", b) => RuleExpr::AtAdapt(
             parse_rule_action(&b[0], src)?,
             parse_identifier(&b[1], src)?,

@@ -13,6 +13,7 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     rules: &'grm GrammarFile,
     rule: &'grm str,
     input: &'grm str,
+    //TODO add args
 ) -> Result<PR<'grm>, Vec<E>> {
     let context = ParserContext::new();
     let bump = Allocs::new();
@@ -23,7 +24,7 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     let x = parse_with_recovery(
         &full_input_layout(
             &grammar_state,
-            &parser_rule::parser_rule(&grammar_state, rule),
+            &parser_rule::parser_rule(&grammar_state, rule, &vec![]),
         ),
         Pos::start(),
         &mut cache,

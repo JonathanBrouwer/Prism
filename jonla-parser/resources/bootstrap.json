@@ -16,7 +16,10 @@
                       {
                         "Repeat": {
                           "expr": {
-                            "Rule": "_n"
+                            "Rule": [
+                              "_n",
+                              []
+                            ]
                           },
                           "min": 0,
                           "max": null,
@@ -31,7 +34,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": "prule"
+                                "Rule": [
+                                  "prule",
+                                  []
+                                ]
                               },
                               "min": 0,
                               "max": null,
@@ -81,7 +87,97 @@
                         "NameBind": [
                           "name",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "args",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Rule": [
+                                  "identifier",
+                                  []
+                                ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Literal": ","
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      },
+                      {
+                        "Literal": ":"
+                      },
+                      {
+                        "Rule": [
+                          "_n",
+                          []
+                        ]
+                      },
+                      {
+                        "NameBind": [
+                          "blocks",
+                          {
+                            "Rule": [
+                              "prule_blocks",
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Rule",
+                      [
+                        {
+                          "Name": "name"
+                        },
+                        {
+                          "Name": "args"
+                        },
+                        {
+                          "Name": "blocks"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "rule"
+                      },
+                      {
+                        "NameBind": [
+                          "name",
+                          {
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -89,13 +185,19 @@
                         "Literal": ":"
                       },
                       {
-                        "Rule": "_n"
+                        "Rule": [
+                          "_n",
+                          []
+                        ]
                       },
                       {
                         "NameBind": [
                           "blocks",
                           {
-                            "Rule": "prule_blocks"
+                            "Rule": [
+                              "prule_blocks",
+                              []
+                            ]
                           }
                         ]
                       }
@@ -133,7 +235,10 @@
                         "NameBind": [
                           "name",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -144,12 +249,18 @@
                         "NameBind": [
                           "expr",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
                       {
-                        "Rule": "_n"
+                        "Rule": [
+                          "_n",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -234,7 +345,10 @@
                                 "NameBind": [
                                   "n",
                                   {
-                                    "Rule": "identifier"
+                                    "Rule": [
+                                      "identifier",
+                                      []
+                                    ]
                                   }
                                 ]
                               },
@@ -249,13 +363,19 @@
                             ]
                           },
                           {
-                            "Rule": "_n"
+                            "Rule": [
+                              "_n",
+                              []
+                            ]
                           },
                           {
                             "NameBind": [
                               "c",
                               {
-                                "Rule": "prule_constructors"
+                                "Rule": [
+                                  "prule_constructors",
+                                  []
+                                ]
                               }
                             ]
                           }
@@ -292,7 +412,10 @@
                     "NameBind": [
                       "c",
                       {
-                        "Rule": "prule_constructors"
+                        "Rule": [
+                          "prule_constructors",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -335,7 +458,10 @@
               {
                 "Repeat": {
                   "expr": {
-                    "Rule": "prule_annotated_expr"
+                    "Rule": [
+                      "prule_annotated_expr",
+                      []
+                    ]
                   },
                   "min": 0,
                   "max": null,
@@ -375,12 +501,18 @@
                                         "NameBind": [
                                           "a",
                                           {
-                                            "Rule": "prule_annotation"
+                                            "Rule": [
+                                              "prule_annotation",
+                                              []
+                                            ]
                                           }
                                         ]
                                       },
                                       {
-                                        "Rule": "_n"
+                                        "Rule": [
+                                          "_n",
+                                          []
+                                        ]
                                       }
                                     ]
                                   },
@@ -402,12 +534,18 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
                       {
-                        "Rule": "_n"
+                        "Rule": [
+                          "_n",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -454,7 +592,10 @@
                         "NameBind": [
                           "err",
                           {
-                            "Rule": "pstring"
+                            "Rule": [
+                              "pstring",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -561,7 +702,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": "prule_action"
+                            "Rule": [
+                              "prule_action",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -681,7 +825,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -881,7 +1028,10 @@
                     "NameBind": [
                       "s",
                       {
-                        "Rule": "pstring"
+                        "Rule": [
+                          "pstring",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -911,7 +1061,10 @@
                         "NameBind": [
                           "c",
                           {
-                            "Rule": "charclass"
+                            "Rule": [
+                              "charclass",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -949,7 +1102,10 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -987,7 +1143,10 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1025,7 +1184,10 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1060,7 +1222,10 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1139,7 +1304,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": "prule_action"
+                            "Rule": [
+                              "prule_action",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1150,7 +1318,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1183,7 +1354,10 @@
                     "NameBind": [
                       "n",
                       {
-                        "Rule": "identifier"
+                        "Rule": [
+                          "identifier",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -1193,6 +1367,9 @@
                       [
                         {
                           "Name": "n"
+                        },
+                        {
+                          "Nil": []
                         }
                       ]
                     ]
@@ -1216,7 +1393,10 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1227,7 +1407,10 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1283,7 +1466,10 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1294,7 +1480,10 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1350,7 +1539,10 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1361,7 +1553,10 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1372,7 +1567,10 @@
                         "NameBind": [
                           "min",
                           {
-                            "Rule": "integer"
+                            "Rule": [
+                              "integer",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1428,7 +1626,10 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1439,7 +1640,10 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": "prule_expr"
+                            "Rule": [
+                              "prule_expr",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1450,7 +1654,10 @@
                         "NameBind": [
                           "min",
                           {
-                            "Rule": "integer"
+                            "Rule": [
+                              "integer",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1461,7 +1668,10 @@
                         "NameBind": [
                           "max",
                           {
-                            "Rule": "integer"
+                            "Rule": [
+                              "integer",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1580,7 +1790,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1618,7 +1831,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": "identifier"
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1631,7 +1847,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": "prule_action"
+                                "Rule": [
+                                  "prule_action",
+                                  []
+                                ]
                               },
                               "min": 0,
                               "max": null,
@@ -1671,7 +1890,10 @@
                     "NameBind": [
                       "s",
                       {
-                        "Rule": "pstring"
+                        "Rule": [
+                          "pstring",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -1696,7 +1918,10 @@
                     "NameBind": [
                       "n",
                       {
-                        "Rule": "identifier"
+                        "Rule": [
+                          "identifier",
+                          []
+                        ]
                       }
                     ]
                   },
@@ -1726,7 +1951,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": "prule_action"
+                            "Rule": [
+                              "prule_action",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1781,7 +2009,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": "charclass_part"
+                                "Rule": [
+                                  "charclass_part",
+                                  []
+                                ]
                               },
                               "min": 0,
                               "max": null,
@@ -1834,7 +2065,10 @@
                         "NameBind": [
                           "c1",
                           {
-                            "Rule": "charclass_char"
+                            "Rule": [
+                              "charclass_char",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1851,7 +2085,10 @@
                         "NameBind": [
                           "c2",
                           {
-                            "Rule": "charclass_char"
+                            "Rule": [
+                              "charclass_char",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1889,7 +2126,10 @@
                         "NameBind": [
                           "c",
                           {
-                            "Rule": "charclass_char"
+                            "Rule": [
+                              "charclass_char",
+                              []
+                            ]
                           }
                         ]
                       },
@@ -1950,7 +2190,10 @@
             [
               [],
               {
-                "Rule": "char_escapes"
+                "Rule": [
+                  "char_escapes",
+                  []
+                ]
               }
             ]
           ]
@@ -1986,7 +2229,10 @@
                             "SliceInput": {
                               "Repeat": {
                                 "expr": {
-                                  "Rule": "str_char"
+                                  "Rule": [
+                                    "str_char",
+                                    []
+                                  ]
                                 },
                                 "min": 0,
                                 "max": null,
@@ -2045,7 +2291,10 @@
             [
               [],
               {
-                "Rule": "char_escapes"
+                "Rule": [
+                  "char_escapes",
+                  []
+                ]
               }
             ]
           ]
@@ -2264,7 +2513,10 @@
                         "NegLookahead": {
                           "Sequence": [
                             {
-                              "Rule": "reserved"
+                              "Rule": [
+                                "reserved",
+                                []
+                              ]
                             },
                             {
                               "NegLookahead": {

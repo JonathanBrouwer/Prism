@@ -18,7 +18,4 @@ rule expr:
     @error("De Bruijn Index")
     Var(i) <- "#" i:@str([ '0'-'9' ]+)
 
-rule parametric(s):
-    "x"
-
 rule layout = [' ' | '\n']

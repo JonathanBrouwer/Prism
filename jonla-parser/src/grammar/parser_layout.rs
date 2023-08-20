@@ -33,7 +33,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
             let pos_before_layout = sub_res.end_pos();
             // Add in optional error information from sub_res, then require another layout token
             let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
-                &parser_rule(rules, "layout"),
+                &parser_rule(rules, "layout", &vec![]),
                 cache,
                 &ParserContext {
                     layout_disabled: true,

@@ -6,4 +6,4 @@ grammar {
         -- base
         Z() <- "z"
 };
-x * y + z;
+x * y + w;
