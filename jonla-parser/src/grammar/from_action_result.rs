@@ -34,11 +34,12 @@ pub fn parse_grammarfile<'grm>(
 fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
-        match &rule_body[..] => [name, blocks],
+        match &rule_body[..] => [name, args, blocks],
         match &**blocks => Construct(_, "List", blocks),
+        match &**args => Construct(_, "List", args),
         create Rule {
             name: parse_identifier(name, src)?,
-            args: Vec::new(),
+            args: args.iter().map(|n| parse_identifier(n, src)).collect::<Option<Vec<_>>>()?,
             blocks: blocks.iter().map(|block| parse_block(block, src)).collect::<Option<Vec<_>>>()?,
         }
     }
