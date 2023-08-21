@@ -7,7 +7,7 @@ use crate::grammar::action_result::ActionResult;
 use crate::grammar::grammar::{GrammarFile, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::core::adaptive::{GrammarState};
+use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
 use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
@@ -29,13 +29,31 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+        let rule_func = |n: &str| {
+            rules
+                .get(n)
+                .map(|r| Arc::new(ActionResult::RuleRef(r.name)))
+        };
         match expr {
             RuleExpr::Rule(rule, args) => {
-                let arg_func = |n: &str| vars.get(n).map(|v| v.clone()).or(rules.get(n).map(|r| Arc::new(ActionResult::RuleRef(r.name))));
+                let arg_func = |n: &str| vars.get(n).map(|v| v.clone()).or(rule_func(n));
+
                 let args = args
                     .iter()
                     .map(|arg| apply_action(arg, &arg_func, Span::invalid()))
                     .collect_vec();
+
+                // Does `rule` refer to a variable containing a rule or to a rule directly?
+                let rule = if let Some(ar) = vars.get(rule) {
+                    if let ActionResult::RuleRef(rule) = **ar {
+                        rule
+                    } else {
+                        panic!("Tried to run `{rule}` as a rule, but it is: {:?}", ar);
+                    }
+                } else {
+                    rule
+                };
+
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
             }
@@ -138,7 +156,13 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|mut res, span| {
-                    let arg_function = |n: &str| res.0.get(n).or(vars.get(n)).map(|v| v.clone());
+                    let arg_function = |n: &str| {
+                        res.0
+                            .get(n)
+                            .or(vars.get(n))
+                            .map(|v| v.clone())
+                            .or(rule_func(n))
+                    };
                     res.1 = apply_action(action, &arg_function, span);
                     res
                 })
@@ -191,7 +215,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let arg_function = |n: &str| vars.get(n).map(|v| v.clone());
+                let arg_function = |n: &str| vars.get(n).map(|v| v.clone()).or(rule_func(n));
                 let gr: Arc<ActionResult<'grm>> = apply_action(ga, &arg_function, Span::invalid());
 
                 // Parse it into a grammar
