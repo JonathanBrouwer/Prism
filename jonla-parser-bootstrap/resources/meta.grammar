@@ -26,7 +26,7 @@ rule prule_expr:
     --
     Choice(es) <- es:@repeat(@next, "/", 2, inf)
     --
-    Sequence(es) <- es:@repeat(@next, "", 2, inf)
+    Sequence(es) <- es:@repeat(@next, layout, 2, inf)
     --
     NameBind(n, e) <- n:identifier ":" e:@next
     --
@@ -103,7 +103,7 @@ rule identifier:
     @error("Identifier")
     @disable_layout
     @disable_recovery
-    n <- @neg(reserved @neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:@str([ 'a'-'z' | 'A'-'Z' | '_' ]['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
+    n <- @neg(reserved @neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:@str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*)
 
 rule reserved:
     "end"

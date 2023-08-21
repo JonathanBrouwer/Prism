@@ -791,7 +791,10 @@
                           "min": 2,
                           "max": null,
                           "delim": {
-                            "Literal": ""
+                            "Rule": [
+                              "layout",
+                              []
+                            ]
                           }
                         }
                       }
