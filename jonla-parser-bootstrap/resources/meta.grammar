@@ -1,17 +1,22 @@
 rule toplevel:
-    GrammarFile(rs) <- _n* rs:(prule*)
+    grammar(prule_action)
 
-rule prule:
-    Rule(name, args, blocks) <- "rule" name:identifier "(" args:@repeat(identifier, ",", *) ")" ":" _n blocks:prule_blocks
-    Rule(name, [], blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks
-    Rule(name, [], Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr _n
+rule grammar(action):
+    GrammarFile(rs) <- _n* rs:(prule(action)*)
 
-rule prule_blocks:
-    (Block(n, c) <- "--" (n:identifier / n:"") _n c:prule_constructors)+
-    Block("", c) :: [] <- c:prule_constructors
+rule prule(action):
+    Rule(name, args, blocks) <- "rule" name:identifier "(" args:@repeat(identifier, ",", *) ")" ":" _n blocks:prule_blocks(action)
+    Rule(name, [], blocks) <- "rule" name:identifier ":" _n blocks:prule_blocks(action)
+    Rule(name, [], Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier "=" expr:prule_expr(action) _n
 
-rule prule_constructors = prule_annotated_expr*
-rule prule_annotated_expr = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr _n
+rule prule_blocks(action):
+    (Block(n, c) <- "--" (n:identifier / n:"") _n c:prule_constructors(action))+
+    Block("", c) :: [] <- c:prule_constructors(action)
+
+rule prule_constructors(action):
+    prule_annotated_expr(action)*
+rule prule_annotated_expr(action):
+    AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation _n)* e:prule_expr(action) _n
 
 rule prule_annotation:
     Error(err) <- "@error" "(" err:pstring ")"
@@ -20,9 +25,9 @@ rule prule_annotation:
     DisableRecovery() <- "@disable_recovery"
     EnableRecovery() <- "@enable_recovery"
 
-rule prule_expr:
+rule prule_expr(action):
     --
-    Action(r, a) <- a:prule_action "<-" r:@this
+    Action(r, a) <- a:action "<-" r:@this
     --
     Choice(es) <- es:@repeat(@next, "/", 2, inf)
     --
@@ -36,30 +41,20 @@ rule prule_expr:
     --
     Literal(s) <- s:pstring
     CharClass(c) <- "[" c:charclass "]"
-    SliceInput(r) <- "@str" "(" r:prule_expr ")"
-    PosLookahead(r) <- "@pos" "(" r:prule_expr ")"
-    NegLookahead(r) <- "@neg" "(" r:prule_expr ")"
-    r <- "(" r:prule_expr ")"
+    SliceInput(r) <- "@str" "(" r:prule_expr(action) ")"
+    PosLookahead(r) <- "@pos" "(" r:prule_expr(action) ")"
+    NegLookahead(r) <- "@neg" "(" r:prule_expr(action) ")"
+    r <- "(" r:prule_expr(action) ")"
     AtThis() <- "@this"
     AtNext() <- "@next"
     AtGrammar() <- "@grammar"
-    AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
-    Rule(n, as) <- n:identifier @neg(layout) "(" as:@repeat(prule_action, ",", *) ")"
+    AtAdapt(a, n) <- "@adapt" "(" a:action "," n:identifier ")"
+    Rule(n, as) <- n:identifier @neg(layout) "(" as:@repeat(action, ",", *) ")"
     Rule(n, []) <- n:identifier
-    Repeat(e, "0", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
-    Repeat(e, "1", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
-    Repeat(e, min, None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," "inf" ")"
-    Repeat(e, min, Some(max), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," min:integer "," max:integer ")"
-
-rule prule_action:
-    --
-    Cons(h, t) <- h:@next "::" t:@this
-    --
-    Nil() <- "[]"
-    Construct(n, as) <- n:identifier "(" as:@repeat(prule_action, ",", *) ")"
-    InputLiteral(s) <- s:pstring
-    Name(n) <- n:identifier
-    a <- "(" a:prule_action ")"
+    Repeat(e, "0", None(), d) <- "@repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")"
+    Repeat(e, "1", None(), d) <- "@repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")"
+    Repeat(e, min, None(), d) <- "@repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")"
+    Repeat(e, min, Some(max), d) <- "@repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")"
 
 rule charclass:
     CharClass(negate, ps) <- negate:"^"? ps:@repeat(charclass_part, "|", *)
@@ -112,3 +107,14 @@ rule reserved:
     "ast"
     "neg"
     "pos"
+
+
+rule prule_action:
+    --
+    Cons(h, t) <- h:@next "::" t:@this
+    --
+    Nil() <- "[]"
+    Construct(n, as) <- n:identifier "(" as:@repeat(prule_action, ",", *) ")"
+    InputLiteral(s) <- s:pstring
+    Name(n) <- n:identifier
+    a <- "(" a:prule_action ")"
