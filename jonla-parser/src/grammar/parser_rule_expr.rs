@@ -33,7 +33,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Rule(rule, args) => {
                 let args = args
                     .iter()
-                    .map(|arg| apply_action(arg, vars, Span::invalid()))
+                    .map(|arg| apply_action(arg, &|n| vars.get(n).map(|v| v.clone()), Span::invalid()))
                     .collect_vec();
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
@@ -137,7 +137,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|mut res, span| {
-                    res.1 = apply_action(action, &res.0, span);
+                    let arg_function = |n: &str| res.0.get(n).or(vars.get(n)).map(|v| v.clone());
+                    res.1 = apply_action(action, &arg_function, span);
                     res
                 })
             }
@@ -189,7 +190,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr: Arc<ActionResult<'grm>> = apply_action(ga, vars, Span::invalid());
+                let arg_function = |n: &str| vars.get(n).map(|v| v.clone());
+                let gr: Arc<ActionResult<'grm>> = apply_action(ga, &arg_function, Span::invalid());
 
                 // Parse it into a grammar
                 let g = match parse_grammarfile(&*gr, cache.input) {

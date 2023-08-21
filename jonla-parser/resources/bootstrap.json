@@ -1354,6 +1354,75 @@
               {
                 "Action": [
                   {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "Rule": [
+                              "identifier",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "NegLookahead": {
+                          "Rule": [
+                            "layout",
+                            []
+                          ]
+                        }
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "as",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Rule": [
+                                  "prule_action",
+                                  []
+                                ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Literal": ","
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Rule",
+                      [
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Name": "as"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
                     "NameBind": [
                       "n",
                       {

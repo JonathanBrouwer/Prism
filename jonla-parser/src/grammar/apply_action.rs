@@ -1,18 +1,17 @@
 use crate::core::span::Span;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::grammar::RuleAction;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn apply_action<'b, 'grm>(
     rule: &'b RuleAction<'grm>,
-    map: &HashMap<&str, Arc<ActionResult<'grm>>>,
+    map: &impl Fn(&str) -> Option<Arc<ActionResult<'grm>>>,
     span: Span,
 ) -> Arc<ActionResult<'grm>> {
     match rule {
         RuleAction::Name(name) => {
-            if let Some(v) = map.get(&name[..]) {
-                v.clone()
+            if let Some(v) = map(&name[..]) {
+                v
             } else {
                 panic!("Name '{name}' not in context")
             }

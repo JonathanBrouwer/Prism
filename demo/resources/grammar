@@ -14,9 +14,9 @@ rule expr:
     Block(b) <- "{" b:block "}"
     X() <- "x"
     Y() <- "y"
-    W() <- hash("w")
+    W(w) <- w:hash("w")
 
 rule hash(n):
-    x <- "#" x:n
+    n <- "#"
 
 rule layout = [' ' | '\n']

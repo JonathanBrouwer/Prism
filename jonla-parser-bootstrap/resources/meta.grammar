@@ -44,6 +44,7 @@ rule prule_expr:
     AtNext() <- "@next"
     AtGrammar() <- "@grammar"
     AtAdapt(a, n) <- "@adapt" "(" a:prule_action "," n:identifier ")"
+    Rule(n, as) <- n:identifier @neg(layout) "(" as:@repeat(prule_action, ",", *) ")"
     Rule(n, []) <- n:identifier
     Repeat(e, "0", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "*" ")"
     Repeat(e, "1", None(), d) <- "@repeat" "(" e:prule_expr "," d:prule_expr "," "+" ")"
