@@ -24,6 +24,7 @@ pub enum ExprInner<M: Clone> {
     FnDestruct(W<Expr<M>>, W<Expr<M>>),
 }
 
+#[allow(unused)]
 #[derive(Clone)]
 pub struct SourceInfo {
     span: Span,

@@ -7,7 +7,7 @@ use crate::grammar::action_result::ActionResult;
 use crate::grammar::grammar::{GrammarFile, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{GrammarState};
 use crate::core::cache::PCache;
 use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
@@ -31,9 +31,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule, args) => {
+                let arg_func = |n: &str| vars.get(n).map(|v| v.clone()).or(rules.get(n).map(|r| Arc::new(ActionResult::RuleRef(r.name))));
                 let args = args
                     .iter()
-                    .map(|arg| apply_action(arg, &|n| vars.get(n).map(|v| v.clone()), Span::invalid()))
+                    .map(|arg| apply_action(arg, &arg_func, Span::invalid()))
                     .collect_vec();
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res

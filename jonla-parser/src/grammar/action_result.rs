@@ -12,6 +12,7 @@ pub enum ActionResult<'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Arc<ActionResult<'grm>>>),
+    RuleRef(&'grm str),
     Void(&'static str),
 }
 
@@ -36,6 +37,7 @@ impl<'grm> ActionResult<'grm> {
                 c,
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
+            ActionResult::RuleRef(r) => format!("[{}]", r),
             ActionResult::Void(s) => format!("ERROR[{s}]"),
         }
     }
