@@ -1873,47 +1873,6 @@
                         "Literal": "("
                       },
                       {
-                        "Literal": ")"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Construct",
-                      [
-                        {
-                          "Name": "n"
-                        },
-                        {
-                          "Nil": []
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "NameBind": [
-                          "n",
-                          {
-                            "Rule": [
-                              "identifier",
-                              []
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "Literal": "("
-                      },
-                      {
                         "NameBind": [
                           "as",
                           {

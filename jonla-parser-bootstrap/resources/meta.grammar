@@ -56,7 +56,6 @@ rule prule_action:
     Cons(h, t) <- h:@next "::" t:@this
     --
     Nil() <- "[]"
-    Construct(n, []) <- n:identifier "(" ")"
     Construct(n, as) <- n:identifier "(" as:@repeat(prule_action, ",", *) ")"
     InputLiteral(s) <- s:pstring
     Name(n) <- n:identifier
