@@ -1,8 +1,8 @@
+use crate::core::span::Span;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::grammar::RuleAction;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::core::span::Span;
 
 pub fn apply_action<'b, 'grm>(
     rule: &'b RuleAction<'grm>,

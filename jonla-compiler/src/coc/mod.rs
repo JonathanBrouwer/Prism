@@ -4,10 +4,10 @@ pub mod type_check;
 
 // use crate::coc::env::Env;
 use crate::coc::ExprInner::*;
+use jonla_parser::core::span::Span;
 use jonla_parser::grammar::action_result::ActionResult;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
-use jonla_parser::core::span::Span;
 
 pub type W<T> = Rc<T>;
 

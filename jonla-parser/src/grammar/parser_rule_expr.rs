@@ -12,15 +12,16 @@ use crate::core::cache::PCache;
 use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
+use crate::core::span::Span;
 use crate::grammar::apply_action::apply_action;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::parser_rule::parser_rule;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::core::span::Span;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -29,7 +30,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
-            RuleExpr::Rule(rule, args) => parser_rule(rules, rule, args).parse(stream, cache, context),
+            RuleExpr::Rule(rule, args) => {
+                let args = args
+                    .iter()
+                    .map(|arg| apply_action(arg, vars, Span::invalid()))
+                    .collect_vec();
+                let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
+                res
+            }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let p = map_parser(p, &|(span, _)| {
@@ -50,8 +58,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .merge_seq_parser(&single(|c| *c == char), cache, context)
                             .map(|_| ());
                     }
-                    let mut res =
-                        res.map_with_span(|_, span| (HashMap::new(), Arc::new(ActionResult::Value(span))));
+                    let mut res = res.map_with_span(|_, span| {
+                        (HashMap::new(), Arc::new(ActionResult::Value(span)))
+                    });
                     res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.end_pos().next(cache.input).0),
                         literal.clone(),
@@ -73,18 +82,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     parser_expr(rules, delim, &vars),
                     *min as usize,
                     max.map(|max| max as usize),
-                ).parse(stream, cache, context);
+                )
+                .parse(stream, cache, context);
                 res.map_with_span(|list, span| {
-                        (
-                            HashMap::new(),
-                            Arc::new(ActionResult::Construct(
-                                span,
-                                "List",
-                                list.into_iter().map(|pr| pr.1).collect(),
-                            )),
-                        )
-                    })
-            },
+                    (
+                        HashMap::new(),
+                        Arc::new(ActionResult::Construct(
+                            span,
+                            "List",
+                            list.into_iter().map(|pr| pr.1).collect(),
+                        )),
+                    )
+                })
+            }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(HashMap::new(), stream);
                 let mut res_vars = vars.clone();
@@ -135,30 +145,34 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|_, span| (HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
-            RuleExpr::AtThis => parser_body_cache_recurse(rules, context.prec_climb_this.unwrap())
-                .parse(
-                    stream,
-                    cache,
-                    // Reset this/next as they shouldn't matter from now on
-                    &ParserContext {
-                        prec_climb_this: Ignore(None),
-                        prec_climb_next: Ignore(None),
-                        ..context.clone()
-                    },
-                )
-                .map(|(_, v)| (HashMap::new(), v)),
-            RuleExpr::AtNext => parser_body_cache_recurse(rules, context.prec_climb_next.unwrap())
-                .parse(
-                    stream,
-                    cache,
-                    // Reset this/next as they shouldn't matter from now on
-                    &ParserContext {
-                        prec_climb_this: Ignore(None),
-                        prec_climb_next: Ignore(None),
-                        ..context.clone()
-                    },
-                )
-                .map(|(_, v)| (HashMap::new(), v)),
+            RuleExpr::AtThis => {
+                parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), vars)
+                    .parse(
+                        stream,
+                        cache,
+                        // Reset this/next as they shouldn't matter from now on
+                        &ParserContext {
+                            prec_climb_this: Ignore(None),
+                            prec_climb_next: Ignore(None),
+                            ..context.clone()
+                        },
+                    )
+                    .map(|(_, v)| (HashMap::new(), v))
+            }
+            RuleExpr::AtNext => {
+                parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), vars)
+                    .parse(
+                        stream,
+                        cache,
+                        // Reset this/next as they shouldn't matter from now on
+                        &ParserContext {
+                            prec_climb_this: Ignore(None),
+                            prec_climb_next: Ignore(None),
+                            ..context.clone()
+                        },
+                    )
+                    .map(|(_, v)| (HashMap::new(), v))
+            }
             RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, vars))
                 .parse(stream, cache, context)
                 .map(|r| (HashMap::new(), r.1)),

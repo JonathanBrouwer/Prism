@@ -115,7 +115,9 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         },
         Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(&b[0], src)?),
         Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(&b[0], src)?),
-        Construct(_, "SliceInput", b) => RuleExpr::SliceInput(Box::new(parse_rule_expr(&b[0], src)?)),
+        Construct(_, "SliceInput", b) => {
+            RuleExpr::SliceInput(Box::new(parse_rule_expr(&b[0], src)?))
+        }
         Construct(_, "PosLookahead", b) => {
             RuleExpr::PosLookahead(Box::new(parse_rule_expr(&b[0], src)?))
         }
@@ -125,8 +127,13 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         Construct(_, "AtGrammar", _) => RuleExpr::AtGrammar,
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
-        //TODO apply args
-        Construct(_, "Rule", b) => RuleExpr::Rule(parse_identifier(&b[0], src)?, vec![]),
+        Construct(_, "Rule", b) => RuleExpr::Rule(
+            parse_identifier(&b[0], src)?,
+            result_match! {
+                match &*b[1] => Construct(_, "List", args),
+                create args.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
+            }?,
+        ),
         Construct(_, "AtAdapt", b) => RuleExpr::AtAdapt(
             parse_rule_action(&b[0], src)?,
             parse_identifier(&b[1], src)?,

@@ -39,7 +39,7 @@ impl<O, E: ParseError> PResult<O, E> {
     #[inline(always)]
     pub fn map_with_span<P>(self, f: impl FnOnce(O, Span) -> P) -> PResult<P, E> {
         match self {
-            POk(o, start, end, empty, e) => POk(f(o, start.span_to(end)), start, end, empty,e),
+            POk(o, start, end, empty, e) => POk(f(o, start.span_to(end)), start, end, empty, e),
             PErr(err, s) => PErr(err, s),
         }
     }
@@ -111,7 +111,9 @@ impl<O, E: ParseError> PResult<O, E> {
             (ok @ POk(_, _, _, _, _), _) => ok,
 
             // Right ok
-            (PErr(ne, ns), POk(s, start, end, empty, be)) => POk(s, start, end, empty, err_combine_opt(Some((ne, ns)), be)),
+            (PErr(ne, ns), POk(s, start, end, empty, be)) => {
+                POk(s, start, end, empty, err_combine_opt(Some((ne, ns)), be))
+            }
 
             // If either parsed more input, prioritise that
             (PErr(e1, s1), PErr(e2, s2)) => {
@@ -132,8 +134,14 @@ impl<O, E: ParseError> PResult<O, E> {
                     (true, false) => start2,
                     (true, true) => start1,
                 };
-                POk((o1, o2), start, end2, empty1 && empty2, err_combine_opt(e1, e2))
-            },
+                POk(
+                    (o1, o2),
+                    start,
+                    end2,
+                    empty1 && empty2,
+                    err_combine_opt(e1, e2),
+                )
+            }
             (POk(_, _, _, _, e1), PErr(e2, s2)) => {
                 let (e, s) = err_combine_opt(e1, Some((e2, s2))).unwrap();
                 PErr(e, s)
@@ -145,10 +153,16 @@ impl<O, E: ParseError> PResult<O, E> {
     #[inline(always)]
     pub fn merge_seq_opt<O2>(self, other: PResult<O2, E>) -> PResult<(O, Option<O2>), E> {
         match (self, other) {
-            (r1@POk(_, _, _, _, _), r2@POk(_, _, _, _, _)) => r1.merge_seq(r2).map(|(o1, o2)| (o1, Some(o2))),
-            (POk(o1, start, end, empty, e1), PErr(e2, s2)) => {
-                POk((o1, None), start, end, empty,err_combine_opt(e1, Some((e2, s2))))
+            (r1 @ POk(_, _, _, _, _), r2 @ POk(_, _, _, _, _)) => {
+                r1.merge_seq(r2).map(|(o1, o2)| (o1, Some(o2)))
             }
+            (POk(o1, start, end, empty, e1), PErr(e2, s2)) => POk(
+                (o1, None),
+                start,
+                end,
+                empty,
+                err_combine_opt(e1, Some((e2, s2))),
+            ),
             (err @ PErr(_, _), _) => err.map(|_| unreachable!()),
         }
     }

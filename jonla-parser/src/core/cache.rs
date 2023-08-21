@@ -138,12 +138,17 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(key.clone(), POk(o.clone(), spos, epos, empty, be.clone()));
+                        state.cache_insert(
+                            key.clone(),
+                            POk(o.clone(), spos, epos, empty, be.clone()),
+                        );
 
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state, context);
                         match new_res {
-                            POk(new_o, new_spos, new_epos, new_empty, new_be) if new_epos.cmp(&epos).is_gt() => {
+                            POk(new_o, new_spos, new_epos, new_empty, new_be)
+                                if new_epos.cmp(&epos).is_gt() =>
+                            {
                                 o = new_o;
                                 spos = new_spos;
                                 epos = new_epos;
@@ -163,7 +168,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, spos, epos, empty,be)
+                    POk(o, spos, epos, empty, be)
                 }
             }
             res @ PErr(_, _) => {

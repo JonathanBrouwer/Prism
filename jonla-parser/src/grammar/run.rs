@@ -13,7 +13,7 @@ pub fn run_parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>
     rules: &'grm GrammarFile,
     rule: &'grm str,
     input: &'grm str,
-    //TODO add args
+    //cTODO add args
 ) -> Result<PR<'grm>, Vec<E>> {
     let context = ParserContext::new();
     let bump = Allocs::new();

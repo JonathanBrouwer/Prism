@@ -23,8 +23,8 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         self.rules.contains_key(rule)
     }
 
-    pub fn get(&self, rule: &'grm str) -> Option<&Vec<BlockState<'b, 'grm>>> {
-        self.rules.get(rule).map(|r| &r.blocks)
+    pub fn get(&self, rule: &'grm str) -> Option<&RuleState<'b, 'grm>> {
+        self.rules.get(rule).map(|x| &**x)
     }
 
     pub fn update(&mut self, grammar: &'b GrammarFile<'grm>) -> Result<(), &'grm str> {
@@ -45,9 +45,10 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
 }
 
 #[derive(Clone)]
-struct RuleState<'b, 'grm> {
-    blocks: Vec<BlockState<'b, 'grm>>,
+pub struct RuleState<'b, 'grm> {
+    pub blocks: Vec<BlockState<'b, 'grm>>,
     order: TopoSet<'grm>,
+    pub args: &'b Vec<&'grm str>,
 }
 
 impl<'b, 'grm> RuleState<'b, 'grm> {
@@ -56,7 +57,11 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
             r.blocks.iter().map(|b| BlockState::new(b)).collect();
         let mut order: TopoSet<'grm> = TopoSet::new();
         order.update(r);
-        Self { blocks, order }
+        Self {
+            blocks,
+            order,
+            args: &r.args,
+        }
     }
 
     pub fn update(&mut self, r: &'b Rule<'grm>) -> Result<(), ()> {
