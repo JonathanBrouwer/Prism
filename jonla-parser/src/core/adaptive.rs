@@ -11,7 +11,13 @@ pub struct GrammarState<'b, 'grm> {
 }
 
 impl<'b, 'grm> GrammarState<'b, 'grm> {
-    pub fn new(grammar: &'b GrammarFile<'grm>) -> Self {
+    pub fn new() -> Self {
+        Self {
+            rules: HashMap::new(),
+        }
+    }
+
+    pub fn new_with(grammar: &'b GrammarFile<'grm>) -> Self {
         let mut s = Self {
             rules: HashMap::new(),
         };

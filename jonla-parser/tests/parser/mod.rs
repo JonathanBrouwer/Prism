@@ -30,7 +30,7 @@ macro_rules! parse_test {
             use jonla_parser::grammar::parser_rule::parser_rule;
             use jonla_parser::core::context::ParserContext;
             use std::collections::HashMap;
-            use jonla_parser::grammar::run::run_parser_rule;
+            use jonla_parser::grammar::parser_instance::run_parser_rule;
             use jonla_parser::error::set_error::SetError;
             use crate::parser::errors_to_str;
 

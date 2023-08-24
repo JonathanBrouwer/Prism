@@ -6,7 +6,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar::GrammarFile;
-use grammar::run::run_parser_rule;
+use grammar::parser_instance::run_parser_rule;
 
 pub mod arena;
 pub mod core;
@@ -19,7 +19,7 @@ lazy_static! {
         bincode::deserialize(meta_grammar).unwrap()
     };
     pub static ref META_GRAMMAR_STATE: GrammarState<'static, 'static> =
-        GrammarState::new(&META_GRAMMAR);
+        GrammarState::new_with(&META_GRAMMAR);
 }
 
 pub fn parse_grammar<'a, E: ParseError<L = ErrorLabel<'a>>>(
