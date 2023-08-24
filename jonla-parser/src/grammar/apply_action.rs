@@ -1,5 +1,5 @@
 use crate::core::span::Span;
-use crate::grammar::action_result::ActionResult;
+use crate::action_result::ActionResult;
 use crate::grammar::grammar::RuleAction;
 use std::sync::Arc;
 

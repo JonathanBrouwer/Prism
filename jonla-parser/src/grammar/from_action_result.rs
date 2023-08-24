@@ -1,5 +1,5 @@
-use crate::grammar::action_result::ActionResult;
-use crate::grammar::action_result::ActionResult::*;
+use crate::action_result::ActionResult;
+use crate::action_result::ActionResult::*;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar::*;
 

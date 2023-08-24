@@ -16,7 +16,7 @@ use by_address::ByAddress;
 use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::action_result::ActionResult;
+use crate::action_result::ActionResult;
 use crate::grammar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<

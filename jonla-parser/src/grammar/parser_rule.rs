@@ -5,7 +5,7 @@ use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::action_result::ActionResult;
+use crate::action_result::ActionResult;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use itertools::Itertools;
 use std::collections::HashMap;

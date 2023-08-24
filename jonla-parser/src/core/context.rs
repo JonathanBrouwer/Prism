@@ -1,6 +1,6 @@
 use crate::core::adaptive::BlockState;
 use crate::core::pos::Pos;
-use crate::grammar::action_result::ActionResult;
+use crate::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
