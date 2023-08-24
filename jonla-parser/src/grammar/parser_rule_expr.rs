@@ -3,7 +3,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action_result::ActionResult;
+use crate::rule_action::ActionResult;
 use crate::grammar::grammar::{GrammarFile, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
@@ -21,7 +21,7 @@ use crate::META_GRAMMAR_STATE;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::action_result::apply_action::apply_action;
+use crate::rule_action::apply_action::apply_action;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,

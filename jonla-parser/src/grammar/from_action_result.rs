@@ -1,5 +1,5 @@
-use crate::action_result::ActionResult;
-use crate::action_result::ActionResult::*;
+use crate::rule_action::{ActionResult, RuleAction};
+use crate::rule_action::ActionResult::*;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar::*;
 

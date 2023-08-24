@@ -6,7 +6,7 @@ use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action_result::ActionResult;
+use crate::rule_action::ActionResult;
 use std::collections::HashMap;
 use std::sync::Arc;
 

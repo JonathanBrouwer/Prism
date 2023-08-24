@@ -1,6 +1,5 @@
 use crate::core::span::Span;
-use crate::action_result::ActionResult;
-use crate::grammar::grammar::RuleAction;
+use crate::rule_action::{ActionResult, RuleAction};
 use std::sync::Arc;
 
 pub fn apply_action<'b, 'grm>(

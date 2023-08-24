@@ -12,7 +12,7 @@ pub mod arena;
 pub mod core;
 pub mod error;
 pub mod grammar;
-pub mod action_result;
+pub mod rule_action;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {

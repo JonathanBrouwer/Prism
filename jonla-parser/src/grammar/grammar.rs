@@ -1,5 +1,6 @@
 use crate::grammar::escaped_string::EscapedString;
 use serde::{Deserialize, Serialize};
+use crate::rule_action::RuleAction;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {
@@ -69,11 +70,3 @@ pub enum RuleExpr<'grm> {
     AtAdapt(RuleAction<'grm>, &'grm str),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleAction<'grm> {
-    Name(&'grm str),
-    InputLiteral(EscapedString<'grm>),
-    Construct(&'grm str, Vec<Self>),
-    Cons(Box<Self>, Box<Self>),
-    Nil(),
-}
