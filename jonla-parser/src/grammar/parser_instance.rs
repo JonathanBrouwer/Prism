@@ -11,28 +11,23 @@ use crate::grammar::parser_layout::full_input_layout;
 use crate::grammar::parser_rule;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> {
-    input: &'grm str,
-
     context: ParserContext<'b, 'grm>,
-    bump: &'b Allocs<'b, 'grm>,
     cache: ParserCache<'grm, 'b, PResult<PR<'grm>, E>>,
 
-    state: GrammarState<'b, 'grm>
+    state: GrammarState<'b, 'grm>,
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'b, 'grm, E> {
     pub fn new(input: &'grm str, bump: &'b Allocs<'b, 'grm>) -> Self {
         let context = ParserContext::new();
-        let mut cache = ParserCache::new(input, &bump);
+        let cache = ParserCache::new(input, &bump);
 
         let state = GrammarState::new();
 
         Self {
-            input,
             context,
-            bump,
             cache,
-            state
+            state,
         }
     }
 
