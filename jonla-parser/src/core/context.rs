@@ -6,9 +6,10 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
-pub type PR<'grm> = (
-    HashMap<&'grm str, Arc<ActionResult<'grm>>>,
-    Arc<ActionResult<'grm>>,
+#[derive(Clone)]
+pub struct PR<'grm>(
+    pub HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    pub Arc<ActionResult<'grm>>
 );
 
 #[derive(Eq, PartialEq, Hash, Clone)]

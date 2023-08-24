@@ -60,7 +60,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let p = map_parser(p, &|(span, _)| {
-                    (HashMap::new(), Arc::new(ActionResult::Value(span)))
+                    PR(HashMap::new(), Arc::new(ActionResult::Value(span)))
                 });
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, &p);
@@ -78,7 +78,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .map(|_| ());
                     }
                     let mut res = res.map_with_span(|_, span| {
-                        (HashMap::new(), Arc::new(ActionResult::Value(span)))
+                        PR(HashMap::new(), Arc::new(ActionResult::Value(span)))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.end_pos().next(cache.input).0),
@@ -104,7 +104,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 )
                 .parse(stream, cache, context);
                 res.map_with_span(|list, span| {
-                    (
+                    PR(
                         HashMap::new(),
                         Arc::new(ActionResult::Construct(
                             span,
@@ -129,7 +129,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     }
                     res_vars.extend(res.ok().unwrap().clone().into_iter());
                 }
-                res.map(|map| (map, Arc::new(ActionResult::Void("sequence"))))
+                res.map(|map| PR(map, Arc::new(ActionResult::Void("sequence"))))
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
@@ -169,7 +169,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                res.map_with_span(|_, span| (HashMap::new(), Arc::new(ActionResult::Value(span))))
+                res.map_with_span(|_, span| PR(HashMap::new(), Arc::new(ActionResult::Value(span))))
             }
             RuleExpr::AtThis => {
                 parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), vars)
@@ -183,7 +183,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             ..context.clone()
                         },
                     )
-                    .map(|(_, v)| (HashMap::new(), v))
+                    .map(|PR(_, v)| PR(HashMap::new(), v))
             }
             RuleExpr::AtNext => {
                 parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), vars)
@@ -197,15 +197,15 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             ..context.clone()
                         },
                     )
-                    .map(|(_, v)| (HashMap::new(), v))
+                    .map(|PR(_, v)| PR(HashMap::new(), v))
             }
             RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, vars))
                 .parse(stream, cache, context)
-                .map(|r| (HashMap::new(), r.1)),
+                .map(|r| PR(HashMap::new(), r.1)),
             RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, vars))
                 .parse(stream, cache, context)
                 .map(|_| {
-                    (
+                    PR(
                         HashMap::new(),
                         Arc::new(ActionResult::Void("negative lookahead")),
                     )
