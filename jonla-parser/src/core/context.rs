@@ -12,6 +12,12 @@ pub struct PR<'grm>(
     pub Arc<ActionResult<'grm>>
 );
 
+impl<'grm> PR<'grm> {
+    pub fn from_action_result(a: ActionResult<'grm>) -> Self {
+        Self(HashMap::new(), Arc::new(a))
+    }
+}
+
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct ParserContext<'b, 'grm> {
     pub(crate) recovery_disabled: bool,
