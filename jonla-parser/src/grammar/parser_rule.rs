@@ -14,7 +14,7 @@ use std::sync::Arc;
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
-    args: &'a Vec<Arc<ActionResult<'grm>>>,
+    args: &'a Vec<Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         let rule_state: &'b RuleState<'b, 'grm> =

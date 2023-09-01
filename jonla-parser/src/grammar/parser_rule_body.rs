@@ -27,7 +27,7 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         parser_cache_recurse(
@@ -41,7 +41,7 @@ pub fn parser_body_cache_recurse<
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
@@ -90,7 +90,7 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     es: &'b [&'b AnnotatedRuleExpr<'grm>],
-    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| match es
     {
@@ -120,7 +120,7 @@ fn parser_body_sub_annotations<
     rules: &'b GrammarState<'b, 'grm>,
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match annots {

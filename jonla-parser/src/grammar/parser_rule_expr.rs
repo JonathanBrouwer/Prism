@@ -9,7 +9,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR};
+use crate::core::context::{Ignore, ParserContext, PR, Raw};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::core::span::Span;
@@ -26,33 +26,25 @@ use crate::rule_action::apply_action::apply_action;
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<ActionResult<'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
-        let rule_func = |n: &str| {
-            rules
-                .get(n)
-                .map(|r| Arc::new(ActionResult::RuleRef(r.name)))
-        };
         match expr {
             RuleExpr::Rule(rule, args) => {
-                let arg_func = |n: &str| vars.get(n).map(|v| v.clone()).or(rule_func(n));
-
-                let args = args
-                    .iter()
-                    .map(|arg| apply_action(arg, &arg_func, Span::invalid()))
-                    .collect_vec();
-
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    if let ActionResult::RuleRef(rule) = **ar {
+                    //TODO evaluate ar futher
+                    if let Raw::Rule(rule) = ar.1 {
                         rule
                     } else {
-                        panic!("Tried to run `{rule}` as a rule, but it is: {:?}", ar);
+                        panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule.");
                     }
                 } else {
                     rule
                 };
+
+                //TODO are rules in vars?
+                let args = args.iter().map(|arg| Arc::new(PR(vars.clone(), Raw::Action(Arc::new(arg.clone()))))).collect();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
@@ -60,7 +52,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let p = map_parser(p, &|(span, _)| {
-                    PR(HashMap::new(), Arc::new(ActionResult::Value(span)))
+                    PR(HashMap::new(),  Raw::Value(span))
                 });
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, &p);
@@ -78,7 +70,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .map(|_| ());
                     }
                     let mut res = res.map_with_span(|_, span| {
-                        PR(HashMap::new(), Arc::new(ActionResult::Value(span)))
+                        PR(HashMap::new(), Raw::Value(span))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.end_pos().next(cache.input).0),
@@ -106,11 +98,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res.map_with_span(|list, span| {
                     PR(
                         HashMap::new(),
-                        Arc::new(ActionResult::Construct(
-                            span,
-                            "List",
-                            list.into_iter().map(|pr| pr.1).collect(),
-                        )),
+                        Raw::List(
+                            list
+                        ),
                     )
                 })
             }
@@ -129,7 +119,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     }
                     res_vars.extend(res.ok().unwrap().clone().into_iter());
                 }
-                res.map(|map| PR(map, Arc::new(ActionResult::Void("sequence"))))
+                res.map(|map| PR(map, Raw::Internal("Sequence")))
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
@@ -149,7 +139,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map(|mut res| {
-                    res.0.insert(name, res.1.clone());
+                    res.0.insert(name, Arc::new(res.clone()));
                     res
                 })
             }
@@ -164,7 +154,6 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .or(rule_func(n))
                     };
                     res.1 = apply_action(action, &arg_function, span);
-                    res
                 })
             }
             RuleExpr::SliceInput(sub) => {
