@@ -51,7 +51,7 @@ macro_rules! parse_test {
 
             match run_parser_rule(&grammar, "start", input) {
                 Ok(o) => {
-                    let got = o.1.to_string(input);
+                    let got = o.to_string(input);
                     assert_eq!($expected, got);
                 }
                 Err(es) => {
@@ -70,7 +70,7 @@ macro_rules! parse_test {
 
             match run_parser_rule::<SetError<_>>(&grammar, "start", input) {
                 Ok(o) => {
-                    let got = o.1.to_string(input);
+                    let got = o.to_string(input);
                     println!("Got: {:?}", got);
                     panic!();
                 }

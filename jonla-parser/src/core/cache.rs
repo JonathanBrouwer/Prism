@@ -29,7 +29,7 @@ pub struct ParserCache<'grm, 'b, PR> {
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'grm>, E>>;
+pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm>, E>>;
 
 pub struct Allocs<'b, 'grm> {
     pub grammarfile_arena: Arena<GrammarFile<'grm>>,
@@ -96,12 +96,12 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
 }
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    sub: &'a impl Parser<'b, 'grm, PR<'grm>, E>,
+    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm>, E>,
     id: (
         ByAddress<&'b [BlockState<'b, 'grm>]>,
         ParserContext<'b, 'grm>,
     ),
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         //Check if this result is cached
         let key = (pos_start, id.clone());

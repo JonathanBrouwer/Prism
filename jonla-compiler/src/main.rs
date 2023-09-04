@@ -29,7 +29,7 @@ fn main() {
             return;
         }
     };
-    let expr = Expr::from_action_result(&r.1, input);
+    let expr = Expr::from_action_result(&r, input);
     println!("Program:\n{}", &expr);
 
     // let typ = match tc(&expr, &Env::new()) {

@@ -3,8 +3,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::rule_action::ActionResult;
-use crate::grammar::grammar::{GrammarFile, RuleExpr};
+use crate::grammar::grammar::{RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::GrammarState;
@@ -12,39 +11,36 @@ use crate::core::cache::PCache;
 use crate::core::context::{Ignore, ParserContext, PR, Raw};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::parser_rule::parser_rule;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::rule_action::apply_action::apply_action;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    //TODO evaluate ar futher
-                    if let Raw::Rule(rule) = ar.1 {
+                    if let ActionResult::RuleRef(rule) = apply(ar) {
                         rule
                     } else {
-                        panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule.");
+                        panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");
                     }
                 } else {
                     rule
                 };
 
                 //TODO are rules in vars?
-                let args = args.iter().map(|arg| Arc::new(PR(vars.clone(), Raw::Action(Arc::new(arg.clone()))))).collect();
+                let args = args.iter().map(|arg| Arc::new(PR(vars.clone(), Raw::Action(arg)))).collect();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
@@ -99,6 +95,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR(
                         HashMap::new(),
                         Raw::List(
+                            span,
                             list
                         ),
                     )
@@ -145,20 +142,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             }
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                res.map_with_span(|mut res, span| {
-                    let arg_function = |n: &str| {
-                        res.0
-                            .get(n)
-                            .or(vars.get(n))
-                            .map(|v| v.clone())
-                            .or(rule_func(n))
-                    };
-                    res.1 = apply_action(action, &arg_function, span);
+                res.map_with_span(|res, span| {
+                    //TODO avoid clone
+                    PR(vars.clone(), Raw::Action(action))
                 })
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                res.map_with_span(|_, span| PR(HashMap::new(), Arc::new(ActionResult::Value(span))))
+                res.map_with_span(|_, span| PR(HashMap::new(),  Raw::Value(span)))
             }
             RuleExpr::AtThis => {
                 parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), vars)
@@ -196,49 +187,50 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 .map(|_| {
                     PR(
                         HashMap::new(),
-                        Arc::new(ActionResult::Void("negative lookahead")),
+                        Raw::Internal("Negative lookahead")
                     )
                 }),
             RuleExpr::AtGrammar => {
                 parser_rule(&META_GRAMMAR_STATE, "toplevel", &vec![]).parse(stream, cache, context)
             }
             RuleExpr::AtAdapt(ga, b) => {
-                // First, get the grammar actionresult
-                let arg_function = |n: &str| vars.get(n).map(|v| v.clone()).or(rule_func(n));
-                let gr: Arc<ActionResult<'grm>> = apply_action(ga, &arg_function, Span::invalid());
-
-                // Parse it into a grammar
-                let g = match parse_grammarfile(&*gr, cache.input) {
-                    Some(g) => g,
-                    None => {
-                        let mut e = E::new(stream.span_to(stream));
-                        e.add_label_implicit(ErrorLabel::Explicit(
-                            stream.span_to(stream),
-                            EscapedString::from_escaped(
-                                "language grammar to be correct, but adaptation AST was malformed.",
-                            ),
-                        ));
-                        return PResult::new_err(e, stream);
-                    }
-                };
-                let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
-
-                // Create new grammarstate
-                let mut rules: GrammarState = (*rules).clone();
-                if let Err(_) = rules.update(&g) {
-                    let mut e = E::new(stream.span_to(stream));
-                    e.add_label_implicit(ErrorLabel::Explicit(
-                        stream.span_to(stream),
-                        EscapedString::from_escaped(
-                            "language grammar to be correct, but adaptation created cycle in block order.",
-                        ),
-                    ));
-                    return PResult::new_err(e, stream);
-                }
-                let rules: &'b GrammarState = cache.alloc.grammarstate_arena.alloc(rules);
-
-                // Parse body
-                parser_rule(&rules, &b[..], &vec![]).parse(stream, cache, context)
+                todo!()
+                // // First, get the grammar actionresult
+                // let arg_function = |n: &str| vars.get(n).map(|v| v.clone()).or(rule_func(n));
+                // let gr: Arc<ActionResult<'grm>> = apply_action(ga, &arg_function, Span::invalid());
+                //
+                // // Parse it into a grammar
+                // let g = match parse_grammarfile(&*gr, cache.input) {
+                //     Some(g) => g,
+                //     None => {
+                //         let mut e = E::new(stream.span_to(stream));
+                //         e.add_label_implicit(ErrorLabel::Explicit(
+                //             stream.span_to(stream),
+                //             EscapedString::from_escaped(
+                //                 "language grammar to be correct, but adaptation AST was malformed.",
+                //             ),
+                //         ));
+                //         return PResult::new_err(e, stream);
+                //     }
+                // };
+                // let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
+                //
+                // // Create new grammarstate
+                // let mut rules: GrammarState = (*rules).clone();
+                // if let Err(_) = rules.update(&g) {
+                //     let mut e = E::new(stream.span_to(stream));
+                //     e.add_label_implicit(ErrorLabel::Explicit(
+                //         stream.span_to(stream),
+                //         EscapedString::from_escaped(
+                //             "language grammar to be correct, but adaptation created cycle in block order.",
+                //         ),
+                //     ));
+                //     return PResult::new_err(e, stream);
+                // }
+                // let rules: &'b GrammarState = cache.alloc.grammarstate_arena.alloc(rules);
+                //
+                // // Parse body
+                // parser_rule(&rules, &b[..], &vec![]).parse(stream, cache, context)
             }
         }
     }

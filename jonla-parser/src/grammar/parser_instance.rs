@@ -9,10 +9,12 @@ use crate::error::ParseError;
 use crate::grammar::grammar::GrammarFile;
 use crate::grammar::parser_layout::full_input_layout;
 use crate::grammar::parser_rule;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> {
     context: ParserContext<'b, 'grm>,
-    cache: ParserCache<'grm, 'b, PResult<PR<'grm>, E>>,
+    cache: ParserCache<'grm, 'b, PResult<PR<'b, 'grm>, E>>,
 
     state: GrammarState<'b, 'grm>,
 }
@@ -35,7 +37,7 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'
         self.state.update(grammar)
     }
 
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<PR<'grm>, Vec<E>> {
+    pub fn run(&'b mut self, rule: &'grm str) -> Result<PR<'b, 'grm>, Vec<E>> {
         let x = parse_with_recovery(
             &full_input_layout(
                 &self.state,
@@ -53,9 +55,9 @@ pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone
     rules: &'grm GrammarFile,
     rule: &'grm str,
     input: &'grm str,
-) -> Result<PR<'grm>, Vec<E>> {
+) -> Result<ActionResult<'grm>, Vec<E>> {
     let bump = Allocs::new();
     let mut instance = ParserInstance::new(input, &bump);
     instance.push_rules(rules).unwrap();
-    instance.run(rule)
+    instance.run(rule).map(|pr| apply(&pr))
 }

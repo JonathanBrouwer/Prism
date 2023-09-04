@@ -6,7 +6,6 @@ use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::rule_action::{ActionResult, RuleAction};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -74,12 +73,12 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
 }
 
 pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>(
-    item: impl Parser<'b, 'grm, PR<'grm>, E> + 'a,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    item: impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
-          -> PResult<PR<'grm>, E> {
+          -> PResult<PR<'b, 'grm>, E> {
         // First try original parse
         match item.parse(
             stream,

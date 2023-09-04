@@ -1,7 +1,8 @@
-use crate::rule_action::{ActionResult, RuleAction};
-use crate::rule_action::ActionResult::*;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar::*;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::action_result::ActionResult::*;
+use crate::rule_action::RuleAction;
 
 macro_rules! result_match {
     {match $e1:expr => $p1:pat_param, $(match $es:expr => $ps:pat_param,)* create $body:expr} => {
@@ -24,7 +25,7 @@ pub fn parse_grammarfile<'grm>(
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
-        match &**rules => Construct(_, "List", rules),
+        match &*rules => Construct(_, "List", rules),
         create GrammarFile {
             rules: rules.iter().map(|rule| parse_rule(rule, src)).collect::<Option<Vec<_>>>()?,
         }
@@ -35,8 +36,8 @@ fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
-        match &**blocks => Construct(_, "List", blocks),
-        match &**args => Construct(_, "List", args),
+        match &*blocks => Construct(_, "List", blocks),
+        match &*args => Construct(_, "List", args),
         create Rule {
             name: parse_identifier(name, src)?,
             args: args.iter().map(|n| parse_identifier(n, src)).collect::<Option<Vec<_>>>()?,
@@ -70,7 +71,7 @@ fn parse_annotated_rule_expr<'grm>(
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
-        match &**annots => Construct(_, "List", annots),
+        match &*annots => Construct(_, "List", annots),
         create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src)?)
     }
 }
@@ -96,11 +97,11 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
             parse_rule_action(&b[1], src)?,
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
-            match &*b[0] => Construct(_, "List", subs),
+            match &b[0] => Construct(_, "List", subs),
             create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "Sequence", b) => RuleExpr::Sequence(result_match! {
-            match &*b[0] => Construct(_, "List", subs),
+            match &b[0] => Construct(_, "List", subs),
             create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
@@ -130,7 +131,7 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         Construct(_, "Rule", b) => RuleExpr::Rule(
             parse_identifier(&b[0], src)?,
             result_match! {
-                match &*b[1] => Construct(_, "List", args),
+                match &b[1] => Construct(_, "List", args),
                 create args.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),
@@ -152,7 +153,7 @@ fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rul
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src)?,
             result_match! {
-                match &*b[1] => Construct(_, "List", subs),
+                match &b[1] => Construct(_, "List", subs),
                 create subs.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),
@@ -189,12 +190,12 @@ fn parse_string_char(r: &ActionResult, src: &str) -> Option<char> {
 fn parse_charclass(r: &ActionResult, src: &str) -> Option<CharClass> {
     result_match! {
         match r => Construct(_, "CharClass", b),
-        match &*b[0] => Construct(_, "List", negate),
-        match &*b[1] => Construct(_, "List", ps),
+        match &b[0] => Construct(_, "List", negate),
+        match &b[1] => Construct(_, "List", ps),
         create CharClass {
             neg: !negate.is_empty(),
             ranges: ps.iter().map(|p| result_match! {
-                match &**p => Construct(_, "Range", pb),
+                match &*p => Construct(_, "Range", pb),
                 create (parse_string_char(&pb[0], src)?, parse_string_char(&pb[1], src)?)
             }).collect::<Option<Vec<_>>>()?
         }

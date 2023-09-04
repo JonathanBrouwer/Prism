@@ -19,7 +19,7 @@ fn main() {
     let result: Result<_, _> = run_parser_rule(&grammar, "block", input);
 
     match result {
-        Ok(o) => println!("Result: {:?}", o.1.to_string(input)),
+        Ok(o) => println!("Result: {:?}", o.to_string(input)),
         Err(es) => {
             for e in es {
                 print_set_error(e, input, false)

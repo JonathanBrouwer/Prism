@@ -1,23 +1,24 @@
 use crate::core::adaptive::BlockState;
 use crate::core::pos::Pos;
-use crate::rule_action::{ActionResult, RuleAction};
+use crate::rule_action::{RuleAction};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use crate::core::span::Span;
 
-#[derive(Clone)]
-pub struct PR<'grm>(
-    pub HashMap<&'grm str, Arc<PR<'grm>>>,
-    pub Raw<'grm>
+#[derive(Clone, Debug)]
+pub struct PR<'b, 'grm>(
+    pub HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+    pub Raw<'b, 'grm>
 );
 
-pub enum Raw<'grm> {
+#[derive(Clone, Debug)]
+pub enum Raw<'b, 'grm> {
     Internal(&'static str),
     Value(Span),
-    Action(Arc<RuleAction<'grm>>),
-    List(Vec<PR<'grm>>),
+    Action(&'b RuleAction<'grm>),
+    List(Span, Vec<PR<'b, 'grm>>),
     Rule(&'grm str),
 }
 

@@ -16,7 +16,6 @@ use by_address::ByAddress;
 use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::rule_action::ActionResult;
 use crate::grammar::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
@@ -27,8 +26,8 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, vars),
@@ -41,8 +40,8 @@ pub fn parser_body_cache_recurse<
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
-    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext<'b, 'grm>|
@@ -90,8 +89,8 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     es: &'b [&'b AnnotatedRuleExpr<'grm>],
-    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| match es
     {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
@@ -120,8 +119,8 @@ fn parser_body_sub_annotations<
     rules: &'b GrammarState<'b, 'grm>,
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<PR<'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'grm>, E> + 'a {
+    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
