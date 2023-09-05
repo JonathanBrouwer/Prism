@@ -8,7 +8,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR, Raw};
+use crate::core::context::{Ignore, ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule::parser_rule;
@@ -23,14 +23,14 @@ use crate::rule_action::apply_action::apply;
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    if let ActionResult::RuleRef(rule) = apply(ar) {
+                    if let ActionResult::RuleRef(rule) = apply(ar, rules) {
                         rule
                     } else {
                         panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");
@@ -39,8 +39,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     rule
                 };
 
-                //TODO are rules in vars?
-                let args = args.iter().map(|arg| Arc::new(PR(vars.clone(), Raw::Action(arg)))).collect();
+                let args = args.iter().map(|arg| Arc::new(RawEnv { env: vars.clone(), value: Raw::Action(arg) })).collect();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
@@ -48,7 +47,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let p = map_parser(p, &|(span, _)| {
-                    PR(HashMap::new(),  Raw::Value(span))
+                    PR::from_raw(Raw::Value(span))
                 });
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, &p);
@@ -66,7 +65,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             .map(|_| ());
                     }
                     let mut res = res.map_with_span(|_, span| {
-                        PR(HashMap::new(), Raw::Value(span))
+                        PR::from_raw(Raw::Value(span))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(
                         stream.span_to(res.end_pos().next(cache.input).0),
@@ -84,7 +83,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 max,
                 delim,
             } => {
-                let res = repeat_delim(
+                let res: PResult<Vec<PR>, _> = repeat_delim(
                     parser_expr(rules, expr, &vars),
                     parser_expr(rules, delim, &vars),
                     *min as usize,
@@ -92,31 +91,33 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 )
                 .parse(stream, cache, context);
                 res.map_with_span(|list, span| {
-                    PR(
-                        HashMap::new(),
+                    PR::from_raw(
                         Raw::List(
                             span,
-                            list
+                            list.into_iter().map(|pr| pr.rtrn).collect()
                         ),
                     )
                 })
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(HashMap::new(), stream);
+                //TODO can we do better than tracking res_vars by cloning?
                 let mut res_vars = vars.clone();
                 for sub in subs {
                     res = res
                         .merge_seq_parser(&parser_expr(rules, sub, &res_vars), cache, context)
                         .map(|(mut l, r)| {
-                            l.extend(r.0);
+                            l.extend(r.free);
                             l
                         });
-                    if res.is_err() {
-                        break;
+                    match &res.ok() {
+                        None => break,
+                        Some(o) => {
+                            res_vars.extend(o.into_iter().map(|(k, v)| (*k, v.clone())));
+                        }
                     }
-                    res_vars.extend(res.ok().unwrap().clone().into_iter());
                 }
-                res.map(|map| PR(map, Raw::Internal("Sequence")))
+                res.map(|map| PR { free: map, rtrn: RawEnv::from_raw(Raw::Internal("Sequence"))})
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
@@ -136,20 +137,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map(|mut res| {
-                    res.0.insert(name, Arc::new(res.clone()));
+                    res.free.insert(name, Arc::new(res.rtrn.clone()));
                     res
                 })
             }
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|res, span| {
-                    //TODO avoid clone
-                    PR(vars.clone(), Raw::Action(action))
+                    PR { free: HashMap::new(), rtrn: RawEnv{ env: vars.clone(), value: Raw::Action(action) } }
                 })
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
-                res.map_with_span(|_, span| PR(HashMap::new(),  Raw::Value(span)))
+                res.map_with_span(|_, span| PR::from_raw(Raw::Value(span)))
             }
             RuleExpr::AtThis => {
                 parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), vars)
@@ -163,7 +163,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             ..context.clone()
                         },
                     )
-                    .map(|PR(_, v)| PR(HashMap::new(), v))
+                    .map(|pr| pr.fresh())
             }
             RuleExpr::AtNext => {
                 parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), vars)
@@ -177,18 +177,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                             ..context.clone()
                         },
                     )
-                    .map(|PR(_, v)| PR(HashMap::new(), v))
+                    .map(|pr| pr.fresh())
             }
             RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, vars))
-                .parse(stream, cache, context)
-                .map(|r| PR(HashMap::new(), r.1)),
+                .parse(stream, cache, context),
             RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, vars))
                 .parse(stream, cache, context)
                 .map(|_| {
-                    PR(
-                        HashMap::new(),
-                        Raw::Internal("Negative lookahead")
-                    )
+                    PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
                 parser_rule(&META_GRAMMAR_STATE, "toplevel", &vec![]).parse(stream, cache, context)

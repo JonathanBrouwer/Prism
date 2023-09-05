@@ -9,6 +9,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 
+#[inline(always)]
 pub fn single<'b, 'grm: 'b, E: ParseError>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'b, 'grm, (Span, char), E> {
@@ -25,6 +26,7 @@ pub fn single<'b, 'grm: 'b, E: ParseError>(
     }
 }
 
+#[inline(always)]
 pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError>(
     p1: &'a impl Parser<'b, 'grm, O1, E>,
     p2: &'a impl Parser<'b, 'grm, O2, E>,
@@ -39,6 +41,7 @@ pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError>(
     }
 }
 
+#[inline(always)]
 pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError>(
     p1: &'a impl Parser<'b, 'grm, O, E>,
     p2: &'a impl Parser<'b, 'grm, O, E>,
@@ -52,6 +55,7 @@ pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError>(
     }
 }
 
+#[inline(always)]
 pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
     item: impl Parser<'b, 'grm, OP, E>,
     delimiter: impl Parser<'b, 'grm, OD, E>,
@@ -108,6 +112,7 @@ pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
     }
 }
 
+#[inline(always)]
 pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
@@ -120,6 +125,7 @@ pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
     }
 }
 
+#[inline(always)]
 pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
     p: &impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + '_ {
@@ -134,6 +140,7 @@ pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
     }
 }
 
+#[inline(always)]
 pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError>(
     p: &impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, (), E> + '_ {

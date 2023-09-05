@@ -1,6 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR};
+use crate::core::context::{Ignore, ParserContext, PR, RawEnv};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
@@ -13,7 +13,7 @@ use std::sync::Arc;
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: &'grm str,
-    args: &'a Vec<Arc<PR<'b, 'grm>>>,
+    args: &'a Vec<Arc<RawEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
         let rule_state: &'b RuleState<'b, 'grm> =
@@ -36,6 +36,6 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             },
         );
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.end_pos()), rule));
-        res.map(|PR(_, v)| PR(HashMap::new(), v))
+        res.map(|pr| pr.fresh())
     }
 }

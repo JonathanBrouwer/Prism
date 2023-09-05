@@ -37,7 +37,7 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'
         self.state.update(grammar)
     }
 
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<PR<'b, 'grm>, Vec<E>> {
+    pub fn run(&'b mut self, rule: &'grm str) -> Result<ActionResult<'grm>, Vec<E>> {
         let x = parse_with_recovery(
             &full_input_layout(
                 &self.state,
@@ -46,7 +46,9 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'
             Pos::start(),
             &mut self.cache,
             &self.context,
-        );
+        ).map(|pr| {
+            apply(&pr.rtrn, &self.state)
+        });
         x
     }
 }
@@ -59,5 +61,5 @@ pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone
     let bump = Allocs::new();
     let mut instance = ParserInstance::new(input, &bump);
     instance.push_rules(rules).unwrap();
-    instance.run(rule).map(|pr| apply(&pr))
+    instance.run(rule)
 }

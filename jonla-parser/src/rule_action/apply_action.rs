@@ -1,16 +1,28 @@
 use std::sync::Arc;
-use crate::core::context::{PR, Raw};
+use crate::core::adaptive::GrammarState;
+use crate::core::context::{PR, Raw, RawEnv};
 use crate::core::span::Span;
+use crate::grammar::grammar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-pub fn apply<'b, 'grm>(pr: &PR<'b, 'grm>) -> ActionResult<'grm> {
-    match &pr.1 {
+pub fn apply<'b, 'grm>(pr: &RawEnv<'b, 'grm>, grammar: &GrammarState<'b, 'grm>) -> ActionResult<'grm> {
+    match &pr.value {
         Raw::Internal(_) => panic!("Tried to apply internal raw value."),
         Raw::Value(s) => ActionResult::Value(*s),
-        Raw::List(s, l) => ActionResult::Construct(*s, "List", l.iter().map(apply).collect()),
+        Raw::List(s, l) => {
+            ActionResult::Construct(*s, "List", l.iter().map(|r| apply(r, grammar)).collect())
+        },
         Raw::Rule(r) => ActionResult::RuleRef(r),
-        Raw::Action(a) => apply_action(a, &|n| pr.0.get(n).map(|r| apply(r)), Span::invalid()),
+        Raw::Action(a) => apply_action(a, &|n| {
+            if let Some(r) = pr.env.get(n) {
+                Some(apply(r, grammar))
+            } else if let Some(r) = grammar.get(n) {
+                Some(ActionResult::RuleRef(r.name))
+            } else {
+                None
+            }
+        }, Span::invalid()),
     }
 }
 

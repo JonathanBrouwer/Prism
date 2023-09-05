@@ -8,17 +8,46 @@ use std::sync::Arc;
 use crate::core::span::Span;
 
 #[derive(Clone, Debug)]
-pub struct PR<'b, 'grm>(
-    pub HashMap<&'grm str, Arc<PR<'b, 'grm>>>,
-    pub Raw<'b, 'grm>
-);
+pub struct PR<'b, 'grm> {
+    pub free: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    pub rtrn: RawEnv<'b, 'grm>,
+}
+
+impl<'b, 'grm> PR<'b, 'grm> {
+    pub fn from_raw(rtrn: Raw<'b, 'grm>) -> Self {
+        Self {
+            free: HashMap::new(),
+            rtrn: RawEnv::from_raw(rtrn)
+        }
+    }
+
+    /// Returns self with fresh free variables
+    pub fn fresh(self) -> Self {
+        PR { free: HashMap::new(), rtrn: self.rtrn }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct RawEnv<'b, 'grm> {
+    pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    pub value: Raw<'b, 'grm>
+}
+
+impl<'b, 'grm> RawEnv<'b, 'grm> {
+    pub fn from_raw(value: Raw<'b, 'grm>) -> Self {
+        Self {
+            env: HashMap::new(),
+            value
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum Raw<'b, 'grm> {
     Internal(&'static str),
     Value(Span),
     Action(&'b RuleAction<'grm>),
-    List(Span, Vec<PR<'b, 'grm>>),
+    List(Span, Vec<RawEnv<'b, 'grm>>),
     Rule(&'grm str),
 }
 

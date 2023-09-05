@@ -92,8 +92,7 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
-                        //TODO recovery nicer
-                        PR(HashMap::new(), Raw::Internal("Recovered")),
+                        PR::from_raw(Raw::Internal("Recovered")),
                         stream,
                         *to,
                         true,
