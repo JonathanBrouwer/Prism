@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

@@ -10,7 +10,7 @@ use crate::grammar::grammar::GrammarFile;
 use crate::grammar::parser_layout::full_input_layout;
 use crate::grammar::parser_rule;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply;
+use crate::rule_action::apply_action::{apply_rawenv};
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> {
     context: ParserContext<'b, 'grm>,
@@ -47,7 +47,7 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'
             &mut self.cache,
             &self.context,
         ).map(|pr| {
-            apply(&pr.rtrn, &self.state)
+            apply_rawenv(&pr.rtrn, &self.state)
         });
         x
     }
