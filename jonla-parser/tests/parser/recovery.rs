@@ -3,10 +3,10 @@ use crate::parser::parse_test;
 parse_test! {
 name: recovery1
 syntax: r#"
-rule start = "a" "b" "c" "d"
+rule start = "seq" <- "a" "b" "c" "d"
 "#
 passing tests:
-    "abcd" => "ERROR[sequence]"
+    "abcd" => "'seq'"
 
 failing tests:
     "" => "0..0"
@@ -45,13 +45,13 @@ parse_test! {
 name: recovery_new
 syntax: r#"
 rule start:
-    ("{" stmt "}")*
+    (s <- "{" s:stmt "}")*
 rule stmt:
-    "abc" ";"
+    "seq" <- "abc" ";"
 rule layout = [' ' | '\n']
 "#
 passing tests:
-    "{abc;}{abc;}{abc;}" => "[ERROR[sequence], ERROR[sequence], ERROR[sequence]]"
+    "{abc;}{abc;}{abc;}" => "['seq', 'seq', 'seq']"
 
 failing tests:
     "{abc}{abc;}{abc;}" => "4..4"

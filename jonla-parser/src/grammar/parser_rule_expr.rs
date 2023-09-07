@@ -144,7 +144,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|res, span| {
-                    PR { free: HashMap::new(), rtrn: RawEnv{ env: vars.clone(), value: Raw::Action(action) } }
+                    let mut env = vars.clone();
+                    env.extend(res.free.iter().map(|(k, v)| (*k, v.clone())));
+                    PR { free: res.free, rtrn: RawEnv{ env, value: Raw::Action(action) } }
                 })
             }
             RuleExpr::SliceInput(sub) => {

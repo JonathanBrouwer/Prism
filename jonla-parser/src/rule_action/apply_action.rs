@@ -8,7 +8,7 @@ use crate::rule_action::RuleAction;
 
 pub fn apply<'b, 'grm>(pr: &RawEnv<'b, 'grm>, grammar: &GrammarState<'b, 'grm>) -> ActionResult<'grm> {
     match &pr.value {
-        Raw::Internal(_) => panic!("Tried to apply internal raw value."),
+        Raw::Internal(r) => panic!("Tried to apply internal raw value: `{r}`."),
         Raw::Value(s) => ActionResult::Value(*s),
         Raw::List(s, l) => {
             ActionResult::Construct(*s, "List", l.iter().map(|r| apply(r, grammar)).collect())
