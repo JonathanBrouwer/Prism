@@ -20,21 +20,17 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Cl
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'b, 'grm, E> {
-    pub fn new(input: &'grm str, bump: &'b Allocs<'b, 'grm>) -> Self {
+    pub fn new(input: &'grm str, bump: &'b Allocs<'b, 'grm>, from: &'grm GrammarFile) -> Self {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, &bump);
 
-        let state = GrammarState::new();
+        let state = GrammarState::new_with(from);
 
         Self {
             context,
             cache,
             state,
         }
-    }
-
-    pub fn push_rules(&mut self, grammar: &'grm GrammarFile) -> Result<(), &'grm str> {
-        self.state.update(grammar)
     }
 
     pub fn run(&'b mut self, rule: &'grm str) -> Result<ActionResult<'grm>, Vec<E>> {
@@ -59,7 +55,6 @@ pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone
     input: &'grm str,
 ) -> Result<ActionResult<'grm>, Vec<E>> {
     let bump = Allocs::new();
-    let mut instance = ParserInstance::new(input, &bump);
-    instance.push_rules(rules).unwrap();
+    let mut instance = ParserInstance::new(input, &bump, rules);
     instance.run(rule)
 }

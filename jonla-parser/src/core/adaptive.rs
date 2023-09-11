@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::mem;
 use std::sync::Arc;
 
-#[derive(Clone)]
 pub struct GrammarState<'b, 'grm> {
     rules: HashMap<&'grm str, Arc<RuleState<'b, 'grm>>>,
 }
@@ -33,7 +32,15 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         self.rules.get(rule).map(|x| &**x)
     }
 
-    pub fn update(&mut self, grammar: &'b GrammarFile<'grm>) -> Result<(), &'grm str> {
+    pub fn with(&self, grammar: &'b GrammarFile<'grm>) -> Result<Self, &'grm str> {
+        let mut s = GrammarState {
+            rules: self.rules.clone()
+        };
+        s.update(grammar)?;
+        Ok(s)
+    }
+
+    fn update(&mut self, grammar: &'b GrammarFile<'grm>) -> Result<(), &'grm str> {
         for rule in &grammar.rules {
             match self.rules.entry(&rule.name[..]) {
                 Entry::Occupied(mut e) => {

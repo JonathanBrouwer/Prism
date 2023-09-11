@@ -213,17 +213,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let g: &'b GrammarFile = cache.alloc.grammarfile_arena.alloc(g);
 
                 // Create new grammarstate
-                let mut rules: GrammarState = (*rules).clone();
-                if let Err(_) = rules.update(&g) {
-                    let mut e = E::new(stream.span_to(stream));
-                    e.add_label_implicit(ErrorLabel::Explicit(
-                        stream.span_to(stream),
-                        EscapedString::from_escaped(
-                            "language grammar to be correct, but adaptation created cycle in block order.",
-                        ),
-                    ));
-                    return PResult::new_err(e, stream);
-                }
+                let rules: GrammarState = match rules.with(g) {
+                    Ok(rules) => rules,
+                    Err(_) => {
+                        let mut e = E::new(stream.span_to(stream));
+                        e.add_label_implicit(ErrorLabel::Explicit(
+                            stream.span_to(stream),
+                            EscapedString::from_escaped(
+                                "language grammar to be correct, but adaptation created cycle in block order.",
+                            ),
+                        ));
+                        return PResult::new_err(e, stream);
+                    }
+                };
                 let rules: &'b GrammarState = cache.alloc.grammarstate_arena.alloc(rules);
 
                 // Parse body
