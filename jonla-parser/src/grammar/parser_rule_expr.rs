@@ -20,6 +20,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::{apply, apply_rawenv};
+use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
@@ -190,10 +191,10 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
+                let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE, "toplevel", &vec![])
+                    .parse(stream, &mut PCache::new(cache.input, cache.alloc), &ParserContext::new());
+
                 todo!()
-                // parser_rule(&META_GRAMMAR_STATE, "toplevel", &vec![])
-                //     .parse(stream, &mut PCache::new(cache.input, cache.alloc), &ParserContext::new())
-                //     .map
             }
             RuleExpr::AtAdapt(ga, b) => {
                 todo!()

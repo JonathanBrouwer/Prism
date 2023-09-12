@@ -5,6 +5,7 @@ use crate::core::context::RawEnv;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar::Action;
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply_rawenv;
 
 pub mod apply_action;
 pub mod action_result;
@@ -20,6 +21,9 @@ pub enum RuleAction<'grm> {
 
 impl<'grm> Action<'grm> for RuleAction<'grm> {
     fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>, grammar: &'b GrammarState<'b, 'grm, Self>) -> Option<&'grm str> {
-        todo!()
+        match apply_rawenv(e, grammar) {
+            ActionResult::RuleRef(r) => Some(grammar.get(r).unwrap().name),
+            _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
+        }
     }
 }

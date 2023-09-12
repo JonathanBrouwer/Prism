@@ -1,6 +1,6 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::{Allocs, ParserCache};
-use crate::core::context::{ParserContext, PR, RawEnv};
+use crate::core::context::{ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::recovery::parse_with_recovery;
@@ -33,39 +33,34 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>
             state,
         }
     }
-
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<RawEnv<'b, 'grm, A>, Vec<E>> {
-        let x = parse_with_recovery(
-            &full_input_layout(
-                &self.state,
-                &parser_rule::parser_rule(&self.state, rule, &vec![]),
-            ),
-            Pos::start(),
-            &mut self.cache,
-            &self.context,
-        ).map(|pr| pr.rtrn);
-        x
-    }
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'b, 'grm, E, RuleAction<'grm>> {
     pub fn run_ar(&'b mut self, rule: &'grm str) -> Result<ActionResult<'grm>, Vec<E>> {
-        let r = self.run(rule)?;
-        Ok(apply_rawenv(&r, &self.state))
+            let x = parse_with_recovery(
+                &full_input_layout(
+                    &self.state,
+                    &parser_rule::parser_rule(&self.state, rule, &vec![]),
+                ),
+                Pos::start(),
+                &mut self.cache,
+                &self.context,
+            ).map(|pr| apply_rawenv(&pr.rtrn, &self.state));
+            x
     }
 }
 
 
 
-pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    rules: &'grm GrammarFile<'grm, A>,
-    rule: &'grm str,
-    input: &'grm str,
-) -> Result<RawEnv<'b, 'grm, A>, Vec<E>> {
-    let bump = Allocs::new();
-    let mut instance = ParserInstance::new(input, &bump, rules);
-    instance.run(rule)
-}
+// pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'b, A: Action<'grm>>(
+//     rules: &'grm GrammarFile<'grm, A>,
+//     rule: &'grm str,
+//     input: &'grm str,
+// ) -> Result<RawEnv<'b, 'grm, A>, Vec<E>> {
+//     let bump = Allocs::new();
+//     let mut instance = ParserInstance::new(input, &bump, rules);
+//     instance.run(rule)
+// }
 
 pub fn run_parser_rule_ar<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile<'grm, RuleAction<'grm>>,

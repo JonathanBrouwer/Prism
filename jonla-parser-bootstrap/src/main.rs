@@ -3,12 +3,13 @@
 use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::from_action_result::parse_grammarfile;
 use jonla_parser::grammar::grammar::GrammarFile;
-use jonla_parser::grammar::parser_instance::run_parser_rule;
+use jonla_parser::grammar::parser_instance::run_parser_rule_ar;
 use jonla_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
 use jonla_parser::rule_action::action_result::ActionResult;
+use jonla_parser::rule_action::RuleAction;
 
-fn get_new_grammar(input: &str) -> GrammarFile {
+fn get_new_grammar(input: &str) -> GrammarFile<RuleAction> {
     match parse_grammar(input) {
         Ok(o) => o,
         Err(es) => {
@@ -43,7 +44,7 @@ fn normal() {
 fn part1() {
     let input = include_str!("../resources/meta.grammar");
 
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
+    let result: Result<_, _> = run_parser_rule_ar(&META_GRAMMAR, "toplevel", input);
     let result = match result {
         Ok(o) => o,
         Err(es) => {

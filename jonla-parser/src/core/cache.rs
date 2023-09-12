@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::{BlockState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -7,12 +7,12 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use crate::grammar::grammar::{Action, GrammarFile};
+use crate::grammar::grammar::{Action};
 use by_address::ByAddress;
 use std::collections::HashMap;
 use bumpalo::Bump;
 
-type CacheKey<'grm, 'b, A: Action<'grm>> = (
+type CacheKey<'grm, 'b, A> = (
     Pos,
     (
         ByAddress<&'b [BlockState<'b, 'grm, A>]>,
@@ -29,7 +29,7 @@ pub struct ParserCache<'grm, 'b, PR, A: Action<'grm>> {
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E, A: Action<'grm>> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm, A>, E>, A>;
+pub type PCache<'b, 'grm, E, A> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm, A>, E>, A>;
 
 pub struct Allocs {
     pub alo: Bump,

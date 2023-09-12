@@ -30,12 +30,13 @@ macro_rules! parse_test {
             use jonla_parser::grammar::parser_rule::parser_rule;
             use jonla_parser::core::context::ParserContext;
             use std::collections::HashMap;
-            use jonla_parser::grammar::parser_instance::run_parser_rule;
+            use jonla_parser::grammar::parser_instance::run_parser_rule_ar;
             use jonla_parser::error::set_error::SetError;
             use crate::parser::errors_to_str;
+            use jonla_parser::rule_action::RuleAction;
 
             let syntax: &'static str = $syntax;
-            let grammar: GrammarFile = match parse_grammar::<SetError<_>>(syntax) {
+            let grammar: GrammarFile<RuleAction> = match parse_grammar::<SetError<_>>(syntax) {
                 Ok(ok) => ok,
                 Err(es) => {
                     for e in es {
@@ -49,7 +50,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            match run_parser_rule(&grammar, "start", input) {
+            match run_parser_rule_ar(&grammar, "start", input) {
                 Ok(o) => {
                     let got = o.to_string(input);
                     assert_eq!($expected, got);
@@ -68,7 +69,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            match run_parser_rule::<SetError<_>>(&grammar, "start", input) {
+            match run_parser_rule_ar::<SetError<_>>(&grammar, "start", input) {
                 Ok(o) => {
                     let got = o.to_string(input);
                     println!("Got: {:?}", got);
