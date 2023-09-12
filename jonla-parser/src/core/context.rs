@@ -1,4 +1,3 @@
-use crate::core::adaptive::BlockState;
 use crate::core::pos::Pos;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -52,21 +51,17 @@ pub enum Raw<'b, 'grm, A: Action<'grm>> {
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]
-pub struct ParserContext<'b, 'grm, A: Action<'grm>> {
+pub struct ParserContext {
     pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
-    pub(crate) prec_climb_this: Ignore<Option<&'b [BlockState<'b, 'grm, A>]>>,
-    pub(crate) prec_climb_next: Ignore<Option<&'b [BlockState<'b, 'grm, A>]>>,
     pub(crate) recovery_points: Ignore<Arc<HashMap<Pos, Pos>>>,
 }
 
-impl<'grm, A: Action<'grm>> ParserContext<'_, 'grm, A> {
+impl ParserContext {
     pub fn new() -> Self {
         Self {
             recovery_disabled: false,
             layout_disabled: false,
-            prec_climb_this: Ignore(None),
-            prec_climb_next: Ignore(None),
             recovery_points: Ignore(Arc::new(HashMap::new())),
         }
     }

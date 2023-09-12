@@ -6,7 +6,7 @@ use crate::error::ParseError;
 use crate::grammar::grammar::{Action, GrammarFile, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;
 use crate::core::context::{Ignore, ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
@@ -24,10 +24,11 @@ use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
+    blocks: &'b [BlockState<'b, 'grm, A>],
     expr: &'b RuleExpr<'grm, A>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
@@ -59,7 +60,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 //First construct the literal parser
                 let p = move |stream: Pos,
                               cache: &mut PCache<'b, 'grm, E, A>,
-                              context: &ParserContext<'b, 'grm, A>| {
+                              context: &ParserContext| {
                     let mut res = PResult::new_empty((), stream);
                     for char in literal.chars() {
                         res = res
@@ -86,8 +87,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 delim,
             } => {
                 let res: PResult<Vec<PR<A>>, _> = repeat_delim(
-                    parser_expr(rules, expr, &vars),
-                    parser_expr(rules, delim, &vars),
+                    parser_expr(rules, blocks, expr, &vars),
+                    parser_expr(rules, blocks, delim, &vars),
                     *min as usize,
                     max.map(|max| max as usize),
                 )
@@ -107,7 +108,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let mut res_vars = vars.clone();
                 for sub in subs {
                     res = res
-                        .merge_seq_parser(&parser_expr(rules, sub, &res_vars), cache, context)
+                        .merge_seq_parser(&parser_expr(rules, blocks, sub, &res_vars), cache, context)
                         .map(|(mut l, r)| {
                             l.extend(r.free);
                             l
@@ -125,7 +126,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let mut res: PResult<PR<A>, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
                     res = res.merge_choice_parser(
-                        &parser_expr(rules, sub, vars),
+                        &parser_expr(rules, blocks, sub, vars),
                         stream,
                         cache,
                         context,
@@ -137,14 +138,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
+                let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map(|mut res| {
                     res.free.insert(name, Arc::new(res.rtrn.clone()));
                     res
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
+                let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map(|res| {
                     let mut env = vars.clone();
                     env.extend(res.free.iter().map(|(k, v)| (*k, v.clone())));
@@ -152,40 +153,30 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = parser_expr(rules, sub, vars).parse(stream, cache, context);
+                let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map_with_span(|_, span| PR::from_raw(Raw::Value(span)))
             }
             RuleExpr::AtThis => {
-                parser_body_cache_recurse(rules, context.prec_climb_this.unwrap(), vars)
+                parser_body_cache_recurse(rules, blocks, vars)
                     .parse(
                         stream,
                         cache,
-                        // Reset this/next as they shouldn't matter from now on
-                        &ParserContext {
-                            prec_climb_this: Ignore(None),
-                            prec_climb_next: Ignore(None),
-                            ..context.clone()
-                        },
+                        context,
                     )
                     .map(|pr| pr.fresh())
             }
             RuleExpr::AtNext => {
-                parser_body_cache_recurse(rules, context.prec_climb_next.unwrap(), vars)
+                parser_body_cache_recurse(rules, &blocks[1..], vars)
                     .parse(
                         stream,
                         cache,
-                        // Reset this/next as they shouldn't matter from now on
-                        &ParserContext {
-                            prec_climb_this: Ignore(None),
-                            prec_climb_next: Ignore(None),
-                            ..context.clone()
-                        },
+                        context,
                     )
                     .map(|pr| pr.fresh())
             }
-            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, sub, vars))
+            RuleExpr::PosLookahead(sub) => positive_lookahead(&parser_expr(rules, blocks,sub, vars))
                 .parse(stream, cache, context),
-            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, sub, vars))
+            RuleExpr::NegLookahead(sub) => negative_lookahead(&parser_expr(rules, blocks,sub, vars))
                 .parse(stream, cache, context)
                 .map(|_| {
                     PR::from_raw(Raw::Internal("Negative lookahead"))

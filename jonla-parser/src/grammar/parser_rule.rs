@@ -1,6 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR, RawEnv};
+use crate::core::context::{ParserContext, PR, RawEnv};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
@@ -16,7 +16,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rule: &'grm str,
     args: &'a Vec<Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm, A> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
 
@@ -30,11 +30,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
         let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, &args).parse(
             stream,
             cache,
-            &ParserContext {
-                prec_climb_this: Ignore(None),
-                prec_climb_next: Ignore(None),
-                ..context.clone()
-            },
+            context,
         );
         res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.end_pos()), rule));
         res.map(|pr| pr.fresh())

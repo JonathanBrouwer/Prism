@@ -14,7 +14,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
     sub: &'a impl Parser<'b, 'grm, O, E, A>,
     stream: Pos,
     cache: &mut PCache<'b, 'grm, E, A>,
-    context: &ParserContext<'b, 'grm, A>,
+    context: &ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
     let mut result_errors: Vec<E> = Vec::new();
@@ -78,7 +78,7 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E, A>,
-          context: &ParserContext<'b, 'grm, A>|
+          context: &ParserContext|
           -> PResult<PR<'b, 'grm, A>, E> {
         // First try original parse
         match item.parse(

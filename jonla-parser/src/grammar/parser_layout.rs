@@ -17,7 +17,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 ) -> impl Parser<'b, 'grm, O, E, A> + 'a {
     move |pos: Pos,
           cache: &mut PCache<'b, 'grm, E, A>,
-          context: &ParserContext<'b, 'grm, A>|
+          context: &ParserContext|
           -> PResult<O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
             return sub.parse(pos, cache, context);
@@ -65,7 +65,7 @@ pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'
 ) -> impl Parser<'b, 'grm, O, E, A> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E, A>,
-          context: &ParserContext<'b, 'grm, A>|
+          context: &ParserContext|
           -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, &end()), cache, context)

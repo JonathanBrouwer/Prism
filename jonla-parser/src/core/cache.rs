@@ -16,7 +16,7 @@ type CacheKey<'grm, 'b, A> = (
     Pos,
     (
         ByAddress<&'b [BlockState<'b, 'grm, A>]>,
-        ParserContext<'b, 'grm, A>,
+        ParserContext,
     ),
 );
 
@@ -97,10 +97,10 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
     sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A>,
     id: (
         ByAddress<&'b [BlockState<'b, 'grm, A>]>,
-        ParserContext<'b, 'grm, A>,
+        ParserContext,
     ),
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
+    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
         if let Some(cached) = state.cache_get(&key) {

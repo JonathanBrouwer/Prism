@@ -174,7 +174,7 @@ impl<O, E: ParseError> PResult<O, E> {
         other: &P,
         stream: Pos,
         cache: &mut PCache<'b, 'grm, E, A>,
-        context: &ParserContext<'b, 'grm, A>,
+        context: &ParserContext,
     ) -> Self
     where
         'grm: 'b,
@@ -192,7 +192,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P2,
         cache: &mut PCache<'b, 'grm, E, A>,
-        context: &ParserContext<'b, 'grm, A>,
+        context: &ParserContext,
     ) -> PResult<(O, O2), E>
     where
         'grm: 'b,
@@ -211,7 +211,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P2,
         cache: &mut PCache<'b, 'grm, E, A>,
-        context: &ParserContext<'b, 'grm, A>,
+        context: &ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where
         'grm: 'b,
