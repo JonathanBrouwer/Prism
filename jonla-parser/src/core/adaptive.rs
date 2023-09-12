@@ -1,22 +1,22 @@
 use crate::core::toposet::TopoSet;
-use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
+use crate::grammar::grammar::{Action, AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::mem;
 use std::sync::Arc;
 
-pub struct GrammarState<'b, 'grm> {
-    rules: HashMap<&'grm str, Arc<RuleState<'b, 'grm>>>,
+pub struct GrammarState<'b, 'grm, A: Action<'grm>> {
+    rules: HashMap<&'grm str, Arc<RuleState<'b, 'grm, A>>>,
 }
 
-impl<'b, 'grm> GrammarState<'b, 'grm> {
+impl<'b, 'grm, A: Action<'grm>> GrammarState<'b, 'grm, A> {
     pub fn new() -> Self {
         Self {
             rules: HashMap::new(),
         }
     }
 
-    pub fn new_with(grammar: &'b GrammarFile<'grm>) -> Self {
+    pub fn new_with(grammar: &'b GrammarFile<'grm, A>) -> Self {
         let mut s = Self {
             rules: HashMap::new(),
         };
@@ -28,11 +28,11 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         self.rules.contains_key(rule)
     }
 
-    pub fn get(&self, rule: &str) -> Option<&RuleState<'b, 'grm>> {
+    pub fn get(&self, rule: &str) -> Option<&RuleState<'b, 'grm, A>> {
         self.rules.get(rule).map(|x| &**x)
     }
 
-    pub fn with(&self, grammar: &'b GrammarFile<'grm>) -> Result<Self, &'grm str> {
+    pub fn with(&self, grammar: &'b GrammarFile<'grm, A>) -> Result<Self, &'grm str> {
         let mut s = GrammarState {
             rules: self.rules.clone()
         };
@@ -40,7 +40,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         Ok(s)
     }
 
-    fn update(&mut self, grammar: &'b GrammarFile<'grm>) -> Result<(), &'grm str> {
+    fn update(&mut self, grammar: &'b GrammarFile<'grm, A>) -> Result<(), &'grm str> {
         for rule in &grammar.rules {
             match self.rules.entry(&rule.name[..]) {
                 Entry::Occupied(mut e) => {
@@ -58,16 +58,16 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
 }
 
 #[derive(Clone)]
-pub struct RuleState<'b, 'grm> {
+pub struct RuleState<'b, 'grm, A: Action<'grm>> {
     pub name: &'grm str,
-    pub blocks: Vec<BlockState<'b, 'grm>>,
+    pub blocks: Vec<BlockState<'b, 'grm, A>>,
     order: TopoSet<'grm>,
     pub args: &'b Vec<&'grm str>,
 }
 
-impl<'b, 'grm> RuleState<'b, 'grm> {
-    pub fn new(r: &'b Rule<'grm>) -> Self {
-        let blocks: Vec<BlockState<'b, 'grm>> =
+impl<'b, 'grm, A: Action<'grm>> RuleState<'b, 'grm, A> {
+    pub fn new(r: &'b Rule<'grm, A>) -> Self {
+        let blocks: Vec<BlockState<'b, 'grm, A>> =
             r.blocks.iter().map(|b| BlockState::new(b)).collect();
         let mut order: TopoSet<'grm> = TopoSet::new();
         order.update(r);
@@ -79,7 +79,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
         }
     }
 
-    pub fn update(&mut self, r: &'b Rule<'grm>) -> Result<(), ()> {
+    pub fn update(&mut self, r: &'b Rule<'grm, A>) -> Result<(), ()> {
         self.order.update(r);
 
         let order: HashMap<&'grm str, usize> = self
@@ -117,20 +117,20 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 }
 
 #[derive(Clone)]
-pub struct BlockState<'b, 'grm> {
+pub struct BlockState<'b, 'grm, A: Action<'grm>> {
     pub name: &'grm str,
-    pub constructors: Vec<&'b AnnotatedRuleExpr<'grm>>,
+    pub constructors: Vec<&'b AnnotatedRuleExpr<'grm, A>>,
 }
 
-impl<'b, 'grm> BlockState<'b, 'grm> {
-    pub fn new(block: &'b Block<'grm>) -> Self {
+impl<'b, 'grm, A: Action<'grm>> BlockState<'b, 'grm, A> {
+    pub fn new(block: &'b Block<'grm, A>) -> Self {
         Self {
             name: &block.0,
             constructors: block.1.iter().collect(),
         }
     }
 
-    pub fn update(&mut self, b: &'b Block<'grm>) {
+    pub fn update(&mut self, b: &'b Block<'grm, A>) {
         assert_eq!(self.name, b.0);
         self.constructors.extend(&b.1[..]);
     }

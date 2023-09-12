@@ -7,40 +7,38 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use crate::grammar::grammar::GrammarFile;
+use crate::grammar::grammar::{Action, GrammarFile};
 use by_address::ByAddress;
 use std::collections::HashMap;
-use typed_arena::Arena;
+use bumpalo::Bump;
 
-type CacheKey<'grm, 'b> = (
+type CacheKey<'grm, 'b, A: Action<'grm>> = (
     Pos,
     (
-        ByAddress<&'b [BlockState<'b, 'grm>]>,
-        ParserContext<'b, 'grm>,
+        ByAddress<&'b [BlockState<'b, 'grm, A>]>,
+        ParserContext<'b, 'grm, A>,
     ),
 );
 
-pub struct ParserCache<'grm, 'b, PR> {
+pub struct ParserCache<'grm, 'b, PR, A: Action<'grm>> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PR>>,
-    cache_stack: Vec<CacheKey<'grm, 'b>>,
+    cache: HashMap<CacheKey<'grm, 'b, A>, ParserCacheEntry<PR>>,
+    cache_stack: Vec<CacheKey<'grm, 'b, A>>,
     // For allocating things that might be in the result
-    pub alloc: &'b Allocs<'b, 'grm>,
+    pub alloc: &'b Allocs,
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm>, E>>;
+pub type PCache<'b, 'grm, E, A: Action<'grm>> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm, A>, E>, A>;
 
-pub struct Allocs<'b, 'grm> {
-    pub grammarfile_arena: Arena<GrammarFile<'grm>>,
-    pub grammarstate_arena: Arena<GrammarState<'b, 'grm>>,
+pub struct Allocs {
+    pub alo: Bump,
 }
 
-impl Allocs<'_, '_> {
+impl Allocs {
     pub fn new() -> Self {
         Self {
-            grammarfile_arena: Arena::new(),
-            grammarstate_arena: Arena::new(),
+            alo: Bump::new()
         }
     }
 }
@@ -50,8 +48,8 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
-    pub fn new(input: &'grm str, alloc: &'b Allocs<'b, 'grm>) -> Self {
+impl<'grm, 'b, PR: Clone, A: Action<'grm>> ParserCache<'grm, 'b, PR, A> {
+    pub fn new(input: &'grm str, alloc: &'b Allocs) -> Self {
         ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
@@ -60,11 +58,11 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: &CacheKey<'grm, 'b>) -> Option<bool> {
+    pub(crate) fn cache_is_read(&self, key: &CacheKey<'grm, 'b, A>) -> Option<bool> {
         self.cache.get(key).map(|v| v.read)
     }
 
-    pub(crate) fn cache_get(&mut self, key: &CacheKey<'grm, 'b>) -> Option<&PR> {
+    pub(crate) fn cache_get(&mut self, key: &CacheKey<'grm, 'b, A>) -> Option<&PR> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
@@ -73,7 +71,7 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
         }
     }
 
-    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b>, value: PR) {
+    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b, A>, value: PR) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -95,14 +93,14 @@ impl<'grm, 'b, PR: Clone> ParserCache<'grm, 'b, PR> {
     }
 }
 
-pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm>, E>,
+pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A>,
     id: (
-        ByAddress<&'b [BlockState<'b, 'grm>]>,
-        ParserContext<'b, 'grm>,
+        ByAddress<&'b [BlockState<'b, 'grm, A>]>,
+        ParserContext<'b, 'grm, A>,
     ),
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
+    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
         if let Some(cached) = state.cache_get(&key) {

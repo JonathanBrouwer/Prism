@@ -8,15 +8,16 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::grammar::Action;
 use crate::grammar::parser_rule::parser_rule;
 
-pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'b, 'grm>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
+pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+    rules: &'b GrammarState<'b, 'grm, A>,
+    sub: &'a impl Parser<'b, 'grm, O, E, A>,
+) -> impl Parser<'b, 'grm, O, E, A> + 'a {
     move |pos: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext<'b, 'grm>|
+          cache: &mut PCache<'b, 'grm, E, A>,
+          context: &ParserContext<'b, 'grm, A>|
           -> PResult<O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
             return sub.parse(pos, cache, context);
@@ -58,13 +59,13 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     }
 }
 
-pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'b, 'grm>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
+pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+    rules: &'b GrammarState<'b, 'grm, A>,
+    sub: &'a impl Parser<'b, 'grm, O, E, A>,
+) -> impl Parser<'b, 'grm, O, E, A> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext<'b, 'grm>|
+          cache: &mut PCache<'b, 'grm, E, A>,
+          context: &ParserContext<'b, 'grm, A>|
           -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, &end()), cache, context)

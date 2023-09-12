@@ -3,21 +3,22 @@ use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::error::ParseError;
+use crate::grammar::grammar::Action;
 
-pub trait Parser<'b, 'grm, O, E: ParseError> {
+pub trait Parser<'b, 'grm, O, E: ParseError, A: Action<'grm>> {
     fn parse(
         &self,
         stream: Pos,
-        cache: &mut PCache<'b, 'grm, E>,
-        context: &ParserContext<'b, 'grm>,
+        cache: &mut PCache<'b, 'grm, E, A>,
+        context: &ParserContext<'b, 'grm, A>,
     ) -> PResult<O, E>;
 }
 
-pub fn map_parser<'a, 'b: 'a, 'grm: 'b, O, P, E: ParseError>(
-    p: impl Parser<'b, 'grm, O, E> + 'a,
+pub fn map_parser<'a, 'b: 'a, 'grm: 'b, O, P, E: ParseError, A: Action<'grm>>(
+    p: impl Parser<'b, 'grm, O, E, A> + 'a,
     f: &'a impl Fn(O) -> P,
-) -> impl Parser<'b, 'grm, P, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
+) -> impl Parser<'b, 'grm, P, E, A> + 'a {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
         p.parse(stream, cache, context).map(f)
     }
 }
@@ -27,15 +28,16 @@ impl<
         'grm,
         O,
         E: ParseError,
-        T: Fn(Pos, &mut PCache<'b, 'grm, E>, &ParserContext<'b, 'grm>) -> PResult<O, E>,
-    > Parser<'b, 'grm, O, E> for T
+        A: Action<'grm>,
+        T: Fn(Pos, &mut PCache<'b, 'grm, E, A>, &ParserContext<'b, 'grm, A>) -> PResult<O, E>,
+    > Parser<'b, 'grm, O, E, A> for T
 {
     #[inline(always)]
     fn parse(
         &self,
         stream: Pos,
-        cache: &mut PCache<'b, 'grm, E>,
-        context: &ParserContext<'b, 'grm>,
+        cache: &mut PCache<'b, 'grm, E, A>,
+        context: &ParserContext<'b, 'grm, A>,
     ) -> PResult<O, E> {
         self(stream, cache, context)
     }

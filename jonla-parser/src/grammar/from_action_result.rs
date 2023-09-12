@@ -21,7 +21,7 @@ macro_rules! result_match {
 pub fn parse_grammarfile<'grm>(
     r: &ActionResult<'grm>,
     src: &'grm str,
-) -> Option<GrammarFile<'grm>> {
+) -> Option<GrammarFile<'grm, RuleAction<'grm>>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
@@ -32,7 +32,7 @@ pub fn parse_grammarfile<'grm>(
     }
 }
 
-fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>> {
+fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm, RuleAction<'grm>>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
@@ -46,7 +46,7 @@ fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>
     }
 }
 
-fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Block<'grm>> {
+fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Block<'grm, RuleAction<'grm>>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
@@ -57,7 +57,7 @@ fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Block<'gr
 fn parse_constructors<'grm>(
     r: &ActionResult<'grm>,
     src: &'grm str,
-) -> Option<Vec<AnnotatedRuleExpr<'grm>>> {
+) -> Option<Vec<AnnotatedRuleExpr<'grm, RuleAction<'grm>>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect::<Option<Vec<_>>>()?
@@ -67,7 +67,7 @@ fn parse_constructors<'grm>(
 fn parse_annotated_rule_expr<'grm>(
     r: &ActionResult<'grm>,
     src: &'grm str,
-) -> Option<AnnotatedRuleExpr<'grm>> {
+) -> Option<AnnotatedRuleExpr<'grm, RuleAction<'grm>>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
@@ -90,7 +90,7 @@ fn parse_rule_annotation<'grm>(
     })
 }
 
-fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleExpr<'grm>> {
+fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleExpr<'grm, RuleAction<'grm>>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             Box::new(parse_rule_expr(&b[0], src)?),

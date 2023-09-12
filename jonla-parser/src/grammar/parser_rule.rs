@@ -9,14 +9,15 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::grammar::grammar::Action;
 
-pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
-    rules: &'b GrammarState<'b, 'grm>,
+pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+    rules: &'b GrammarState<'b, 'grm, A>,
     rule: &'grm str,
-    args: &'a Vec<Arc<RawEnv<'b, 'grm>>>,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext<'b, 'grm>| {
-        let rule_state: &'b RuleState<'b, 'grm> =
+    args: &'a Vec<Arc<RawEnv<'b, 'grm, A>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext<'b, 'grm, A>| {
+        let rule_state: &'b RuleState<'b, 'grm, A> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
 
         let args = rule_state

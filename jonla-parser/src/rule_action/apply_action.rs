@@ -6,11 +6,11 @@ use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm>, grammar: &GrammarState<'b, 'grm>) -> ActionResult<'grm> {
+pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm, RuleAction<'grm>>, grammar: &GrammarState<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm> {
     apply(&pr.value, &pr.env, grammar)
 }
 
-pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>, grammar: &GrammarState<'b, 'grm>) -> ActionResult<'grm> {
+pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm, RuleAction<'grm>> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm, RuleAction<'grm>>>>, grammar: &GrammarState<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm> {
     match &val {
         Raw::Internal(r) => panic!("Tried to apply internal raw value: `{r}`."),
         Raw::Value(s) => ActionResult::Value(*s),
