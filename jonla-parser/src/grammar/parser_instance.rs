@@ -1,8 +1,7 @@
 use crate::core::adaptive::GrammarState;
-use crate::core::cache::{Allocs, ParserCache};
-use crate::core::context::{ParserContext, PR};
+use crate::core::cache::{Allocs, ParserCache, PCache};
+use crate::core::context::{ParserContext};
 use crate::core::pos::Pos;
-use crate::core::presult::PResult;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
@@ -15,7 +14,7 @@ use crate::rule_action::RuleAction;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>> {
     context: ParserContext,
-    cache: ParserCache<'grm, 'b, PResult<PR<'b, 'grm, A>, E>, A>,
+    cache: PCache<'b, 'grm, E, A>,
 
     state: GrammarState<'b, 'grm, A>,
 }

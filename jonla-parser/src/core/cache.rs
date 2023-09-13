@@ -10,6 +10,7 @@ use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::grammar::{Action};
 use by_address::ByAddress;
 use std::collections::HashMap;
+use std::mem;
 use bumpalo::Bump;
 
 type CacheKey<'grm, 'b, A> = (
@@ -20,16 +21,29 @@ type CacheKey<'grm, 'b, A> = (
     ),
 );
 
-pub struct ParserCache<'grm, 'b, PR, A: Action<'grm>> {
+type CacheKeyInternal<'b> = (
+    Pos,
+    (
+        ByAddress<&'b ()>,
+        ParserContext,
+    ),
+);
+
+
+fn to_internal_key<'grm, 'b, A: Action<'grm>>((p, (a, c)): CacheKey<'grm, 'b, A>) -> CacheKeyInternal<'b> {
+    (p, (unsafe { mem::transmute(&a[0]) }, c))
+}
+
+pub struct ParserCache<'grm, 'b, E: ParseError, A: Action<'grm>> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'b, A>, ParserCacheEntry<PR>>,
-    cache_stack: Vec<CacheKey<'grm, 'b, A>>,
+    cache: HashMap<CacheKeyInternal<'b>, ParserCacheEntry<PResult<PR<'b, 'grm, A>, E>>>,
+    cache_stack: Vec<CacheKeyInternal<'b>>,
     // For allocating things that might be in the result
     pub alloc: &'b Allocs,
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E, A> = ParserCache<'grm, 'b, PResult<PR<'b, 'grm, A>, E>, A>;
+pub type PCache<'b, 'grm, E, A> = ParserCache<'grm, 'b, E, A>;
 
 pub struct Allocs {
     pub alo: Bump,
@@ -48,7 +62,7 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'b, PR: Clone, A: Action<'grm>> ParserCache<'grm, 'b, PR, A> {
+impl<'grm, 'b, E: ParseError, A: Action<'grm>> ParserCache<'grm, 'b, E, A> {
     pub fn new(input: &'grm str, alloc: &'b Allocs) -> Self {
         ParserCache {
             cache: HashMap::new(),
@@ -58,12 +72,12 @@ impl<'grm, 'b, PR: Clone, A: Action<'grm>> ParserCache<'grm, 'b, PR, A> {
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: &CacheKey<'grm, 'b, A>) -> Option<bool> {
-        self.cache.get(key).map(|v| v.read)
+    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'b, A>) -> Option<bool> {
+        self.cache.get(&to_internal_key(key)).map(|v| v.read)
     }
 
-    pub(crate) fn cache_get(&mut self, key: &CacheKey<'grm, 'b, A>) -> Option<&PR> {
-        if let Some(v) = self.cache.get_mut(key) {
+    pub(crate) fn cache_get(&mut self, key: CacheKey<'grm, 'b, A>) -> Option<&PResult<PR<'b, 'grm, A>, E>> {
+        if let Some(v) = self.cache.get_mut(&to_internal_key(key)) {
             v.read = true;
             Some(&v.value)
         } else {
@@ -71,7 +85,8 @@ impl<'grm, 'b, PR: Clone, A: Action<'grm>> ParserCache<'grm, 'b, PR, A> {
         }
     }
 
-    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b, A>, value: PR) {
+    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b, A>, value: PResult<PR<'b, 'grm, A>, E>) {
+        let key = to_internal_key(key);
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -103,7 +118,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
     move |pos_start: Pos, state: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
-        if let Some(cached) = state.cache_get(&key) {
+        if let Some(cached) = state.cache_get(key.clone()) {
             return cached.clone();
         }
 
@@ -126,7 +141,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         match res {
             POk(mut o, mut spos, mut epos, mut empty, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
-                if !state.cache_is_read(&key).unwrap() {
+                if !state.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
                     let res = POk(o, spos, epos, empty, be);
                     state.cache_insert(key, res.clone());
@@ -176,3 +191,4 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
         }
     }
 }
+

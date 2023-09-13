@@ -3,12 +3,12 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar::{Action, GrammarFile, RuleExpr};
+use crate::grammar::grammar::{Action, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR, Raw, RawEnv};
+use crate::core::context::{ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule::parser_rule;
@@ -16,10 +16,6 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::{apply, apply_rawenv};
 use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
