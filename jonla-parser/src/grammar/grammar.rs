@@ -7,14 +7,14 @@ use crate::core::context::RawEnv;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct GrammarFile<'grm, A: Action<'grm>> {
+pub struct GrammarFile<'grm, A> {
     #[serde(borrow)]
     pub rules: Vec<Rule<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct Rule<'grm, A: Action<'grm>> {
+pub struct Rule<'grm, A> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
     pub blocks: Vec<Block<'grm, A>>,
@@ -22,11 +22,11 @@ pub struct Rule<'grm, A: Action<'grm>> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct Block<'grm, A: Action<'grm>>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
+pub struct Block<'grm, A>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct AnnotatedRuleExpr<'grm, A: Action<'grm>>(
+pub struct AnnotatedRuleExpr<'grm, A>(
     pub Vec<RuleAnnotation<'grm>>,
     #[serde(borrow)] pub RuleExpr<'grm, A>,
 );
@@ -55,7 +55,7 @@ pub enum RuleAnnotation<'grm> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub enum RuleExpr<'grm, A: Action<'grm>> {
+pub enum RuleExpr<'grm, A> {
     Rule(&'grm str, Vec<A>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),

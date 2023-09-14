@@ -69,7 +69,7 @@ fn part2() {
             .unwrap()
             .into_boxed_slice(),
     );
-    let result: ActionResult<'static> = bincode::deserialize(&temp).unwrap();
+    let result: ActionResult<'static, RuleAction> = bincode::deserialize(&temp).unwrap();
 
     let grammar2 = parse_grammarfile(&result, input).unwrap();
     let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();

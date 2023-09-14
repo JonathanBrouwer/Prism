@@ -4,7 +4,7 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use crate::core::span::Span;
-use crate::grammar::grammar::{Action};
+use crate::grammar::grammar::{Action, GrammarFile};
 
 #[derive(Clone, Debug)]
 pub struct PR<'b, 'grm, A> {
@@ -48,6 +48,7 @@ pub enum Raw<'b, 'grm, A> {
     Action(&'b A),
     List(Span, Vec<RawEnv<'b, 'grm, A>>),
     Rule(&'grm str),
+    Grammar(Arc<GrammarFile<'grm, A>>),
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]

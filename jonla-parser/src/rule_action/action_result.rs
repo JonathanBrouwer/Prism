@@ -1,20 +1,24 @@
 use std::borrow::Cow;
+use std::sync::Arc;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::grammar::{Action, GrammarFile};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum ActionResult<'grm> {
+#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
+pub enum ActionResult<'grm, A> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<ActionResult<'grm>>),
+    Construct(Span, &'grm str, Vec<ActionResult<'grm, A>>),
     RuleRef(&'grm str),
+    Grammar(Arc<GrammarFile<'grm, A>>),
 }
 
-impl<'grm> ActionResult<'grm> {
+impl<'grm, A: Action<'grm>> ActionResult<'grm, A> {
     pub fn get_value<'a>(&self, src: &'grm str) -> Cow<'grm, str> {
         match self {
             ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
@@ -36,6 +40,7 @@ impl<'grm> ActionResult<'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
+            ActionResult::Grammar(_) => format!("[grammar]"),
         }
     }
 }

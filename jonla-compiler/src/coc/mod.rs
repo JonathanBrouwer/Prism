@@ -8,6 +8,7 @@ use jonla_parser::core::span::Span;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 use jonla_parser::rule_action::action_result::ActionResult;
+use jonla_parser::rule_action::RuleAction;
 
 pub type W<T> = Rc<T>;
 
@@ -31,7 +32,7 @@ pub struct SourceInfo {
 }
 
 impl Expr<SourceInfo> {
-    pub fn from_action_result(value: &ActionResult, src: &str) -> Self {
+    pub fn from_action_result(value: &ActionResult<RuleAction>, src: &str) -> Self {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!();
         };

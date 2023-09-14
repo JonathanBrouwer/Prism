@@ -180,12 +180,11 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
-                let temp_alloc = Allocs::new();
-
                 let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE, "toplevel", &vec![])
-                    .parse(stream, &mut PCache::new(cache.input, &temp_alloc), &ParserContext::new()).map(|pr| {
-                    let x: ActionResult<'grm> = apply_rawenv(&pr.rtrn, &META_GRAMMAR_STATE);
-                    x
+                    .parse(stream, cache, &ParserContext::new()).map(|pr| {
+                    let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn, &META_GRAMMAR_STATE);
+
+
                 });
 
                 todo!()
