@@ -34,16 +34,16 @@ fn to_internal_key<'grm, 'b, A: Action<'grm>>((p, (a, c)): CacheKey<'grm, 'b, A>
     (p, (unsafe { mem::transmute(&a[0]) }, c))
 }
 
-pub struct ParserCache<'grm, 'b, E: ParseError, A: Action<'grm>> {
+pub struct ParserCache<'grm, 'b, E: ParseError> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKeyInternal<'b>, ParserCacheEntry<PResult<PR<'b, 'grm, A>, E>>>,
+    cache: HashMap<CacheKeyInternal<'b>, ParserCacheEntry<PResult<PR<'b, 'grm, ()>, E>>>,
     cache_stack: Vec<CacheKeyInternal<'b>>,
     // For allocating things that might be in the result
     pub alloc: &'b Allocs,
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E, A> = ParserCache<'grm, 'b, E, A>;
+pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 
 pub struct Allocs {
     pub alo: Bump,
@@ -62,7 +62,7 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'b, E: ParseError, A: Action<'grm>> ParserCache<'grm, 'b, E, A> {
+impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
     pub fn new(input: &'grm str, alloc: &'b Allocs) -> Self {
         ParserCache {
             cache: HashMap::new(),
@@ -72,21 +72,26 @@ impl<'grm, 'b, E: ParseError, A: Action<'grm>> ParserCache<'grm, 'b, E, A> {
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'b, A>) -> Option<bool> {
+    pub(crate) fn cache_is_read<A: Action<'grm>>(&self, key: CacheKey<'grm, 'b, A>) -> Option<bool> {
         self.cache.get(&to_internal_key(key)).map(|v| v.read)
     }
 
-    pub(crate) fn cache_get(&mut self, key: CacheKey<'grm, 'b, A>) -> Option<&PResult<PR<'b, 'grm, A>, E>> {
+    pub(crate) fn cache_get<A: Action<'grm>>(&mut self, key: CacheKey<'grm, 'b, A>) -> Option<&PResult<PR<'b, 'grm, A>, E>> {
         if let Some(v) = self.cache.get_mut(&to_internal_key(key)) {
             v.read = true;
-            Some(&v.value)
+            let v: &PResult<PR<()>, E> = &v.value;
+            let v: &PResult<PR<A>, E> = unsafe { mem::transmute(v) };
+            Some(v)
         } else {
             None
         }
     }
 
-    pub(crate) fn cache_insert(&mut self, key: CacheKey<'grm, 'b, A>, value: PResult<PR<'b, 'grm, A>, E>) {
+    pub(crate) fn cache_insert<A: Action<'grm>>(&mut self, key: CacheKey<'grm, 'b, A>, value: PResult<PR<'b, 'grm, A>, E>) {
         let key = to_internal_key(key);
+        let value: PResult<PR<'b, 'grm, ()>, E> = unsafe { value.map(|pr| mem::transmute(pr)) };
+
+
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);
@@ -109,13 +114,13 @@ impl<'grm, 'b, E: ParseError, A: Action<'grm>> ParserCache<'grm, 'b, E, A> {
 }
 
 pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A>,
+    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm, A>, E>,
     id: (
         ByAddress<&'b [BlockState<'b, 'grm, A>]>,
         ParserContext,
     ),
-) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
+) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
+    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
         if let Some(cached) = state.cache_get(key.clone()) {

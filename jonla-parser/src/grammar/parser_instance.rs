@@ -14,7 +14,7 @@ use crate::rule_action::RuleAction;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>> {
     context: ParserContext,
-    cache: PCache<'b, 'grm, E, A>,
+    cache: PCache<'b, 'grm, E>,
 
     state: GrammarState<'b, 'grm, A>,
 }

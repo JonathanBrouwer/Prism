@@ -15,8 +15,8 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     rules: &'b GrammarState<'b, 'grm, A>,
     rule: &'grm str,
     args: &'a Vec<Arc<RawEnv<'b, 'grm, A>>>,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
+) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm, A> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
 

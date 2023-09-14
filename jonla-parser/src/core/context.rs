@@ -4,10 +4,10 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use crate::core::span::Span;
-use crate::grammar::grammar::Action;
+use crate::grammar::grammar::{Action};
 
 #[derive(Clone, Debug)]
-pub struct PR<'b, 'grm, A: Action<'grm>> {
+pub struct PR<'b, 'grm, A> {
     pub free: HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
     pub rtrn: RawEnv<'b, 'grm, A>,
 }
@@ -27,7 +27,7 @@ impl<'b, 'grm, A: Action<'grm>> PR<'b, 'grm, A> {
 }
 
 #[derive(Clone, Debug)]
-pub struct RawEnv<'b, 'grm, A: Action<'grm>> {
+pub struct RawEnv<'b, 'grm, A> {
     pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
     pub value: Raw<'b, 'grm, A>
 }
@@ -42,7 +42,7 @@ impl<'b, 'grm, A: Action<'grm>> RawEnv<'b, 'grm, A> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Raw<'b, 'grm, A: Action<'grm>> {
+pub enum Raw<'b, 'grm, A> {
     Internal(&'static str),
     Value(Span),
     Action(&'b A),

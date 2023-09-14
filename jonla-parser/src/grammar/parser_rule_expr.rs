@@ -7,7 +7,7 @@ use crate::grammar::grammar::{Action, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
-use crate::core::cache::PCache;
+use crate::core::cache::{Allocs, PCache};
 use crate::core::context::{ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
@@ -16,6 +16,8 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply_rawenv;
 use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
@@ -23,8 +25,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
     blocks: &'b [BlockState<'b, 'grm, A>],
     expr: &'b RuleExpr<'grm, A>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E, A> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E, A>, context: &ParserContext| {
+) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
@@ -55,7 +57,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let p = move |stream: Pos,
-                              cache: &mut PCache<'b, 'grm, E, A>,
+                              cache: &mut PCache<'b, 'grm, E>,
                               context: &ParserContext| {
                     let mut res = PResult::new_empty((), stream);
                     for char in literal.chars() {
@@ -178,8 +180,13 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
+                let temp_alloc = Allocs::new();
+
                 let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE, "toplevel", &vec![])
-                    .parse(stream, &mut PCache::new(cache.input, cache.alloc), &ParserContext::new());
+                    .parse(stream, &mut PCache::new(cache.input, &temp_alloc), &ParserContext::new()).map(|pr| {
+                    let x: ActionResult<'grm> = apply_rawenv(&pr.rtrn, &META_GRAMMAR_STATE);
+                    x
+                });
 
                 todo!()
             }

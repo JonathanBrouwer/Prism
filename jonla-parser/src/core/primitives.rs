@@ -8,14 +8,13 @@ use crate::core::span::Span;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
-use crate::grammar::grammar::Action;
 
 #[inline(always)]
-pub fn single<'b, 'grm: 'b, E: ParseError, A: Action<'grm>>(
+pub fn single<'b, 'grm: 'b, E: ParseError>(
     f: impl Fn(&char) -> bool,
-) -> impl Parser<'b, 'grm, (Span, char), E, A> {
+) -> impl Parser<'b, 'grm, (Span, char), E> {
     move |pos: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           _: &ParserContext|
           -> PResult<(Span, char), E> {
         match pos.next(cache.input) {
@@ -28,12 +27,12 @@ pub fn single<'b, 'grm: 'b, E: ParseError, A: Action<'grm>>(
 }
 
 #[inline(always)]
-pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError, A: Action<'grm>>(
-    p1: &'a impl Parser<'b, 'grm, O1, E, A>,
-    p2: &'a impl Parser<'b, 'grm, O2, E, A>,
-) -> impl Parser<'b, 'grm, (O1, O2), E, A> + 'a {
+pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError>(
+    p1: &'a impl Parser<'b, 'grm, O1, E>,
+    p2: &'a impl Parser<'b, 'grm, O2, E>,
+) -> impl Parser<'b, 'grm, (O1, O2), E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<(O1, O2), E> {
         let res1 = p1.parse(stream, cache, context);
@@ -43,12 +42,12 @@ pub fn seq2<'b, 'grm: 'b, 'a, O1, O2, E: ParseError, A: Action<'grm>>(
 }
 
 #[inline(always)]
-pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError, A: Action<'grm>>(
-    p1: &'a impl Parser<'b, 'grm, O, E, A>,
-    p2: &'a impl Parser<'b, 'grm, O, E, A>,
-) -> impl Parser<'b, 'grm, O, E, A> + 'a {
+pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError>(
+    p1: &'a impl Parser<'b, 'grm, O, E>,
+    p2: &'a impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         p1.parse(stream, cache, context)
@@ -57,14 +56,14 @@ pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError, A: Action<'grm>>(
 }
 
 #[inline(always)]
-pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>, A: Action<'grm>>(
-    item: impl Parser<'b, 'grm, OP, E, A>,
-    delimiter: impl Parser<'b, 'grm, OD, E, A>,
+pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
+    item: impl Parser<'b, 'grm, OP, E>,
+    delimiter: impl Parser<'b, 'grm, OD, E>,
     min: usize,
     max: Option<usize>,
-) -> impl Parser<'b, 'grm, Vec<OP>, E, A> {
+) -> impl Parser<'b, 'grm, Vec<OP>, E> {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<Vec<OP>, E> {
         let mut last_res: PResult<Vec<OP>, E> = PResult::new_empty(vec![], stream);
@@ -114,9 +113,9 @@ pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>, A
 }
 
 #[inline(always)]
-pub fn end<'b, 'grm: 'b, E: ParseError, A: Action<'grm>>() -> impl Parser<'b, 'grm, (), E, A> {
+pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           _: &ParserContext|
           -> PResult<(), E> {
         match stream.next(cache.input) {
@@ -127,11 +126,11 @@ pub fn end<'b, 'grm: 'b, E: ParseError, A: Action<'grm>>() -> impl Parser<'b, 'g
 }
 
 #[inline(always)]
-pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError, A: Action<'grm>>(
-    p: &impl Parser<'b, 'grm, O, E, A>,
-) -> impl Parser<'b, 'grm, O, E, A> + '_ {
+pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
+    p: &impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + '_ {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         match p.parse(stream, cache, context) {
@@ -142,11 +141,11 @@ pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError, A: Action<'grm>>(
 }
 
 #[inline(always)]
-pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError, A: Action<'grm>>(
-    p: &impl Parser<'b, 'grm, O, E, A>,
-) -> impl Parser<'b, 'grm, (), E, A> + '_ {
+pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError>(
+    p: &impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, (), E> + '_ {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<(), E> {
         match p.parse(stream, cache, context) {

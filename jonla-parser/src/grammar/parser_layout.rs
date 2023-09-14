@@ -13,10 +13,10 @@ use crate::grammar::parser_rule::parser_rule;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
-    sub: &'a impl Parser<'b, 'grm, O, E, A>,
-) -> impl Parser<'b, 'grm, O, E, A> + 'a {
+    sub: &'a impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |pos: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         if context.layout_disabled || !rules.contains_rule("layout") {
@@ -61,10 +61,10 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
-    sub: &'a impl Parser<'b, 'grm, O, E, A>,
-) -> impl Parser<'b, 'grm, O, E, A> + 'a {
+    sub: &'a impl Parser<'b, 'grm, O, E>,
+) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E, A>,
+          cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
