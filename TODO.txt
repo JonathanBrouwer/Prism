@@ -1,5 +1,1 @@
-THE PLAN:
-- Error recovery
-- @norecover
-- Parametric rules
--
+- Make rules a Vec in GrammarState

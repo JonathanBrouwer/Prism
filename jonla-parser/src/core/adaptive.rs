@@ -1,59 +1,66 @@
 use crate::core::toposet::TopoSet;
 use crate::grammar::grammar::{Action, AnnotatedRuleExpr, Block, GrammarFile, Rule};
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use std::mem;
-use std::sync::Arc;
+use std::{iter, mem};
+use std::fmt::{Display, Formatter};
+use serde::{Deserialize, Serialize};
 
 pub struct GrammarState<'b, 'grm, A: Action<'grm>> {
-    rules: HashMap<&'grm str, Arc<RuleState<'b, 'grm, A>>>,
+    rules: Vec<RuleState<'b, 'grm, A>>,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct RuleId(usize);
+
+impl Display for RuleId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 impl<'b, 'grm, A: Action<'grm>> GrammarState<'b, 'grm, A> {
     pub fn new() -> Self {
         Self {
-            rules: HashMap::new(),
+            rules: Vec::new(),
         }
     }
 
     pub fn new_with(grammar: &'b GrammarFile<'grm, A>) -> Self {
         let mut s = Self {
-            rules: HashMap::new(),
+            rules: Vec::new(),
         };
         s.update(grammar).unwrap(); // Cannot fail, since they're all new entries
         s
     }
 
-    pub fn contains_rule(&self, rule: &str) -> bool {
-        self.rules.contains_key(rule)
+    pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm, A>> {
+        self.rules.get(rule.0).map(|x| &*x)
     }
 
-    pub fn get(&self, rule: &str) -> Option<&RuleState<'b, 'grm, A>> {
-        self.rules.get(rule).map(|x| &**x)
-    }
-
-    pub fn with(&self, grammar: &'b GrammarFile<'grm, A>) -> Result<Self, &'grm str> {
+    pub fn with(&self, grammar: &'b GrammarFile<'grm, A>) -> Result<(Self, impl Iterator<Item=(&'grm str, RuleId)>), &'grm str> {
         let mut s = GrammarState {
             rules: self.rules.clone()
         };
-        s.update(grammar)?;
-        Ok(s)
+        let iter = s.update(grammar)?;
+        Ok((s, iter))
     }
 
-    fn update(&mut self, grammar: &'b GrammarFile<'grm, A>) -> Result<(), &'grm str> {
-        for rule in &grammar.rules {
-            match self.rules.entry(&rule.name[..]) {
-                Entry::Occupied(mut e) => {
-                    let mut clone = (**e.get()).clone();
-                    clone.update(rule).map_err(|_| &rule.name[..])?;
-                    *e.get_mut() = Arc::new(clone);
-                }
-                Entry::Vacant(e) => {
-                    e.insert(Arc::new(RuleState::new(rule)));
-                }
-            }
-        }
-        Ok(())
+    fn update(&mut self, grammar: &'b GrammarFile<'grm, A>) -> Result<impl Iterator<Item=(&'grm str, RuleId)>, &'grm str> {
+        // for rule in &grammar.rules {
+        //     match self.rules.entry(&rule.name[..]) {
+        //         Entry::Occupied(mut e) => {
+        //             let mut clone = (**e.get()).clone();
+        //             clone.update(rule).map_err(|_| &rule.name[..])?;
+        //             *e.get_mut() = Arc::new(clone);
+        //         }
+        //         Entry::Vacant(e) => {
+        //             e.insert(Arc::new(RuleState::new(rule)));
+        //         }
+        //     }
+        // }
+        // Ok(())
+        todo!();
+        Ok(iter::empty())
     }
 }
 

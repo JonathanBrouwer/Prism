@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use crate::core::adaptive::RuleId;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
@@ -14,7 +15,7 @@ pub enum ActionResult<'grm, A> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<ActionResult<'grm, A>>),
-    RuleRef(&'grm str),
+    RuleRef(RuleId),
     Grammar(Arc<GrammarFile<'grm, A>>),
 }
 

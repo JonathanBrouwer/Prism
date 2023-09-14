@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
+use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
 use crate::grammar::grammar::{Action, GrammarFile};
 
@@ -47,7 +48,7 @@ pub enum Raw<'b, 'grm, A> {
     Value(Span),
     Action(&'b A),
     List(Span, Vec<RawEnv<'b, 'grm, A>>),
-    Rule(&'grm str),
+    Rule(RuleId),
     Grammar(Arc<GrammarFile<'grm, A>>),
 }
 

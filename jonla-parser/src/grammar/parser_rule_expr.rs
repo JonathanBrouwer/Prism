@@ -7,7 +7,7 @@ use crate::grammar::grammar::{Action, RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
-use crate::core::cache::{Allocs, PCache};
+use crate::core::cache::{PCache};
 use crate::core::context::{ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
