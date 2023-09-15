@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use crate::grammar::escaped_string::EscapedString;
 use serde::{Deserialize, Serialize};
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{RuleId};
 use crate::core::context::RawEnv;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -79,5 +79,5 @@ pub enum RuleExpr<'grm, A> {
 }
 
 pub trait Action<'grm>: Debug + Clone + Serialize + Deserialize<'grm> + Eq + PartialEq + Hash {
-    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>, grammar: &'b GrammarState<'b, 'grm, Self>) -> Option<&'grm str>;
+    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId>;
 }

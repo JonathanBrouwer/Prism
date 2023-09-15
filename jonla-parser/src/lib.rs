@@ -8,6 +8,8 @@ use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar::GrammarFile;
 use crate::grammar::parser_instance::run_parser_rule_ar;
 use crate::rule_action::RuleAction;
+use std::collections::HashMap;
+use crate::core::adaptive::RuleId;
 
 pub mod arena;
 pub mod core;
@@ -20,8 +22,11 @@ lazy_static! {
         let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
         bincode::deserialize(meta_grammar).unwrap()
     };
-    pub static ref META_GRAMMAR_STATE: GrammarState<'static, 'static, RuleAction<'static>> =
-        GrammarState::new_with(&META_GRAMMAR);
+    pub static ref META_GRAMMAR_STATE: (GrammarState<'static, 'static, RuleAction<'static>>, HashMap<&'static str, RuleId>) = {
+        let (g, i) = GrammarState::new_with(&META_GRAMMAR);
+        (g, i.collect())
+    };
+
 }
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(

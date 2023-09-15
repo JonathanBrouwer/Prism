@@ -32,7 +32,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             cache,
             context,
         );
-        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.end_pos()), rule));
+        res.add_label_implicit(ErrorLabel::Debug(stream.span_to(res.end_pos()), rule_state.name));
         res.map(|pr| pr.fresh())
     }
 }

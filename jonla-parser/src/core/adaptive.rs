@@ -25,12 +25,12 @@ impl<'b, 'grm, A: Action<'grm>> GrammarState<'b, 'grm, A> {
         }
     }
 
-    pub fn new_with(grammar: &'b GrammarFile<'grm, A>) -> Self {
+    pub fn new_with(grammar: &'b GrammarFile<'grm, A>) -> (Self, impl Iterator<Item=(&'grm str, RuleId)>) {
         let mut s = Self {
             rules: Vec::new(),
         };
-        s.update(grammar).unwrap(); // Cannot fail, since they're all new entries
-        s
+        let i = s.update(grammar).unwrap(); // Cannot fail, since they're all new entries
+        (s, i)
     }
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm, A>> {

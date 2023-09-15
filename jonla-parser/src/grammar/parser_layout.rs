@@ -19,7 +19,8 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
-        if context.layout_disabled || !rules.contains_rule("layout") {
+
+        if context.layout_disabled || !rules.get("layout").is_some() {
             return sub.parse(pos, cache, context);
         }
 

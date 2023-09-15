@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{RuleId};
 use crate::core::context::RawEnv;
 
 use crate::grammar::escaped_string::EscapedString;
@@ -20,9 +20,9 @@ pub enum RuleAction<'grm> {
 }
 
 impl<'grm> Action<'grm> for RuleAction<'grm> {
-    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>, grammar: &'b GrammarState<'b, 'grm, Self>) -> Option<&'grm str> {
-        match apply_rawenv(e, grammar) {
-            ActionResult::RuleRef(r) => Some(grammar.get(r).unwrap().name),
+    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId> {
+        match apply_rawenv(e) {
+            ActionResult::RuleRef(r) => Some(r),
             _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
         }
     }

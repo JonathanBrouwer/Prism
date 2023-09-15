@@ -37,7 +37,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                         panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");
                     }
                 } else {
-                    rule
+                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
 
                 let args = args.iter().map(|arg| Arc::new(RawEnv { env: vars.clone(), value: Raw::Action(arg) })).collect();
@@ -180,9 +180,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
-                let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE, "toplevel", &vec![])
+                let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![])
                     .parse(stream, cache, &ParserContext::new()).map(|pr| {
-                    let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn, &META_GRAMMAR_STATE);
+                    let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn);
 
 
                 });

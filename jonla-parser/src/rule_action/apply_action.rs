@@ -1,28 +1,25 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::core::adaptive::GrammarState;
 use crate::core::context::{Raw, RawEnv};
 use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm, RuleAction<'grm>>, grammar: &GrammarState<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm, RuleAction<'grm>> {
-    apply(&pr.value, &pr.env, grammar)
+pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm, RuleAction<'grm>> {
+    apply(&pr.value, &pr.env)
 }
 
-pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm, RuleAction<'grm>> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm, RuleAction<'grm>>>>, grammar: &GrammarState<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm, RuleAction<'grm>> {
+pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm, RuleAction<'grm>> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm, RuleAction<'grm>>>>) -> ActionResult<'grm, RuleAction<'grm>> {
     match &val {
         Raw::Internal(r) => panic!("Tried to apply internal raw value: `{r}`."),
         Raw::Value(s) => ActionResult::Value(*s),
         Raw::List(s, l) => {
-            ActionResult::Construct(*s, "List", l.iter().map(|r| apply_rawenv(r, grammar)).collect())
+            ActionResult::Construct(*s, "List", l.iter().map(|r| apply_rawenv(r)).collect())
         },
-        Raw::Rule(r) => ActionResult::RuleRef(r),
+        Raw::Rule(r) => ActionResult::RuleRef(*r),
         Raw::Action(a) => apply_action(a, &|n| {
             if let Some(r) = env.get(n) {
-                Some(apply_rawenv(&r, grammar))
-            } else if let Some(r) = grammar.get(n) {
-                Some(ActionResult::RuleRef(r.name))
+                Some(apply_rawenv(&r))
             } else {
                 None
             }
