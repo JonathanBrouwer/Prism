@@ -20,14 +20,14 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
         let rule_state: &'b RuleState<'b, 'grm, A> =
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
 
-        let args = rule_state
+        let rule_args = rule_state
             .args
             .iter()
             .cloned()
             .zip_eq(args.iter().cloned())
             .collect::<HashMap<_, _>>();
 
-        let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, &args).parse(
+        let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, &rule_args).parse(
             stream,
             cache,
             context,

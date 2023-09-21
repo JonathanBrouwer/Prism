@@ -31,7 +31,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    if let Some(rule) = A::eval_to_rule(ar, rules) {
+                    if let Some(rule) = A::eval_to_rule(ar) {
                         rule
                     } else {
                         panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");

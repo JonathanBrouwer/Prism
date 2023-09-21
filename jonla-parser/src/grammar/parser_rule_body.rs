@@ -10,7 +10,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use by_address::ByAddress;
 
 use crate::core::context::{ParserContext, PR, RawEnv};
@@ -27,11 +27,11 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'b GrammarState<'b, 'grm, A>,
     bs: &'b [BlockState<'b, 'grm, A>],
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
+    rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
-            &parser_body_sub_blocks(rules, bs, vars),
+            &parser_body_sub_blocks(rules, bs, rule_args),
             (ByAddress(bs), context.clone()),
         )
         .parse(stream, cache, context)
@@ -41,7 +41,7 @@ pub fn parser_body_cache_recurse<
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
     bs: &'b [BlockState<'b, 'grm, A>],
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
+    rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
@@ -49,14 +49,14 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
           -> PResult<PR<A>, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], vars).parse(
+            [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args).parse(
                 stream,
                 cache,
                 context,
             ),
             [b, brest @ ..] => {
                 // Parse current
-                let res = parser_body_sub_constructors(rules, bs, &b.constructors[..], vars).parse(
+                let res = parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args).parse(
                     stream,
                     cache,
                     context,
@@ -64,7 +64,7 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body_cache_recurse(rules, brest, vars),
+                    &parser_body_cache_recurse(rules, brest, rule_args),
                     stream,
                     cache,
                     context,
@@ -83,20 +83,25 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm, A>,
     blocks: &'b [BlockState<'b, 'grm, A>],
-    es: &'b [&'b AnnotatedRuleExpr<'grm, A>],
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
+    es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&str, RuleId>>)],
+    rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es
     {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
-        [AnnotatedRuleExpr(annots, expr)] => {
-            parser_body_sub_annotations(rules, blocks, annots, expr, vars).parse(stream, cache, context)
-        }
-        [AnnotatedRuleExpr(annots, expr), rest @ ..] => {
-            parser_body_sub_annotations(rules, blocks, annots, expr, vars)
+        //TODO is this necessary?
+        // [(AnnotatedRuleExpr(annots, expr), rule_ctx)] => {
+        //     parser_body_sub_annotations(rules, blocks, annots, expr, rule_args).parse(stream, cache, context)
+        // }
+        [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
+            let vars = rule_args.clone();
+            //TODO calculate vars
+            aaaaaaaa
+
+            parser_body_sub_annotations(rules, blocks, annots, expr, rule_args)
                 .parse(stream, cache, context)
                 .merge_choice_parser(
-                    &parser_body_sub_constructors(rules, blocks, rest, vars),
+                    &parser_body_sub_constructors(rules, blocks, rest, rule_args),
                     stream,
                     cache,
                     context,
