@@ -51,7 +51,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Value(span))
                 });
                 let p = recovery_point(p);
-                let p = parser_with_layout(rules, &p);
+                let p = parser_with_layout(rules, vars, &p);
                 p.parse(stream, cache, context)
             }
             RuleExpr::Literal(literal) => {
@@ -75,7 +75,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     res
                 };
                 let p = recovery_point(p);
-                let p = parser_with_layout(rules, &p);
+                let p = parser_with_layout(rules, vars, &p);
                 p.parse(stream, cache, context)
             }
             RuleExpr::Repeat {

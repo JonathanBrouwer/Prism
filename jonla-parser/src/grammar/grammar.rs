@@ -79,6 +79,5 @@ pub enum RuleExpr<'grm, A> {
 }
 
 pub trait Action<'grm>: Debug + Clone + Serialize + Deserialize<'grm> + Eq + PartialEq + Hash {
-    fn from_rule(r: RuleId) -> Self;
     fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId>;
 }

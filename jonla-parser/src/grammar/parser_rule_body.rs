@@ -13,7 +13,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR, RawEnv};
+use crate::core::context::{ParserContext, PR, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule_expr::parser_expr;
@@ -83,29 +83,26 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm, A>,
     blocks: &'b [BlockState<'b, 'grm, A>],
-    es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&str, RuleId>>)],
+    es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId>>)],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es
     {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
-        //TODO is this necessary?
-        // [(AnnotatedRuleExpr(annots, expr), rule_ctx)] => {
-        //     parser_body_sub_annotations(rules, blocks, annots, expr, rule_args).parse(stream, cache, context)
-        // }
         [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
-            let vars = rule_args.clone();
-            //TODO calculate vars
-            aaaaaaaa
+            let rule_ctx = rule_ctx.iter().map(|(&k, &v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v)))));
+            let rule_args = rule_args.iter().map(|(&k, v)| (k, v.clone()));
+            let vars: HashMap<&'grm str, Arc<RawEnv<A>>> = rule_args.chain(rule_ctx).collect();
 
-            parser_body_sub_annotations(rules, blocks, annots, expr, rule_args)
+            let res = parser_body_sub_annotations(rules, blocks, annots, expr, &vars)
                 .parse(stream, cache, context)
                 .merge_choice_parser(
-                    &parser_body_sub_constructors(rules, blocks, rest, rule_args),
+                    &parser_body_sub_constructors(rules, blocks, rest, &vars),
                     stream,
                     cache,
                     context,
-                )
+                );
+            res
         }
     }
 }
@@ -135,7 +132,7 @@ fn parser_body_sub_annotations<
                 res
             }
             [RuleAnnotation::DisableLayout, rest @ ..] => {
-                parser_with_layout(rules, &move |stream: Pos,
+                parser_with_layout(rules, vars, &move |stream: Pos,
                                                  cache: &mut PCache<'b, 'grm, E>,
                                                  context: &ParserContext|
                       -> PResult<_, E> {
@@ -151,7 +148,7 @@ fn parser_body_sub_annotations<
                 .parse(stream, cache, context)
             }
             [RuleAnnotation::EnableLayout, rest @ ..] => {
-                parser_with_layout(rules, &move |stream: Pos,
+                parser_with_layout(rules, vars, &move |stream: Pos,
                                                  cache: &mut PCache<'b, 'grm, E>,
                                                  context: &ParserContext|
                       -> PResult<_, E> {

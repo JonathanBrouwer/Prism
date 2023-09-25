@@ -21,10 +21,6 @@ pub enum RuleAction<'grm> {
 }
 
 impl<'grm> Action<'grm> for RuleAction<'grm> {
-    fn from_rule(r: RuleId) -> Self {
-        Self::RuleRef(r)
-    }
-
     fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId> {
         match apply_rawenv(e) {
             ActionResult::RuleRef(r) => Some(r),

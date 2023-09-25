@@ -1,7 +1,8 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::cache::{Allocs, ParserCache, PCache};
-use crate::core::context::{ParserContext};
+use crate::core::context::{ParserContext, Raw, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
@@ -40,9 +41,11 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'b, 'grm, E, RuleAction<'grm>> {
     pub fn run_ar(&'b mut self, rule: &'grm str) -> Result<ActionResult<'grm, RuleAction<'grm>>, Vec<E>> {
         let rule = self.rules[rule];
+        let rule_ctx = self.rules.iter().map(|(&k, &v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))).collect();
         let x = parse_with_recovery(
             &full_input_layout(
                 &self.state,
+                &rule_ctx,
                 &parser_rule::parser_rule(&self.state, rule, &vec![]),
             ),
             Pos::start(),
@@ -53,17 +56,6 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone> ParserInstance<'
     }
 }
 
-
-
-// pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'b, A: Action<'grm>>(
-//     rules: &'grm GrammarFile<'grm, A>,
-//     rule: &'grm str,
-//     input: &'grm str,
-// ) -> Result<RawEnv<'b, 'grm, A>, Vec<E>> {
-//     let bump = Allocs::new();
-//     let mut instance = ParserInstance::new(input, &bump, rules);
-//     instance.run(rule)
-// }
 
 pub fn run_parser_rule_ar<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     rules: &'grm GrammarFile<'grm, RuleAction<'grm>>,
