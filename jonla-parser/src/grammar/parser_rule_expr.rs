@@ -16,6 +16,8 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::from_action_result::parse_grammarfile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use crate::rule_action::RuleAction;
@@ -183,8 +185,22 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![])
                     .parse(stream, cache, &ParserContext::new()).map(|pr| {
                     let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn);
+                    let g = match parse_grammarfile(&ar, cache.input) {
+                        Some(g) => g,
+                        None => {
+                            let mut e = E::new(stream.span_to(stream));
+                            e.add_label_implicit(ErrorLabel::Explicit(
+                                stream.span_to(stream),
+                                EscapedString::from_escaped(
+                                    "language grammar to be correct, but adaptation AST was malformed.",
+                                ),
+                            ));
+                            return PResult::new_err(e, stream);
+                        }
+                    };
 
 
+                    todo!()
                 });
 
                 todo!()
