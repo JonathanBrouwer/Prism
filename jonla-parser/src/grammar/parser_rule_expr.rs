@@ -185,19 +185,19 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![])
                     .parse(stream, cache, &ParserContext::new()).map(|pr| {
                     let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn);
-                    let g = match parse_grammarfile(&ar, cache.input) {
-                        Some(g) => g,
-                        None => {
-                            let mut e = E::new(stream.span_to(stream));
-                            e.add_label_implicit(ErrorLabel::Explicit(
-                                stream.span_to(stream),
-                                EscapedString::from_escaped(
-                                    "language grammar to be correct, but adaptation AST was malformed.",
-                                ),
-                            ));
-                            return PResult::new_err(e, stream);
-                        }
-                    };
+                    // let g = match parse_grammarfile(&ar, cache.input) {
+                    //     Some(g) => g,
+                    //     None => {
+                    //         let mut e = E::new(stream.span_to(stream));
+                    //         e.add_label_implicit(ErrorLabel::Explicit(
+                    //             stream.span_to(stream),
+                    //             EscapedString::from_escaped(
+                    //                 "language grammar to be correct, but adaptation AST was malformed.",
+                    //             ),
+                    //         ));
+                    //         return PResult::new_err(e, stream);
+                    //     }
+                    // };
 
 
                     todo!()
