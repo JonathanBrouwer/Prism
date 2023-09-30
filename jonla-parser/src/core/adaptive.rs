@@ -3,7 +3,6 @@ use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use std::collections::HashMap;
 use std::{iter, mem};
 use std::fmt::{Display, Formatter};
-use std::marker::PhantomData;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use crate::core::context::{Raw, RawEnv};

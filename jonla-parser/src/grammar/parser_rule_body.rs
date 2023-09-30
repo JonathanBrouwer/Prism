@@ -10,10 +10,10 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_layout::parser_with_layout;
 
-use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR, Raw, RawEnv};
+use crate::core::context::{ParserContext, PR, RawEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule_expr::parser_expr;
@@ -22,7 +22,7 @@ pub fn parser_body_cache_recurse<
     'a,
     'b: 'a,
     'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
@@ -37,7 +37,7 @@ pub fn parser_body_cache_recurse<
     }
 }
 
-fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm>(
+fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm>],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
@@ -77,7 +77,7 @@ fn parser_body_sub_constructors<
     'a,
     'b: 'a,
     'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
@@ -109,7 +109,7 @@ fn parser_body_sub_annotations<
     'a,
     'b: 'a,
     'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],

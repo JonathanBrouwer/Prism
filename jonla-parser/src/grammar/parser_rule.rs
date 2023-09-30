@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 
-pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm>(
+pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: RuleId,
     args: &'a Vec<Arc<RawEnv<'b, 'grm>>>,

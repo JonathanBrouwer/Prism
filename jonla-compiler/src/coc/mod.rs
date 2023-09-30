@@ -8,7 +8,6 @@ use jonla_parser::core::span::Span;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 use jonla_parser::rule_action::action_result::ActionResult;
-use jonla_parser::rule_action::RuleAction;
 
 pub type W<T> = Rc<T>;
 

@@ -7,7 +7,6 @@ use crate::error::ParseError;
 use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar::GrammarFile;
 use crate::grammar::parser_instance::run_parser_rule;
-use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use crate::core::adaptive::RuleId;
 

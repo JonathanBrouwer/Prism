@@ -9,7 +9,6 @@ use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use by_address::ByAddress;
 use std::collections::HashMap;
-use std::mem;
 use bumpalo::Bump;
 
 type CacheKey<'grm, 'b> = (
@@ -93,7 +92,7 @@ impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
     }
 }
 
-pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm>, E>,
     id: (
         ByAddress<&'b [BlockState<'b, 'grm>]>,

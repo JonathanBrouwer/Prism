@@ -1,11 +1,7 @@
 use serde::{Deserialize, Serialize};
 use crate::core::adaptive::{RuleId};
-use crate::core::context::RawEnv;
 
 use crate::grammar::escaped_string::EscapedString;
-
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply_rawenv;
 
 pub mod apply_action;
 pub mod action_result;

@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 
-pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
+pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
     stream: Pos,
     cache: &mut PCache<'b, 'grm, E>,
