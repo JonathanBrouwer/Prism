@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::sync::Arc;
 
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
@@ -7,7 +6,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::GrammarFile;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
@@ -15,7 +13,6 @@ pub enum ActionResult<'grm> {
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<ActionResult<'grm>>),
     RuleRef(RuleId),
-    Grammar(Arc<GrammarFile<'grm>>),
 }
 
 impl<'grm> ActionResult<'grm> {
@@ -40,7 +37,6 @@ impl<'grm> ActionResult<'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
-            ActionResult::Grammar(_) => "[grammar]".to_string(),
         }
     }
 }

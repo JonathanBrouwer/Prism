@@ -23,7 +23,6 @@ pub fn apply<'b, 'grm>(
         Raw::Action(a) => {
             apply_action(a, &|n| env.get(n).map(|r| apply_rawenv(r)), Span::invalid())
         }
-        Raw::Grammar(_) => todo!(),
     }
 }
 

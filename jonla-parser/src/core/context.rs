@@ -1,7 +1,6 @@
 use crate::core::adaptive::RuleId;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use crate::grammar::GrammarFile;
 use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -53,7 +52,6 @@ pub enum Raw<'b, 'grm> {
     Action(&'b RuleAction<'grm>),
     List(Span, Vec<RawEnv<'b, 'grm>>),
     Rule(RuleId),
-    Grammar(Arc<GrammarFile<'grm>>),
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]
