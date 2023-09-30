@@ -18,7 +18,7 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Cl
     context: ParserContext,
     cache: PCache<'b, 'grm, E>,
 
-    state: GrammarState<'b, 'grm, A>,
+    state: GrammarState<'b, 'grm>,
     rules: HashMap<&'grm str, RuleId<'grm, A>>,
 }
 

@@ -21,7 +21,7 @@ use crate::rule_action::apply_action::apply_rawenv;
 use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm, A>],
     expr: &'b RuleExpr<'grm, A>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,

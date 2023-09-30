@@ -25,7 +25,7 @@ pub fn parser_body_cache_recurse<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
     A: Action<'grm>
 >(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm, A>],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
@@ -39,7 +39,7 @@ pub fn parser_body_cache_recurse<
 }
 
 fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     bs: &'b [BlockState<'b, 'grm, A>],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
@@ -81,7 +81,7 @@ fn parser_body_sub_constructors<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
     A: Action<'grm>
 >(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm, A>],
     es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId<'grm, A>>>)],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
@@ -114,7 +114,7 @@ fn parser_body_sub_annotations<
     E: ParseError<L = ErrorLabel<'grm>> + Clone,
     A: Action<'grm>
 >(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm, A>],
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm, A>,

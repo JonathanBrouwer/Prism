@@ -7,8 +7,8 @@ use std::marker::PhantomData;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
-pub struct GrammarState<'b, 'grm, A: Action<'grm>> {
-    rules: Vec<RuleState<'b, 'grm, A>>,
+pub struct GrammarState<'b, 'grm> {
+    rules: Vec<RuleState<'b, 'grm, ()>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -30,20 +30,24 @@ impl<'grm, A: Action<'grm>> Display for RuleId<'grm, A> {
     }
 }
 
-impl<'b, 'grm, A: Action<'grm>> GrammarState<'b, 'grm, A> {
+impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn new() -> Self {
         Self {
             rules: Vec::new(),
         }
     }
 
-    pub fn new_with(grammar: &'b GrammarFile<'grm, A>) -> (Self, impl Iterator<Item=(&'grm str, RuleId<'grm, A>)> + 'b) {
+    pub fn new_with<A: Action<'grm>>(grammar: &'b GrammarFile<'grm, A>) -> (Self, impl Iterator<Item=(&'grm str, RuleId<'grm, A>)> + 'b) {
         let rules: Arc<HashMap<&'grm str, RuleId<'grm, A>>> = Arc::new(grammar.rules.iter().enumerate().map(|(i, rule)| {
             (rule.name, RuleId(i, Default::default(), Default::default()))
         }).collect());
 
         let s: Self = Self {
-            rules: grammar.rules.iter().map(|rule| RuleState::new(rule, &rules)).collect(),
+            rules: grammar.rules.iter().map(|rule| {
+                let rs: RuleState<A> = RuleState::new(rule, &rules);
+                let rs: RuleState<()> = unsafe { mem::transmute(rs) };
+                rs
+            }).collect(),
         };
 
         (s, grammar.rules.iter().enumerate().map(|(i, rule)| {
@@ -51,13 +55,17 @@ impl<'b, 'grm, A: Action<'grm>> GrammarState<'b, 'grm, A> {
         }))
     }
 
-    pub fn get(&self, rule: RuleId<'grm, A>) -> Option<&RuleState<'b, 'grm, A>> {
-        self.rules.get(rule.0).map(|x| &*x)
+    pub fn get<A: Action<'grm>>(&self, rule: RuleId<'grm, A>) -> Option<&RuleState<'b, 'grm, A>> {
+        self.rules.get(rule.0).map(|rs| {
+            let rs: &RuleState<()> = &*rs;
+            let rs: &RuleState<A> = unsafe { mem::transmute(rs) };
+            rs
+        })
     }
 }
 
 #[derive(Clone)]
-pub struct RuleState<'b, 'grm, A: Action<'grm>> {
+pub struct RuleState<'b, 'grm, A> {
     pub name: &'grm str,
     pub blocks: Vec<BlockState<'b, 'grm, A>>,
     order: TopoSet<'grm>,
@@ -116,7 +124,7 @@ impl<'b, 'grm, A: Action<'grm>> RuleState<'b, 'grm, A> {
 }
 
 #[derive(Clone)]
-pub struct BlockState<'b, 'grm, A: Action<'grm>> {
+pub struct BlockState<'b, 'grm, A> {
     pub name: &'grm str,
     pub constructors: Vec<(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId<'grm, A>>>)>,
 }

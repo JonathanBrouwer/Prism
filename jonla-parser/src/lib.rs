@@ -22,7 +22,7 @@ lazy_static! {
         let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
         bincode::deserialize(meta_grammar).unwrap()
     };
-    pub static ref META_GRAMMAR_STATE: (GrammarState<'static, 'static, RuleAction<'static>>, HashMap<&'static str, RuleId<'static, RuleAction<'static>>>) = {
+    pub static ref META_GRAMMAR_STATE: (GrammarState<'static, 'static>, HashMap<&'static str, RuleId<'static, RuleAction<'static>>>) = {
         let (g, i) = GrammarState::new_with(&META_GRAMMAR);
         (g, i.collect())
     };

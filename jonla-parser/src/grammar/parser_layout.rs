@@ -14,7 +14,7 @@ use crate::grammar::grammar::Action;
 use crate::grammar::parser_rule::parser_rule;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
@@ -64,7 +64,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 }
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
-    rules: &'b GrammarState<'b, 'grm, A>,
+    rules: &'b GrammarState<'b, 'grm>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
