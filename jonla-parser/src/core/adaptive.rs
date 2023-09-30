@@ -1,13 +1,13 @@
 use crate::core::context::{Raw, RawEnv};
 use crate::core::toposet::TopoSet;
 use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply_rawenv;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::sync::Arc;
 use std::mem;
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply_rawenv;
+use std::sync::Arc;
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
@@ -32,7 +32,9 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         grammar: &'b GrammarFile<'grm>,
         ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), &'grm str> {
-        let mut s = Self { rules: self.rules.clone() };
+        let mut s = Self {
+            rules: self.rules.clone(),
+        };
 
         let mut result = vec![];
         for new_rule in &grammar.rules {
@@ -44,16 +46,20 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
                 }
             } else {
                 result.push((new_rule.name, RuleId(s.rules.len())));
-                s.rules.push(RuleState::new_empty(new_rule.name, &new_rule.args));
+                s.rules
+                    .push(RuleState::new_empty(new_rule.name, &new_rule.args));
             };
         }
 
-        let ctx = Arc::new(Iterator::chain(
-            ctx.iter().map(|(&k, v)| (k, v.clone())),
-            result.iter().map(|&(k, v)| {
-                (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))
-            })
-        ).collect::<HashMap<_, _>>());
+        let ctx = Arc::new(
+            Iterator::chain(
+                ctx.iter().map(|(&k, v)| (k, v.clone())),
+                result
+                    .iter()
+                    .map(|&(k, v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))),
+            )
+            .collect::<HashMap<_, _>>(),
+        );
 
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
             s.rules[id.0].update(rule, &ctx).map_err(|_| rule.name)?;
