@@ -17,7 +17,7 @@ pub trait ParseError: Sized + Clone {
     fn set_end(&mut self, end: Pos);
 }
 
-pub fn err_combine<'grm, E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) -> (E, Pos) {
+pub fn err_combine<E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) -> (E, Pos) {
     match xs.cmp(&ys) {
         Ordering::Less => (ye, ys),
         Ordering::Equal => (xe.merge(ye), xs),
@@ -25,7 +25,7 @@ pub fn err_combine<'grm, E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) 
     }
 }
 
-pub fn err_combine_opt<'grm, E: ParseError>(
+pub fn err_combine_opt<E: ParseError>(
     x: Option<(E, Pos)>,
     y: Option<(E, Pos)>,
 ) -> Option<(E, Pos)> {

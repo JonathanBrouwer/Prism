@@ -19,7 +19,7 @@ macro_rules! parse_test {
         #[test]
         fn $name() {
             use jonla_parser::parse_grammar;
-            use jonla_parser::grammar::grammar::GrammarFile;
+            use jonla_parser::grammar::GrammarFile;
             use jonla_parser::grammar;
             use jonla_parser::error::empty_error::EmptyError;
             use jonla_parser::core::parser::Parser;

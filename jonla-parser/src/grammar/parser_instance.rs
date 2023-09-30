@@ -5,7 +5,7 @@ use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar::GrammarFile;
+use crate::grammar::GrammarFile;
 use crate::grammar::parser_layout::full_input_layout;
 use crate::grammar::parser_rule;
 use crate::rule_action::action_result::ActionResult;
@@ -24,7 +24,7 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
     pub fn new(input: &'grm str, bump: &'b Allocs, from: &'grm GrammarFile<'grm>) -> Self {
         let context = ParserContext::new();
-        let cache = ParserCache::new(input, &bump);
+        let cache = ParserCache::new(input, bump);
 
         let (state, rules) = GrammarState::new_with(from);
 

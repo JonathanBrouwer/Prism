@@ -5,7 +5,7 @@ use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm>) -> ActionResult<'grm> {
+pub fn apply_rawenv<'grm>(pr: &RawEnv<'_, 'grm>) -> ActionResult<'grm> {
     apply(&pr.value, &pr.env)
 }
 
@@ -23,11 +23,7 @@ pub fn apply<'b, 'grm>(
         Raw::Action(a) => apply_action(
             a,
             &|n| {
-                if let Some(r) = env.get(n) {
-                    Some(apply_rawenv(&r))
-                } else {
-                    None
-                }
+                env.get(n).map(|r| apply_rawenv(r))
             },
             Span::invalid(),
         ),

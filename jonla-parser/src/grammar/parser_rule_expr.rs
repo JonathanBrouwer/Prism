@@ -3,7 +3,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar::RuleExpr;
+use crate::grammar::RuleExpr;
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
@@ -87,8 +87,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 delim,
             } => {
                 let res: PResult<Vec<PR>, _> = repeat_delim(
-                    parser_expr(rules, blocks, expr, &vars),
-                    parser_expr(rules, blocks, delim, &vars),
+                    parser_expr(rules, blocks, expr, vars),
+                    parser_expr(rules, blocks, delim, vars),
                     *min as usize,
                     max.map(|max| max as usize),
                 )
@@ -118,7 +118,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     match &res.ok() {
                         None => break,
                         Some(o) => {
-                            res_vars.extend(o.into_iter().map(|(k, v)| (*k, v.clone())));
+                            res_vars.extend(o.iter().map(|(k, v)| (*k, v.clone())));
                         }
                     }
                 }
@@ -183,14 +183,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     .map(|_| PR::from_raw(Raw::Internal("Negative lookahead")))
             }
             RuleExpr::AtGrammar => {
-                let g = parser_rule::<E>(
+                let _g = parser_rule::<E>(
                     &META_GRAMMAR_STATE.0,
                     META_GRAMMAR_STATE.1["toplevel"],
                     &vec![],
                 )
                 .parse(stream, cache, &ParserContext::new())
                 .map(|pr| {
-                    let ar: ActionResult<'grm> = apply_rawenv(&pr.rtrn);
+                    let _ar: ActionResult<'grm> = apply_rawenv(&pr.rtrn);
                     // let g = match parse_grammarfile(&ar, cache.input) {
                     //     Some(g) => g,
                     //     None => {
@@ -210,7 +210,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
 
                 todo!()
             }
-            RuleExpr::AtAdapt(ga, b) => {
+            RuleExpr::AtAdapt(_ga, _b) => {
                 todo!()
                 // // First, get the grammar actionresult
                 // let gr = apply(&Raw::Action(ga), &vars, rules);

@@ -28,6 +28,12 @@ pub struct Allocs {
     pub alo: Bump,
 }
 
+impl Default for Allocs {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Allocs {
     pub fn new() -> Self {
         Self { alo: Bump::new() }

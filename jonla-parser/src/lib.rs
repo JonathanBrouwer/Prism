@@ -7,7 +7,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::parser_instance::run_parser_rule;
 use grammar::from_action_result::parse_grammarfile;
-use grammar::grammar::GrammarFile;
+use grammar::GrammarFile;
 use std::collections::HashMap;
 
 pub mod arena;

@@ -1,6 +1,5 @@
 use crate::core::context::{Raw, RawEnv};
 use crate::core::toposet::TopoSet;
-use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use serde::{Deserialize, Serialize};
@@ -8,6 +7,7 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::mem;
 use std::sync::Arc;
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
@@ -19,6 +19,12 @@ pub struct RuleId(usize);
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl<'b, 'grm> Default for GrammarState<'b, 'grm> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -75,7 +81,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     }
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm>> {
-        self.rules.get(rule.0).map(|rs| &*rs)
+        self.rules.get(rule.0)
     }
 }
 
@@ -121,7 +127,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
         }
 
         for block in &r.blocks {
-            let i = order[&block.0[..]];
+            let i = order[block.0];
             match &mut res[i] {
                 None => {
                     res[i] = Some(BlockState::new(block, ctx));
@@ -153,7 +159,7 @@ impl<'b, 'grm> BlockState<'b, 'grm> {
         ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
     ) -> Self {
         Self {
-            name: &block.0,
+            name: block.0,
             constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
         }
     }

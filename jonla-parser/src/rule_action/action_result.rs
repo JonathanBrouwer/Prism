@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar::GrammarFile;
+use crate::grammar::GrammarFile;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {
@@ -19,7 +19,7 @@ pub enum ActionResult<'grm> {
 }
 
 impl<'grm> ActionResult<'grm> {
-    pub fn get_value<'a>(&self, src: &'grm str) -> Cow<'grm, str> {
+    pub fn get_value(&self, src: &'grm str) -> Cow<'grm, str> {
         match self {
             ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
             ActionResult::Literal(s) => s.to_cow(),
@@ -40,7 +40,7 @@ impl<'grm> ActionResult<'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
-            ActionResult::Grammar(_) => format!("[grammar]"),
+            ActionResult::Grammar(_) => "[grammar]".to_string(),
         }
     }
 }

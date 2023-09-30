@@ -1,5 +1,5 @@
 use jonla_parser::error::error_printer::print_set_error;
-use jonla_parser::grammar::grammar::GrammarFile;
+use jonla_parser::grammar::GrammarFile;
 use jonla_parser::parse_grammar;
 use jonla_parser::META_GRAMMAR;
 

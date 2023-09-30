@@ -32,7 +32,7 @@ impl<'a, T> RcArena<'a, T> {
     pub fn new(alloc: &'a Bump) -> Self {
         Self {
             alloc,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
             free: Cell::new(None),
         }
     }
@@ -43,7 +43,7 @@ impl<'a, T> RcArena<'a, T> {
         let inner = RcInner {
             data,
             count: Cell::new(1),
-            arena: &self,
+            arena: self,
         };
 
         match self.free.get() {

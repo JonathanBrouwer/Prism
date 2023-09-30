@@ -48,9 +48,9 @@ impl Sub<Pos> for Pos {
     }
 }
 
-impl Into<usize> for Pos {
-    fn into(self) -> usize {
-        self.0
+impl From<Pos> for usize {
+    fn from(val: Pos) -> Self {
+        val.0
     }
 }
 

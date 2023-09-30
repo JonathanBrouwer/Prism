@@ -1,7 +1,7 @@
 use crate::core::adaptive::RuleId;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use crate::grammar::grammar::GrammarFile;
+use crate::grammar::GrammarFile;
 use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -61,6 +61,12 @@ pub struct ParserContext {
     pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
     pub(crate) recovery_points: Ignore<Arc<HashMap<Pos, Pos>>>,
+}
+
+impl Default for ParserContext {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ParserContext {

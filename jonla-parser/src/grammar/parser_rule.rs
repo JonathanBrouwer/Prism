@@ -17,7 +17,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm> =
-            rules.get(rule).expect(&format!("Rule not found: {rule}"));
+            rules.get(rule).unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
         let rule_args = rule_state
             .arg_names

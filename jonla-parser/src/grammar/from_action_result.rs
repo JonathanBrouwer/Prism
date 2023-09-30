@@ -1,5 +1,5 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar::*;
+use crate::grammar::{AnnotatedRuleExpr, Block, CharClass, GrammarFile, Rule, RuleAnnotation, RuleExpr};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;
@@ -25,7 +25,7 @@ pub fn parse_grammarfile<'grm>(
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
-        match &*rules => Construct(_, "List", rules),
+        match rules => Construct(_, "List", rules),
         create GrammarFile {
             rules: rules.iter().map(|rule| parse_rule(rule, src)).collect::<Option<Vec<_>>>()?,
         }
@@ -36,8 +36,8 @@ fn parse_rule<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Rule<'grm>
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
-        match &*blocks => Construct(_, "List", blocks),
-        match &*args => Construct(_, "List", args),
+        match blocks => Construct(_, "List", blocks),
+        match args => Construct(_, "List", args),
         create Rule {
             name: parse_identifier(name, src)?,
             args: args.iter().map(|n| parse_identifier(n, src)).collect::<Option<Vec<_>>>()?,
@@ -71,7 +71,7 @@ fn parse_annotated_rule_expr<'grm>(
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
-        match &*annots => Construct(_, "List", annots),
+        match annots => Construct(_, "List", annots),
         create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src)?)
     }
 }
@@ -179,7 +179,7 @@ fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<EscapedS
     }
 }
 
-fn parse_string_char<'grm>(r: &ActionResult<'grm>, src: &str) -> Option<char> {
+fn parse_string_char(r: &ActionResult<'_>, src: &str) -> Option<char> {
     Some(match r {
         Value(span) => src[*span].chars().next().unwrap(),
         Literal(c) => c.chars().next().unwrap(),
@@ -187,7 +187,7 @@ fn parse_string_char<'grm>(r: &ActionResult<'grm>, src: &str) -> Option<char> {
     })
 }
 
-fn parse_charclass<'grm>(r: &ActionResult<'grm>, src: &str) -> Option<CharClass> {
+fn parse_charclass(r: &ActionResult<'_>, src: &str) -> Option<CharClass> {
     result_match! {
         match r => Construct(_, "CharClass", b),
         match &b[0] => Construct(_, "List", negate),
@@ -195,7 +195,7 @@ fn parse_charclass<'grm>(r: &ActionResult<'grm>, src: &str) -> Option<CharClass>
         create CharClass {
             neg: !negate.is_empty(),
             ranges: ps.iter().map(|p| result_match! {
-                match &*p => Construct(_, "Range", pb),
+                match p => Construct(_, "Range", pb),
                 create (parse_string_char(&pb[0], src)?, parse_string_char(&pb[1], src)?)
             }).collect::<Option<Vec<_>>>()?
         }
@@ -214,7 +214,7 @@ fn parse_option<'grm, T>(
     }
 }
 
-fn parse_u64<'grm>(r: &ActionResult<'grm>, src: &str) -> Option<u64> {
+fn parse_u64(r: &ActionResult<'_>, src: &str) -> Option<u64> {
     match r {
         Literal(v) => v.parse().ok(),
         Value(span) => src[*span].parse().ok(),

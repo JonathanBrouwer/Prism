@@ -1,4 +1,4 @@
-use crate::grammar::grammar::Rule;
+use crate::grammar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
@@ -7,6 +7,12 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct TopoSet<'grm> {
     map: HashMap<&'grm str, Arc<HashSet<&'grm str>>>,
+}
+
+impl<'grm> Default for TopoSet<'grm> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<'grm> TopoSet<'grm> {
@@ -18,8 +24,8 @@ impl<'grm> TopoSet<'grm> {
 
     pub fn update(&mut self, grm: &Rule<'grm>) {
         for b in grm.blocks.windows(2) {
-            let b1 = &b[0].0[..];
-            let b2 = &b[1].0[..];
+            let b1 = b[0].0;
+            let b2 = b[1].0;
 
             match self.map.entry(b1) {
                 Entry::Occupied(mut e) => {
@@ -35,7 +41,7 @@ impl<'grm> TopoSet<'grm> {
             }
         }
         // Insert final entry
-        if let Entry::Vacant(e) = self.map.entry(&grm.blocks.last().unwrap().0) {
+        if let Entry::Vacant(e) = self.map.entry(grm.blocks.last().unwrap().0) {
             e.insert(Arc::new(HashSet::new()));
         }
     }
@@ -70,7 +76,7 @@ impl<'grm> TopoSet<'grm> {
             }
         }
 
-        if counts.len() == 0 {
+        if counts.is_empty() {
             Ok(result)
         } else {
             Err(())
