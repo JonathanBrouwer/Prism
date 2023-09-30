@@ -6,6 +6,7 @@ use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
+use crate::core::context::{Raw, RawEnv};
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm, ()>>,
@@ -23,7 +24,6 @@ impl<'grm, A> Copy for RuleId<'grm, A> {
 
 }
 
-
 impl<'grm, A: Action<'grm>> Display for RuleId<'grm, A> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
@@ -37,10 +37,17 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         }
     }
 
+    pub fn with<A: Action<'grm>>(&self, grammar: &'b GrammarFile<'grm, A>, ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>) -> Result<(Self, impl Iterator<Item=(&'grm str, RuleId<'grm, A>)> + 'b), &'grm str> {
+
+        todo!()
+    }
+
     pub fn new_with<A: Action<'grm>>(grammar: &'b GrammarFile<'grm, A>) -> (Self, impl Iterator<Item=(&'grm str, RuleId<'grm, A>)> + 'b) {
-        let rules: Arc<HashMap<&'grm str, RuleId<'grm, A>>> = Arc::new(grammar.rules.iter().enumerate().map(|(i, rule)| {
+        let rule_iter = grammar.rules.iter().enumerate().map(|(i, rule)| {
             (rule.name, RuleId(i, Default::default(), Default::default()))
-        }).collect());
+        });
+
+        let rules: Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>> = Arc::new(rule_iter.clone().map(|(k, v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))).collect());
 
         let s: Self = Self {
             rules: grammar.rules.iter().map(|rule| {
@@ -50,10 +57,9 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
             }).collect(),
         };
 
-        (s, grammar.rules.iter().enumerate().map(|(i, rule)| {
-            (rule.name, RuleId(i, Default::default(), Default::default()))
-        }))
+        (s, rule_iter)
     }
+
 
     pub fn get<A: Action<'grm>>(&self, rule: RuleId<'grm, A>) -> Option<&RuleState<'b, 'grm, A>> {
         self.rules.get(rule.0).map(|rs| {
@@ -73,7 +79,7 @@ pub struct RuleState<'b, 'grm, A> {
 }
 
 impl<'b, 'grm, A: Action<'grm>> RuleState<'b, 'grm, A> {
-    pub fn new(r: &'b Rule<'grm, A>, ctx: &Arc<HashMap<&'grm str, RuleId<'grm, A>>>) -> Self {
+    pub fn new(r: &'b Rule<'grm, A>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>>) -> Self {
         let blocks: Vec<BlockState<'b, 'grm, A>> =
             r.blocks.iter().map(|b| BlockState::new(b, ctx)).collect();
         let mut order: TopoSet<'grm> = TopoSet::new();
@@ -86,7 +92,7 @@ impl<'b, 'grm, A: Action<'grm>> RuleState<'b, 'grm, A> {
         }
     }
 
-    pub fn update(&mut self, r: &'b Rule<'grm, A>, ctx: &Arc<HashMap<&'grm str, RuleId<'grm, A>>>) -> Result<(), ()> {
+    pub fn update(&mut self, r: &'b Rule<'grm, A>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>>) -> Result<(), ()> {
         self.order.update(r);
 
         let order: HashMap<&'grm str, usize> = self
@@ -126,18 +132,18 @@ impl<'b, 'grm, A: Action<'grm>> RuleState<'b, 'grm, A> {
 #[derive(Clone)]
 pub struct BlockState<'b, 'grm, A> {
     pub name: &'grm str,
-    pub constructors: Vec<(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId<'grm, A>>>)>,
+    pub constructors: Vec<(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>>)>,
 }
 
 impl<'b, 'grm, A: Action<'grm>> BlockState<'b, 'grm, A> {
-    pub fn new(block: &'b Block<'grm, A>, ctx: &Arc<HashMap<&'grm str, RuleId<'grm, A>>>) -> Self {
+    pub fn new(block: &'b Block<'grm, A>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>>) -> Self {
         Self {
             name: &block.0,
             constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
         }
     }
 
-    pub fn update(&mut self, b: &'b Block<'grm, A>, ctx: &Arc<HashMap<&'grm str, RuleId<'grm, A>>>) {
+    pub fn update(&mut self, b: &'b Block<'grm, A>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>>) {
         assert_eq!(self.name, b.0);
         self.constructors.extend(b.1.iter().map(|r| (r, ctx.clone())));
     }
