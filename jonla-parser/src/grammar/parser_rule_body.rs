@@ -12,7 +12,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR, RawEnv};
+use crate::core::context::{ParserContext, RawEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule_expr::parser_expr;

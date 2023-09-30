@@ -3,8 +3,8 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::RuleExpr;
 use crate::grammar::parser_layout::parser_with_layout;
+use crate::grammar::RuleExpr;
 
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;

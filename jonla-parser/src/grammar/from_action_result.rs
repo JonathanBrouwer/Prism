@@ -1,5 +1,7 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{AnnotatedRuleExpr, Block, CharClass, GrammarFile, Rule, RuleAnnotation, RuleExpr};
+use crate::grammar::{
+    AnnotatedRuleExpr, Block, CharClass, GrammarFile, Rule, RuleAnnotation, RuleExpr,
+};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;

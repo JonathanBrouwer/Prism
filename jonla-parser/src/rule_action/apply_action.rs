@@ -20,13 +20,9 @@ pub fn apply<'b, 'grm>(
             ActionResult::Construct(*s, "List", l.iter().map(|r| apply_rawenv(r)).collect())
         }
         Raw::Rule(r) => ActionResult::RuleRef(*r),
-        Raw::Action(a) => apply_action(
-            a,
-            &|n| {
-                env.get(n).map(|r| apply_rawenv(r))
-            },
-            Span::invalid(),
-        ),
+        Raw::Action(a) => {
+            apply_action(a, &|n| env.get(n).map(|r| apply_rawenv(r)), Span::invalid())
+        }
         Raw::Grammar(_) => todo!(),
     }
 }

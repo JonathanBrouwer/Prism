@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::grammar::escaped_string::EscapedString;
 use crate::rule_action::RuleAction;
+use serde::{Deserialize, Serialize};
 
 pub mod escaped_string;
 pub mod from_action_result;

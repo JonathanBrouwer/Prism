@@ -1,5 +1,6 @@
 use crate::core::context::{Raw, RawEnv};
 use crate::core::toposet::TopoSet;
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use serde::{Deserialize, Serialize};
@@ -7,7 +8,6 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::mem;
 use std::sync::Arc;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
