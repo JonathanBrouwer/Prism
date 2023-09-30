@@ -3,7 +3,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar::{Action, RuleExpr};
+use crate::grammar::grammar::{RuleExpr};
 use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
@@ -20,18 +20,18 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use crate::rule_action::RuleAction;
 
-pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    blocks: &'b [BlockState<'b, 'grm, A>],
-    expr: &'b RuleExpr<'grm, A>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
+    blocks: &'b [BlockState<'b, 'grm>],
+    expr: &'b RuleExpr<'grm>,
+    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    if let Some(rule) = A::eval_to_rule(ar) {
+                    if let ActionResult::RuleRef(rule) = apply_rawenv(ar) {
                         rule
                     } else {
                         panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");
@@ -84,7 +84,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 max,
                 delim,
             } => {
-                let res: PResult<Vec<PR<A>>, _> = repeat_delim(
+                let res: PResult<Vec<PR>, _> = repeat_delim(
                     parser_expr(rules, blocks, expr, &vars),
                     parser_expr(rules, blocks, delim, &vars),
                     *min as usize,
@@ -121,7 +121,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                 res.map(|map| PR { free: map, rtrn: RawEnv::from_raw(Raw::Internal("Sequence"))})
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR<A>, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
+                let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
                 for sub in subs {
                     res = res.merge_choice_parser(
                         &parser_expr(rules, blocks, sub, vars),
@@ -180,9 +180,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + C
                     PR::from_raw(Raw::Internal("Negative lookahead"))
                 }),
             RuleExpr::AtGrammar => {
-                let g = parser_rule::<E, RuleAction>(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![])
+                let g = parser_rule::<E>(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![])
                     .parse(stream, cache, &ParserContext::new()).map(|pr| {
-                    let ar: ActionResult<'grm, RuleAction> = apply_rawenv(&pr.rtrn);
+                    let ar: ActionResult<'grm> = apply_rawenv(&pr.rtrn);
                     // let g = match parse_grammarfile(&ar, cache.input) {
                     //     Some(g) => g,
                     //     None => {

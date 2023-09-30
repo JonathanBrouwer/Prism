@@ -5,11 +5,11 @@ use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm, RuleAction<'grm>>) -> ActionResult<'grm, RuleAction<'grm>> {
+pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm>) -> ActionResult<'grm> {
     apply(&pr.value, &pr.env)
 }
 
-pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm, RuleAction<'grm>> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm, RuleAction<'grm>>>>) -> ActionResult<'grm, RuleAction<'grm>> {
+pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>) -> ActionResult<'grm> {
     match &val {
         Raw::Internal(r) => panic!("Tried to apply internal raw value: `{r}`."),
         Raw::Value(s) => ActionResult::Value(*s),
@@ -30,9 +30,9 @@ pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm, RuleAction<'grm>> , env: &HashMap<&'g
 
 pub fn apply_action<'b, 'grm>(
     rule: &'b RuleAction<'grm>,
-    map: &impl Fn(&str) -> Option<ActionResult<'grm, RuleAction<'grm>>>,
+    map: &impl Fn(&str) -> Option<ActionResult<'grm>>,
     span: Span,
-) -> ActionResult<'grm, RuleAction<'grm>> {
+) -> ActionResult<'grm> {
     match rule {
         RuleAction::Name(name) => {
             if let Some(v) = map(&name[..]) {

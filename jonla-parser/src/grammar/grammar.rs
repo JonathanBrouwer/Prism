@@ -1,34 +1,28 @@
 use std::fmt::Debug;
-use std::hash::Hash;
 use crate::grammar::escaped_string::EscapedString;
 use serde::{Deserialize, Serialize};
-use crate::core::adaptive::{RuleId};
-use crate::core::context::RawEnv;
+use crate::rule_action::RuleAction;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct GrammarFile<'grm, A> {
+pub struct GrammarFile<'grm> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'grm, A>>,
+    pub rules: Vec<Rule<'grm>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct Rule<'grm, A> {
+pub struct Rule<'grm> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
-    pub blocks: Vec<Block<'grm, A>>,
+    pub blocks: Vec<Block<'grm>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct Block<'grm, A>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
+pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub struct AnnotatedRuleExpr<'grm, A>(
+pub struct AnnotatedRuleExpr<'grm>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'grm, A>,
+    #[serde(borrow)] pub RuleExpr<'grm>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -54,9 +48,8 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub enum RuleExpr<'grm, A> {
-    Rule(&'grm str, Vec<A>),
+pub enum RuleExpr<'grm> {
+    Rule(&'grm str, Vec<RuleAction<'grm>>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {
@@ -68,16 +61,13 @@ pub enum RuleExpr<'grm, A> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, A),
+    Action(Box<Self>, RuleAction<'grm>),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
     AtGrammar,
     AtThis,
     AtNext,
-    AtAdapt(A, &'grm str),
+    AtAdapt(RuleAction<'grm>, &'grm str),
 }
 
-pub trait Action<'grm>: Debug + Clone + Serialize + Deserialize<'grm> + Eq + PartialEq + Hash {
-    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId<'grm, Self>>;
-}

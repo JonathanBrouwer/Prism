@@ -7,19 +7,18 @@ use crate::core::adaptive::RuleId;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar::{Action, GrammarFile};
+use crate::grammar::grammar::{GrammarFile};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(bound(deserialize = "A: Action<'grm>, 'grm: 'de"))]
-pub enum ActionResult<'grm, A> {
+pub enum ActionResult<'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<ActionResult<'grm, A>>),
-    RuleRef(RuleId<'grm, A>),
-    Grammar(Arc<GrammarFile<'grm, A>>),
+    Construct(Span, &'grm str, Vec<ActionResult<'grm>>),
+    RuleRef(RuleId),
+    Grammar(Arc<GrammarFile<'grm>>),
 }
 
-impl<'grm, A: Action<'grm>> ActionResult<'grm, A> {
+impl<'grm> ActionResult<'grm> {
     pub fn get_value<'a>(&self, src: &'grm str) -> Cow<'grm, str> {
         match self {
             ActionResult::Value(span) => Cow::Borrowed(&src[*span]),

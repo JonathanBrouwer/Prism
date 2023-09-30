@@ -1,4 +1,4 @@
-use crate::grammar::grammar::{Action, Rule};
+use crate::grammar::grammar::{Rule};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
@@ -16,7 +16,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn update<A: Action<'grm>>(&mut self, grm: &Rule<'grm, A>) {
+    pub fn update(&mut self, grm: &Rule<'grm>) {
         for b in grm.blocks.windows(2) {
             let b1 = &b[0].0[..];
             let b2 = &b[1].0[..];

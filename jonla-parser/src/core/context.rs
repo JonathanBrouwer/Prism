@@ -5,16 +5,17 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
-use crate::grammar::grammar::{Action, GrammarFile};
+use crate::grammar::grammar::{GrammarFile};
+use crate::rule_action::RuleAction;
 
 #[derive(Clone, Debug)]
-pub struct PR<'b, 'grm, A> {
-    pub free: HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
-    pub rtrn: RawEnv<'b, 'grm, A>,
+pub struct PR<'b, 'grm> {
+    pub free: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    pub rtrn: RawEnv<'b, 'grm>,
 }
 
-impl<'b, 'grm, A: Action<'grm>> PR<'b, 'grm, A> {
-    pub fn from_raw(rtrn: Raw<'b, 'grm, A>) -> Self {
+impl<'b, 'grm> PR<'b, 'grm> {
+    pub fn from_raw(rtrn: Raw<'b, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
             rtrn: RawEnv::from_raw(rtrn)
@@ -28,13 +29,13 @@ impl<'b, 'grm, A: Action<'grm>> PR<'b, 'grm, A> {
 }
 
 #[derive(Clone, Debug)]
-pub struct RawEnv<'b, 'grm, A> {
-    pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
-    pub value: Raw<'b, 'grm, A>
+pub struct RawEnv<'b, 'grm> {
+    pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    pub value: Raw<'b, 'grm>
 }
 
-impl<'b, 'grm, A: Action<'grm>> RawEnv<'b, 'grm, A> {
-    pub fn from_raw(value: Raw<'b, 'grm, A>) -> Self {
+impl<'b, 'grm> RawEnv<'b, 'grm> {
+    pub fn from_raw(value: Raw<'b, 'grm>) -> Self {
         Self {
             env: HashMap::new(),
             value
@@ -43,13 +44,13 @@ impl<'b, 'grm, A: Action<'grm>> RawEnv<'b, 'grm, A> {
 }
 
 #[derive(Clone, Debug)]
-pub enum Raw<'b, 'grm, A> {
+pub enum Raw<'b, 'grm> {
     Internal(&'static str),
     Value(Span),
-    Action(&'b A),
-    List(Span, Vec<RawEnv<'b, 'grm, A>>),
-    Rule(RuleId<'grm, A>),
-    Grammar(Arc<GrammarFile<'grm, A>>),
+    Action(&'b RuleAction<'grm>),
+    List(Span, Vec<RawEnv<'b, 'grm>>),
+    Rule(RuleId),
+    Grammar(Arc<GrammarFile<'grm>>),
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]

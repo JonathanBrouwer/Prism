@@ -5,7 +5,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
 use crate::error::{err_combine, err_combine_opt, ParseError};
-use crate::grammar::grammar::Action;
+
 
 #[derive(Clone)]
 pub enum PResult<O, E: ParseError> {
@@ -207,7 +207,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<'grm, 'b, A: Action<'grm>, O2, P2: Parser<'b, 'grm, O2, E>>(
+    pub fn merge_seq_opt_parser<'grm, 'b, O2, P2: Parser<'b, 'grm, O2, E>>(
         self,
         other: &P2,
         cache: &mut PCache<'b, 'grm, E>,

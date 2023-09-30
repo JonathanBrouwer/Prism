@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::grammar::grammar::Action;
+
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
@@ -73,13 +73,13 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
     }
 }
 
-pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>, A: Action<'grm> + 'b>(
-    item: impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
+pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'b>(
+    item: impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a,
+) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'b, 'grm, E>,
           context: &ParserContext|
-          -> PResult<PR<'b, 'grm, A>, E> {
+          -> PResult<PR<'b, 'grm>, E> {
         // First try original parse
         match item.parse(
             stream,

@@ -10,12 +10,14 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar::Action;
-use crate::grammar::parser_rule::parser_rule;
 
-pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+use crate::grammar::parser_rule::parser_rule;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply_rawenv;
+
+pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
+    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |pos: Pos,
@@ -25,7 +27,11 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
         if context.layout_disabled || !vars.contains_key("layout") {
             return sub.parse(pos, cache, context);
         }
-        let layout = A::eval_to_rule(&vars["layout"]).expect("Expected layout to be a rule.");
+
+        let layout = match apply_rawenv(&vars["layout"]) {
+            ActionResult::RuleRef(r) => r,
+            _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
+        };
 
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);
@@ -63,9 +69,9 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     }
 }
 
-pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
+pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + Clone + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
+    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: Pos,
