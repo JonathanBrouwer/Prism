@@ -6,7 +6,6 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
-
 #[derive(Clone)]
 pub enum PResult<O, E: ParseError> {
     POk(O, Pos, Pos, bool, Option<(E, Pos)>),

@@ -2,13 +2,13 @@
 extern crate lazy_static;
 
 use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::RuleId;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::parser_instance::run_parser_rule;
 use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar::GrammarFile;
-use crate::grammar::parser_instance::run_parser_rule;
 use std::collections::HashMap;
-use crate::core::adaptive::RuleId;
 
 pub mod arena;
 pub mod core;
@@ -21,11 +21,13 @@ lazy_static! {
         let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
         bincode::deserialize(meta_grammar).unwrap()
     };
-    pub static ref META_GRAMMAR_STATE: (GrammarState<'static, 'static>, HashMap<&'static str, RuleId>) = {
+    pub static ref META_GRAMMAR_STATE: (
+        GrammarState<'static, 'static>,
+        HashMap<&'static str, RuleId>
+    ) = {
         let (g, i) = GrammarState::new_with(&META_GRAMMAR);
         (g, i.collect())
     };
-
 }
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(

@@ -1,7 +1,7 @@
-use std::fmt::Debug;
 use crate::grammar::escaped_string::EscapedString;
-use serde::{Deserialize, Serialize};
 use crate::rule_action::RuleAction;
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {
@@ -70,4 +70,3 @@ pub enum RuleExpr<'grm> {
     AtNext,
     AtAdapt(RuleAction<'grm>, &'grm str),
 }
-

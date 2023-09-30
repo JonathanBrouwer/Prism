@@ -46,10 +46,7 @@ pub fn choice2<'b, 'grm: 'b, 'a, O, E: ParseError>(
     p1: &'a impl Parser<'b, 'grm, O, E>,
     p2: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<O, E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         p1.parse(stream, cache, context)
             .merge_choice(p2.parse(stream, cache, context))
     }
@@ -114,10 +111,7 @@ pub fn repeat_delim<'b, 'grm: 'b, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
 
 #[inline(always)]
 pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          _: &ParserContext|
-          -> PResult<(), E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, _: &ParserContext| -> PResult<(), E> {
         match stream.next(cache.input) {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
             (s, None) => PResult::new_empty((), s),
@@ -129,10 +123,7 @@ pub fn end<'b, 'grm: 'b, E: ParseError>() -> impl Parser<'b, 'grm, (), E> {
 pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
     p: &impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + '_ {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<O, E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         match p.parse(stream, cache, context) {
             POk(o, _, _, _, err) => POk(o, stream, stream, false, err),
             PErr(e, s) => PErr(e, s),
@@ -144,10 +135,7 @@ pub fn positive_lookahead<'b, 'grm: 'b, O, E: ParseError>(
 pub fn negative_lookahead<'b, 'grm: 'b, O, E: ParseError>(
     p: &impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, (), E> + '_ {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<(), E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<(), E> {
         match p.parse(stream, cache, context) {
             POk(_, _, _, _, _) => PResult::new_err(E::new(stream.span_to(stream)), stream),
             PErr(_, _) => PResult::new_ok((), stream, stream),

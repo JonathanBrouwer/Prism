@@ -1,4 +1,4 @@
-use crate::grammar::grammar::{AnnotatedRuleExpr};
+use crate::grammar::grammar::AnnotatedRuleExpr;
 use crate::grammar::grammar::{RuleAnnotation, RuleExpr};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -13,7 +13,7 @@ use crate::grammar::parser_layout::parser_with_layout;
 use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR, RawEnv};
+use crate::core::context::{ParserContext, RawEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::parser_rule_expr::parser_expr;
@@ -42,24 +42,15 @@ fn parser_body_sub_blocks<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'gr
     bs: &'b [BlockState<'b, 'grm>],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<PR, E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<PR, E> {
         match bs {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args).parse(
-                stream,
-                cache,
-                context,
-            ),
+            [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args)
+                .parse(stream, cache, context),
             [b, brest @ ..] => {
                 // Parse current
-                let res = parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args).parse(
-                    stream,
-                    cache,
-                    context,
-                );
+                let res = parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args)
+                    .parse(stream, cache, context);
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
@@ -81,11 +72,13 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
-    es: &'b [(&'b AnnotatedRuleExpr<'grm>, Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>)],
+    es: &'b [(
+        &'b AnnotatedRuleExpr<'grm>,
+        Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
+    )],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es
-    {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx.iter().map(|(&k, v)| (k, v.clone()));
@@ -105,87 +98,78 @@ fn parser_body_sub_constructors<
     }
 }
 
-fn parser_body_sub_annotations<
-    'a,
-    'b: 'a,
-    'grm: 'b,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
->(
+fn parser_body_sub_annotations<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     annots: &'b [RuleAnnotation<'grm>],
     expr: &'b RuleExpr<'grm>,
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
-        match annots {
-            [RuleAnnotation::Error(err_label), rest @ ..] => {
-                let mut res = parser_body_sub_annotations(rules, blocks, rest, expr, vars)
-                    .parse(stream, cache, context);
-                res.add_label_explicit(ErrorLabel::Explicit(
-                    stream.span_to(res.end_pos().next(cache.input).0),
-                    err_label.clone(),
-                ));
-                res
-            }
-            [RuleAnnotation::DisableLayout, rest @ ..] => {
-                parser_with_layout(rules, vars, &move |stream: Pos,
-                                                 cache: &mut PCache<'b, 'grm, E>,
-                                                 context: &ParserContext|
-                      -> PResult<_, E> {
-                    parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
-                        stream,
-                        cache,
-                        &ParserContext {
-                            layout_disabled: true,
-                            ..context.clone()
-                        },
-                    )
-                })
-                .parse(stream, cache, context)
-            }
-            [RuleAnnotation::EnableLayout, rest @ ..] => {
-                parser_with_layout(rules, vars, &move |stream: Pos,
-                                                 cache: &mut PCache<'b, 'grm, E>,
-                                                 context: &ParserContext|
-                      -> PResult<_, E> {
-                    parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
-                        stream,
-                        cache,
-                        &ParserContext {
-                            layout_disabled: false,
-                            ..context.clone()
-                        },
-                    )
-                })
-                .parse(stream, cache, context)
-            }
-            [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-                move |stream: Pos,
-                      cache: &mut PCache<'b, 'grm, E>,
-                      context: &ParserContext| {
-                    parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
-                        stream,
-                        cache,
-                        &ParserContext {
-                            recovery_disabled: true,
-                            ..context.clone()
-                        },
-                    )
-                },
-            )
-            .parse(stream, cache, context),
-            [RuleAnnotation::EnableRecovery, rest @ ..] => {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match annots {
+        [RuleAnnotation::Error(err_label), rest @ ..] => {
+            let mut res = parser_body_sub_annotations(rules, blocks, rest, expr, vars)
+                .parse(stream, cache, context);
+            res.add_label_explicit(ErrorLabel::Explicit(
+                stream.span_to(res.end_pos().next(cache.input).0),
+                err_label.clone(),
+            ));
+            res
+        }
+        [RuleAnnotation::DisableLayout, rest @ ..] => {
+            parser_with_layout(rules, vars, &move |stream: Pos,
+                                                   cache: &mut PCache<'b, 'grm, E>,
+                                                   context: &ParserContext|
+                  -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
                     stream,
                     cache,
                     &ParserContext {
-                        recovery_disabled: false,
+                        layout_disabled: true,
                         ..context.clone()
                     },
                 )
-            }
-            &[] => parser_expr(rules, blocks, expr, vars).parse(stream, cache, context),
+            })
+            .parse(stream, cache, context)
         }
+        [RuleAnnotation::EnableLayout, rest @ ..] => {
+            parser_with_layout(rules, vars, &move |stream: Pos,
+                                                   cache: &mut PCache<'b, 'grm, E>,
+                                                   context: &ParserContext|
+                  -> PResult<_, E> {
+                parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
+                    stream,
+                    cache,
+                    &ParserContext {
+                        layout_disabled: false,
+                        ..context.clone()
+                    },
+                )
+            })
+            .parse(stream, cache, context)
+        }
+        [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
+            move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
+                parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
+                    stream,
+                    cache,
+                    &ParserContext {
+                        recovery_disabled: true,
+                        ..context.clone()
+                    },
+                )
+            },
+        )
+        .parse(stream, cache, context),
+        [RuleAnnotation::EnableRecovery, rest @ ..] => {
+            parser_body_sub_annotations(rules, blocks, rest, expr, vars).parse(
+                stream,
+                cache,
+                &ParserContext {
+                    recovery_disabled: false,
+                    ..context.clone()
+                },
+            )
+        }
+        &[] => parser_expr(rules, blocks, expr, vars).parse(stream, cache, context),
     }
 }

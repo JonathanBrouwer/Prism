@@ -1,12 +1,12 @@
+use crate::core::adaptive::RuleId;
 use crate::core::pos::Pos;
+use crate::core::span::Span;
+use crate::grammar::grammar::GrammarFile;
+use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
-use crate::core::adaptive::RuleId;
-use crate::core::span::Span;
-use crate::grammar::grammar::{GrammarFile};
-use crate::rule_action::RuleAction;
 
 #[derive(Clone, Debug)]
 pub struct PR<'b, 'grm> {
@@ -18,27 +18,30 @@ impl<'b, 'grm> PR<'b, 'grm> {
     pub fn from_raw(rtrn: Raw<'b, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
-            rtrn: RawEnv::from_raw(rtrn)
+            rtrn: RawEnv::from_raw(rtrn),
         }
     }
 
     /// Returns self with fresh free variables
     pub fn fresh(self) -> Self {
-        PR { free: HashMap::new(), rtrn: self.rtrn }
+        PR {
+            free: HashMap::new(),
+            rtrn: self.rtrn,
+        }
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct RawEnv<'b, 'grm> {
     pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
-    pub value: Raw<'b, 'grm>
+    pub value: Raw<'b, 'grm>,
 }
 
 impl<'b, 'grm> RawEnv<'b, 'grm> {
     pub fn from_raw(value: Raw<'b, 'grm>) -> Self {
         Self {
             env: HashMap::new(),
-            value
+            value,
         }
     }
 }

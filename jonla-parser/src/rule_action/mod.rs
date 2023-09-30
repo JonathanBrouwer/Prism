@@ -1,10 +1,10 @@
+use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
-use crate::core::adaptive::{RuleId};
 
 use crate::grammar::escaped_string::EscapedString;
 
-pub mod apply_action;
 pub mod action_result;
+pub mod apply_action;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleAction<'grm> {
@@ -15,5 +15,3 @@ pub enum RuleAction<'grm> {
     Nil(),
     RuleRef(RuleId),
 }
-
-

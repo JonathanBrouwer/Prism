@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-use std::sync::Arc;
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, RawEnv};
@@ -10,6 +8,8 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::grammar::parser_rule::parser_rule;
 use crate::rule_action::action_result::ActionResult;
@@ -20,10 +20,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |pos: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<O, E> {
+    move |pos: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         if context.layout_disabled || !vars.contains_key("layout") {
             return sub.parse(pos, cache, context);
         }
@@ -74,10 +71,7 @@ pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'
     vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<O, E> {
+    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), cache, context)
             .map(|(o, _)| o)

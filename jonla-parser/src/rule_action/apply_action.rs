@@ -1,29 +1,36 @@
-use std::collections::HashMap;
-use std::sync::Arc;
 use crate::core::context::{Raw, RawEnv};
 use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 pub fn apply_rawenv<'b, 'grm>(pr: &RawEnv<'b, 'grm>) -> ActionResult<'grm> {
     apply(&pr.value, &pr.env)
 }
 
-pub fn apply<'b, 'grm>(val: &Raw<'b, 'grm> , env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>) -> ActionResult<'grm> {
+pub fn apply<'b, 'grm>(
+    val: &Raw<'b, 'grm>,
+    env: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+) -> ActionResult<'grm> {
     match &val {
         Raw::Internal(r) => panic!("Tried to apply internal raw value: `{r}`."),
         Raw::Value(s) => ActionResult::Value(*s),
         Raw::List(s, l) => {
             ActionResult::Construct(*s, "List", l.iter().map(|r| apply_rawenv(r)).collect())
-        },
+        }
         Raw::Rule(r) => ActionResult::RuleRef(*r),
-        Raw::Action(a) => apply_action(a, &|n| {
-            if let Some(r) = env.get(n) {
-                Some(apply_rawenv(&r))
-            } else {
-                None
-            }
-        }, Span::invalid()),
+        Raw::Action(a) => apply_action(
+            a,
+            &|n| {
+                if let Some(r) = env.get(n) {
+                    Some(apply_rawenv(&r))
+                } else {
+                    None
+                }
+            },
+            Span::invalid(),
+        ),
         Raw::Grammar(_) => todo!(),
     }
 }
@@ -57,6 +64,6 @@ pub fn apply_action<'b, 'grm>(
             ActionResult::Construct(span, "List", res)
         }
         RuleAction::Nil() => ActionResult::Construct(span, "List", Vec::new()),
-        RuleAction::RuleRef(r) => ActionResult::RuleRef(*r)
+        RuleAction::RuleRef(r) => ActionResult::RuleRef(*r),
     }
 }

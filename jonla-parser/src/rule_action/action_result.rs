@@ -1,13 +1,13 @@
 use std::borrow::Cow;
 use std::sync::Arc;
 
+use crate::core::adaptive::RuleId;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use crate::core::adaptive::RuleId;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar::{GrammarFile};
+use crate::grammar::grammar::GrammarFile;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'grm> {

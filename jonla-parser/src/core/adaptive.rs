@@ -1,11 +1,11 @@
+use crate::core::context::{Raw, RawEnv};
 use crate::core::toposet::TopoSet;
 use crate::grammar::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::{iter, mem};
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
-use serde::{Deserialize, Serialize};
-use crate::core::context::{Raw, RawEnv};
+use std::{iter, mem};
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
@@ -22,31 +22,43 @@ impl Display for RuleId {
 
 impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn new() -> Self {
-        Self {
-            rules: Vec::new(),
-        }
+        Self { rules: Vec::new() }
     }
 
-    pub fn with(&self, grammar: &'b GrammarFile<'grm>, ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>) -> Result<(Self, impl Iterator<Item=(&'grm str, RuleId)> + 'b), &'grm str> {
+    pub fn with(
+        &self,
+        grammar: &'b GrammarFile<'grm>,
+        ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), &'grm str> {
         Ok((todo!(), iter::empty()))
     }
 
-    pub fn new_with(grammar: &'b GrammarFile<'grm>) -> (Self, impl Iterator<Item=(&'grm str, RuleId)> + 'b) {
-        let rule_iter = grammar.rules.iter().enumerate().map(|(i, rule)| {
-            (rule.name, RuleId(i))
-        });
+    pub fn new_with(
+        grammar: &'b GrammarFile<'grm>,
+    ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
+        let rule_iter = grammar
+            .rules
+            .iter()
+            .enumerate()
+            .map(|(i, rule)| (rule.name, RuleId(i)));
 
-        let rules: Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>> = Arc::new(rule_iter.clone().map(|(k, v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))).collect());
+        let rules: Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>> = Arc::new(
+            rule_iter
+                .clone()
+                .map(|(k, v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v)))))
+                .collect(),
+        );
 
         let s: Self = Self {
-            rules: grammar.rules.iter().map(|rule| {
-                RuleState::new(rule, &rules)
-            }).collect(),
+            rules: grammar
+                .rules
+                .iter()
+                .map(|rule| RuleState::new(rule, &rules))
+                .collect(),
         };
 
         (s, rule_iter)
     }
-
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm>> {
         self.rules.get(rule.0).map(|rs| &*rs)
@@ -75,7 +87,11 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
         }
     }
 
-    pub fn update(&mut self, r: &'b Rule<'grm>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>) -> Result<(), ()> {
+    pub fn update(
+        &mut self,
+        r: &'b Rule<'grm>,
+        ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
+    ) -> Result<(), ()> {
         self.order.update(r);
 
         let order: HashMap<&'grm str, usize> = self
@@ -115,19 +131,30 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 #[derive(Clone)]
 pub struct BlockState<'b, 'grm> {
     pub name: &'grm str,
-    pub constructors: Vec<(&'b AnnotatedRuleExpr<'grm>, Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>)>,
+    pub constructors: Vec<(
+        &'b AnnotatedRuleExpr<'grm>,
+        Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
+    )>,
 }
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
-    pub fn new(block: &'b Block<'grm>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>) -> Self {
+    pub fn new(
+        block: &'b Block<'grm>,
+        ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
+    ) -> Self {
         Self {
             name: &block.0,
             constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
         }
     }
 
-    pub fn update(&mut self, b: &'b Block<'grm>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>) {
+    pub fn update(
+        &mut self,
+        b: &'b Block<'grm>,
+        ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>,
+    ) {
         assert_eq!(self.name, b.0);
-        self.constructors.extend(b.1.iter().map(|r| (r, ctx.clone())));
+        self.constructors
+            .extend(b.1.iter().map(|r| (r, ctx.clone())));
     }
 }
