@@ -16,8 +16,6 @@ use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use crate::rule_action::RuleAction;

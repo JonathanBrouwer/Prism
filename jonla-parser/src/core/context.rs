@@ -48,7 +48,7 @@ pub enum Raw<'b, 'grm, A> {
     Value(Span),
     Action(&'b A),
     List(Span, Vec<RawEnv<'b, 'grm, A>>),
-    Rule(RuleId),
+    Rule(RuleId<'grm, A>),
     Grammar(Arc<GrammarFile<'grm, A>>),
 }
 

@@ -17,11 +17,11 @@ pub enum RuleAction<'grm> {
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
-    RuleRef(RuleId),
+    RuleRef(RuleId<'grm, Self>),
 }
 
 impl<'grm> Action<'grm> for RuleAction<'grm> {
-    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId> {
+    fn eval_to_rule<'b>(e: &RawEnv<'b, 'grm, Self>) -> Option<RuleId<'grm, Self>> {
         match apply_rawenv(e) {
             ActionResult::RuleRef(r) => Some(r),
             _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),

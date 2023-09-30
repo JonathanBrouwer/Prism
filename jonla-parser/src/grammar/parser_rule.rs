@@ -13,7 +13,7 @@ use crate::grammar::grammar::Action;
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + Clone, A: Action<'grm>>(
     rules: &'b GrammarState<'b, 'grm, A>,
-    rule: RuleId,
+    rule: RuleId<'grm, A>,
     args: &'a Vec<Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {

@@ -83,7 +83,7 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm, A>,
     blocks: &'b [BlockState<'b, 'grm, A>],
-    es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId>>)],
+    es: &'b [(&'b AnnotatedRuleExpr<'grm, A>, Arc<HashMap<&'grm str, RuleId<'grm, A>>>)],
     rule_args: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm, A>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm, A>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es

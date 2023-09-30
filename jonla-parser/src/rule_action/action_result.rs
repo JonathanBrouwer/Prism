@@ -15,7 +15,7 @@ pub enum ActionResult<'grm, A> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<ActionResult<'grm, A>>),
-    RuleRef(RuleId),
+    RuleRef(RuleId<'grm, A>),
     Grammar(Arc<GrammarFile<'grm, A>>),
 }
 
