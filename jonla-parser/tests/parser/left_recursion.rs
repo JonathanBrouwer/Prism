@@ -4,9 +4,9 @@ parse_test! {
 name: left_recursion
 syntax: r#"
     rule start:
-        --
+        -- a
         X(e) <- e:@this "X"
-        --
+        -- b
         Y() <- "Y"
 
     "#
@@ -25,9 +25,9 @@ parse_test! {
 name: left_recursion_direct
 syntax: r#"
     rule start:
-        --
+        -- a
         X(e) <- e:start "X"
-        --
+        -- b
         Y() <- "Y"
 
     "#
@@ -46,7 +46,6 @@ parse_test! {
 name: tree_climb_one_block
 syntax: r#"
     rule start:
-        --
         X(e) <- e:@this "X"
         Y() <- ""
     "#

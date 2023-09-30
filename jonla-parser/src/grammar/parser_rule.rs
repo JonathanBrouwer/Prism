@@ -20,7 +20,7 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             rules.get(rule).expect(&format!("Rule not found: {rule}"));
 
         let rule_args = rule_state
-            .args
+            .arg_names
             .iter()
             .cloned()
             .zip_eq(args.iter().cloned())

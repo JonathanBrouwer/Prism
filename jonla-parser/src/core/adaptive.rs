@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
-use std::{iter, mem};
+use std::mem;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::apply_action::apply_rawenv;
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
@@ -30,34 +32,40 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         grammar: &'b GrammarFile<'grm>,
         ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), &'grm str> {
-        Ok((todo!(), iter::empty()))
+        let mut s = Self { rules: self.rules.clone() };
+
+        let mut result = vec![];
+        for new_rule in &grammar.rules {
+            if let Some(ar) = ctx.get(new_rule.name) {
+                if let ActionResult::RuleRef(rule) = apply_rawenv(ar) {
+                    result.push((new_rule.name, rule))
+                } else {
+                    panic!("Tried to run variable `{}` as a rule, but it does not refer to a rule. {ar:?}", new_rule.name);
+                }
+            } else {
+                result.push((new_rule.name, RuleId(s.rules.len())));
+                s.rules.push(RuleState::new_empty(new_rule.name, &new_rule.args));
+            };
+        }
+
+        let ctx = Arc::new(Iterator::chain(
+            ctx.iter().map(|(&k, v)| (k, v.clone())),
+            result.iter().map(|&(k, v)| {
+                (k, Arc::new(RawEnv::from_raw(Raw::Rule(v))))
+            })
+        ).collect::<HashMap<_, _>>());
+
+        for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
+            s.rules[id.0].update(rule, &ctx).map_err(|_| rule.name)?;
+        }
+
+        Ok((s, result.into_iter()))
     }
 
     pub fn new_with(
         grammar: &'b GrammarFile<'grm>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
-        let rule_iter = grammar
-            .rules
-            .iter()
-            .enumerate()
-            .map(|(i, rule)| (rule.name, RuleId(i)));
-
-        let rules: Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>> = Arc::new(
-            rule_iter
-                .clone()
-                .map(|(k, v)| (k, Arc::new(RawEnv::from_raw(Raw::Rule(v)))))
-                .collect(),
-        );
-
-        let s: Self = Self {
-            rules: grammar
-                .rules
-                .iter()
-                .map(|rule| RuleState::new(rule, &rules))
-                .collect(),
-        };
-
-        (s, rule_iter)
+        GrammarState::new().with(grammar, &HashMap::new()).unwrap()
     }
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm>> {
@@ -70,20 +78,16 @@ pub struct RuleState<'b, 'grm> {
     pub name: &'grm str,
     pub blocks: Vec<BlockState<'b, 'grm>>,
     order: TopoSet<'grm>,
-    pub args: &'b Vec<&'grm str>,
+    pub arg_names: &'b Vec<&'grm str>,
 }
 
 impl<'b, 'grm> RuleState<'b, 'grm> {
-    pub fn new(r: &'b Rule<'grm>, ctx: &Arc<HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>>) -> Self {
-        let blocks: Vec<BlockState<'b, 'grm>> =
-            r.blocks.iter().map(|b| BlockState::new(b, ctx)).collect();
-        let mut order: TopoSet<'grm> = TopoSet::new();
-        order.update(r);
+    pub fn new_empty(name: &'grm str, arg_names: &'b Vec<&'grm str>) -> Self {
         Self {
-            name: r.name,
-            blocks,
-            order,
-            args: &r.args,
+            name,
+            blocks: Vec::new(),
+            order: TopoSet::new(),
+            arg_names,
         }
     }
 
