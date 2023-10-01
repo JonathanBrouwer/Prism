@@ -10,7 +10,6 @@ use grammar::from_action_result::parse_grammarfile;
 use grammar::GrammarFile;
 use std::collections::HashMap;
 
-pub mod arena;
 pub mod core;
 pub mod error;
 pub mod grammar;
