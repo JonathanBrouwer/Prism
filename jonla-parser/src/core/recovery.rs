@@ -9,6 +9,8 @@ use crate::error::ParseError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+const MAX_RECOVERIES: usize = 0;
+
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
     stream: Pos,
@@ -43,6 +45,11 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
                     // Update last error
                     if let Some(last) = result_errors.last_mut() {
                         last.set_end(err_state.unwrap().1);
+                    }
+
+                    // Check if we can accept more errors
+                    if result_errors.len() >= MAX_RECOVERIES {
+                        return Err(result_errors)
                     }
 
                     // Add new error
