@@ -11,6 +11,8 @@ use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, Raw, RawEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
+use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::parser_rule::parser_rule;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
@@ -18,8 +20,6 @@ use crate::rule_action::apply_action::{apply, apply_rawenv};
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -184,9 +184,12 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     .parse(stream, cache, context)
                     .map(|_| PR::from_raw(Raw::Internal("Negative lookahead")))
             }
-            RuleExpr::AtGrammar => {
-                parser_rule(&META_GRAMMAR_STATE.0, META_GRAMMAR_STATE.1["toplevel"], &vec![]).parse(stream, cache, context)
-            }
+            RuleExpr::AtGrammar => parser_rule(
+                &META_GRAMMAR_STATE.0,
+                META_GRAMMAR_STATE.1["toplevel"],
+                &vec![],
+            )
+            .parse(stream, cache, context),
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
                 let gr = apply(&Raw::Action(ga), &vars);
@@ -223,12 +226,13 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 };
                 let rules: &'b GrammarState = cache.alloc.alo.alloc(rules);
 
-                let rule = iter.find(|(k, _)| k == b).map(|(_, v)| v).unwrap_or_else(|| {
-                    match apply_rawenv(&vars[b]) {
+                let rule = iter
+                    .find(|(k, _)| k == b)
+                    .map(|(_, v)| v)
+                    .unwrap_or_else(|| match apply_rawenv(&vars[b]) {
                         ActionResult::RuleRef(r) => r,
-                        _ => panic!("Adaptation rule not found.")
-                    }
-                });
+                        _ => panic!("Adaptation rule not found."),
+                    });
 
                 // Parse body
                 parser_rule(&rules, rule, &vec![]).parse(stream, cache, context)

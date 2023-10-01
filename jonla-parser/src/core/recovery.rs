@@ -49,7 +49,7 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
 
                     // Check if we can accept more errors
                     if result_errors.len() >= MAX_RECOVERIES {
-                        return Err(result_errors)
+                        return Err(result_errors);
                     }
 
                     // Add new error
