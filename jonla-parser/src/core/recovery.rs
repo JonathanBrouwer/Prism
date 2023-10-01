@@ -9,7 +9,7 @@ use crate::error::ParseError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-const MAX_RECOVERIES: usize = 0;
+const MAX_RECOVERIES: usize = 10;
 
 pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'b, 'grm, O, E>,
