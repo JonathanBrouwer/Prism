@@ -211,7 +211,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let g: &'b GrammarFile = cache.alloc.alo.alloc(g);
 
                 // Create new grammarstate
-                let (rules, mut iter) = match rules.with(g, &vars) {
+                let (rules, mut iter) = match rules.with(g, &vars, Some(stream)) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(stream.span_to(stream));

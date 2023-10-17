@@ -112,64 +112,62 @@ failing tests:
     "###
 }
 
-// //TODO fails because { and } are skipped by recovery, @grammar is empty, then adapts nonstop
-// //can't fix by checking if grammars are eq in cache: could in edge cases keep adding rules
-// parse_test! {
-// name: adaptive_simple
-// syntax: r#"
-//     rule start:
-//         b <- "{" g:@grammar "}" b:@adapt(g, start)
-//         X() <- "x"
-//     "#
-// passing tests:
-//
-// failing tests:
-//     r###"y"###
-// }
-//
-// parse_test! {
-// name: adaptive_sub
-// syntax: r#"
-//     rule start:
-//         b <- "{" g:@grammar "}" b:(start / @adapt(g, start))
-//         X() <- "x"
-//         sub
-//
-//     rule sub:
-//         Z() <- "z"
-//
-//     rule layout = [' ' | '\n']
-//     "#
-// passing tests:
-//     r###"
-//     {
-//         rule sub:
-//             Y() <- "y"
-//     }
-//     x
-//     "### => "X()"
-//     r###"
-//     {
-//         rule sub:
-//             Y() <- "y"
-//     }
-//     y
-//     "### => "Y()"
-//     r###"
-//     {
-//         rule sub:
-//             Y() <- "y"
-//     }
-//     z
-//     "### => "Z()"
-//
-// failing tests:
-//     r###"
-//     {
-//         rule sub:
-//             Y() <- "y"
-//     }
-//     w
-//     "###
-//
-// }
+parse_test! {
+name: adaptive_simple
+syntax: r#"
+    rule start:
+        b <- "{" g:@grammar "}" b:@adapt(g, start)
+        X() <- "x"
+    "#
+passing tests:
+
+failing tests:
+    r###"y"###
+}
+
+parse_test! {
+name: adaptive_sub
+syntax: r#"
+    rule start:
+        b <- "{" g:@grammar "}" b:(start / @adapt(g, start))
+        X() <- "x"
+        sub
+
+    rule sub:
+        Z() <- "z"
+
+    rule layout = [' ' | '\n']
+    "#
+passing tests:
+    r###"
+    {
+        rule sub:
+            Y() <- "y"
+    }
+    x
+    "### => "X()"
+    r###"
+    {
+        rule sub:
+            Y() <- "y"
+    }
+    y
+    "### => "Y()"
+    r###"
+    {
+        rule sub:
+            Y() <- "y"
+    }
+    z
+    "### => "Z()"
+
+failing tests:
+    r###"
+    {
+        rule sub:
+            Y() <- "y"
+    }
+    w
+    "###
+
+}

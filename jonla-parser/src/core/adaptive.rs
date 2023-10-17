@@ -8,9 +8,11 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::mem;
 use std::sync::Arc;
+use crate::core::pos::Pos;
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
+    last_mut_pos: Option<Pos>,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -28,19 +30,35 @@ impl<'b, 'grm> Default for GrammarState<'b, 'grm> {
     }
 }
 
+#[derive(Debug)]
+pub enum AdaptResult<'grm> {
+    InvalidRuleMutation(&'grm str),
+    SamePos(Pos),
+}
+
 impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn new() -> Self {
-        Self { rules: Vec::new() }
+        Self { rules: Vec::new(), last_mut_pos: None }
     }
 
     pub fn with(
         &self,
         grammar: &'b GrammarFile<'grm>,
         ctx: &HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
-    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), &'grm str> {
+        pos: Option<Pos>,
+    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult> {
         let mut s = Self {
             rules: self.rules.clone(),
+            last_mut_pos: pos,
         };
+
+        if let Some(pos) = pos {
+            if let Some(last_mut_pos) = self.last_mut_pos {
+                if pos == last_mut_pos {
+                    return Err(AdaptResult::SamePos(pos))
+                }
+            }
+        }
 
         let mut result = vec![];
         for new_rule in &grammar.rules {
@@ -68,7 +86,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         );
 
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
-            s.rules[id.0].update(rule, &ctx).map_err(|_| rule.name)?;
+            s.rules[id.0].update(rule, &ctx).map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
         }
 
         Ok((s, result.into_iter()))
@@ -77,7 +95,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn new_with(
         grammar: &'b GrammarFile<'grm>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
-        GrammarState::new().with(grammar, &HashMap::new()).unwrap()
+        GrammarState::new().with(grammar, &HashMap::new(), None).unwrap()
     }
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'b, 'grm>> {
