@@ -127,7 +127,6 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
         Construct(_, "NegLookahead", b) => {
             RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src)?))
         }
-        Construct(_, "AtGrammar", _) => RuleExpr::AtGrammar,
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
         Construct(_, "Rule", b) => RuleExpr::Rule(

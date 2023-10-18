@@ -17,7 +17,6 @@ use crate::grammar::parser_rule::parser_rule;
 use crate::grammar::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::{apply, apply_rawenv};
-use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -184,12 +183,6 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     .parse(stream, cache, context)
                     .map(|_| PR::from_raw(Raw::Internal("Negative lookahead")))
             }
-            RuleExpr::AtGrammar => parser_rule(
-                &META_GRAMMAR_STATE.0,
-                META_GRAMMAR_STATE.1["toplevel"],
-                &vec![],
-            )
-            .parse(stream, cache, context),
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
                 let gr = apply(&Raw::Action(ga), &vars);

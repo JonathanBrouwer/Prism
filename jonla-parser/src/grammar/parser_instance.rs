@@ -1,4 +1,4 @@
-use crate::core::adaptive::{GrammarState, RuleId};
+use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::{ParserContext, Raw, RawEnv};
 use crate::core::pos::Pos;
@@ -12,6 +12,7 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::META_GRAMMAR_STATE;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -22,18 +23,22 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
-    pub fn new(input: &'grm str, bump: &'b Allocs, from: &'grm GrammarFile<'grm>) -> Self {
+    pub fn new(input: &'grm str, bump: &'b Allocs, from: &'grm GrammarFile<'grm>) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
-        let (state, rules) = GrammarState::new_with(from);
+        let visible_rules = HashMap::from([
+            ("grammar", Arc::new(RawEnv::from_raw(Raw::Rule(META_GRAMMAR_STATE.1["grammar"])))),
+            ("prule_action", Arc::new(RawEnv::from_raw(Raw::Rule(META_GRAMMAR_STATE.1["prule_action"])))),
+        ]);
+        let (state, rules) = META_GRAMMAR_STATE.0.with(from, &visible_rules, None)?;
 
-        Self {
+        Ok(Self {
             context,
             cache,
             state,
             rules: rules.collect(),
-        }
+        })
     }
 }
 
@@ -66,6 +71,6 @@ pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>
     input: &'grm str,
 ) -> Result<ActionResult<'grm>, Vec<E>> {
     let bump = Allocs::new();
-    let mut instance = ParserInstance::new(input, &bump, rules);
+    let mut instance = ParserInstance::new(input, &bump, rules).unwrap();
     instance.run(rule)
 }

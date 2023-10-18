@@ -1,5 +1,5 @@
 rule block:
-    b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
+    b <- "grammar" "{" g:grammar(prule_action) "}" ";" b:@adapt(g, block)
     Let(v, b) <- "let" v:expr ";" b:block
     expr
 

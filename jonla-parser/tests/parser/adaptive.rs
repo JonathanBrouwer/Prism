@@ -5,7 +5,7 @@ name: adaptive
 syntax: r#"
     rule start = block
     rule block:
-        b <- "grammar" "{" g:@grammar "}" ";" b:@adapt(g, block)
+        b <- "grammar" "{" g:grammar(prule_action) "}" ";" b:@adapt(g, block)
         s :: b <- s:stmt ";" b:block
         [] <- ""
 
@@ -116,7 +116,7 @@ parse_test! {
 name: adaptive_simple
 syntax: r#"
     rule start:
-        b <- "{" g:@grammar "}" b:@adapt(g, start)
+        b <- "{" g:grammar(prule_action) "}" b:@adapt(g, start)
         X() <- "x"
     "#
 passing tests:
@@ -129,7 +129,7 @@ parse_test! {
 name: adaptive_sub
 syntax: r#"
     rule start:
-        b <- "{" g:@grammar "}" b:(start / @adapt(g, start))
+        b <- "{" g:grammar(prule_action) "}" b:(start / @adapt(g, start))
         X() <- "x"
         sub
 

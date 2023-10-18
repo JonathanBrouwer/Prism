@@ -72,7 +72,6 @@ pub enum RuleExpr<'grm> {
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
-    AtGrammar,
     AtThis,
     AtNext,
     AtAdapt(RuleAction<'grm>, &'grm str),

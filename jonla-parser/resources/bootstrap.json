@@ -1364,22 +1364,6 @@
               {
                 "Action": [
                   {
-                    "Literal": "@grammar"
-                  },
-                  {
-                    "Construct": [
-                      "AtGrammar",
-                      []
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
                     "Sequence": [
                       {
                         "Literal": "@adapt"
