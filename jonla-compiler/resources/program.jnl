@@ -1,1 +1,6 @@
- Type. #0. #0
+grammar {
+    rule expr:
+        -- base
+        #0 <- "@"
+};
+Type. #0. @
