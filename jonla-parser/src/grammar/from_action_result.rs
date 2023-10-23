@@ -4,8 +4,9 @@ use crate::grammar::{
 };
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
-use crate::rule_action::RuleAction;
+use crate::rule_action::from_action_result::parse_rule_action;
 
+#[macro_export]
 macro_rules! result_match {
     {match $e1:expr => $p1:pat_param, $(match $es:expr => $ps:pat_param,)* create $body:expr} => {
         match $e1 {
@@ -144,27 +145,7 @@ fn parse_rule_expr<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleE
     })
 }
 
-fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleAction<'grm>> {
-    Some(match r {
-        Construct(_, "Cons", b) => RuleAction::Cons(
-            Box::new(parse_rule_action(&b[0], src)?),
-            Box::new(parse_rule_action(&b[1], src)?),
-        ),
-        Construct(_, "Nil", _) => RuleAction::Nil(),
-        Construct(_, "Construct", b) => RuleAction::Construct(
-            parse_identifier(&b[0], src)?,
-            result_match! {
-                match &b[1] => Construct(_, "List", subs),
-                create subs.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
-            }?,
-        ),
-        Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),
-        Construct(_, "Name", b) => RuleAction::Name(parse_identifier(&b[0], src)?),
-        _ => return None,
-    })
-}
-
-fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<&'grm str> {
+pub(crate) fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<&'grm str> {
     match r {
         Value(span) => Some(&src[*span]),
         // If the identifier of a block is a literal, its always empty
@@ -173,7 +154,7 @@ fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<&'gr
     }
 }
 
-fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<EscapedString<'grm>> {
+pub(crate) fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<EscapedString<'grm>> {
     result_match! {
         match r => Value(span),
         create EscapedString::from_escaped(&src[*span])

@@ -5,6 +5,7 @@ use crate::grammar::escaped_string::EscapedString;
 
 pub mod action_result;
 pub mod apply_action;
+pub mod from_action_result;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleAction<'grm> {
