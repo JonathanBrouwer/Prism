@@ -9,15 +9,15 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct PR<'b, 'grm> {
-    pub free: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
-    pub rtrn: RawEnv<'b, 'grm>,
+    pub free: HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
+    pub rtrn: Env<'b, 'grm>,
 }
 
 impl<'b, 'grm> PR<'b, 'grm> {
     pub fn from_raw(rtrn: Raw<'b, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
-            rtrn: RawEnv::from_raw(rtrn),
+            rtrn: Env::from_raw(rtrn),
         }
     }
 
@@ -31,12 +31,12 @@ impl<'b, 'grm> PR<'b, 'grm> {
 }
 
 #[derive(Clone, Debug)]
-pub struct RawEnv<'b, 'grm> {
-    pub env: HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+pub struct Env<'b, 'grm> {
+    pub env: HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
     pub value: Raw<'b, 'grm>,
 }
 
-impl<'b, 'grm> RawEnv<'b, 'grm> {
+impl<'b, 'grm> Env<'b, 'grm> {
     pub fn from_raw(value: Raw<'b, 'grm>) -> Self {
         Self {
             env: HashMap::new(),
@@ -50,7 +50,7 @@ pub enum Raw<'b, 'grm> {
     Internal(&'static str),
     Value(Span),
     Action(&'b RuleAction<'grm>),
-    List(Span, Vec<RawEnv<'b, 'grm>>),
+    List(Span, Vec<Env<'b, 'grm>>),
     Rule(RuleId),
 }
 

@@ -1,4 +1,4 @@
-use crate::core::adaptive::BlockState;
+use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -7,9 +7,10 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use bumpalo::Bump;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use typed_arena::Arena;
+use crate::grammar::GrammarFile;
 
 type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));
 
@@ -18,26 +19,16 @@ pub struct ParserCache<'grm, 'b, E: ParseError> {
     cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PResult<PR<'b, 'grm>, E>>>,
     cache_stack: Vec<CacheKey<'grm, 'b>>,
     // For allocating things that might be in the result
-    pub alloc: &'b Allocs,
+    pub alloc: Allocs<'b, 'grm>,
     pub input: &'grm str,
 }
 
 pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 
-pub struct Allocs {
-    pub alo: Bump,
-}
-
-impl Default for Allocs {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Allocs {
-    pub fn new() -> Self {
-        Self { alo: Bump::new() }
-    }
+pub struct Allocs<'b, 'grm> {
+    pub alo_grammarfile: &'b Arena<GrammarFile<'grm>>,
+    pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
+    // pub alo: Bump,
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -46,7 +37,7 @@ pub struct ParserCacheEntry<PR> {
 }
 
 impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
-    pub fn new(input: &'grm str, alloc: &'b Allocs) -> Self {
+    pub fn new(input: &'grm str, alloc: Allocs<'b, 'grm>) -> Self {
         ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),

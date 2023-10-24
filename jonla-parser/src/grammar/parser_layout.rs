@@ -1,6 +1,6 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, RawEnv};
+use crate::core::context::{ParserContext, Env};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -17,7 +17,7 @@ use crate::rule_action::apply_action::apply_rawenv;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |pos: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
@@ -68,7 +68,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {

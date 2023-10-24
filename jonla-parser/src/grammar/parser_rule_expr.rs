@@ -8,7 +8,7 @@ use crate::grammar::{GrammarFile, RuleExpr};
 
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, Raw, RawEnv, PR};
+use crate::core::context::{ParserContext, Raw, Env, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::escaped_string::EscapedString;
@@ -24,7 +24,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<RawEnv<'b, 'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         match expr {
@@ -43,7 +43,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let args = args
                     .iter()
                     .map(|arg| {
-                        Arc::new(RawEnv {
+                        Arc::new(Env {
                             env: vars.clone(),
                             value: Raw::Action(arg),
                         })
@@ -125,7 +125,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: RawEnv::from_raw(Raw::Internal("Sequence")),
+                    rtrn: Env::from_raw(Raw::Internal("Sequence")),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -157,7 +157,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     env.extend(res.free.iter().map(|(k, v)| (*k, v.clone())));
                     PR {
                         free: res.free,
-                        rtrn: RawEnv {
+                        rtrn: Env {
                             env,
                             value: Raw::Action(action),
                         },
@@ -201,7 +201,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let g: &'b GrammarFile = cache.alloc.alo.alloc(g);
+                let g: &'b GrammarFile = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let (rules, mut iter) = match rules.with(g, &vars, Some(stream)) {
@@ -217,7 +217,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let rules: &'b GrammarState = cache.alloc.alo.alloc(rules);
+                let rules: &'b GrammarState = cache.alloc.alo_grammarstate.alloc(rules);
 
                 let rule = iter
                     .find(|(k, _)| k == b)

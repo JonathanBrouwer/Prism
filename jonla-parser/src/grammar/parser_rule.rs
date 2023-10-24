@@ -1,6 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, RawEnv, PR};
+use crate::core::context::{ParserContext, Env, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
@@ -13,7 +13,7 @@ use std::sync::Arc;
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: RuleId,
-    args: &'a Vec<Arc<RawEnv<'b, 'grm>>>,
+    args: &'a Vec<Arc<Env<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm> = rules
