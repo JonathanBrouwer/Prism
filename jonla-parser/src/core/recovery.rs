@@ -1,5 +1,5 @@
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, Raw, PR};
+use crate::core::context::{Ignore, ParserContext, Val, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -99,7 +99,7 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> 
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
-                        PR::from_raw(Raw::Internal("Recovered")),
+                        PR::from_raw(Val::Void),
                         stream,
                         *to,
                         true,

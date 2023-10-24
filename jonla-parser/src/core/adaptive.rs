@@ -1,4 +1,4 @@
-use crate::core::context::{Raw, Env};
+use crate::core::context::{Val, ValWithEnv};
 use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::rule_action::action_result::ActionResult;
@@ -44,7 +44,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn with(
         &self,
         grammar: &'b GrammarFile<'grm>,
-        ctx: &HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
+        ctx: &HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult> {
         let mut s = Self {
@@ -80,7 +80,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
                 ctx.iter().map(|(&k, v)| (k, v.clone())),
                 result
                     .iter()
-                    .map(|&(k, v)| (k, Arc::new(Env::from_raw(Raw::Rule(v))))),
+                    .map(|&(k, v)| (k, Arc::new(ValWithEnv::from_raw(Val::Rule(v))))),
             )
             .collect::<HashMap<_, _>>(),
         );
@@ -124,7 +124,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
     pub fn update(
         &mut self,
         r: &'b Rule<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<Env<'b, 'grm>>>>,
+        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
     ) -> Result<(), ()> {
         self.order.update(r);
 
@@ -167,14 +167,14 @@ pub struct BlockState<'b, 'grm> {
     pub name: &'grm str,
     pub constructors: Vec<(
         &'b AnnotatedRuleExpr<'grm>,
-        Arc<HashMap<&'grm str, Arc<Env<'b, 'grm>>>>,
+        Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
     )>,
 }
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
         block: &'b Block<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<Env<'b, 'grm>>>>,
+        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
     ) -> Self {
         Self {
             name: block.0,
@@ -185,7 +185,7 @@ impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn update(
         &mut self,
         b: &'b Block<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<Env<'b, 'grm>>>>,
+        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
     ) {
         assert_eq!(self.name, b.0);
         self.constructors

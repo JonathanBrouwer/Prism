@@ -8,7 +8,7 @@ use crate::grammar::{GrammarFile, RuleExpr};
 
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, Raw, Env, PR};
+use crate::core::context::{ParserContext, Val, ValWithEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::escaped_string::EscapedString;
@@ -24,7 +24,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     expr: &'b RuleExpr<'grm>,
-    vars: &'a HashMap<&'grm str, Arc<Env<'b, 'grm>>>,
+    vars: &'a HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         match expr {
@@ -43,9 +43,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let args = args
                     .iter()
                     .map(|arg| {
-                        Arc::new(Env {
+                        Arc::new(ValWithEnv {
                             env: vars.clone(),
-                            value: Raw::Action(arg),
+                            value: Val::Action(arg),
                         })
                     })
                     .collect();
@@ -55,7 +55,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
-                let p = map_parser(p, &|(span, _)| PR::from_raw(Raw::Value(span)));
+                let p = map_parser(p, &|(span, _)| PR::from_raw(Val::Text(span)));
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
                 p.parse(stream, cache, context)
@@ -70,7 +70,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                                 .merge_seq_parser(&single(|c| *c == char), cache, context)
                                 .map(|_| ());
                         }
-                        let mut res = res.map_with_span(|_, span| PR::from_raw(Raw::Value(span)));
+                        let mut res = res.map_with_span(|_, span| PR::from_raw(Val::Text(span)));
                         res.add_label_implicit(ErrorLabel::Literal(
                             stream.span_to(res.end_pos().next(cache.input).0),
                             literal.clone(),
@@ -95,7 +95,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 )
                 .parse(stream, cache, context);
                 res.map_with_span(|list, span| {
-                    PR::from_raw(Raw::List(
+                    PR::from_raw(Val::List(
                         span,
                         list.into_iter().map(|pr| pr.rtrn).collect(),
                     ))
@@ -125,7 +125,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: Env::from_raw(Raw::Internal("Sequence")),
+                    rtrn: ValWithEnv::from_raw(Val::Void),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -157,16 +157,16 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     env.extend(res.free.iter().map(|(k, v)| (*k, v.clone())));
                     PR {
                         free: res.free,
-                        rtrn: Env {
+                        rtrn: ValWithEnv {
                             env,
-                            value: Raw::Action(action),
+                            value: Val::Action(action),
                         },
                     }
                 })
             }
             RuleExpr::SliceInput(sub) => {
                 let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
-                res.map_with_span(|_, span| PR::from_raw(Raw::Value(span)))
+                res.map_with_span(|_, span| PR::from_raw(Val::Text(span)))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, vars)
                 .parse(stream, cache, context)
@@ -181,11 +181,11 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             RuleExpr::NegLookahead(sub) => {
                 negative_lookahead(&parser_expr(rules, blocks, sub, vars))
                     .parse(stream, cache, context)
-                    .map(|_| PR::from_raw(Raw::Internal("Negative lookahead")))
+                    .map(|_| PR::from_raw(Val::Void))
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr = apply(&Raw::Action(ga), &vars);
+                let gr = apply(&Val::Action(ga), &vars);
 
                 // Parse it into a grammar
                 let g = match parse_grammarfile(&gr, cache.input) {

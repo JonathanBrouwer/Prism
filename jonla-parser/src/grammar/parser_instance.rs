@@ -1,6 +1,6 @@
 use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
-use crate::core::context::{ParserContext, Raw, Env};
+use crate::core::context::{ParserContext, Val, ValWithEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
@@ -29,8 +29,8 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
         let cache = ParserCache::new(input, bump);
 
         let visible_rules = HashMap::from([
-            ("grammar", Arc::new(Env::from_raw(Raw::Rule(META_GRAMMAR_STATE.1["grammar"])))),
-            ("prule_action", Arc::new(Env::from_raw(Raw::Rule(META_GRAMMAR_STATE.1["prule_action"])))),
+            ("grammar", Arc::new(ValWithEnv::from_raw(Val::Rule(META_GRAMMAR_STATE.1["grammar"])))),
+            ("prule_action", Arc::new(ValWithEnv::from_raw(Val::Rule(META_GRAMMAR_STATE.1["prule_action"])))),
         ]);
         let (state, rules) = META_GRAMMAR_STATE.0.with(from, &visible_rules, None)?;
 
@@ -49,7 +49,7 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
         let rule_ctx = self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, Arc::new(Env::from_raw(Raw::Rule(v)))))
+            .map(|(&k, &v)| (k, Arc::new(ValWithEnv::from_raw(Val::Rule(v)))))
             .collect();
         let x = parse_with_recovery(
             &full_input_layout(
