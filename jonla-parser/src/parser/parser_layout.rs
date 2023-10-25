@@ -10,8 +10,8 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::parser::parser_rule::parser_rule;
 
-use crate::grammar::parser_rule::parser_rule;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 

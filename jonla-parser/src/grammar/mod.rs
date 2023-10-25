@@ -4,11 +4,6 @@ use serde::{Deserialize, Serialize};
 
 pub mod escaped_string;
 pub mod from_action_result;
-pub mod parser_instance;
-pub mod parser_layout;
-pub mod parser_rule;
-pub mod parser_rule_body;
-pub mod parser_rule_expr;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm> {

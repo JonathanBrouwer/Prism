@@ -5,8 +5,6 @@ use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::parser_layout::full_input_layout;
-use crate::grammar::parser_rule;
 use crate::grammar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
@@ -14,6 +12,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use typed_arena::Arena;
 use crate::META_GRAMMAR_STATE;
+use crate::parser::parser_layout::full_input_layout;
+use crate::parser::parser_rule;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,

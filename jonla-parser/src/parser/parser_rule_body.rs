@@ -7,7 +7,6 @@ use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::parser_layout::parser_with_layout;
 
 use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
@@ -15,7 +14,8 @@ use by_address::ByAddress;
 use crate::core::context::{ParserContext, ValWithEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::parser_rule_expr::parser_expr;
+use crate::parser::parser_layout::parser_with_layout;
+use crate::parser::parser_rule_expr::parser_expr;
 
 pub fn parser_body_cache_recurse<
     'a,

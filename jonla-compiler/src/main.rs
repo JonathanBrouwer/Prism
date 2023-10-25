@@ -2,8 +2,8 @@ pub mod coc;
 
 use crate::coc::Expr;
 use jonla_parser::error::error_printer::print_set_error;
-use jonla_parser::grammar::parser_instance::run_parser_rule;
 use jonla_parser::parse_grammar;
+use jonla_parser::parser::parser_instance::run_parser_rule;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");

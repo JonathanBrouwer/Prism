@@ -18,6 +18,7 @@ macro_rules! parse_test {
         #[allow(unused_variables)]
         #[test]
         fn $name() {
+            use jonla_parser::parser::parser_instance::run_parser_rule;
             use jonla_parser::parse_grammar;
             use jonla_parser::grammar::GrammarFile;
             use jonla_parser::grammar;
@@ -27,10 +28,9 @@ macro_rules! parse_test {
             use jonla_parser::core::presult::PResult::*;
             use jonla_parser::core::pos::Pos;
             use jonla_parser::error::error_printer::*;
-            use jonla_parser::grammar::parser_rule::parser_rule;
+            use jonla_parser::parser::parser_rule::parser_rule;
             use jonla_parser::core::context::ParserContext;
             use std::collections::HashMap;
-            use jonla_parser::grammar::parser_instance::run_parser_rule;
             use jonla_parser::error::set_error::SetError;
             use crate::parser::errors_to_str;
             use jonla_parser::rule_action::RuleAction;
