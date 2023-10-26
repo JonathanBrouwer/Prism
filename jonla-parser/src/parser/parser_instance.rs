@@ -5,7 +5,7 @@ use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::GrammarFile;
+use crate::grammar::grammar_ar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
 use std::collections::HashMap;

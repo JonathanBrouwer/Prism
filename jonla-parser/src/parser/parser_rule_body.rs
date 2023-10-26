@@ -1,4 +1,3 @@
-use crate::grammar::{AnnotatedRuleExpr, RuleAnnotation, RuleExpr};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -11,9 +10,10 @@ use crate::error::ParseError;
 use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, ValWithEnv, PR};
+use crate::core::context::{ParserContext, PR, ValWithEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
+use crate::grammar::grammar_ar::{AnnotatedRuleExpr, RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
 
@@ -79,7 +79,7 @@ fn parser_body_sub_constructors<
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
-        [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
+        [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx.iter().map(|(&k, v)| (k, v.clone()));
             let rule_args = rule_args.iter().map(|(&k, v)| (k, v.clone()));
             let vars: HashMap<&'grm str, Arc<ValWithEnv>> = rule_args.chain(rule_ctx).collect();

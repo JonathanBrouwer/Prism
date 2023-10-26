@@ -10,7 +10,7 @@ use crate::error::{err_combine_opt, ParseError};
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
-use crate::grammar::GrammarFile;
+use crate::grammar::grammar_ar::GrammarFile;
 
 type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));
 

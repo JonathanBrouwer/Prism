@@ -2,7 +2,7 @@
 
 use jonla_parser::error::error_printer::print_set_error;
 use jonla_parser::grammar::from_action_result::parse_grammarfile;
-use jonla_parser::grammar::GrammarFile;
+use jonla_parser::grammar::grammar_ar::GrammarFile;
 use jonla_parser::rule_action::action_result::ActionResult;
 use jonla_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
