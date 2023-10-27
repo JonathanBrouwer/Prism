@@ -1,7 +1,6 @@
-use crate::grammar::CharClass;
+use crate::grammar::{CharClass, RuleAnnotation};
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar_ar::{GrammarFile, Rule, RuleAnnotation, RuleExpr};
-use crate::grammar::{Block, AnnotatedRuleExpr};
+use crate::grammar::grammar_ar::{GrammarFile, Rule, RuleExpr, AnnotatedRuleExpr, Block};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::from_action_result::parse_rule_action;
@@ -53,7 +52,7 @@ fn parse_block<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<Block<'gr
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
-        create Block(parse_identifier(name, src)?, parse_constructors(cs, src)?)
+        create crate::grammar::Block(parse_identifier(name, src)?, parse_constructors(cs, src)?)
     }
 }
 
@@ -75,7 +74,7 @@ fn parse_annotated_rule_expr<'grm>(
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
         match annots => Construct(_, "List", annots),
-        create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src)?)
+        create crate::grammar::AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src)?)
     }
 }
 

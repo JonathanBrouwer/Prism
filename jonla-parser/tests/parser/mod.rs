@@ -18,9 +18,9 @@ macro_rules! parse_test {
         #[allow(unused_variables)]
         #[test]
         fn $name() {
+            use jonla_parser::grammar::grammar_ar::GrammarFile;
             use jonla_parser::parser::parser_instance::run_parser_rule;
             use jonla_parser::parse_grammar;
-            use jonla_parser::grammar::GrammarFile;
             use jonla_parser::grammar;
             use jonla_parser::error::empty_error::EmptyError;
             use jonla_parser::core::parser::Parser;

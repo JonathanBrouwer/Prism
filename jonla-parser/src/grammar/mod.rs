@@ -7,25 +7,25 @@ pub mod from_action_result;
 pub mod grammar_ar;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'grm> {
+pub struct GrammarFile<'grm, A: Action> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'grm>>,
+    pub rules: Vec<Rule<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'grm> {
+pub struct Rule<'grm, A: Action> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
-    pub blocks: Vec<Block<'grm>>,
+    pub blocks: Vec<Block<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm>>);
+pub struct Block<'grm, A: Action>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm>(
+pub struct AnnotatedRuleExpr<'grm, A: Action>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'grm>,
+    #[serde(borrow)] pub RuleExpr<'grm, A>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -51,8 +51,8 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleExpr<'grm> {
-    Rule(&'grm str, Vec<RuleAction<'grm>>),
+pub enum RuleExpr<'grm, A: Action> {
+    Rule(&'grm str, Vec<A>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {
@@ -64,12 +64,19 @@ pub enum RuleExpr<'grm> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, RuleAction<'grm>),
+    Action(Box<Self>, A),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
     AtThis,
     AtNext,
-    AtAdapt(RuleAction<'grm>, &'grm str),
+    AtAdapt(A, &'grm str),
 }
 
+pub trait Action {
+
+}
+
+impl Action for RuleAction<'_> {
+
+}

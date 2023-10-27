@@ -13,7 +13,8 @@ use by_address::ByAddress;
 use crate::core::context::{ParserContext, PR, ValWithEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::grammar_ar::{AnnotatedRuleExpr, RuleAnnotation, RuleExpr};
+use crate::grammar::grammar_ar::{AnnotatedRuleExpr, RuleExpr};
+use crate::grammar::RuleAnnotation;
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
 
