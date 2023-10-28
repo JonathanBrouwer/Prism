@@ -70,7 +70,7 @@ fn part2() {
     );
     let result: ActionResult<'static> = bincode::deserialize(temp).unwrap();
 
-    let grammar2 = parse_grammarfile(&result, input).unwrap();
+    let grammar2: GrammarFile = parse_grammarfile(&result, input).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();

@@ -1,29 +1,29 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
+use crate::rule_action::action_result::ActionResult;
 
 pub mod escaped_string;
 pub mod from_action_result;
 pub mod grammar_ar;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'grm, A: Action> {
+pub struct GrammarFile<'grm, A: Action<'grm>> {
     #[serde(borrow)]
     pub rules: Vec<Rule<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'grm, A: Action> {
+pub struct Rule<'grm, A: Action<'grm>> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
     pub blocks: Vec<Block<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm, A: Action>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
+pub struct Block<'grm, A: Action<'grm>>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm, A: Action>(
+pub struct AnnotatedRuleExpr<'grm, A: Action<'grm>>(
     pub Vec<RuleAnnotation<'grm>>,
     #[serde(borrow)] pub RuleExpr<'grm, A>,
 );
@@ -51,7 +51,7 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleExpr<'grm, A: Action> {
+pub enum RuleExpr<'grm, A: Action<'grm>> {
     Rule(&'grm str, Vec<A>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
@@ -73,10 +73,12 @@ pub enum RuleExpr<'grm, A: Action> {
     AtAdapt(A, &'grm str),
 }
 
-pub trait Action {
-
+pub trait Action<'grm>: Sized {
+    fn parse_action(r: &ActionResult<'grm>, src: &'grm str) -> Option<Self>;
 }
 
-impl Action for RuleAction<'_> {
-
-}
+// impl<'b, 'grm> Action<'grm> for &'b ActionResult<'grm> {
+//     fn parse_action(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Self> {
+//         Some(r)
+//     }
+// }

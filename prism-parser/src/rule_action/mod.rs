@@ -1,7 +1,10 @@
 use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
+use crate::grammar::Action;
 
 use crate::grammar::escaped_string::EscapedString;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::from_action_result::parse_rule_action;
 
 pub mod action_result;
 pub mod apply_action;
@@ -15,4 +18,10 @@ pub enum RuleAction<'grm> {
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
+}
+
+impl<'grm> Action<'grm> for RuleAction<'grm> {
+    fn parse_action(r: &ActionResult<'grm>, src: &'grm str) -> Option<Self> {
+        parse_rule_action(r, src)
+    }
 }
