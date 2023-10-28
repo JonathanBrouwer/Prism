@@ -1,9 +1,9 @@
-// use jonla_compiler::coc::beta::brh;
-// use jonla_compiler::coc::env::Env;
-// use jonla_compiler::coc::env::EnvEntry::NType;
-// use jonla_compiler::coc::type_check::tc;
-// use jonla_compiler::coc::Expr::*;
-// use jonla_compiler::coc::{Expr, W};
+// use prism_compiler::coc::beta::brh;
+// use prism_compiler::coc::env::Env;
+// use prism_compiler::coc::env::EnvEntry::NType;
+// use prism_compiler::coc::type_check::tc;
+// use prism_compiler::coc::Expr::*;
+// use prism_compiler::coc::{Expr, W};
 //
 // fn assert_type(e: Expr, t: Expr) {
 //     assert_eq!(tc(&e, &Env::new()), Ok(t))

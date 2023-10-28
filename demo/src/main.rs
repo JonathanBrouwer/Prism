@@ -1,7 +1,7 @@
-use jonla_parser::error::error_printer::print_set_error;
-use jonla_parser::grammar::grammar_ar::GrammarFile;
-use jonla_parser::parse_grammar;
-use jonla_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::error::error_printer::print_set_error;
+use prism_parser::grammar::grammar_ar::GrammarFile;
+use prism_parser::parse_grammar;
+use prism_parser::parser::parser_instance::run_parser_rule;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");

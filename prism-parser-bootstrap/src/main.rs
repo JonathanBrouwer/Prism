@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
-use jonla_parser::error::error_printer::print_set_error;
-use jonla_parser::grammar::from_action_result::parse_grammarfile;
-use jonla_parser::grammar::grammar_ar::GrammarFile;
-use jonla_parser::rule_action::action_result::ActionResult;
-use jonla_parser::{parse_grammar, META_GRAMMAR};
+use prism_parser::error::error_printer::print_set_error;
+use prism_parser::grammar::from_action_result::parse_grammarfile;
+use prism_parser::grammar::grammar_ar::GrammarFile;
+use prism_parser::rule_action::action_result::ActionResult;
+use prism_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
-use jonla_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::parser::parser_instance::run_parser_rule;
 
 fn get_new_grammar(input: &str) -> GrammarFile {
     match parse_grammar(input) {
@@ -34,9 +34,9 @@ fn normal() {
     // let grammar: &'static GrammarFile = &META_GRAMMAR;
     // assert_eq!(grammar, &grammar2); // Safety check
 
-    let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();
+    let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
-    let mut file = File::create("jonla-parser/resources/bootstrap.bincode").unwrap();
+    let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();
     bincode::serialize_into(&mut file, &grammar2).unwrap();
 }
 
@@ -55,7 +55,7 @@ fn part1() {
         }
     };
 
-    let mut file = File::create("jonla-parser-bootstrap/resources/temp.bincode").unwrap();
+    let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
     bincode::serialize_into(&mut file, &result).unwrap();
 }
 
@@ -64,15 +64,15 @@ fn part2() {
 
     // Leak because ownership was being annoying
     let temp: &'static [u8] = Box::leak(
-        read("jonla-parser-bootstrap/resources/temp.bincode")
+        read("prism-parser-bootstrap/resources/temp.bincode")
             .unwrap()
             .into_boxed_slice(),
     );
     let result: ActionResult<'static> = bincode::deserialize(temp).unwrap();
 
     let grammar2 = parse_grammarfile(&result, input).unwrap();
-    let mut file = File::create("jonla-parser/resources/bootstrap.json").unwrap();
+    let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
-    let mut file = File::create("jonla-parser/resources/bootstrap.bincode").unwrap();
+    let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();
     bincode::serialize_into(&mut file, &grammar2).unwrap();
 }
