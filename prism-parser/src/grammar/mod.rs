@@ -1,3 +1,4 @@
+use std::marker::{PhantomData};
 use crate::grammar::escaped_string::EscapedString;
 use serde::{Deserialize, Serialize};
 use crate::rule_action::action_result::ActionResult;
@@ -7,25 +8,25 @@ pub mod from_action_result;
 pub mod grammar_ar;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'grm, A: Action<'grm>> {
+pub struct GrammarFile<'b, 'grm, A: Action<'b, 'grm>> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'grm, A>>,
+    pub rules: Vec<Rule<'b, 'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'grm, A: Action<'grm>> {
+pub struct Rule<'b, 'grm, A: Action<'b, 'grm>> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
-    pub blocks: Vec<Block<'grm, A>>,
+    #[serde(borrow)] pub blocks: Vec<Block<'b, 'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm, A: Action<'grm>>(pub &'grm str, pub Vec<AnnotatedRuleExpr<'grm, A>>);
+pub struct Block<'b, 'grm, A: Action<'b, 'grm>>(pub &'grm str, #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'b, 'grm, A>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm, A: Action<'grm>>(
+pub struct AnnotatedRuleExpr<'b, 'grm, A: Action<'b, 'grm>>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'grm, A>,
+    #[serde(borrow)] pub RuleExpr<'b, 'grm, A>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -51,7 +52,7 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleExpr<'grm, A: Action<'grm>> {
+pub enum RuleExpr<'b, 'grm, A: Action<'b, 'grm>> {
     Rule(&'grm str, Vec<A>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
@@ -64,7 +65,7 @@ pub enum RuleExpr<'grm, A: Action<'grm>> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, A),
+    Action(Box<Self>, A, PhantomData<&'b str>),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
@@ -73,12 +74,12 @@ pub enum RuleExpr<'grm, A: Action<'grm>> {
     AtAdapt(A, &'grm str),
 }
 
-pub trait Action<'grm>: Sized {
-    fn parse_action(r: &ActionResult<'grm>, src: &'grm str) -> Option<Self>;
+pub trait Action<'b, 'grm>: Sized + 'b {
+    fn parse_action(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Self>;
 }
 
-// impl<'b, 'grm> Action<'grm> for &'b ActionResult<'grm> {
-//     fn parse_action(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Self> {
-//         Some(r)
-//     }
-// }
+impl<'b, 'grm> Action<'b, 'grm> for &'b ActionResult<'grm> {
+    fn parse_action(r: &'b ActionResult<'grm>, _src: &'grm str) -> Option<Self> {
+        Some(r)
+    }
+}

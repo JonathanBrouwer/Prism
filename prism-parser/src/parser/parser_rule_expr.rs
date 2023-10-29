@@ -8,13 +8,13 @@ use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR, Val, ValWithEnv};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::{apply, apply_rawenv};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::grammar::grammar_ar::{GrammarFile, RuleExpr};
+use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::grammar_ar::{RuleExpr, GrammarFile};
+use crate::parse_ra_grammarfile;
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
@@ -149,7 +149,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     res
                 })
             }
-            RuleExpr::Action(sub, action) => {
+            RuleExpr::Action(sub, action, _) => {
                 let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map(|res| {
                     let mut env = vars.clone();
@@ -187,7 +187,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let gr = apply(&Val::Action(ga), &vars);
 
                 // Parse it into a grammar
-                let g = match parse_grammarfile(&gr, cache.input) {
+                let g = match parse_ra_grammarfile(&gr, cache.input) {
                     Some(g) => g,
                     None => {
                         let mut e = E::new(stream.span_to(stream));
@@ -200,7 +200,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let g: &'b GrammarFile = cache.alloc.alo_grammarfile.alloc(g);
+                let g: &'b GrammarFile<'grm> = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let (rules, mut iter) = match rules.with(g, &vars, Some(stream)) {

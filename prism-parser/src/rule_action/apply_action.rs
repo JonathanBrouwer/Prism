@@ -45,12 +45,12 @@ pub fn apply_action<'b, 'grm>(
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::Cons(h, t) => {
-            let mut res = Vec::new();
-            res.push(apply_action(h, map, span));
-            res.extend_from_slice(match &apply_action(t, map, span) {
-                ActionResult::Construct(_, "List", v) => &v[..],
+            let mut res = match apply_action(t, map, span) {
+                ActionResult::Construct(_, "List", v) => v,
                 x => unreachable!("{:?} is not a list", x),
-            });
+            };
+            //TODO this is ineffecient
+            res.insert(0, apply_action(h, map, span));
 
             ActionResult::Construct(span, "List", res)
         }

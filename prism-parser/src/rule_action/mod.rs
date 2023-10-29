@@ -20,8 +20,8 @@ pub enum RuleAction<'grm> {
     RuleRef(RuleId),
 }
 
-impl<'grm> Action<'grm> for RuleAction<'grm> {
-    fn parse_action(r: &ActionResult<'grm>, src: &'grm str) -> Option<Self> {
+impl<'b, 'grm: 'b> Action<'b, 'grm> for RuleAction<'grm> {
+    fn parse_action(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Self> {
         parse_rule_action(r, src)
     }
 }
