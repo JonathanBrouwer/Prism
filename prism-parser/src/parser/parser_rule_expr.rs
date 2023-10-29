@@ -48,7 +48,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                             value: Val::Action(arg),
                         })
                     })
-                    .collect();
+                    .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
                 res
@@ -185,7 +185,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr = apply(&Val::Action(ga), &vars);
+                let gr = apply(&Val::Action(ga), vars);
 
                 // Parse it into a grammar
                 let g = match parse_grammarfile(&gr, cache.input, parse_rule_action) {
@@ -204,7 +204,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let g: &'b GrammarFile<'grm> = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
-                let (rules, mut iter) = match rules.with(g, &vars, Some(stream)) {
+                let (rules, mut iter) = match rules.with(g, vars, Some(stream)) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(stream.span_to(stream));
@@ -228,7 +228,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     });
 
                 // Parse body
-                parser_rule(&rules, rule, &vec![]).parse(stream, cache, context)
+                parser_rule(rules, rule, &[]).parse(stream, cache, context)
             }
         }
     }

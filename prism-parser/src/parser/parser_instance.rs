@@ -69,7 +69,7 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
             &full_input_layout(
                 &self.state,
                 &rule_ctx,
-                &parser_rule::parser_rule(&self.state, rule, &vec![]),
+                &parser_rule::parser_rule(&self.state, rule, &[]),
             ),
             Pos::start(),
             &mut self.cache,
