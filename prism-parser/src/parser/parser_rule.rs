@@ -5,10 +5,10 @@ use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::parser::parser_rule_body::parser_body_cache_recurse;
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,

@@ -1,6 +1,6 @@
-use crate::grammar::{CharClass, RuleAnnotation};
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{GrammarFile, Rule, RuleExpr, AnnotatedRuleExpr, Block};
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
+use crate::grammar::{CharClass, RuleAnnotation};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 
@@ -34,7 +34,11 @@ pub fn parse_grammarfile<'b, 'grm, A>(
     }
 }
 
-fn parse_rule<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<Rule<'grm, A>> {
+fn parse_rule<'b, 'grm, A>(
+    r: &'b ActionResult<'grm>,
+    src: &'grm str,
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+) -> Option<Rule<'grm, A>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
@@ -48,7 +52,11 @@ fn parse_rule<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: f
     }
 }
 
-fn parse_block<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<Block<'grm, A>> {
+fn parse_block<'b, 'grm, A>(
+    r: &'b ActionResult<'grm>,
+    src: &'grm str,
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+) -> Option<Block<'grm, A>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
@@ -59,7 +67,7 @@ fn parse_block<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: 
 fn parse_constructors<'b, 'grm, A>(
     r: &'b ActionResult<'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Vec<AnnotatedRuleExpr<'grm, A>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
@@ -70,7 +78,7 @@ fn parse_constructors<'b, 'grm, A>(
 fn parse_annotated_rule_expr<'b, 'grm, A>(
     r: &'b ActionResult<'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<AnnotatedRuleExpr<'grm, A>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
@@ -94,11 +102,15 @@ fn parse_rule_annotation<'grm>(
     })
 }
 
-fn parse_rule_expr<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<RuleExpr<'grm, A>> {
+fn parse_rule_expr<'b, 'grm, A>(
+    r: &'b ActionResult<'grm>,
+    src: &'grm str,
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+) -> Option<RuleExpr<'grm, A>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             Box::new(parse_rule_expr(&b[0], src, parse_a)?),
-            parse_a(&b[1], src)?
+            parse_a(&b[1], src)?,
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
             match &b[0] => Construct(_, "List", subs),
@@ -138,10 +150,9 @@ fn parse_rule_expr<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse
                 create args.iter().map(|sub| parse_a(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),
-        Construct(_, "AtAdapt", b) => RuleExpr::AtAdapt(
-            parse_a(&b[0], src)?,
-            parse_identifier(&b[1], src)?,
-        ),
+        Construct(_, "AtAdapt", b) => {
+            RuleExpr::AtAdapt(parse_a(&b[0], src)?, parse_identifier(&b[1], src)?)
+        }
         _ => return None,
     })
 }
@@ -155,7 +166,10 @@ pub(crate) fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> 
     }
 }
 
-pub(crate) fn parse_string<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<EscapedString<'grm>> {
+pub(crate) fn parse_string<'grm>(
+    r: &ActionResult<'grm>,
+    src: &'grm str,
+) -> Option<EscapedString<'grm>> {
     result_match! {
         match r => Value(span),
         create EscapedString::from_escaped(&src[*span])

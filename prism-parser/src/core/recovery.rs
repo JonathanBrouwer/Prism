@@ -98,13 +98,7 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> 
             r @ POk(_, _, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
-                    POk(
-                        PR::from_raw(Val::Void),
-                        stream,
-                        *to,
-                        true,
-                        Some((e, s)),
-                    )
+                    POk(PR::from_raw(Val::Void), stream, *to, true, Some((e, s)))
                 } else {
                     PErr(e, s)
                 }

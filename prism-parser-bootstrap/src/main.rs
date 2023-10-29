@@ -3,11 +3,11 @@
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::from_action_result::parse_grammarfile;
 use prism_parser::grammar::grammar_ar::GrammarFile;
+use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::rule_action::action_result::ActionResult;
+use prism_parser::rule_action::from_action_result::parse_rule_action;
 use prism_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
-use prism_parser::parser::parser_instance::run_parser_rule;
-use prism_parser::rule_action::from_action_result::parse_rule_action;
 
 fn get_new_grammar(input: &str) -> GrammarFile {
     match parse_grammar(input) {

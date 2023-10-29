@@ -5,17 +5,17 @@ use crate::core::adaptive::GrammarState;
 use crate::core::adaptive::RuleId;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::parser::parser_instance::run_parser_rule;
+use crate::rule_action::from_action_result::parse_rule_action;
 use grammar::from_action_result::parse_grammarfile;
 use grammar::grammar_ar::GrammarFile;
 use std::collections::HashMap;
-use crate::parser::parser_instance::run_parser_rule;
-use crate::rule_action::from_action_result::parse_rule_action;
 
 pub mod core;
 pub mod error;
 pub mod grammar;
-pub mod rule_action;
 pub mod parser;
+pub mod rule_action;
 
 lazy_static! {
     pub static ref META_GRAMMAR: GrammarFile<'static> = {

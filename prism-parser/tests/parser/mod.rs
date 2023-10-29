@@ -95,6 +95,6 @@ fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
 }
 
 use itertools::Itertools;
+pub(crate) use parse_test;
 use prism_parser::error::error_printer::ErrorLabel;
 use prism_parser::error::set_error::SetError;
-pub(crate) use parse_test;

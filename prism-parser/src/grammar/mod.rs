@@ -15,11 +15,15 @@ pub struct GrammarFile<'grm, A> {
 pub struct Rule<'grm, A> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
-    #[serde(borrow)] pub blocks: Vec<Block<'grm, A>>,
+    #[serde(borrow)]
+    pub blocks: Vec<Block<'grm, A>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm, A>(pub &'grm str, #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, A>>);
+pub struct Block<'grm, A>(
+    pub &'grm str,
+    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, A>>,
+);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct AnnotatedRuleExpr<'grm, A>(

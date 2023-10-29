@@ -6,14 +6,14 @@ use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::grammar_ar::GrammarFile;
+use crate::parser::parser_layout::full_input_layout;
+use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_rawenv;
+use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 use std::sync::Arc;
 use typed_arena::Arena;
-use crate::META_GRAMMAR_STATE;
-use crate::parser::parser_layout::full_input_layout;
-use crate::parser::parser_rule;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -24,13 +24,27 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
-    pub fn new(input: &'grm str, bump: Allocs<'b, 'grm>, from: &'grm GrammarFile<'grm>) -> Result<Self, AdaptResult<'grm>> {
+    pub fn new(
+        input: &'grm str,
+        bump: Allocs<'b, 'grm>,
+        from: &'grm GrammarFile<'grm>,
+    ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
         let visible_rules = HashMap::from([
-            ("grammar", Arc::new(ValWithEnv::from_raw(Val::Rule(META_GRAMMAR_STATE.1["grammar"])))),
-            ("prule_action", Arc::new(ValWithEnv::from_raw(Val::Rule(META_GRAMMAR_STATE.1["prule_action"])))),
+            (
+                "grammar",
+                Arc::new(ValWithEnv::from_raw(Val::Rule(
+                    META_GRAMMAR_STATE.1["grammar"],
+                ))),
+            ),
+            (
+                "prule_action",
+                Arc::new(ValWithEnv::from_raw(Val::Rule(
+                    META_GRAMMAR_STATE.1["prule_action"],
+                ))),
+            ),
         ]);
         let (state, rules) = META_GRAMMAR_STATE.0.with(from, &visible_rules, None)?;
 

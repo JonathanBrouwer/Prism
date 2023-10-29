@@ -10,7 +10,7 @@ use crate::error::ParseError;
 use crate::core::adaptive::{BlockState, GrammarState};
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR, ValWithEnv};
+use crate::core::context::{ParserContext, ValWithEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::grammar_ar::{AnnotatedRuleExpr, RuleExpr};
