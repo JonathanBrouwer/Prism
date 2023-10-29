@@ -7,6 +7,7 @@ use prism_parser::rule_action::action_result::ActionResult;
 use prism_parser::{parse_grammar, META_GRAMMAR};
 use std::fs::{read, File};
 use prism_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::rule_action::from_action_result::parse_rule_action;
 
 fn get_new_grammar(input: &str) -> GrammarFile {
     match parse_grammar(input) {
@@ -70,7 +71,7 @@ fn part2() {
     );
     let result: ActionResult<'static> = bincode::deserialize(temp).unwrap();
 
-    let grammar2: GrammarFile = parse_grammarfile(&result, input).unwrap();
+    let grammar2: GrammarFile = parse_grammarfile(&result, input, parse_rule_action).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();

@@ -1,5 +1,4 @@
-use std::marker::PhantomData;
-use crate::grammar::{Action, CharClass, RuleAnnotation};
+use crate::grammar::{CharClass, RuleAnnotation};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{GrammarFile, Rule, RuleExpr, AnnotatedRuleExpr, Block};
 use crate::rule_action::action_result::ActionResult;
@@ -20,21 +19,22 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'b, 'grm, A: Action<'b, 'grm>>(
+pub fn parse_grammarfile<'b, 'grm, A>(
     r: &'b ActionResult<'grm>,
     src: &'grm str,
-) -> Option<GrammarFile<'b, 'grm, A>> {
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+) -> Option<GrammarFile<'grm, A>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         match rules => Construct(_, "List", rules),
         create GrammarFile {
-            rules: rules.iter().map(|rule| parse_rule(rule, src)).collect::<Option<Vec<_>>>()?,
+            rules: rules.iter().map(|rule| parse_rule(rule, src, parse_a)).collect::<Option<Vec<_>>>()?,
         }
     }
 }
 
-fn parse_rule<'b, 'grm, A: Action<'b, 'grm>>(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Rule<'b, 'grm, A>> {
+fn parse_rule<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<Rule<'grm, A>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
@@ -43,38 +43,40 @@ fn parse_rule<'b, 'grm, A: Action<'b, 'grm>>(r: &'b ActionResult<'grm>, src: &'g
         create Rule {
             name: parse_identifier(name, src)?,
             args: args.iter().map(|n| parse_identifier(n, src)).collect::<Option<Vec<_>>>()?,
-            blocks: blocks.iter().map(|block| parse_block(block, src)).collect::<Option<Vec<_>>>()?,
+            blocks: blocks.iter().map(|block| parse_block(block, src, parse_a)).collect::<Option<Vec<_>>>()?,
         }
     }
 }
 
-fn parse_block<'b, 'grm, A: Action<'b, 'grm>>(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<Block<'b, 'grm, A>> {
+fn parse_block<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<Block<'grm, A>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
-        create crate::grammar::Block(parse_identifier(name, src)?, parse_constructors(cs, src)?)
+        create crate::grammar::Block(parse_identifier(name, src)?, parse_constructors(cs, src, parse_a)?)
     }
 }
 
-fn parse_constructors<'b, 'grm, A: Action<'b, 'grm>>(
+fn parse_constructors<'b, 'grm, A>(
     r: &'b ActionResult<'grm>,
     src: &'grm str,
-) -> Option<Vec<AnnotatedRuleExpr<'b, 'grm, A>>> {
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>
+) -> Option<Vec<AnnotatedRuleExpr<'grm, A>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
-        create constructors.iter().map(|c| parse_annotated_rule_expr(c, src)).collect::<Option<Vec<_>>>()?
+        create constructors.iter().map(|c| parse_annotated_rule_expr(c, src, parse_a)).collect::<Option<Vec<_>>>()?
     }
 }
 
-fn parse_annotated_rule_expr<'b, 'grm, A: Action<'b, 'grm>>(
+fn parse_annotated_rule_expr<'b, 'grm, A>(
     r: &'b ActionResult<'grm>,
     src: &'grm str,
-) -> Option<AnnotatedRuleExpr<'b, 'grm, A>> {
+    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>
+) -> Option<AnnotatedRuleExpr<'grm, A>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
         match annots => Construct(_, "List", annots),
-        create crate::grammar::AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src)?)
+        create crate::grammar::AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src, parse_a)?)
     }
 }
 
@@ -92,41 +94,40 @@ fn parse_rule_annotation<'grm>(
     })
 }
 
-fn parse_rule_expr<'b, 'grm, A: Action<'b, 'grm>>(r: &'b ActionResult<'grm>, src: &'grm str) -> Option<RuleExpr<'b, 'grm, A>> {
+fn parse_rule_expr<'b, 'grm, A>(r: &'b ActionResult<'grm>, src: &'grm str, parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>) -> Option<RuleExpr<'grm, A>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
-            Box::new(parse_rule_expr(&b[0], src)?),
-            A::parse_action(&b[1], src)?,
-            PhantomData
+            Box::new(parse_rule_expr(&b[0], src, parse_a)?),
+            parse_a(&b[1], src)?
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
             match &b[0] => Construct(_, "List", subs),
-            create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect::<Option<Vec<_>>>()?
+            create subs.iter().map(|sub| parse_rule_expr(sub, src, parse_a)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "Sequence", b) => RuleExpr::Sequence(result_match! {
             match &b[0] => Construct(_, "List", subs),
-            create subs.iter().map(|sub| parse_rule_expr(sub, src)).collect::<Option<Vec<_>>>()?
+            create subs.iter().map(|sub| parse_rule_expr(sub, src, parse_a)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
             parse_identifier(&b[0], src)?,
-            Box::new(parse_rule_expr(&b[1], src)?),
+            Box::new(parse_rule_expr(&b[1], src, parse_a)?),
         ),
         Construct(_, "Repeat", b) => RuleExpr::Repeat {
-            expr: Box::new(parse_rule_expr(&b[0], src)?),
+            expr: Box::new(parse_rule_expr(&b[0], src, parse_a)?),
             min: parse_u64(&b[1], src)?,
             max: parse_option(&b[2], src, parse_u64)?,
-            delim: Box::new(parse_rule_expr(&b[3], src)?),
+            delim: Box::new(parse_rule_expr(&b[3], src, parse_a)?),
         },
         Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(&b[0], src)?),
         Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(&b[0], src)?),
         Construct(_, "SliceInput", b) => {
-            RuleExpr::SliceInput(Box::new(parse_rule_expr(&b[0], src)?))
+            RuleExpr::SliceInput(Box::new(parse_rule_expr(&b[0], src, parse_a)?))
         }
         Construct(_, "PosLookahead", b) => {
-            RuleExpr::PosLookahead(Box::new(parse_rule_expr(&b[0], src)?))
+            RuleExpr::PosLookahead(Box::new(parse_rule_expr(&b[0], src, parse_a)?))
         }
         Construct(_, "NegLookahead", b) => {
-            RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src)?))
+            RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src, parse_a)?))
         }
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
@@ -134,11 +135,11 @@ fn parse_rule_expr<'b, 'grm, A: Action<'b, 'grm>>(r: &'b ActionResult<'grm>, src
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1] => Construct(_, "List", args),
-                create args.iter().map(|sub| A::parse_action(sub, src)).collect::<Option<Vec<_>>>()?
+                create args.iter().map(|sub| parse_a(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),
         Construct(_, "AtAdapt", b) => RuleExpr::AtAdapt(
-            A::parse_action(&b[0], src)?,
+            parse_a(&b[0], src)?,
             parse_identifier(&b[1], src)?,
         ),
         _ => return None,
