@@ -7,13 +7,13 @@ use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-use crate::core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 use by_address::ByAddress;
 
 use crate::core::context::{ParserContext, ValWithEnv, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::grammar_ar::{AnnotatedRuleExpr, RuleExpr};
+use crate::grammar::grammar_ar::RuleExpr;
 use crate::grammar::RuleAnnotation;
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
@@ -72,10 +72,7 @@ fn parser_body_sub_constructors<
 >(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
-    es: &'b [(
-        &'b AnnotatedRuleExpr<'grm>,
-        Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
-    )],
+    es: &'b [Constructor<'b, 'grm>],
     rule_args: &'a HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es {

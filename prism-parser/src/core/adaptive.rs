@@ -172,11 +172,13 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 #[derive(Clone)]
 pub struct BlockState<'b, 'grm> {
     pub name: &'grm str,
-    pub constructors: Vec<(
-        &'b AnnotatedRuleExpr<'grm>,
-        Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
-    )>,
+    pub constructors: Vec<Constructor<'b, 'grm>>,
 }
+
+pub type Constructor<'b, 'grm> = (
+    &'b AnnotatedRuleExpr<'grm>,
+    Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
+);
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
