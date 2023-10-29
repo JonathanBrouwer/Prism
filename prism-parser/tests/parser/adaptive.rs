@@ -32,7 +32,7 @@ passing tests:
             Z() <- "z"
     };
     let z;
-    "### => "[Let(Z())]"
+    "### => "[Let(Construct('Z', []))]"
     // Add to base redundant specification
     r###"
     grammar {
@@ -44,7 +44,7 @@ passing tests:
             -- y
     };
     let z;
-    "### => "[Let(Z())]"
+    "### => "[Let(Construct('Z', []))]"
     // Add minus
     r###"
     grammar {
@@ -53,7 +53,7 @@ passing tests:
             Sub(x, y) <- x:@next "-" y:@this
     };
     let x + y - x + x + y - x;
-    "### => "[Let(Add(X(), Sub(Y(), Add(X(), Add(X(), Sub(Y(), X()))))))]"
+    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
     // Add mul + minus
     r###"
     grammar {
@@ -65,7 +65,7 @@ passing tests:
             -- base
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
+    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
     // Add mul + minus seperately (1)
     r###"
     grammar {
@@ -81,7 +81,7 @@ passing tests:
             Sub(x, y) <- x:@next "-" y:@this
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
+    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
     // Add mul + minus seperately (2)
     r###"
     grammar {
@@ -97,7 +97,7 @@ passing tests:
             -- base
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"
+    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
 
 failing tests:
     // Turns order around
@@ -152,7 +152,7 @@ passing tests:
             Y() <- "y"
     }
     y
-    "### => "Y()"
+    "### => "Construct('Y', [])"
     r###"
     {
         rule sub:

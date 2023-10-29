@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ActionResult<'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),

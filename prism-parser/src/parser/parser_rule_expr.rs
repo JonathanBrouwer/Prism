@@ -16,9 +16,9 @@ use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::{apply, apply_rawenv};
-use crate::rule_action::from_action_result::parse_rule_action;
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::rule_action::RuleAction;
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -188,7 +188,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let gr = apply(&Val::Action(ga), vars);
 
                 // Parse it into a grammar
-                let g = match parse_grammarfile(&gr, cache.input, parse_rule_action) {
+                let g = match parse_grammarfile(&gr, cache.input, convert_action_result) {
                     Some(g) => g,
                     None => {
                         let mut e = E::new(stream.span_to(stream));
@@ -232,4 +232,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             }
         }
     }
+}
+
+fn convert_action_result<'grm, 'b>(ar: &'b ActionResult<'grm>, _src: &'grm str) -> Option<RuleAction<'grm>> {
+    Some(RuleAction::ActionResult(Arc::new(ar.clone())))
 }

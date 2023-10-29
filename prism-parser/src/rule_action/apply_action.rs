@@ -56,5 +56,6 @@ pub fn apply_action<'b, 'grm>(
         }
         RuleAction::Nil() => ActionResult::Construct(span, "List", Vec::new()),
         RuleAction::RuleRef(r) => ActionResult::RuleRef(*r),
+        RuleAction::ActionResult(ar) => (**ar).clone(),
     }
 }

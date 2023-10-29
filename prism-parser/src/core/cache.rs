@@ -28,7 +28,6 @@ pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 pub struct Allocs<'b, 'grm> {
     pub alo_grammarfile: &'b Arena<GrammarFile<'grm>>,
     pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
-    // pub alo: Bump,
 }
 
 pub struct ParserCacheEntry<PR> {
