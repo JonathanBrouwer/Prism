@@ -5,7 +5,7 @@ rule block:
 
 rule expr:
     -- fnconstruct
-    FnConstruct(t, r) <- t:@this "." r:@this
+    FnConstruct(t, r) <- t:@next "." r:@this
     FnType(at, bt) <- at:@this "->" bt:@this
     -- fndestruct
     FnDestruct(f, a) <- f:@this " " a:@next
