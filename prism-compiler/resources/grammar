@@ -5,8 +5,8 @@ rule block:
 
 rule expr:
     -- fnconstruct
-    FnConstruct(t, r) <- t:@next "." r:@this
-    FnType(at, bt) <- at:@this "->" bt:@this
+    FnConstruct(t, r) <- t:@next "|>" r:@this
+    FnType(at, bt) <- at:@next "->" bt:@this
     -- fndestruct
     FnDestruct(f, a) <- f:@this " " a:@next
     -- base

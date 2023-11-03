@@ -3,4 +3,4 @@ grammar {
         -- base
         #0 <- "@"
 };
-Type. #0. @
+Type |> #0 |> @
