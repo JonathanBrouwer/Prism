@@ -210,7 +210,11 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let g: &'b GrammarFile<'b, 'grm> = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
-                let (rules, mut iter) = match rules.with(g, vars, Some(stream)) {
+                let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {
+                    ActionResult::RuleRef(r) => Some((*k, *r)),
+                    _ => None,
+                });
+                let (rules, mut iter) = match rules.with(g, rule_vars, Some(stream)) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(stream.span_to(stream));
@@ -226,12 +230,13 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 let rules: &'b GrammarState = cache.alloc.alo_grammarstate.alloc(rules);
 
                 //TODO bug: the cache uses &'b [BlockState<'b, 'grm>] but that's not enough if a block that this block depends on changes
+                //-> Maybe fix by switching out the cache?
 
                 let rule = iter
                     .find(|(k, _)| k == b)
                     .map(|(_, v)| v)
-                    .unwrap_or_else(|| match vars[b] {
-                        ActionResult::RuleRef(r) => r,
+                    .unwrap_or_else(|| match vars[b].as_ref() {
+                        ActionResult::RuleRef(r) => *r,
                         _ => panic!("Adaptation rule not found."),
                     });
 

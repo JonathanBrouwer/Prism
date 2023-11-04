@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
@@ -30,17 +31,12 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
-        let visible_rules = HashMap::from([
-            (
-                "grammar",
-                ActionResult::RuleRef(META_GRAMMAR_STATE.1["grammar"]),
-            ),
-            (
-                "prule_action",
-                ActionResult::RuleRef(META_GRAMMAR_STATE.1["prule_action"]),
-            ),
-        ]);
-        let (state, rules) = META_GRAMMAR_STATE.0.with(from, &visible_rules, None)?;
+        let visible_rules = [
+            ("grammar", META_GRAMMAR_STATE.1["grammar"]),
+            ("prule_action", META_GRAMMAR_STATE.1["prule_action"])
+        ].into_iter();
+
+        let (state, rules) = META_GRAMMAR_STATE.0.with(from, visible_rules, None)?;
 
         Ok(Self {
             context,
@@ -52,12 +48,12 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
 }
 
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b, 'grm, E> {
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<ActionResult<'b, 'grm>, Vec<E>> {
+    pub fn run(&'b mut self, rule: &'grm str) -> Result<Cow<'b, ActionResult<'b, 'grm>>, Vec<E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, ActionResult::RuleRef(v)))
+            .map(|(&k, &v)| (k, Cow::Owned(ActionResult::RuleRef(v))))
             .collect();
         let x = parse_with_recovery(
             &full_input_layout(
@@ -78,7 +74,7 @@ pub fn run_parser_rule<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
     rules: &'grm GrammarFile<'grm, 'grm>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'b> FnOnce(ActionResult<'b, 'grm>) -> T,
+    ar_map: impl for<'b> FnOnce(&ActionResult<'b, 'grm>) -> T,
 ) -> Result<T, Vec<E>> {
     let bump: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
@@ -86,7 +82,7 @@ pub fn run_parser_rule<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
         alo_ar: &Arena::new(),
     };
     let mut instance = ParserInstance::new(input, bump, rules).unwrap();
-    instance.run(rule).map(ar_map)
+    instance.run(rule).map(|v| ar_map(v.as_ref()))
 }
 
 #[macro_export]

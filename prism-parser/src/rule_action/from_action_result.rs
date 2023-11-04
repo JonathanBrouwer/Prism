@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::grammar::from_action_result::{parse_identifier, parse_string};
 use crate::result_match;
 use crate::rule_action::action_result::ActionResult;
@@ -17,8 +18,8 @@ pub fn parse_rule_action<'grm>(
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src)?,
             result_match! {
-                match &b[1] => Construct(_, "List", subs),
-                create subs.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
+                match &b[1].as_ref() => Construct(_, "List", subs),
+                create subs.iter().map(|sub| parse_rule_action(sub, src).map(|v| Cow::Owned(v))).collect::<Option<Vec<_>>>()?
             }?,
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),

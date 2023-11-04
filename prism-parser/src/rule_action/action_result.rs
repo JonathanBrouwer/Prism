@@ -14,7 +14,6 @@ pub enum ActionResult<'b, 'grm> {
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Cow<'b, ActionResult<'b, 'grm>>>),
     RuleRef(RuleId),
-    Phantom(PhantomData<&'b str>),
 }
 
 impl<'b, 'grm> ActionResult<'b, 'grm> {
@@ -39,7 +38,6 @@ impl<'b, 'grm> ActionResult<'b, 'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
-            ActionResult::Phantom(_) => unreachable!(),
         }
     }
 

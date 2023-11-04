@@ -5,7 +5,7 @@ use crate::rule_action::action_result::ActionResult;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::mem;
+use std::{iter, mem};
 use std::sync::Arc;
 
 pub struct GrammarState<'b, 'grm> {
@@ -45,7 +45,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn with(
         &self,
         grammar: &'b GrammarFile<'b, 'grm>,
-        ctx: &HashMap<&'grm str, RuleId>,
+        ctx: impl Iterator<Item=(&'grm str, RuleId)>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult> {
         let mut s = Self {
@@ -61,24 +61,22 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
             }
         }
 
+        let mut ctx: HashMap<_, _> = ctx.collect();
+
         let mut result = vec![];
         for new_rule in &grammar.rules {
-            if let Some(rule) = ctx.get(new_rule.name) {
-                result.push((new_rule.name, *rule))
+            let rule = if let Some(rule) = ctx.get(new_rule.name) {
+                *rule
             } else {
-                result.push((new_rule.name, RuleId(s.rules.len())));
                 s.rules
                     .push(RuleState::new_empty(new_rule.name, &new_rule.args));
+                RuleId(s.rules.len() - 1)
             };
+            result.push((new_rule.name, rule));
+            ctx.insert(new_rule.name, rule);
         }
 
-        let ctx = Arc::new(
-            Iterator::chain(
-                ctx.iter().map(|(&k, v)| (k, v.clone())),
-                result.iter().cloned(),
-            )
-            .collect::<HashMap<_, _>>(),
-        );
+        let ctx = Arc::new(ctx);
 
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
             s.rules[id.0]
@@ -93,7 +91,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         grammar: &'b GrammarFile<'b, 'grm>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
         GrammarState::new()
-            .with(grammar, &HashMap::new(), None)
+            .with(grammar, iter::empty(), None)
             .unwrap()
     }
 
