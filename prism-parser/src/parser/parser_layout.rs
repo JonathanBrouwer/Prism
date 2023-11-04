@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
 use crate::core::context::ParserContext;
@@ -15,7 +16,7 @@ use crate::rule_action::action_result::ActionResult;
 
 pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, ActionResult<'b, 'grm>>,
+    vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |pos: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
@@ -23,8 +24,8 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
             return sub.parse(pos, cache, context);
         }
 
-        let layout = match vars["layout"] {
-            ActionResult::RuleRef(r) => r,
+        let layout = match vars["layout"].as_ref() {
+            ActionResult::RuleRef(r) => *r,
             _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
         };
 
@@ -66,7 +67,7 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
 
 pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, ActionResult<'b, 'grm>>,
+    vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
     sub: &'a impl Parser<'b, 'grm, O, E>,
 ) -> impl Parser<'b, 'grm, O, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {

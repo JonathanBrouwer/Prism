@@ -12,7 +12,7 @@ use crate::grammar::escaped_string::EscapedString;
 pub enum ActionResult<'b, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<ActionResult<'b, 'grm>>),
+    Construct(Span, &'grm str, Vec<Cow<'b, ActionResult<'b, 'grm>>>),
     RuleRef(RuleId),
     Phantom(PhantomData<&'b str>),
 }

@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
@@ -13,6 +14,7 @@ use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
 
+//TODO bug: does not include params
 type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));
 
 pub struct ParserCache<'grm, 'b, E: ParseError> {
@@ -30,6 +32,15 @@ pub struct Allocs<'b, 'grm> {
     pub alo_grammarfile: &'b Arena<GrammarFile<'b, 'grm>>,
     pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
     pub alo_ar: &'b Arena<ActionResult<'b, 'grm>>,
+}
+
+impl<'b, 'grm> Allocs<'b, 'grm> {
+    pub fn uncow(&self, cow: Cow<'b, ActionResult<'b, 'grm>>) -> &'b ActionResult<'b, 'grm> {
+        match cow {
+            Cow::Borrowed(v) => v,
+            Cow::Owned(v) => self.alo_ar.alloc(v),
+        }
+    }
 }
 
 pub struct ParserCacheEntry<PR> {

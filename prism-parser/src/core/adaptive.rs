@@ -45,7 +45,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     pub fn with(
         &self,
         grammar: &'b GrammarFile<'b, 'grm>,
-        ctx: &HashMap<&'grm str, ActionResult<'b, 'grm>>,
+        ctx: &HashMap<&'grm str, RuleId>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult> {
         let mut s = Self {
@@ -63,12 +63,8 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
 
         let mut result = vec![];
         for new_rule in &grammar.rules {
-            if let Some(ar) = ctx.get(new_rule.name) {
-                if let ActionResult::RuleRef(rule) = ar {
-                    result.push((new_rule.name, *rule))
-                } else {
-                    panic!("Tried to run variable `{}` as a rule, but it does not refer to a rule. {ar:?}", new_rule.name);
-                }
+            if let Some(rule) = ctx.get(new_rule.name) {
+                result.push((new_rule.name, *rule))
             } else {
                 result.push((new_rule.name, RuleId(s.rules.len())));
                 s.rules
@@ -79,7 +75,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         let ctx = Arc::new(
             Iterator::chain(
                 ctx.iter().map(|(&k, v)| (k, v.clone())),
-                result.iter().map(|&(k, v)| (k, ActionResult::RuleRef(v))),
+                result.iter().cloned(),
             )
             .collect::<HashMap<_, _>>(),
         );
@@ -127,7 +123,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
     pub fn update(
         &mut self,
         r: &'b Rule<'b, 'grm>,
-        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
+        ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Result<(), ()> {
         self.order.update(r);
 
@@ -173,13 +169,13 @@ pub struct BlockState<'b, 'grm> {
 
 pub type Constructor<'b, 'grm> = (
     &'b AnnotatedRuleExpr<'b, 'grm>,
-    Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
+    Arc<HashMap<&'grm str, RuleId>>,
 );
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
         block: &'b Block<'b, 'grm>,
-        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
+        ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Self {
         Self {
             name: block.0,
@@ -190,7 +186,7 @@ impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn update(
         &mut self,
         b: &'b Block<'b, 'grm>,
-        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
+        ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) {
         assert_eq!(self.name, b.0);
         self.constructors

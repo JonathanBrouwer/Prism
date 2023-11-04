@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::pos::Pos;
 use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
@@ -7,15 +8,15 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct PR<'b, 'grm> {
-    pub free: HashMap<&'grm str, ActionResult<'b, 'grm>>,
-    pub rtrn: ActionResult<'b, 'grm>,
+    pub free: HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
+    pub rtrn: Cow<'b, ActionResult<'b, 'grm>>,
 }
 
 impl<'b, 'grm> PR<'b, 'grm> {
     pub fn with_rtrn(rtrn: ActionResult<'b, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
-            rtrn,
+            rtrn: Cow::Owned(rtrn),
         }
     }
 

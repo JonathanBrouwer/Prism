@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
@@ -13,7 +14,7 @@ use std::collections::HashMap;
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: RuleId,
-    args: &'a [ActionResult<'b, 'grm>],
+    args: &'a [Cow<'b, ActionResult<'b, 'grm>>],
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm> = rules

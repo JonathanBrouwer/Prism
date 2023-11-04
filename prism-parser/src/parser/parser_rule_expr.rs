@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
@@ -24,14 +25,14 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     expr: &'b RuleExpr<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, ActionResult<'b, 'grm>>,
+    vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
                 let rule = if let Some(ar) = vars.get(rule) {
-                    if let ActionResult::RuleRef(rule) = ar {
+                    if let ActionResult::RuleRef(rule) = ar.as_ref() {
                         *rule
                     } else {
                         panic!("Tried to run variable `{rule}` as a rule, but it does not refer to a rule. {ar:?}");
@@ -122,7 +123,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: ActionResult::void(),
+                    rtrn: Cow::Owned(ActionResult::void()),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -150,7 +151,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map(|res| {
-                    let rtrn: ActionResult<'b, 'grm> = apply_action(
+                    let rtrn = apply_action(
                         action,
                         &|k| {
                             res.free
@@ -188,9 +189,9 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr: ActionResult<'b, 'grm> =
+                let gr =
                     apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
-                let gr: &'b ActionResult = cache.alloc.alo_ar.alloc(gr);
+                let gr: &'b ActionResult = cache.alloc.uncow(gr);
 
                 // Parse it into a grammar
                 let g = match parse_grammarfile(gr, cache.input, convert_action_result) {
@@ -223,6 +224,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                     }
                 };
                 let rules: &'b GrammarState = cache.alloc.alo_grammarstate.alloc(rules);
+
+                //TODO bug: the cache uses &'b [BlockState<'b, 'grm>] but that's not enough if a block that this block depends on changes
 
                 let rule = iter
                     .find(|(k, _)| k == b)

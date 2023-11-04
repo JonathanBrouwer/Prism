@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +13,8 @@ pub mod from_action_result;
 pub enum RuleAction<'b, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
-    Construct(&'grm str, Vec<Self>),
+    // TODO use more efficient structure than Vec for this
+    Construct(&'grm str, Vec<Cow<'b, Self>>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
