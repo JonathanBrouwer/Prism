@@ -23,5 +23,5 @@ pub fn test_bootstrap() {
     let input = include_str!("../resources/meta.grammar");
     let grammar2 = get_new_grammar(input);
 
-    assert_eq!(grammar, &grammar2); // Safety check
+    assert_eq!(grammar, &grammar2); // Check if grammar file needs to be updated
 }

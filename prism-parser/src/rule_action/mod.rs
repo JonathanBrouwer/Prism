@@ -16,5 +16,7 @@ pub enum RuleAction<'b, 'grm> {
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
-    ActionResult(ActionResult<'b, 'grm>),
+    // This can't encounter in a grammar that is parsed, only added during adaptation.
+    #[serde(skip)]
+    ActionResult(&'b ActionResult<'b, 'grm>),
 }

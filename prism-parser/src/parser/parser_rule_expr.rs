@@ -243,5 +243,5 @@ fn convert_action_result<'grm, 'b>(
     ar: &'b ActionResult<'b, 'grm>,
     _src: &'grm str,
 ) -> Option<RuleAction<'b, 'grm>> {
-    Some(RuleAction::ActionResult(ar.clone()))
+    Some(RuleAction::ActionResult(&ar))
 }
