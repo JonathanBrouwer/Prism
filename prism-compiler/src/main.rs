@@ -17,7 +17,7 @@ fn main() {
         }
     };
 
-    let input = include_str!("../resources/program.jnl");
+    let input = include_str!("../resources/program.pr");
     let r: Result<_, _> = run_parser_rule(&grammar, "block", input);
     let r = match r {
         Ok(o) => o,
