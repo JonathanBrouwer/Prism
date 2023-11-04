@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::marker::PhantomData;
 
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
@@ -8,14 +9,15 @@ use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum ActionResult<'grm> {
+pub enum ActionResult<'b, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<ActionResult<'grm>>),
+    Construct(Span, &'grm str, Vec<ActionResult<'b, 'grm>>),
     RuleRef(RuleId),
+    Phantom(PhantomData<&'b str>),
 }
 
-impl<'grm> ActionResult<'grm> {
+impl<'b, 'grm> ActionResult<'b, 'grm> {
     pub fn get_value(&self, src: &'grm str) -> Cow<'grm, str> {
         match self {
             ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
@@ -37,6 +39,11 @@ impl<'grm> ActionResult<'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
+            ActionResult::Phantom(_) => unreachable!(),
         }
+    }
+
+    pub fn void() -> Self {
+        ActionResult::Construct(Span::invalid(), "#VOID#", vec![])
     }
 }

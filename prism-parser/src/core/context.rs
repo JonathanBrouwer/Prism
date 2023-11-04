@@ -1,7 +1,5 @@
-use crate::core::adaptive::RuleId;
 use crate::core::pos::Pos;
-use crate::core::span::Span;
-use crate::rule_action::RuleAction;
+use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
@@ -9,15 +7,15 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct PR<'b, 'grm> {
-    pub free: HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
-    pub rtrn: ValWithEnv<'b, 'grm>,
+    pub free: HashMap<&'grm str, ActionResult<'b, 'grm>>,
+    pub rtrn: ActionResult<'b, 'grm>,
 }
 
 impl<'b, 'grm> PR<'b, 'grm> {
-    pub fn from_raw(rtrn: Val<'b, 'grm>) -> Self {
+    pub fn with_rtrn(rtrn: ActionResult<'b, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
-            rtrn: ValWithEnv::from_raw(rtrn),
+            rtrn,
         }
     }
 
@@ -28,30 +26,6 @@ impl<'b, 'grm> PR<'b, 'grm> {
             rtrn: self.rtrn,
         }
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct ValWithEnv<'b, 'grm> {
-    pub env: HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
-    pub value: Val<'b, 'grm>,
-}
-
-impl<'b, 'grm> ValWithEnv<'b, 'grm> {
-    pub fn from_raw(value: Val<'b, 'grm>) -> Self {
-        Self {
-            env: HashMap::new(),
-            value,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum Val<'b, 'grm> {
-    Void,
-    Text(Span),
-    Action(&'b RuleAction<'grm>),
-    List(Span, Vec<ValWithEnv<'b, 'grm>>),
-    Rule(RuleId),
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]

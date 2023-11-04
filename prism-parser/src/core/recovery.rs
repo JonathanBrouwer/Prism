@@ -1,11 +1,12 @@
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, Val, PR};
+use crate::core::context::{Ignore, ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -98,7 +99,13 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> 
             r @ POk(_, _, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
-                    POk(PR::from_raw(Val::Void), stream, *to, true, Some((e, s)))
+                    POk(
+                        PR::with_rtrn(ActionResult::void()),
+                        stream,
+                        *to,
+                        true,
+                        Some((e, s)),
+                    )
                 } else {
                     PErr(e, s)
                 }

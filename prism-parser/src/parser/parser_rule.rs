@@ -1,19 +1,19 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, ValWithEnv, PR};
+use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
+use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
 use std::collections::HashMap;
-use std::sync::Arc;
 
 pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     rule: RuleId,
-    args: &'a [Arc<ValWithEnv<'b, 'grm>>],
+    args: &'a [ActionResult<'b, 'grm>],
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
         let rule_state: &'b RuleState<'b, 'grm> = rules

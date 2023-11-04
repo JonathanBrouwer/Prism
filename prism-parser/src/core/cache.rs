@@ -8,6 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::grammar_ar::GrammarFile;
+use crate::rule_action::action_result::ActionResult;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
@@ -26,8 +27,9 @@ pub struct ParserCache<'grm, 'b, E: ParseError> {
 pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 
 pub struct Allocs<'b, 'grm> {
-    pub alo_grammarfile: &'b Arena<GrammarFile<'grm>>,
+    pub alo_grammarfile: &'b Arena<GrammarFile<'b, 'grm>>,
     pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
+    pub alo_ar: &'b Arena<ActionResult<'b, 'grm>>,
 }
 
 pub struct ParserCacheEntry<PR> {

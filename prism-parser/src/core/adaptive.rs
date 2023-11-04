@@ -1,9 +1,7 @@
-use crate::core::context::{Val, ValWithEnv};
 use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
 use crate::grammar::grammar_ar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply_rawenv;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -46,8 +44,8 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
 
     pub fn with(
         &self,
-        grammar: &'b GrammarFile<'grm>,
-        ctx: &HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
+        grammar: &'b GrammarFile<'b, 'grm>,
+        ctx: &HashMap<&'grm str, ActionResult<'b, 'grm>>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult> {
         let mut s = Self {
@@ -66,8 +64,8 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         let mut result = vec![];
         for new_rule in &grammar.rules {
             if let Some(ar) = ctx.get(new_rule.name) {
-                if let ActionResult::RuleRef(rule) = apply_rawenv(ar) {
-                    result.push((new_rule.name, rule))
+                if let ActionResult::RuleRef(rule) = ar {
+                    result.push((new_rule.name, *rule))
                 } else {
                     panic!("Tried to run variable `{}` as a rule, but it does not refer to a rule. {ar:?}", new_rule.name);
                 }
@@ -81,9 +79,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
         let ctx = Arc::new(
             Iterator::chain(
                 ctx.iter().map(|(&k, v)| (k, v.clone())),
-                result
-                    .iter()
-                    .map(|&(k, v)| (k, Arc::new(ValWithEnv::from_raw(Val::Rule(v))))),
+                result.iter().map(|&(k, v)| (k, ActionResult::RuleRef(v))),
             )
             .collect::<HashMap<_, _>>(),
         );
@@ -98,7 +94,7 @@ impl<'b, 'grm> GrammarState<'b, 'grm> {
     }
 
     pub fn new_with(
-        grammar: &'b GrammarFile<'grm>,
+        grammar: &'b GrammarFile<'b, 'grm>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
         GrammarState::new()
             .with(grammar, &HashMap::new(), None)
@@ -130,8 +126,8 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 
     pub fn update(
         &mut self,
-        r: &'b Rule<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
+        r: &'b Rule<'b, 'grm>,
+        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
     ) -> Result<(), ()> {
         self.order.update(r);
 
@@ -176,14 +172,14 @@ pub struct BlockState<'b, 'grm> {
 }
 
 pub type Constructor<'b, 'grm> = (
-    &'b AnnotatedRuleExpr<'grm>,
-    Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
+    &'b AnnotatedRuleExpr<'b, 'grm>,
+    Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
 );
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
-        block: &'b Block<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
+        block: &'b Block<'b, 'grm>,
+        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
     ) -> Self {
         Self {
             name: block.0,
@@ -193,8 +189,8 @@ impl<'b, 'grm> BlockState<'b, 'grm> {
 
     pub fn update(
         &mut self,
-        b: &'b Block<'grm>,
-        ctx: &Arc<HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>>,
+        b: &'b Block<'b, 'grm>,
+        ctx: &Arc<HashMap<&'grm str, ActionResult<'b, 'grm>>>,
     ) {
         assert_eq!(self.name, b.0);
         self.constructors

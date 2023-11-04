@@ -20,9 +20,9 @@ macro_rules! result_match {
 }
 
 pub fn parse_grammarfile<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<GrammarFile<'grm, A>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
@@ -35,9 +35,9 @@ pub fn parse_grammarfile<'b, 'grm, A>(
 }
 
 fn parse_rule<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Rule<'grm, A>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
@@ -53,9 +53,9 @@ fn parse_rule<'b, 'grm, A>(
 }
 
 fn parse_block<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Block<'grm, A>> {
     result_match! {
         match r => Construct(_, "Block", b),
@@ -65,9 +65,9 @@ fn parse_block<'b, 'grm, A>(
 }
 
 fn parse_constructors<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Vec<AnnotatedRuleExpr<'grm, A>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
@@ -76,9 +76,9 @@ fn parse_constructors<'b, 'grm, A>(
 }
 
 fn parse_annotated_rule_expr<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<AnnotatedRuleExpr<'grm, A>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
@@ -88,8 +88,8 @@ fn parse_annotated_rule_expr<'b, 'grm, A>(
     }
 }
 
-fn parse_rule_annotation<'grm>(
-    r: &ActionResult<'grm>,
+fn parse_rule_annotation<'b, 'grm>(
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
 ) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
@@ -103,9 +103,9 @@ fn parse_rule_annotation<'grm>(
 }
 
 fn parse_rule_expr<'b, 'grm, A>(
-    r: &'b ActionResult<'grm>,
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<RuleExpr<'grm, A>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
@@ -157,7 +157,10 @@ fn parse_rule_expr<'b, 'grm, A>(
     })
 }
 
-pub(crate) fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<&'grm str> {
+pub(crate) fn parse_identifier<'b, 'grm>(
+    r: &ActionResult<'b, 'grm>,
+    src: &'grm str,
+) -> Option<&'grm str> {
     match r {
         Value(span) => Some(&src[*span]),
         // If the identifier of a block is a literal, its always empty
@@ -166,8 +169,8 @@ pub(crate) fn parse_identifier<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> 
     }
 }
 
-pub(crate) fn parse_string<'grm>(
-    r: &ActionResult<'grm>,
+pub(crate) fn parse_string<'b, 'grm>(
+    r: &'b ActionResult<'b, 'grm>,
     src: &'grm str,
 ) -> Option<EscapedString<'grm>> {
     result_match! {
@@ -176,7 +179,7 @@ pub(crate) fn parse_string<'grm>(
     }
 }
 
-fn parse_string_char(r: &ActionResult<'_>, src: &str) -> Option<char> {
+fn parse_string_char(r: &ActionResult<'_, '_>, src: &str) -> Option<char> {
     Some(match r {
         Value(span) => src[*span].chars().next().unwrap(),
         Literal(c) => c.chars().next().unwrap(),
@@ -184,7 +187,7 @@ fn parse_string_char(r: &ActionResult<'_>, src: &str) -> Option<char> {
     })
 }
 
-fn parse_charclass(r: &ActionResult<'_>, src: &str) -> Option<CharClass> {
+fn parse_charclass(r: &ActionResult<'_, '_>, src: &str) -> Option<CharClass> {
     result_match! {
         match r => Construct(_, "CharClass", b),
         match &b[0] => Construct(_, "List", negate),
@@ -199,10 +202,10 @@ fn parse_charclass(r: &ActionResult<'_>, src: &str) -> Option<CharClass> {
     }
 }
 
-fn parse_option<'grm, T>(
-    r: &ActionResult<'grm>,
+fn parse_option<'b, 'grm, T>(
+    r: &ActionResult<'b, 'grm>,
     src: &str,
-    sub: impl Fn(&ActionResult<'grm>, &str) -> Option<T>,
+    sub: impl Fn(&ActionResult<'b, 'grm>, &str) -> Option<T>,
 ) -> Option<Option<T>> {
     match r {
         Construct(_, "None", b) if b.is_empty() => Some(None),
@@ -211,7 +214,7 @@ fn parse_option<'grm, T>(
     }
 }
 
-fn parse_u64(r: &ActionResult<'_>, src: &str) -> Option<u64> {
+fn parse_u64(r: &ActionResult<'_, '_>, src: &str) -> Option<u64> {
     match r {
         Literal(v) => v.parse().ok(),
         Value(span) => src[*span].parse().ok(),
