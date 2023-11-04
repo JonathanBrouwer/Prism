@@ -14,7 +14,7 @@ pub enum RuleAction<'b, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
     // TODO use more efficient structure than Vec for this
-    Construct(&'grm str, Vec<Cow<'b, Self>>),
+    Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),

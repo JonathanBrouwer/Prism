@@ -19,7 +19,7 @@ pub fn parse_rule_action<'grm>(
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", subs),
-                create subs.iter().map(|sub| parse_rule_action(sub, src).map(|v| Cow::Owned(v))).collect::<Option<Vec<_>>>()?
+                create subs.iter().map(|sub| parse_rule_action(sub, src).map(|v| v)).collect::<Option<Vec<_>>>()?
             }?,
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),
