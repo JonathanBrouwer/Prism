@@ -19,10 +19,10 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+pub fn parse_grammarfile<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<GrammarFile<'grm, A>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
@@ -34,10 +34,10 @@ pub fn parse_grammarfile<'b, 'grm, A>(
     }
 }
 
-fn parse_rule<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_rule<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Rule<'grm, A>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
@@ -52,10 +52,10 @@ fn parse_rule<'b, 'grm, A>(
     }
 }
 
-fn parse_block<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_block<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Block<'grm, A>> {
     result_match! {
         match r => Construct(_, "Block", b),
@@ -64,10 +64,10 @@ fn parse_block<'b, 'grm, A>(
     }
 }
 
-fn parse_constructors<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_constructors<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<Vec<AnnotatedRuleExpr<'grm, A>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
@@ -75,10 +75,10 @@ fn parse_constructors<'b, 'grm, A>(
     }
 }
 
-fn parse_annotated_rule_expr<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_annotated_rule_expr<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<AnnotatedRuleExpr<'grm, A>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
@@ -88,8 +88,8 @@ fn parse_annotated_rule_expr<'b, 'grm, A>(
     }
 }
 
-fn parse_rule_annotation<'b, 'grm>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_rule_annotation<'arn, 'grm>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
 ) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
@@ -102,10 +102,10 @@ fn parse_rule_annotation<'b, 'grm>(
     })
 }
 
-fn parse_rule_expr<'b, 'grm, A>(
-    r: &'b ActionResult<'b, 'grm>,
+fn parse_rule_expr<'arn, 'grm, A>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'b ActionResult<'b, 'grm>, src: &'grm str) -> Option<A>,
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
 ) -> Option<RuleExpr<'grm, A>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
@@ -169,8 +169,8 @@ pub(crate) fn parse_identifier<'grm>(
     }
 }
 
-pub(crate) fn parse_string<'b, 'grm>(
-    r: &'b ActionResult<'b, 'grm>,
+pub(crate) fn parse_string<'arn, 'grm>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
 ) -> Option<EscapedString<'grm>> {
     result_match! {
@@ -202,10 +202,10 @@ fn parse_charclass(r: &ActionResult<'_, '_>, src: &str) -> Option<CharClass> {
     }
 }
 
-fn parse_option<'b, 'grm, T>(
-    r: &ActionResult<'b, 'grm>,
+fn parse_option<'arn, 'grm, T>(
+    r: &ActionResult<'arn, 'grm>,
     src: &str,
-    sub: impl Fn(&ActionResult<'b, 'grm>, &str) -> Option<T>,
+    sub: impl Fn(&ActionResult<'arn, 'grm>, &str) -> Option<T>,
 ) -> Option<Option<T>> {
     match r {
         Construct(_, "None", b) if b.is_empty() => Some(None),

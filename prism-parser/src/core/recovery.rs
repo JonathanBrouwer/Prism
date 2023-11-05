@@ -12,10 +12,10 @@ use std::sync::Arc;
 
 const MAX_RECOVERIES: usize = 10;
 
-pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'b, 'grm, O, E>,
+pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
     stream: Pos,
-    cache: &mut PCache<'b, 'grm, E>,
+    cache: &mut PCache<'arn, 'grm, E>,
     context: &ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
@@ -80,13 +80,13 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
     }
 }
 
-pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'b>(
-    item: impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
+pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
+    item: impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a,
+) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
+          cache: &mut PCache<'arn, 'grm, E>,
           context: &ParserContext|
-          -> PResult<PR<'b, 'grm>, E> {
+          -> PResult<PR<'arn, 'grm>, E> {
         // First try original parse
         match item.parse(
             stream,

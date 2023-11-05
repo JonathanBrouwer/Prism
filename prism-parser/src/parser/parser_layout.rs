@@ -14,12 +14,12 @@ use std::collections::HashMap;
 
 use crate::rule_action::action_result::ActionResult;
 
-pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |pos: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+pub fn parser_with_layout<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+    rules: &'arn GrammarState<'arn, 'grm>,
+    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
+) -> impl Parser<'arn, 'grm, O, E> + 'a {
+    move |pos: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         if context.layout_disabled || !vars.contains_key("layout") {
             return sub.parse(pos, cache, context);
         }
@@ -65,12 +65,12 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     }
 }
 
-pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+pub fn full_input_layout<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+    rules: &'arn GrammarState<'arn, 'grm>,
+    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
+) -> impl Parser<'arn, 'grm, O, E> + 'a {
+    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), cache, context)
             .map(|(o, _)| o)

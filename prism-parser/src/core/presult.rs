@@ -168,15 +168,15 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<'grm, 'b, P: Parser<'b, 'grm, O, E>>(
+    pub fn merge_choice_parser<'grm, 'arn, P: Parser<'arn, 'grm, O, E>>(
         self,
         other: &P,
         stream: Pos,
-        cache: &mut PCache<'b, 'grm, E>,
+        cache: &mut PCache<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> Self
     where
-        'grm: 'b,
+        'grm: 'arn,
     {
         //Quick out
         if self.is_ok() {
@@ -187,14 +187,14 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<'grm, 'b, O2, P2: Parser<'b, 'grm, O2, E>>(
+    pub fn merge_seq_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PCache<'b, 'grm, E>,
+        cache: &mut PCache<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> PResult<(O, O2), E>
     where
-        'grm: 'b,
+        'grm: 'arn,
     {
         //Quick out
         if self.is_err() {
@@ -206,14 +206,14 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<'grm, 'b, O2, P2: Parser<'b, 'grm, O2, E>>(
+    pub fn merge_seq_opt_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PCache<'b, 'grm, E>,
+        cache: &mut PCache<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where
-        'grm: 'b,
+        'grm: 'arn,
     {
         //Quick out
         if self.is_err() {

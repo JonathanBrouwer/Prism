@@ -7,13 +7,13 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
-pub struct PR<'b, 'grm> {
-    pub free: HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
-    pub rtrn: Cow<'b, ActionResult<'b, 'grm>>,
+pub struct PR<'arn, 'grm> {
+    pub free: HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    pub rtrn: Cow<'arn, ActionResult<'arn, 'grm>>,
 }
 
-impl<'b, 'grm> PR<'b, 'grm> {
-    pub fn with_rtrn(rtrn: ActionResult<'b, 'grm>) -> Self {
+impl<'arn, 'grm> PR<'arn, 'grm> {
+    pub fn with_rtrn(rtrn: ActionResult<'arn, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
             rtrn: Cow::Owned(rtrn),

@@ -15,25 +15,25 @@ use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
 
-pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
+pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
-    cache: PCache<'b, 'grm, E>,
+    cache: PCache<'arn, 'grm, E>,
 
-    state: GrammarState<'b, 'grm>,
+    state: GrammarState<'arn, 'grm>,
     rules: HashMap<&'grm str, RuleId>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct Test<'b> {
-    x: Box<Cow<'b, &'b Test<'b>>>,
-    s: &'b str,
+pub struct Test<'arn> {
+    x: Box<Cow<'arn, &'arn Test<'arn>>>,
+    s: &'arn str,
 }
 
-impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn new(
         input: &'grm str,
-        bump: Allocs<'b, 'grm>,
-        from: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
+        bump: Allocs<'arn, 'grm>,
+        from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
@@ -55,8 +55,8 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
     }
 }
 
-impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b, 'grm, E> {
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<Cow<'b, ActionResult<'b, 'grm>>, Vec<E>> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
+    pub fn run(&'arn mut self, rule: &'grm str) -> Result<Cow<'arn, ActionResult<'arn, 'grm>>, Vec<E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
@@ -78,8 +78,8 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
     }
 }
 
-pub fn run_parser_rule<'b, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
-    rules: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
+pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
+    rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
     ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>) -> T,

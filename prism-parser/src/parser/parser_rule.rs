@@ -11,13 +11,13 @@ use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
 use std::collections::HashMap;
 
-pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
+pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+    rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
-    args: &'a [Cow<'b, ActionResult<'b, 'grm>>],
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
-        let rule_state: &'b RuleState<'b, 'grm> = rules
+    args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
+) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+        let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 

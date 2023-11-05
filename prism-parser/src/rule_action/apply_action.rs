@@ -3,11 +3,11 @@ use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-pub fn apply_action<'b, 'grm>(
-    rule: &'b RuleAction<'b, 'grm>,
-    map: &impl Fn(&str) -> Option<Cow<'b, ActionResult<'b, 'grm>>>,
+pub fn apply_action<'arn, 'grm>(
+    rule: &'arn RuleAction<'arn, 'grm>,
+    map: &impl Fn(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
     span: Span,
-) -> Cow<'b, ActionResult<'b, 'grm>> {
+) -> Cow<'arn, ActionResult<'arn, 'grm>> {
     Cow::Owned(match rule {
         RuleAction::Name(name) => {
             if let Some(ar) = map(name) {

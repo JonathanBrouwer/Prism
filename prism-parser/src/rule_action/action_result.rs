@@ -8,14 +8,14 @@ use crate::grammar::escaped_string::EscapedString;
 
 //TODO should not be clone as well (after cow is fixed)
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum ActionResult<'b, 'grm> {
+pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<Cow<'b, ActionResult<'b, 'grm>>>),
+    Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     RuleRef(RuleId),
 }
 
-impl<'b, 'grm> ActionResult<'b, 'grm> {
+impl<'arn, 'grm> ActionResult<'arn, 'grm> {
     pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
         match self {
             ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
