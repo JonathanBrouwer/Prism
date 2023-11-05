@@ -197,6 +197,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let gr: &'arn ActionResult = cache.alloc.uncow(gr);
 
                 // Parse it into a grammar
+                //TODO performance: We should have a cache for grammar files
+                //TODO and grammar state + new grammar -> grammar state
                 let g = match parse_grammarfile(gr, cache.input, convert_action_result) {
                     Some(g) => g,
                     None => {
@@ -233,9 +235,6 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 };
                 let rules: &'arn GrammarState = cache.alloc.alo_grammarstate.alloc(rules);
 
-                //TODO bug: the cache uses &'arn [BlockState<'arn, 'grm>] but that's not enough if a block that this block depends on changes
-                //-> Maybe fix by switching out the cache?
-
                 let rule = iter
                     .find(|(k, _)| k == b)
                     .map(|(_, v)| v)
@@ -245,9 +244,11 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     });
 
                 // Parse body
-                parser_rule(rules, rule, &[])
+                let mut res = parser_rule(rules, rule, &[])
                     .parse(stream, cache, context)
-                    .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                    .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)));
+                res.add_label_implicit(ErrorLabel::Debug(stream.span_to(stream), "adaptation"));
+                res
             }
         }
     }

@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::{iter, mem};
 
 pub struct GrammarState<'arn, 'grm> {
-    rules: Vec<RuleState<'arn, 'grm>>,
+    rules: Vec<Arc<RuleState<'arn, 'grm>>>,
     last_mut_pos: Option<Pos>,
 }
 
@@ -68,8 +68,9 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             let rule = if let Some(rule) = ctx.get(new_rule.name) {
                 *rule
             } else {
+                //TODO performance: pushing empty then cloning
                 s.rules
-                    .push(RuleState::new_empty(new_rule.name, &new_rule.args));
+                    .push(Arc::new(RuleState::new_empty(new_rule.name, &new_rule.args)));
                 RuleId(s.rules.len() - 1)
             };
             result.push((new_rule.name, rule));
@@ -79,9 +80,9 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         let ctx = Arc::new(ctx);
 
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
-            s.rules[id.0]
-                .update(rule, &ctx)
-                .map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
+            let mut r = (*s.rules[id.0]).clone();
+            r.update(rule, &ctx).map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
+            s.rules[id.0] = Arc::new(r);
         }
 
         Ok((s, result.into_iter()))
@@ -96,9 +97,16 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     }
 
     pub fn get(&self, rule: RuleId) -> Option<&RuleState<'arn, 'grm>> {
-        self.rules.get(rule.0)
+        self.rules.get(rule.0).map(|v| &**v)
+    }
+
+    pub fn unique_id(&self) -> GrammarStateId {
+        GrammarStateId(self.rules.as_ptr() as usize)
     }
 }
+
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
+pub struct GrammarStateId(usize);
 
 #[derive(Clone)]
 pub struct RuleState<'arn, 'grm> {

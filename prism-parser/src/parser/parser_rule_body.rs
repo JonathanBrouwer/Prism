@@ -32,7 +32,7 @@ pub fn parser_body_cache_recurse<
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, rule_args),
-            (ByAddress(bs), context.clone()),
+            (ByAddress(bs), context.clone(), rules.unique_id()),
         )
         .parse(stream, cache, context)
     }
