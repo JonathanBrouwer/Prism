@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use crate::core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::{BlockState, GrammarState, RuleActionState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -8,11 +8,11 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use crate::grammar::grammar_ar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
+use crate::grammar::GrammarFile;
 
 //TODO bug: does not include params
 type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));
@@ -28,8 +28,9 @@ pub struct ParserCache<'grm, 'b, E: ParseError> {
 
 pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 
+#[derive(Clone)]
 pub struct Allocs<'b, 'grm> {
-    pub alo_grammarfile: &'b Arena<GrammarFile<'b, 'grm>>,
+    pub alo_grammarfile: &'b Arena<GrammarFile<'grm, &'b ActionResult<'b, 'grm>>>,
     pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
     pub alo_ar: &'b Arena<ActionResult<'b, 'grm>>,
 }

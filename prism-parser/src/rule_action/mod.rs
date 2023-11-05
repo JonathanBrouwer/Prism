@@ -10,7 +10,7 @@ pub mod apply_action;
 pub mod from_action_result;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleAction<'b, 'grm> {
+pub enum RuleAction<'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
     // TODO use more efficient structure than Vec for this
@@ -18,7 +18,4 @@ pub enum RuleAction<'b, 'grm> {
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
-    // This can't encounter in a grammar that is parsed, only added during adaptation.
-    #[serde(skip)]
-    ActionResult(&'b ActionResult<'b, 'grm>),
 }

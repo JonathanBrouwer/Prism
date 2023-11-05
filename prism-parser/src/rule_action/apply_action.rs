@@ -1,10 +1,23 @@
 use std::borrow::Cow;
+use crate::core::adaptive::RuleActionState;
 use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::RuleAction;
+use crate::rule_action::{RuleAction};
+
+pub fn apply_action_state<'b, 'grm>(
+    rule: &'b RuleActionState<'b, 'grm>,
+    map: &impl Fn(&str) -> Option<Cow<'b, ActionResult<'b, 'grm>>>,
+    span: Span,
+) -> Cow<'b, ActionResult<'b, 'grm>> {
+    match rule {
+        RuleActionState::RuleAction(ra) => apply_action(ra, map, span),
+        RuleActionState::ActionResult(ar) => return Cow::Borrowed(ar),
+    }
+}
+
 
 pub fn apply_action<'b, 'grm>(
-    rule: &'b RuleAction<'b, 'grm>,
+    rule: &'b RuleAction<'grm>,
     map: &impl Fn(&str) -> Option<Cow<'b, ActionResult<'b, 'grm>>>,
     span: Span,
 ) -> Cow<'b, ActionResult<'b, 'grm>> {
@@ -33,6 +46,5 @@ pub fn apply_action<'b, 'grm>(
         }
         RuleAction::Nil() => ActionResult::Construct(span, "List", Vec::new()),
         RuleAction::RuleRef(r) => ActionResult::RuleRef(*r),
-        RuleAction::ActionResult(ar) => return Cow::Borrowed(ar),
     })
 }

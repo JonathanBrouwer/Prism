@@ -7,18 +7,16 @@ use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-use crate::core::adaptive::{BlockState, Constructor, GrammarState};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleActionState};
 use by_address::ByAddress;
 
 use crate::core::context::{ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::grammar::grammar_ar::RuleExpr;
-use crate::grammar::RuleAnnotation;
+use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::RuleAction;
 
 pub fn parser_body_cache_recurse<
     'a,
@@ -101,7 +99,7 @@ fn parser_body_sub_annotations<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabe
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     annots: &'b [RuleAnnotation<'grm>],
-    expr: &'b RuleExpr<'b, 'grm>,
+    expr: &'b RuleExpr<'grm, RuleActionState<'b, 'grm>>,
     vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match annots {

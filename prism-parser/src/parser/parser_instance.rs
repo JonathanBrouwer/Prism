@@ -6,13 +6,14 @@ use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar_ar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
-use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
+use crate::grammar::GrammarFile;
+use crate::META_GRAMMAR;
+use crate::rule_action::RuleAction;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -26,17 +27,14 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
     pub fn new(
         input: &'grm str,
         bump: Allocs<'b, 'grm>,
-        from: &'grm GrammarFile<'grm, 'grm>,
+        from: &'grm GrammarFile<'grm, RuleAction<'grm>>,
     ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
-        let visible_rules = [
-            ("grammar", META_GRAMMAR_STATE.1["grammar"]),
-            ("prule_action", META_GRAMMAR_STATE.1["prule_action"])
-        ].into_iter();
+        let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
 
-        let (state, rules) = META_GRAMMAR_STATE.0.with(from, visible_rules, None)?;
+        let (state, rules) = state.with(from, meta_rules, None)?;
 
         Ok(Self {
             context,
@@ -71,18 +69,18 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
 }
 
 pub fn run_parser_rule<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
-    rules: &'grm GrammarFile<'grm, 'grm>,
+    rules: &'grm GrammarFile<'grm, RuleAction<'grm>>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'b> FnOnce(&ActionResult<'b, 'grm>) -> T,
+    ar_map: impl for<'b> FnOnce(&'b ActionResult<'b, 'grm>) -> T,
 ) -> Result<T, Vec<E>> {
     let bump: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
         alo_ar: &Arena::new(),
     };
-    let mut instance = ParserInstance::new(input, bump, rules).unwrap();
-    instance.run(rule).map(|v| ar_map(v.as_ref()))
+    let mut instance = ParserInstance::new(input, bump.clone(), rules).unwrap();
+    instance.run(rule).map(|v| ar_map(bump.uncow(v)))
 }
 
 #[macro_export]

@@ -1,10 +1,11 @@
 use prism_parser::error::error_printer::print_set_error;
-use prism_parser::grammar::grammar_ar::GrammarFile;
 use prism_parser::{parse_grammar, run_parser_rule_here};
+use prism_parser::grammar::GrammarFile;
+use prism_parser::rule_action::RuleAction;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");
-    let grammar: GrammarFile = match parse_grammar(grammar) {
+    let grammar: GrammarFile<RuleAction> = match parse_grammar(grammar) {
         Ok(ok) => ok,
         Err(es) => {
             for e in es {

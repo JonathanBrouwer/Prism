@@ -1,7 +1,8 @@
-use crate::grammar::grammar_ar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
+use crate::core::adaptive::{RuleActionState, ToRuleActionState};
+use crate::grammar::Rule;
 
 /// A TopoSet is basically a graph with string nodes, that is stored such that it is easy to clone and easy to topologically sort.
 #[derive(Clone)]
@@ -22,7 +23,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn update(&mut self, grm: &Rule<'_, 'grm>) {
+    pub fn update<T>(&mut self, grm: &Rule<'grm, T>) {
         for b in grm.blocks.windows(2) {
             let b1 = b[0].0;
             let b2 = b[1].0;
