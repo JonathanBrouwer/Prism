@@ -1,3 +1,4 @@
+use crate::core::adaptive::UpdateError;
 use crate::grammar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -46,7 +47,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn toposort(&self) -> Result<Vec<&'grm str>, ()> {
+    pub fn toposort(&self) -> Result<Vec<&'grm str>, UpdateError> {
         let mut result = Vec::new();
         let mut counts: HashMap<&'grm str, usize> = HashMap::new();
 
@@ -79,7 +80,7 @@ impl<'grm> TopoSet<'grm> {
         if counts.is_empty() {
             Ok(result)
         } else {
-            Err(())
+            Err(UpdateError::ToposortCycle)
         }
     }
 }

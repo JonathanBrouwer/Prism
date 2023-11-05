@@ -157,8 +157,8 @@ fn parse_rule_expr<'b, 'grm, A>(
     })
 }
 
-pub(crate) fn parse_identifier<'b, 'grm>(
-    r: &ActionResult<'b, 'grm>,
+pub(crate) fn parse_identifier<'grm>(
+    r: &ActionResult<'_, 'grm>,
     src: &'grm str,
 ) -> Option<&'grm str> {
     match r {

@@ -108,6 +108,10 @@ pub struct RuleState<'b, 'grm> {
     pub arg_names: &'b Vec<&'grm str>,
 }
 
+pub enum UpdateError {
+    ToposortCycle,
+}
+
 impl<'b, 'grm> RuleState<'b, 'grm> {
     pub fn new_empty(name: &'grm str, arg_names: &'b Vec<&'grm str>) -> Self {
         Self {
@@ -122,7 +126,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
         &mut self,
         r: &'b Rule<'grm, RuleAction<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
-    ) -> Result<(), ()> {
+    ) -> Result<(), UpdateError> {
         self.order.update(r);
 
         let order: HashMap<&'grm str, usize> = self

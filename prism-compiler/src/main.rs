@@ -19,7 +19,7 @@ fn main() {
 
     let input = include_str!("../resources/program.pr");
     let expr: Result<_, _> = run_parser_rule(&grammar, "block", input, |r| {
-        Expr::from_action_result(&r, input)
+        Expr::from_action_result(r, input)
     });
     let expr = match expr {
         Ok(o) => o,
