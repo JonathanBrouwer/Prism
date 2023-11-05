@@ -14,7 +14,13 @@ use std::collections::HashMap;
 
 use crate::rule_action::action_result::ActionResult;
 
-pub fn parser_with_layout<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+pub fn parser_with_layout<
+    'a,
+    'arn: 'a,
+    'grm: 'arn,
+    O,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+>(
     rules: &'arn GrammarState<'arn, 'grm>,
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
@@ -65,12 +71,21 @@ pub fn parser_with_layout<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLa
     }
 }
 
-pub fn full_input_layout<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+pub fn full_input_layout<
+    'a,
+    'arn: 'a,
+    'grm: 'arn,
+    O,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+>(
     rules: &'arn GrammarState<'arn, 'grm>,
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+    move |stream: Pos,
+          cache: &mut PCache<'arn, 'grm, E>,
+          context: &ParserContext|
+          -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), cache, context)
             .map(|(o, _)| o)

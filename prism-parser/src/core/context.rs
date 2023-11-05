@@ -13,18 +13,17 @@ pub struct PR<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> PR<'arn, 'grm> {
+    pub fn with_cow_rtrn(rtrn: Cow<'arn, ActionResult<'arn, 'grm>>) -> Self {
+        Self {
+            free: HashMap::new(),
+            rtrn,
+        }
+    }
+
     pub fn with_rtrn(rtrn: ActionResult<'arn, 'grm>) -> Self {
         Self {
             free: HashMap::new(),
             rtrn: Cow::Owned(rtrn),
-        }
-    }
-
-    /// Returns self with fresh free variables
-    pub fn fresh(self) -> Self {
-        PR {
-            free: HashMap::new(),
-            rtrn: self.rtrn,
         }
     }
 }

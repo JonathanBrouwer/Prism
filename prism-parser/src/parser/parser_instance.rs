@@ -56,7 +56,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
-    pub fn run(&'arn mut self, rule: &'grm str) -> Result<Cow<'arn, ActionResult<'arn, 'grm>>, Vec<E>> {
+    pub fn run(
+        &'arn mut self,
+        rule: &'grm str,
+    ) -> Result<Cow<'arn, ActionResult<'arn, 'grm>>, Vec<E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
@@ -72,8 +75,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
             Pos::start(),
             &mut self.cache,
             &self.context,
-        )
-        .map(|pr| pr.rtrn);
+        );
         x
     }
 }

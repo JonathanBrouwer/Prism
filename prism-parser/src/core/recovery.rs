@@ -1,5 +1,6 @@
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, PR};
+use crate::core::context::{Ignore, ParserContext};
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -81,12 +82,12 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 }
 
 pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
-    item: impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+    item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos,
           cache: &mut PCache<'arn, 'grm, E>,
           context: &ParserContext|
-          -> PResult<PR<'arn, 'grm>, E> {
+          -> PResult<_, E> {
         // First try original parse
         match item.parse(
             stream,
@@ -100,7 +101,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
-                        PR::with_rtrn(ActionResult::void()),
+                        Cow::Owned(ActionResult::void()),
                         stream,
                         *to,
                         true,

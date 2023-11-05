@@ -1,6 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, PR};
+use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -15,7 +15,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
     args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
@@ -34,6 +34,6 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             stream.span_to(res.end_pos()),
             rule_state.name,
         ));
-        res.map(|pr| pr.fresh())
+        res.map(|pr| pr)
     }
 }

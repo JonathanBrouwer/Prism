@@ -1,5 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState};
-use crate::core::context::{ParserContext, PR};
+use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -16,11 +16,15 @@ use std::collections::HashMap;
 use typed_arena::Arena;
 
 //TODO bug: does not include params
-type CacheKey<'grm, 'arn> = (Pos, (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext));
+type CacheKey<'grm, 'arn> = (
+    Pos,
+    (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext),
+);
+type CacheVal<'grm, 'arn, E> = PResult<Cow<'arn, ActionResult<'arn, 'grm>>, E>;
 
 pub struct ParserCache<'grm, 'arn, E: ParseError> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<PResult<PR<'arn, 'grm>, E>>>,
+    cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<CacheVal<'grm, 'arn, E>>>,
     cache_stack: Vec<CacheKey<'grm, 'arn>>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn, 'grm>,
@@ -37,7 +41,10 @@ pub struct Allocs<'arn, 'grm: 'arn> {
 }
 
 impl<'arn, 'grm> Allocs<'arn, 'grm> {
-    pub fn uncow(&self, cow: Cow<'arn, ActionResult<'arn, 'grm>>) -> &'arn ActionResult<'arn, 'grm> {
+    pub fn uncow(
+        &self,
+        cow: Cow<'arn, ActionResult<'arn, 'grm>>,
+    ) -> &'arn ActionResult<'arn, 'grm> {
         match cow {
             Cow::Borrowed(v) => v,
             Cow::Owned(v) => self.alo_ar.alloc(v),
@@ -67,7 +74,7 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
     pub(crate) fn cache_get(
         &mut self,
         key: CacheKey<'grm, 'arn>,
-    ) -> Option<&PResult<PR<'arn, 'grm>, E>> {
+    ) -> Option<&CacheVal<'grm, 'arn, E>> {
         if let Some(v) = self.cache.get_mut(&key) {
             v.read = true;
             Some(&v.value)
@@ -79,7 +86,7 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
     pub(crate) fn cache_insert(
         &mut self,
         key: CacheKey<'grm, 'arn>,
-        value: PResult<PR<'arn, 'grm>, E>,
+        value: CacheVal<'grm, 'arn, E>,
     ) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
@@ -103,9 +110,9 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
 }
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'arn, 'grm, PR<'arn, 'grm>, E>,
+    sub: &'a impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E>,
     id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext),
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |pos_start: Pos, state: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
         let key = (pos_start, id.clone());

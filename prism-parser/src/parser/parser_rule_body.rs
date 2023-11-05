@@ -11,7 +11,7 @@ use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 
-use crate::core::context::{ParserContext, PR};
+use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
 use crate::grammar::{RuleAnnotation, RuleExpr};
@@ -28,7 +28,7 @@ pub fn parser_body_cache_recurse<
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
     rule_args: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, rule_args),
@@ -42,8 +42,11 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
     rule_args: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<PR, E> {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
+    move |stream: Pos,
+          cache: &mut PCache<'arn, 'grm, E>,
+          context: &ParserContext|
+          -> PResult<Cow<'arn, ActionResult<'arn, 'grm>>, E> {
         match bs {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args)
@@ -75,7 +78,7 @@ fn parser_body_sub_constructors<
     blocks: &'arn [BlockState<'arn, 'grm>],
     es: &'arn [Constructor<'arn, 'grm>],
     rule_args: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
@@ -99,13 +102,18 @@ fn parser_body_sub_constructors<
     }
 }
 
-fn parser_body_sub_annotations<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+fn parser_body_sub_annotations<
+    'a,
+    'arn: 'a,
+    'grm: 'arn,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+>(
     rules: &'arn GrammarState<'arn, 'grm>,
     blocks: &'arn [BlockState<'arn, 'grm>],
     annots: &'arn [RuleAnnotation<'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res = parser_body_sub_annotations(rules, blocks, rest, expr, vars)
@@ -171,6 +179,8 @@ fn parser_body_sub_annotations<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Error
                 },
             )
         }
-        &[] => parser_expr(rules, blocks, expr, vars).parse(stream, cache, context),
+        &[] => parser_expr(rules, blocks, expr, vars)
+            .parse(stream, cache, context)
+            .map(|pr| pr.rtrn),
     }
 }

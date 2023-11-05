@@ -27,7 +27,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+    move |stream: Pos,
+          cache: &mut PCache<'arn, 'grm, E>,
+          context: &ParserContext|
+          -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::Rule(rule, args) => {
                 // Does `rule` refer to a variable containing a rule or to a rule directly?
@@ -47,36 +50,37 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
-                res
+                res.map(PR::with_cow_rtrn)
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
-                let p = map_parser(p, &|(span, _)| PR::with_rtrn(ActionResult::Value(span)));
+                let p = map_parser(p, &|(span, _)| Cow::Owned(ActionResult::Value(span)));
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, cache, context)
+                p.parse(stream, cache, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p =
-                    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
-                        let mut res = PResult::new_empty((), stream);
-                        for char in literal.chars() {
-                            res = res
-                                .merge_seq_parser(&single(|c| *c == char), cache, context)
-                                .map(|_| ());
-                        }
-                        let mut res =
-                            res.map_with_span(|_, span| PR::with_rtrn(ActionResult::Value(span)));
-                        res.add_label_implicit(ErrorLabel::Literal(
-                            stream.span_to(res.end_pos().next(cache.input).0),
-                            literal.clone(),
-                        ));
-                        res
-                    };
+                let p = move |stream: Pos,
+                              cache: &mut PCache<'arn, 'grm, E>,
+                              context: &ParserContext| {
+                    let mut res = PResult::new_empty((), stream);
+                    for char in literal.chars() {
+                        res = res
+                            .merge_seq_parser(&single(|c| *c == char), cache, context)
+                            .map(|_| ());
+                    }
+                    let mut res =
+                        res.map_with_span(|_, span| Cow::Owned(ActionResult::Value(span)));
+                    res.add_label_implicit(ErrorLabel::Literal(
+                        stream.span_to(res.end_pos().next(cache.input).0),
+                        literal.clone(),
+                    ));
+                    res
+                };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, cache, context)
+                p.parse(stream, cache, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Repeat {
                 expr,
@@ -174,10 +178,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, vars)
                 .parse(stream, cache, context)
-                .map(|pr| pr.fresh()),
+                .map(PR::with_cow_rtrn),
             RuleExpr::AtNext => parser_body_cache_recurse(rules, &blocks[1..], vars)
                 .parse(stream, cache, context)
-                .map(|pr| pr.fresh()),
+                .map(PR::with_cow_rtrn),
             RuleExpr::PosLookahead(sub) => {
                 positive_lookahead(&parser_expr(rules, blocks, sub, vars))
                     .parse(stream, cache, context)
@@ -241,7 +245,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     });
 
                 // Parse body
-                parser_rule(rules, rule, &[]).parse(stream, cache, context)
+                parser_rule(rules, rule, &[])
+                    .parse(stream, cache, context)
+                    .map(PR::with_cow_rtrn)
             }
         }
     }
