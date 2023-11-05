@@ -56,10 +56,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
-    pub fn run(
-        &'arn mut self,
-        rule: &'grm str,
-    ) -> Result<Cow<'arn, ActionResult<'arn, 'grm>>, Vec<E>> {
+    pub fn run(&'arn mut self, rule: &'grm str) -> Result<&'arn ActionResult<'arn, 'grm>, Vec<E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
@@ -92,7 +89,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
         alo_ar: &Arena::new(),
     };
     let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
-    instance.run(rule).map(|v| ar_map(allocs.uncow(v)))
+    instance.run(rule).map(ar_map)
 }
 
 #[macro_export]

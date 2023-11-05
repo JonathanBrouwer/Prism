@@ -20,7 +20,7 @@ type CacheKey<'grm, 'arn> = (
     Pos,
     (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext),
 );
-type CacheVal<'grm, 'arn, E> = PResult<Cow<'arn, ActionResult<'arn, 'grm>>, E>;
+type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 pub struct ParserCache<'grm, 'arn, E: ParseError> {
     //Cache for parser_cache_recurse
@@ -110,9 +110,9 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
 }
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E>,
+    sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
     id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext),
-) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
         let key = (pos_start, id.clone());
@@ -149,10 +149,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(
-                            key.clone(),
-                            POk(o.clone(), spos, epos, empty, be.clone()),
-                        );
+                        state.cache_insert(key.clone(), POk(o, spos, epos, empty, be.clone()));
 
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state, context);

@@ -50,7 +50,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
-                res.map(PR::with_cow_rtrn)
+                res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
@@ -178,10 +178,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, vars)
                 .parse(stream, cache, context)
-                .map(PR::with_cow_rtrn),
+                .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::AtNext => parser_body_cache_recurse(rules, &blocks[1..], vars)
                 .parse(stream, cache, context)
-                .map(PR::with_cow_rtrn),
+                .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::PosLookahead(sub) => {
                 positive_lookahead(&parser_expr(rules, blocks, sub, vars))
                     .parse(stream, cache, context)
@@ -247,7 +247,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // Parse body
                 parser_rule(rules, rule, &[])
                     .parse(stream, cache, context)
-                    .map(PR::with_cow_rtrn)
+                    .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
             }
         }
     }

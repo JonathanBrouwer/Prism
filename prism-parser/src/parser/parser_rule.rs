@@ -15,7 +15,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
     args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
-) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
