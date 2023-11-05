@@ -10,7 +10,7 @@ pub mod apply_action;
 pub mod from_action_result;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleAction<'grm> {
+pub enum RuleAction<'b, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
     // TODO use more efficient structure than Vec for this
@@ -18,4 +18,6 @@ pub enum RuleAction<'grm> {
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
+    #[serde(skip)]
+    ActionResult(&'b ActionResult<'b, 'grm>),
 }

@@ -7,8 +7,9 @@ use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleActionState};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 use by_address::ByAddress;
+use crate::rule_action::RuleAction;
 
 use crate::core::context::{ParserContext, PR};
 use crate::core::pos::Pos;
@@ -99,7 +100,7 @@ fn parser_body_sub_annotations<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabe
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
     annots: &'b [RuleAnnotation<'grm>],
-    expr: &'b RuleExpr<'grm, RuleActionState<'b, 'grm>>,
+    expr: &'b RuleExpr<'grm, RuleAction<'b, 'grm>>,
     vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match annots {

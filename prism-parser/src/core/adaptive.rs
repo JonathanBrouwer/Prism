@@ -14,13 +14,6 @@ pub struct GrammarState<'b, 'grm> {
     last_mut_pos: Option<Pos>,
 }
 
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub enum RuleActionState<'b, 'grm> {
-    RuleAction(&'b RuleAction<'grm>),
-    ActionResult(&'b ActionResult<'b, 'grm>),
-}
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
@@ -52,7 +45,7 @@ impl<'b, 'grm: 'b> GrammarState<'b, 'grm> {
 
     pub fn with(
         &self,
-        grammar: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>>,
+        grammar: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
         ctx: impl Iterator<Item=(&'grm str, RuleId)>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult<'grm>> {
@@ -96,7 +89,7 @@ impl<'b, 'grm: 'b> GrammarState<'b, 'grm> {
     }
 
     pub fn new_with(
-        grammar: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>>,
+        grammar: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
         GrammarState::new()
             .with(grammar, iter::empty(), None)
@@ -128,7 +121,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 
     pub fn update(
         &mut self,
-        r: &'b Rule<'grm, RuleActionState<'b, 'grm>>,
+        r: &'b Rule<'grm, RuleAction<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Result<(), ()> {
         self.order.update(r);
@@ -174,13 +167,13 @@ pub struct BlockState<'b, 'grm> {
 }
 
 pub type Constructor<'b, 'grm> = (
-    &'b AnnotatedRuleExpr<'grm, RuleActionState<'b, 'grm>>,
+    &'b AnnotatedRuleExpr<'grm, RuleAction<'b, 'grm>>,
     Arc<HashMap<&'grm str, RuleId>>,
 );
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
-        block: &'b Block<'grm, RuleActionState<'b, 'grm>>,
+        block: &'b Block<'grm, RuleAction<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Self {
         Self {
@@ -191,7 +184,7 @@ impl<'b, 'grm> BlockState<'b, 'grm> {
 
     pub fn update(
         &mut self,
-        b: &'b Block<'grm, RuleActionState<'b, 'grm>>,
+        b: &'b Block<'grm, RuleAction<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) {
         assert_eq!(self.name, b.0);

@@ -1,5 +1,5 @@
 use crate::core::cow::Cow;
-use crate::core::adaptive::{AdaptResult, BlockState, GrammarState, RuleActionState, RuleId, RuleState};
+use crate::core::adaptive::{AdaptResult, BlockState, GrammarState, RuleId, RuleState};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
@@ -36,23 +36,20 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
     pub fn new(
         input: &'grm str,
         bump: Allocs<'b, 'grm>,
-        from: &'grm GrammarFile<'grm, RuleAction<'grm>>,
+        from: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
     ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
-        // let cache = ParserCache::new(input, bump);
+        let cache = ParserCache::new(input, bump);
 
-        // let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
-        //
-        // let (state, rules) = state.with(from, meta_rules, None)?;
+        let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
+        let (state, rules) = state.with(from, meta_rules, None)?;
 
-        todo!();
-
-        // Ok(Self {
-        //     context,
-        //     cache,
-        //     state,
-        //     rules: rules.collect(),
-        // })
+        Ok(Self {
+            context,
+            cache,
+            state,
+            rules: rules.collect(),
+        })
     }
 }
 
@@ -79,19 +76,19 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
     }
 }
 
-pub fn run_parser_rule<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
-    rules: &'grm GrammarFile<'grm, RuleAction<'grm>>,
+pub fn run_parser_rule<'b, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
+    rules: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'b> FnOnce(&'b ActionResult<'b, 'grm>) -> T,
+    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>) -> T,
 ) -> Result<T, Vec<E>> {
-    let bump: Allocs<'_, 'grm> = Allocs {
+    let allocs: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
         alo_ar: &Arena::new(),
     };
-    let mut instance = ParserInstance::new(input, bump.clone(), rules).unwrap();
-    instance.run(rule).map(|v| ar_map(bump.uncow(v)))
+    let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
+    instance.run(rule).map(|v| ar_map(allocs.uncow(v)))
 }
 
 #[macro_export]

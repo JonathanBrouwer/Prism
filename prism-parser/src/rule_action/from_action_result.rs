@@ -5,9 +5,9 @@ use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;
 
 pub fn parse_rule_action<'b, 'grm>(
-    r: &'b ActionResult<'b, 'grm>,
+    r: &ActionResult<'_, 'grm>,
     src: &'grm str,
-) -> Option<RuleAction<'grm>> {
+) -> Option<RuleAction<'b, 'grm>> {
     Some(match r {
         Construct(_, "Cons", b) => RuleAction::Cons(
             Box::new(parse_rule_action(&b[0], src)?),

@@ -1,5 +1,6 @@
 use crate::core::cow::Cow;
-use crate::core::adaptive::{BlockState, GrammarState, RuleActionState};
+use crate::core::adaptive::{BlockState, GrammarState};
+use crate::rule_action::RuleAction;
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::{map_parser, Parser};
@@ -16,14 +17,14 @@ use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::{apply_action, apply_action_state};
+use crate::rule_action::apply_action::{apply_action};
 use std::collections::HashMap;
 use crate::grammar::{GrammarFile, RuleExpr};
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
     blocks: &'b [BlockState<'b, 'grm>],
-    expr: &'b RuleExpr<'grm, RuleActionState<'b, 'grm>>,
+    expr: &'b RuleExpr<'grm, RuleAction<'b, 'grm>>,
     vars: &'a HashMap<&'grm str, Cow<'b, ActionResult<'b, 'grm>>>,
 ) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
@@ -42,7 +43,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
 
                 let args = args
                     .iter()
-                    .map(|arg| apply_action_state(arg, &|v| vars.get(v).cloned(), Span::invalid()))
+                    .map(|arg| apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()))
                     .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
@@ -150,7 +151,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             RuleExpr::Action(sub, action) => {
                 let res = parser_expr(rules, blocks, sub, vars).parse(stream, cache, context);
                 res.map(|res| {
-                    let rtrn = apply_action_state(
+                    let rtrn = apply_action(
                         action,
                         &|k| {
                             res.free
@@ -189,7 +190,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
                 let gr =
-                    apply_action_state(ga, &|k| vars.get(k).cloned(), Span::invalid());
+                    apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
                 let gr: &'b ActionResult = cache.alloc.uncow(gr);
 
                 // Parse it into a grammar
@@ -206,7 +207,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let g: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>> = cache.alloc.alo_grammarfile.alloc(g);
+                let g: &'b GrammarFile<'grm, RuleAction<'b, 'grm>> = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {
@@ -249,6 +250,6 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
 fn convert_action_result<'grm, 'b>(
     ar: &'b ActionResult<'b, 'grm>,
     _src: &'grm str,
-) -> Option<RuleActionState<'b, 'grm>> {
-    Some(RuleActionState::ActionResult(ar))
+) -> Option<RuleAction<'b, 'grm>> {
+    Some(RuleAction::ActionResult(ar))
 }
