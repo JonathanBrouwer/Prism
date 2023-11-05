@@ -1,8 +1,7 @@
-use crate::core::cow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState};
-use crate::rule_action::RuleAction;
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
+use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -13,13 +12,14 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
+use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::{apply_action};
+use crate::rule_action::apply_action::apply_action;
+use crate::rule_action::RuleAction;
 use std::collections::HashMap;
-use crate::grammar::{GrammarFile, RuleExpr};
 
 pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'b GrammarState<'b, 'grm>,
@@ -189,8 +189,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr =
-                    apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
+                let gr = apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
                 let gr: &'b ActionResult = cache.alloc.uncow(gr);
 
                 // Parse it into a grammar
@@ -207,7 +206,8 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let g: &'b GrammarFile<'grm, RuleAction<'b, 'grm>> = cache.alloc.alo_grammarfile.alloc(g);
+                let g: &'b GrammarFile<'grm, RuleAction<'b, 'grm>> =
+                    cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {

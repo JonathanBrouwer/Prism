@@ -1,7 +1,7 @@
 use prism_parser::error::error_printer::print_set_error;
-use prism_parser::{parse_grammar, run_parser_rule_here};
 use prism_parser::grammar::GrammarFile;
 use prism_parser::rule_action::RuleAction;
+use prism_parser::{parse_grammar, run_parser_rule_here};
 
 fn main() {
     let grammar = include_str!("../resources/grammar");

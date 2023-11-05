@@ -1,7 +1,7 @@
+use crate::grammar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
-use crate::grammar::Rule;
 
 /// A TopoSet is basically a graph with string nodes, that is stored such that it is easy to clone and easy to topologically sort.
 #[derive(Clone)]

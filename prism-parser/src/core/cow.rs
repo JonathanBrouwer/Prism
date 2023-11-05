@@ -1,7 +1,7 @@
-use std::fmt::{Debug, Formatter};
-use std::ops::Deref;
 use bincode::Options;
 use serde::{Deserialize, Deserializer, Serialize};
+use std::fmt::{Debug, Formatter};
+use std::ops::Deref;
 
 //TODO Cow should not be clone, temporary fix
 #[derive(Clone, Serialize, Eq, PartialEq, Hash)]
@@ -40,7 +40,8 @@ impl<T: Debug> Debug for Cow<'_, T> {
 }
 
 impl<'de, 'a, T> Deserialize<'de> for Cow<'a, T>
-    where T: Deserialize<'de>,
+where
+    T: Deserialize<'de>,
 {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {

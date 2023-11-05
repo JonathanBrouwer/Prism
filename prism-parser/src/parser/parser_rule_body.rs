@@ -8,8 +8,8 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
-use by_address::ByAddress;
 use crate::rule_action::RuleAction;
+use by_address::ByAddress;
 
 use crate::core::context::{ParserContext, PR};
 use crate::core::pos::Pos;
@@ -79,9 +79,12 @@ fn parser_body_sub_constructors<
     move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
-            let rule_ctx = rule_ctx.iter().map(|(&k, v)| (k, Cow::Owned(ActionResult::RuleRef(*v))));
+            let rule_ctx = rule_ctx
+                .iter()
+                .map(|(&k, v)| (k, Cow::Owned(ActionResult::RuleRef(*v))));
             let rule_args = rule_args.iter().map(|(&k, v)| (k, v.clone()));
-            let vars: HashMap<&'grm str, Cow<'b, ActionResult>> = rule_args.chain(rule_ctx).collect();
+            let vars: HashMap<&'grm str, Cow<'b, ActionResult>> =
+                rule_args.chain(rule_ctx).collect();
 
             let res = parser_body_sub_annotations(rules, blocks, annots, expr, &vars)
                 .parse(stream, cache, context)

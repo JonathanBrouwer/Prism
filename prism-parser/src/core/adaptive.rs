@@ -1,13 +1,13 @@
 use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::{iter, mem};
 use std::sync::Arc;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
-use crate::rule_action::{RuleAction};
+use std::{iter, mem};
 
 pub struct GrammarState<'b, 'grm> {
     rules: Vec<RuleState<'b, 'grm>>,
@@ -46,7 +46,7 @@ impl<'b, 'grm: 'b> GrammarState<'b, 'grm> {
     pub fn with(
         &self,
         grammar: &'b GrammarFile<'grm, RuleAction<'b, 'grm>>,
-        ctx: impl Iterator<Item=(&'grm str, RuleId)>,
+        ctx: impl Iterator<Item = (&'grm str, RuleId)>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult<'grm>> {
         let mut s = Self {

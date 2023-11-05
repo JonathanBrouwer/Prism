@@ -1,7 +1,7 @@
-use crate::core::cow::Cow;
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
 use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;

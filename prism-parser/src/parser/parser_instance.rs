@@ -1,22 +1,22 @@
-use crate::core::cow::Cow;
 use crate::core::adaptive::{AdaptResult, BlockState, GrammarState, RuleId, RuleState};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
+use crate::core::span::Span;
+use crate::core::toposet::TopoSet;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::{AnnotatedRuleExpr, GrammarFile};
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
+use crate::{META_GRAMMAR, META_GRAMMAR_STATE};
 use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::core::span::Span;
-use crate::core::toposet::TopoSet;
-use crate::grammar::{AnnotatedRuleExpr, GrammarFile};
-use crate::grammar::escaped_string::EscapedString;
-use crate::META_GRAMMAR;
-use crate::rule_action::RuleAction;
 
 pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -41,8 +41,13 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
-        let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
-        let (state, rules) = state.with(from, meta_rules, None)?;
+        let visible_rules = [
+            ("grammar", META_GRAMMAR_STATE.1["grammar"]),
+            ("prule_action", META_GRAMMAR_STATE.1["prule_action"]),
+        ]
+        .into_iter();
+
+        let (state, rules) = META_GRAMMAR_STATE.0.with(from, visible_rules, None)?;
 
         Ok(Self {
             context,

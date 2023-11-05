@@ -1,7 +1,7 @@
 use crate::core::cow::Cow;
 use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::{RuleAction};
+use crate::rule_action::RuleAction;
 
 pub fn apply_action<'b, 'grm>(
     rule: &'b RuleAction<'b, 'grm>,
@@ -11,7 +11,7 @@ pub fn apply_action<'b, 'grm>(
     Cow::Owned(match rule {
         RuleAction::Name(name) => {
             if let Some(ar) = map(name) {
-                return ar
+                return ar;
             } else {
                 panic!("Name '{name}' not in context")
             }

@@ -1,7 +1,7 @@
-use crate::core::cow::Cow;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;

@@ -1,8 +1,8 @@
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
-use prism_parser::META_GRAMMAR;
 use prism_parser::rule_action::RuleAction;
+use prism_parser::META_GRAMMAR;
 
 fn get_new_grammar(input: &str) -> GrammarFile<RuleAction> {
     match parse_grammar(input) {

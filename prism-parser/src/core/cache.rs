@@ -1,6 +1,6 @@
-use crate::core::cow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{ParserContext, PR};
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -8,12 +8,12 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
+use crate::grammar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
-use crate::grammar::GrammarFile;
-use crate::rule_action::RuleAction;
 
 //TODO bug: does not include params
 type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));

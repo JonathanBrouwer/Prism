@@ -1,7 +1,7 @@
 use crate::core::adaptive::RuleId;
+use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use crate::core::cow::Cow;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
