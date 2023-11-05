@@ -1,13 +1,12 @@
-use std::borrow::Cow;
-use std::marker::PhantomData;
-
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use crate::core::cow::Cow;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 
+//TODO should not be clone as well (after cow is fixed)
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ActionResult<'b, 'grm> {
     Value(Span),
@@ -17,9 +16,9 @@ pub enum ActionResult<'b, 'grm> {
 }
 
 impl<'b, 'grm> ActionResult<'b, 'grm> {
-    pub fn get_value(&self, src: &'grm str) -> Cow<'grm, str> {
+    pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
         match self {
-            ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
+            ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
             ActionResult::Literal(s) => s.to_cow(),
             _ => panic!("Tried to get value of non-valued action result"),
         }

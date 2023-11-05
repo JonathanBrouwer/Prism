@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;

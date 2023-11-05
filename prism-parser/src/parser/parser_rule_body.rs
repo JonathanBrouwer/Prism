@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use std::collections::HashMap;
 
 use crate::core::cache::{parser_cache_recurse, PCache};

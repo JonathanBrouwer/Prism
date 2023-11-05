@@ -1,5 +1,5 @@
-use std::borrow::Cow;
-use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
+use crate::core::cow::Cow;
+use crate::core::adaptive::{AdaptResult, BlockState, GrammarState, RuleActionState, RuleId, RuleState};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
@@ -11,7 +11,10 @@ use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::grammar::GrammarFile;
+use crate::core::span::Span;
+use crate::core::toposet::TopoSet;
+use crate::grammar::{AnnotatedRuleExpr, GrammarFile};
+use crate::grammar::escaped_string::EscapedString;
 use crate::META_GRAMMAR;
 use crate::rule_action::RuleAction;
 
@@ -23,6 +26,12 @@ pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
     rules: HashMap<&'grm str, RuleId>,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct Test<'b> {
+    x: Box<Cow<'b, &'b Test<'b>>>,
+    s: &'b str,
+}
+
 impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
     pub fn new(
         input: &'grm str,
@@ -30,18 +39,20 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
         from: &'grm GrammarFile<'grm, RuleAction<'grm>>,
     ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
-        let cache = ParserCache::new(input, bump);
+        // let cache = ParserCache::new(input, bump);
 
-        let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
+        // let (state, meta_rules): (GrammarState<'b, 'grm>, _) = GrammarState::new_with(&META_GRAMMAR);
+        //
+        // let (state, rules) = state.with(from, meta_rules, None)?;
 
-        let (state, rules) = state.with(from, meta_rules, None)?;
+        todo!();
 
-        Ok(Self {
-            context,
-            cache,
-            state,
-            rules: rules.collect(),
-        })
+        // Ok(Self {
+        //     context,
+        //     cache,
+        //     state,
+        //     rules: rules.collect(),
+        // })
     }
 }
 

@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
 

@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use crate::grammar::from_action_result::{parse_identifier, parse_string};
 use crate::result_match;
 use crate::rule_action::action_result::ActionResult;

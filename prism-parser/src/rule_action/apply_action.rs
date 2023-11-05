@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use crate::core::adaptive::RuleActionState;
 use crate::core::span::Span;
 use crate::rule_action::action_result::ActionResult;

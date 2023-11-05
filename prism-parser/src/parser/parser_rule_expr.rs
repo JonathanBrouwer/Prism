@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState, RuleActionState};
 use crate::core::cache::PCache;
 use crate::core::context::{ParserContext, PR};
@@ -206,7 +206,7 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
                         return PResult::new_err(e, stream);
                     }
                 };
-                let g: &'b GrammarFile<'grm, &'b ActionResult<'b, 'grm>> = cache.alloc.alo_grammarfile.alloc(g);
+                let g: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>> = cache.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {
@@ -249,6 +249,6 @@ pub fn parser_expr<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
 fn convert_action_result<'grm, 'b>(
     ar: &'b ActionResult<'b, 'grm>,
     _src: &'grm str,
-) -> Option<&'b ActionResult<'b, 'grm>> {
-    Some(ar)
+) -> Option<RuleActionState<'b, 'grm>> {
+    Some(RuleActionState::ActionResult(ar))
 }

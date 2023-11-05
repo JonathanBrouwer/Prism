@@ -21,23 +21,6 @@ pub enum RuleActionState<'b, 'grm> {
     ActionResult(&'b ActionResult<'b, 'grm>),
 }
 
-pub trait ToRuleActionState<'b, 'grm> {
-    fn to_ra(&'b self) -> RuleActionState<'b, 'grm>;
-}
-
-impl<'b, 'grm> ToRuleActionState<'b, 'grm> for RuleAction<'grm> {
-    fn to_ra(&'b self) -> RuleActionState<'b, 'grm> {
-        RuleActionState::RuleAction(self)
-    }
-}
-
-impl<'b, 'grm> ToRuleActionState<'b, 'grm> for &'b ActionResult<'b, 'grm> {
-    fn to_ra(&'b self) -> RuleActionState<'b, 'grm> {
-        RuleActionState::ActionResult(self)
-    }
-}
-
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
@@ -69,7 +52,7 @@ impl<'b, 'grm: 'b> GrammarState<'b, 'grm> {
 
     pub fn with(
         &self,
-        grammar: &'b GrammarFile<'grm, impl ToRuleActionState<'b, 'grm>>,
+        grammar: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>>,
         ctx: impl Iterator<Item=(&'grm str, RuleId)>,
         pos: Option<Pos>,
     ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b), AdaptResult<'grm>> {
@@ -113,7 +96,7 @@ impl<'b, 'grm: 'b> GrammarState<'b, 'grm> {
     }
 
     pub fn new_with(
-        grammar: &'b GrammarFile<'grm, impl ToRuleActionState<'b, 'grm>>,
+        grammar: &'b GrammarFile<'grm, RuleActionState<'b, 'grm>>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'b) {
         GrammarState::new()
             .with(grammar, iter::empty(), None)
@@ -145,7 +128,7 @@ impl<'b, 'grm> RuleState<'b, 'grm> {
 
     pub fn update(
         &mut self,
-        r: &'b Rule<'grm, impl ToRuleActionState<'b, 'grm>>,
+        r: &'b Rule<'grm, RuleActionState<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Result<(), ()> {
         self.order.update(r);
@@ -197,24 +180,22 @@ pub type Constructor<'b, 'grm> = (
 
 impl<'b, 'grm> BlockState<'b, 'grm> {
     pub fn new(
-        block: &'b Block<'grm, impl ToRuleActionState<'b, 'grm>>,
+        block: &'b Block<'grm, RuleActionState<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) -> Self {
-        todo!()
-        // Self {
-        //     name: block.0,
-        //     constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
-        // }
+        Self {
+            name: block.0,
+            constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
+        }
     }
 
     pub fn update(
         &mut self,
-        b: &'b Block<'grm, impl ToRuleActionState<'b, 'grm>>,
+        b: &'b Block<'grm, RuleActionState<'b, 'grm>>,
         ctx: &Arc<HashMap<&'grm str, RuleId>>,
     ) {
         assert_eq!(self.name, b.0);
-        todo!()
-        // self.constructors
-        //     .extend(b.1.iter().map(|r| (r, ctx.clone())));
+        self.constructors
+            .extend(b.1.iter().map(|r| (r, ctx.clone())));
     }
 }

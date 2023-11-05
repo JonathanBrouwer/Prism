@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use crate::core::cow::Cow;
 use crate::core::adaptive::{BlockState, GrammarState, RuleActionState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::parser::Parser;
@@ -29,8 +29,8 @@ pub struct ParserCache<'grm, 'b, E: ParseError> {
 pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
 
 #[derive(Clone)]
-pub struct Allocs<'b, 'grm> {
-    pub alo_grammarfile: &'b Arena<GrammarFile<'grm, &'b ActionResult<'b, 'grm>>>,
+pub struct Allocs<'b, 'grm: 'b> {
+    pub alo_grammarfile: &'b Arena<GrammarFile<'grm, RuleActionState<'b, 'grm>>>,
     pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
     pub alo_ar: &'b Arena<ActionResult<'b, 'grm>>,
 }
