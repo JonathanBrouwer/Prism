@@ -1,4 +1,3 @@
-use bincode::Options;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;

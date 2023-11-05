@@ -1,20 +1,17 @@
-use crate::core::adaptive::{AdaptResult, BlockState, GrammarState, RuleId, RuleState};
+use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
-use crate::core::span::Span;
-use crate::core::toposet::TopoSet;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{AnnotatedRuleExpr, GrammarFile};
+use crate::grammar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
-use crate::{META_GRAMMAR, META_GRAMMAR_STATE};
+use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
 
