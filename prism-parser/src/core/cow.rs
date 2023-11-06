@@ -2,7 +2,6 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 
-//TODO Cow should not be clone, temporary fix
 #[derive(Clone, Serialize, Eq, PartialEq, Hash)]
 pub enum Cow<'a, T: 'a> {
     Borrowed(&'a T),

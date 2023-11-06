@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 
-//TODO should not be clone as well (after cow is fixed)
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
