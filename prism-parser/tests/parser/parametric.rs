@@ -1,20 +1,21 @@
 use crate::parser::parse_test;
 
-parse_test! {
-name: parametric
-syntax: r##"
-    rule start:
-        hash("x")
-
-    rule hash(n):
-        n <- "#"
-
-    "##
-passing tests:
-    "#" => "'x'"
-failing tests:
-    "x"
-}
+//TODO accept values as args rather than only rules?
+// parse_test! {
+// name: parametric
+// syntax: r##"
+//     rule start:
+//         hash("x")
+//
+//     rule hash(n):
+//         n <- "#"
+//
+//     "##
+// passing tests:
+//     "#" => "'x'"
+// failing tests:
+//     "x"
+// }
 
 parse_test! {
 name: parametric_first_order
@@ -80,4 +81,24 @@ passing tests:
     "#" => "'x'"
 failing tests:
     "a"
+}
+
+parse_test! {
+name: caching_test
+syntax: r##"
+    rule start:
+        id(x) / id(y)
+
+    rule id(r):
+        r
+
+    rule x = "x"
+    rule y = "y"
+
+    "##
+passing tests:
+    "x" => "'x'"
+    "y" => "'y'"
+failing tests:
+    "z"
 }

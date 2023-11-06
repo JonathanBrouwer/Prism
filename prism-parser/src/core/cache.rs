@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
+use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId, RuleId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -15,13 +15,13 @@ use std::collections::HashMap;
 use typed_arena::Arena;
 use crate::error::error_printer::ErrorLabel::Debug;
 
-//TODO bug: does not include params
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
     pos: Pos,
     block: ByAddress< & 'arn [BlockState<'arn, 'grm > ] >,
     ctx: ParserContext,
     state: GrammarStateId,
+    params: Vec<(&'grm str, RuleId)>
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -115,7 +115,7 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext, GrammarStateId),
+    id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext, GrammarStateId, Vec<(&'grm str, RuleId)>),
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
@@ -124,6 +124,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
             block: id.0,
             ctx: id.1.clone(),
             state: id.2,
+            params: id.3.clone(),
         };
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();
