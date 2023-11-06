@@ -104,6 +104,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     }
 }
 
+// TODO instead of one global GrammarStateId, we can track this per rule. Create a graph of rule ids and update the id when one of its components changes
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
