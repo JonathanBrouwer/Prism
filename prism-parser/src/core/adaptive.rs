@@ -68,7 +68,6 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             let rule = if let Some(rule) = ctx.get(new_rule.name) {
                 *rule
             } else {
-                //TODO performance: pushing empty then cloning
                 s.rules
                     .push(Arc::new(RuleState::new_empty(new_rule.name, &new_rule.args)));
                 RuleId(s.rules.len() - 1)
