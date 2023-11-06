@@ -171,3 +171,27 @@ failing tests:
     "###
 
 }
+
+
+parse_test! {
+name: adaptive_sub2
+syntax: r#"
+    rule start:
+        b <- "{" g:grammar(prule_action) "}" b:(sub2 / @adapt(g, sub2))
+
+    rule sub2:
+        sub
+
+    rule sub:
+        Z() <- "z"
+
+    "#
+passing tests:
+    r###"{rule sub:
+            Y() <- "y"
+}y"### => "Construct('Y', [])"
+
+failing tests:
+
+}
+

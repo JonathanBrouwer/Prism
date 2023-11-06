@@ -18,8 +18,10 @@ fn main() {
     };
 
     let input = include_str!("../resources/program.pr");
-    let r: Result<_, _> = run_parser_rule(&grammar, "block", input);
-    let r = match r {
+    let expr: Result<_, _> = run_parser_rule(&grammar, "block", input, |r| {
+        Expr::from_action_result(r, input)
+    });
+    let expr = match expr {
         Ok(o) => o,
         Err(es) => {
             for e in es {
@@ -28,7 +30,6 @@ fn main() {
             return;
         }
     };
-    let expr = Expr::from_action_result(&r, input);
     println!("Program:\n{}", &expr);
 
     // let typ = match tc(&expr, &Env::new()) {

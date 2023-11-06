@@ -1,22 +1,23 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, ValWithEnv, PR};
+use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
+use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
 use std::collections::HashMap;
-use std::sync::Arc;
 
-pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
+pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+    rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
-    args: &'a [Arc<ValWithEnv<'b, 'grm>>],
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
-        let rule_state: &'b RuleState<'b, 'grm> = rules
+    args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
+    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+        let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
@@ -33,6 +34,6 @@ pub fn parser_rule<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + '
             stream.span_to(res.end_pos()),
             rule_state.name,
         ));
-        res.map(|pr| pr.fresh())
+        res.map(|pr| pr)
     }
 }

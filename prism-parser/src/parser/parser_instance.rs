@@ -1,52 +1,50 @@
 use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
-use crate::core::context::{ParserContext, Val, ValWithEnv};
+use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::grammar_ar::GrammarFile;
+use crate::grammar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply_rawenv;
+use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
-use std::sync::Arc;
-use typed_arena::Arena;
+pub use typed_arena::Arena;
 
-pub struct ParserInstance<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> {
+pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
-    cache: PCache<'b, 'grm, E>,
+    cache: PCache<'arn, 'grm, E>,
 
-    state: GrammarState<'b, 'grm>,
+    state: GrammarState<'arn, 'grm>,
     rules: HashMap<&'grm str, RuleId>,
 }
 
-impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm, E> {
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct Test<'arn> {
+    x: Box<Cow<'arn, &'arn Test<'arn>>>,
+    s: &'arn str,
+}
+
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn new(
         input: &'grm str,
-        bump: Allocs<'b, 'grm>,
-        from: &'grm GrammarFile<'grm>,
+        bump: Allocs<'arn, 'grm>,
+        from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> Result<Self, AdaptResult<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 
-        let visible_rules = HashMap::from([
-            (
-                "grammar",
-                Arc::new(ValWithEnv::from_raw(Val::Rule(
-                    META_GRAMMAR_STATE.1["grammar"],
-                ))),
-            ),
-            (
-                "prule_action",
-                Arc::new(ValWithEnv::from_raw(Val::Rule(
-                    META_GRAMMAR_STATE.1["prule_action"],
-                ))),
-            ),
-        ]);
-        let (state, rules) = META_GRAMMAR_STATE.0.with(from, &visible_rules, None)?;
+        let visible_rules = [
+            ("grammar", META_GRAMMAR_STATE.1["grammar"]),
+            ("prule_action", META_GRAMMAR_STATE.1["prule_action"]),
+        ]
+        .into_iter();
+
+        let (state, rules) = META_GRAMMAR_STATE.0.with(from, visible_rules, None)?;
 
         Ok(Self {
             context,
@@ -57,13 +55,13 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'b, 'grm,
     }
 }
 
-impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b, 'grm, E> {
-    pub fn run(&'b mut self, rule: &'grm str) -> Result<ActionResult<'grm>, Vec<E>> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
+    pub fn run(&'arn mut self, rule: &'grm str) -> Result<&'arn ActionResult<'arn, 'grm>, Vec<E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, Arc::new(ValWithEnv::from_raw(Val::Rule(v)))))
+            .map(|(&k, &v)| (k, Cow::Owned(ActionResult::RuleRef(v))))
             .collect();
         let x = parse_with_recovery(
             &full_input_layout(
@@ -74,21 +72,36 @@ impl<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'b
             Pos::start(),
             &mut self.cache,
             &self.context,
-        )
-        .map(|pr| apply_rawenv(&pr.rtrn));
+        );
         x
     }
 }
 
-pub fn run_parser_rule<'b, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'grm GrammarFile<'grm>,
+pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
+    rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
-) -> Result<ActionResult<'grm>, Vec<E>> {
-    let bump = Allocs {
+    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>) -> T,
+) -> Result<T, Vec<E>> {
+    let allocs: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
+        alo_ar: &Arena::new(),
     };
-    let mut instance = ParserInstance::new(input, bump, rules).unwrap();
-    instance.run(rule)
+    let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
+    instance.run(rule).map(ar_map)
+}
+
+#[macro_export]
+macro_rules! run_parser_rule_here {
+    ($id: ident = $rules: expr, $rule: expr, $input: expr) => {
+        let bump = $crate::core::cache::Allocs {
+            alo_grammarfile: &$crate::parser::parser_instance::Arena::new(),
+            alo_grammarstate: &$crate::parser::parser_instance::Arena::new(),
+            alo_ar: &$crate::parser::parser_instance::Arena::new(),
+        };
+        let mut instance =
+            $crate::parser::parser_instance::ParserInstance::new($input, bump, $rules).unwrap();
+        let $id = instance.run($rule);
+    };
 }

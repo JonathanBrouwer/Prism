@@ -1,20 +1,22 @@
 use crate::core::cache::PCache;
-use crate::core::context::{Ignore, ParserContext, Val, PR};
+use crate::core::context::{Ignore, ParserContext};
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 const MAX_RECOVERIES: usize = 10;
 
-pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'b, 'grm, O, E>,
+pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
     stream: Pos,
-    cache: &mut PCache<'b, 'grm, E>,
+    cache: &mut PCache<'arn, 'grm, E>,
     context: &ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
@@ -79,13 +81,13 @@ pub fn parse_with_recovery<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel
     }
 }
 
-pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> + 'b>(
-    item: impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a,
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
+pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
+    item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
+) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'b, 'grm, E>,
+          cache: &mut PCache<'arn, 'grm, E>,
           context: &ParserContext|
-          -> PResult<PR<'b, 'grm>, E> {
+          -> PResult<_, E> {
         // First try original parse
         match item.parse(
             stream,
@@ -98,7 +100,13 @@ pub fn recovery_point<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>> 
             r @ POk(_, _, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
-                    POk(PR::from_raw(Val::Void), stream, *to, true, Some((e, s)))
+                    POk(
+                        Cow::Owned(ActionResult::void()),
+                        stream,
+                        *to,
+                        true,
+                        Some((e, s)),
+                    )
                 } else {
                     PErr(e, s)
                 }

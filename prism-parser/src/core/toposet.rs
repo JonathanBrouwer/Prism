@@ -1,4 +1,5 @@
-use crate::grammar::grammar_ar::Rule;
+use crate::core::adaptive::UpdateError;
+use crate::grammar::Rule;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
@@ -22,7 +23,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn update(&mut self, grm: &Rule<'grm>) {
+    pub fn update<T>(&mut self, grm: &Rule<'grm, T>) {
         for b in grm.blocks.windows(2) {
             let b1 = b[0].0;
             let b2 = b[1].0;
@@ -46,7 +47,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn toposort(&self) -> Result<Vec<&'grm str>, ()> {
+    pub fn toposort(&self) -> Result<Vec<&'grm str>, UpdateError> {
         let mut result = Vec::new();
         let mut counts: HashMap<&'grm str, usize> = HashMap::new();
 
@@ -79,7 +80,7 @@ impl<'grm> TopoSet<'grm> {
         if counts.is_empty() {
             Ok(result)
         } else {
-            Err(())
+            Err(UpdateError::ToposortCycle)
         }
     }
 }

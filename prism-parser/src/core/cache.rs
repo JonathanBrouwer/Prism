@@ -1,33 +1,59 @@
-use crate::core::adaptive::{BlockState, GrammarState};
-use crate::core::context::{ParserContext, PR};
+use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
+use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use crate::grammar::grammar_ar::GrammarFile;
+use crate::grammar::GrammarFile;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
+use crate::error::error_printer::ErrorLabel::Debug;
 
-type CacheKey<'grm, 'b> = (Pos, (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext));
+//TODO bug: does not include params
+#[derive(Eq, PartialEq, Hash, Clone)]
+pub struct CacheKey<'grm, 'arn> {
+    pos: Pos,
+    block: ByAddress< & 'arn [BlockState<'arn, 'grm > ] >,
+    ctx: ParserContext,
+    state: GrammarStateId,
+}
 
-pub struct ParserCache<'grm, 'b, E: ParseError> {
+pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
+
+pub struct ParserCache<'grm, 'arn, E: ParseError> {
     //Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'b>, ParserCacheEntry<PResult<PR<'b, 'grm>, E>>>,
-    cache_stack: Vec<CacheKey<'grm, 'b>>,
+    cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<CacheVal<'grm, 'arn, E>>>,
+    cache_stack: Vec<CacheKey<'grm, 'arn>>,
     // For allocating things that might be in the result
-    pub alloc: Allocs<'b, 'grm>,
+    pub alloc: Allocs<'arn, 'grm>,
     pub input: &'grm str,
 }
 
-pub type PCache<'b, 'grm, E> = ParserCache<'grm, 'b, E>;
+pub type PCache<'arn, 'grm, E> = ParserCache<'grm, 'arn, E>;
 
-pub struct Allocs<'b, 'grm> {
-    pub alo_grammarfile: &'b Arena<GrammarFile<'grm>>,
-    pub alo_grammarstate: &'b Arena<GrammarState<'b, 'grm>>,
+#[derive(Clone)]
+pub struct Allocs<'arn, 'grm: 'arn> {
+    pub alo_grammarfile: &'arn Arena<GrammarFile<'grm, RuleAction<'arn, 'grm>>>,
+    pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
+    pub alo_ar: &'arn Arena<ActionResult<'arn, 'grm>>,
+}
+
+impl<'arn, 'grm> Allocs<'arn, 'grm> {
+    pub fn uncow(
+        &self,
+        cow: Cow<'arn, ActionResult<'arn, 'grm>>,
+    ) -> &'arn ActionResult<'arn, 'grm> {
+        match cow {
+            Cow::Borrowed(v) => v,
+            Cow::Owned(v) => self.alo_ar.alloc(v),
+        }
+    }
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -35,8 +61,8 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
-    pub fn new(input: &'grm str, alloc: Allocs<'b, 'grm>) -> Self {
+impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
+    pub fn new(input: &'grm str, alloc: Allocs<'arn, 'grm>) -> Self {
         ParserCache {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
@@ -45,15 +71,15 @@ impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'b>) -> Option<bool> {
+    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'arn>) -> Option<bool> {
         self.cache.get(&key).map(|v| v.read)
     }
 
     pub(crate) fn cache_get(
         &mut self,
-        key: CacheKey<'grm, 'b>,
-    ) -> Option<&PResult<PR<'b, 'grm>, E>> {
-        if let Some(v) = self.cache.get_mut(&key) {
+        key: &CacheKey<'grm, 'arn>,
+    ) -> Option<&CacheVal<'grm, 'arn, E>> {
+        if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
         } else {
@@ -63,8 +89,8 @@ impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
 
     pub(crate) fn cache_insert(
         &mut self,
-        key: CacheKey<'grm, 'b>,
-        value: PResult<PR<'b, 'grm>, E>,
+        key: CacheKey<'grm, 'arn>,
+        value: CacheVal<'grm, 'arn, E>,
     ) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
@@ -87,14 +113,19 @@ impl<'grm, 'b, E: ParseError> ParserCache<'grm, 'b, E> {
     }
 }
 
-pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'b, 'grm, PR<'b, 'grm>, E>,
-    id: (ByAddress<&'b [BlockState<'b, 'grm>]>, ParserContext),
-) -> impl Parser<'b, 'grm, PR<'b, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut PCache<'b, 'grm, E>, context: &ParserContext| {
+pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
+    sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
+    id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext, GrammarStateId),
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
+    move |pos_start: Pos, state: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
-        let key = (pos_start, id.clone());
-        if let Some(cached) = state.cache_get(key.clone()) {
+        let key = CacheKey {
+            pos: pos_start,
+            block: id.0,
+            ctx: id.1.clone(),
+            state: id.2,
+        };
+        if let Some(cached) = state.cache_get(&key) {
             return cached.clone();
         }
 
@@ -127,10 +158,7 @@ pub fn parser_cache_recurse<'a, 'b: 'a, 'grm: 'b, E: ParseError<L = ErrorLabel<'
                     loop {
                         //Insert the current seed into the cache
                         state.cache_state_revert(cache_state);
-                        state.cache_insert(
-                            key.clone(),
-                            POk(o.clone(), spos, epos, empty, be.clone()),
-                        );
+                        state.cache_insert(key.clone(), POk(o, spos, epos, empty, be.clone()));
 
                         //Grow the seed
                         let new_res = sub.parse(pos_start, state, context);

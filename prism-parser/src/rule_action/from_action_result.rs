@@ -4,7 +4,10 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;
 
-pub fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option<RuleAction<'grm>> {
+pub fn parse_rule_action<'arn, 'grm>(
+    r: &ActionResult<'_, 'grm>,
+    src: &'grm str,
+) -> Option<RuleAction<'arn, 'grm>> {
     Some(match r {
         Construct(_, "Cons", b) => RuleAction::Cons(
             Box::new(parse_rule_action(&b[0], src)?),
@@ -14,7 +17,7 @@ pub fn parse_rule_action<'grm>(r: &ActionResult<'grm>, src: &'grm str) -> Option
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src)?,
             result_match! {
-                match &b[1] => Construct(_, "List", subs),
+                match &b[1].as_ref() => Construct(_, "List", subs),
                 create subs.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),

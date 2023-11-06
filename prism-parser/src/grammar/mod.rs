@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 pub mod escaped_string;
 pub mod from_action_result;
-pub mod grammar_ar;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GrammarFile<'grm, A> {

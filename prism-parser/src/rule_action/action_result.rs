@@ -1,24 +1,24 @@
-use std::borrow::Cow;
-
 use crate::core::adaptive::RuleId;
+use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 
+//TODO should not be clone as well (after cow is fixed)
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum ActionResult<'grm> {
+pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, Vec<ActionResult<'grm>>),
+    Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     RuleRef(RuleId),
 }
 
-impl<'grm> ActionResult<'grm> {
-    pub fn get_value(&self, src: &'grm str) -> Cow<'grm, str> {
+impl<'arn, 'grm> ActionResult<'arn, 'grm> {
+    pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
         match self {
-            ActionResult::Value(span) => Cow::Borrowed(&src[*span]),
+            ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
             ActionResult::Literal(s) => s.to_cow(),
             _ => panic!("Tried to get value of non-valued action result"),
         }
@@ -38,5 +38,9 @@ impl<'grm> ActionResult<'grm> {
             ),
             ActionResult::RuleRef(r) => format!("[{}]", r),
         }
+    }
+
+    pub fn void() -> Self {
+        ActionResult::Construct(Span::invalid(), "#VOID#", vec![])
     }
 }

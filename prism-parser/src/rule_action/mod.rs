@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
 
@@ -10,12 +9,14 @@ pub mod apply_action;
 pub mod from_action_result;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleAction<'grm> {
+pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
+    // TODO use more efficient structure than Vec for this
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
     RuleRef(RuleId),
-    ActionResult(Arc<ActionResult<'grm>>),
+    #[serde(skip)]
+    ActionResult(&'arn ActionResult<'arn, 'grm>),
 }

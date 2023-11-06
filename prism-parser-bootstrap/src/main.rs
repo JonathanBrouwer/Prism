@@ -2,14 +2,14 @@
 
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::from_action_result::parse_grammarfile;
-use prism_parser::grammar::grammar_ar::GrammarFile;
-use prism_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::grammar::GrammarFile;
 use prism_parser::rule_action::action_result::ActionResult;
 use prism_parser::rule_action::from_action_result::parse_rule_action;
-use prism_parser::{parse_grammar, META_GRAMMAR};
+use prism_parser::rule_action::RuleAction;
+use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
 
-fn get_new_grammar(input: &str) -> GrammarFile {
+fn get_new_grammar(input: &str) -> GrammarFile<RuleAction> {
     match parse_grammar(input) {
         Ok(o) => o,
         Err(es) => {
@@ -44,7 +44,7 @@ fn normal() {
 fn part1() {
     let input = include_str!("../resources/meta.grammar");
 
-    let result: Result<_, _> = run_parser_rule(&META_GRAMMAR, "toplevel", input);
+    run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", input);
     let result = match result {
         Ok(o) => o,
         Err(es) => {
@@ -69,9 +69,10 @@ fn part2() {
             .unwrap()
             .into_boxed_slice(),
     );
-    let result: ActionResult<'static> = bincode::deserialize(temp).unwrap();
+    let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
 
-    let grammar2: GrammarFile = parse_grammarfile(&result, input, parse_rule_action).unwrap();
+    let grammar2: GrammarFile<'_, RuleAction<'_, '_>> =
+        parse_grammarfile(&result, input, parse_rule_action).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();

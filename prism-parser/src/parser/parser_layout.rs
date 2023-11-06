@@ -1,6 +1,7 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::cache::PCache;
-use crate::core::context::{ParserContext, ValWithEnv};
+use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -10,23 +11,27 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::apply_action::apply_rawenv;
 
-pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |pos: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+pub fn parser_with_layout<
+    'a,
+    'arn: 'a,
+    'grm: 'arn,
+    O,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+>(
+    rules: &'arn GrammarState<'arn, 'grm>,
+    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
+) -> impl Parser<'arn, 'grm, O, E> + 'a {
+    move |pos: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         if context.layout_disabled || !vars.contains_key("layout") {
             return sub.parse(pos, cache, context);
         }
 
-        let layout = match apply_rawenv(&vars["layout"]) {
-            ActionResult::RuleRef(r) => r,
+        let layout = match vars["layout"].as_ref() {
+            ActionResult::RuleRef(r) => *r,
             _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
         };
 
@@ -66,12 +71,21 @@ pub fn parser_with_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<
     }
 }
 
-pub fn full_input_layout<'a, 'b: 'a, 'grm: 'b, O, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
-    rules: &'b GrammarState<'b, 'grm>,
-    vars: &'a HashMap<&'grm str, Arc<ValWithEnv<'b, 'grm>>>,
-    sub: &'a impl Parser<'b, 'grm, O, E>,
-) -> impl Parser<'b, 'grm, O, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'b, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+pub fn full_input_layout<
+    'a,
+    'arn: 'a,
+    'grm: 'arn,
+    O,
+    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+>(
+    rules: &'arn GrammarState<'arn, 'grm>,
+    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    sub: &'a impl Parser<'arn, 'grm, O, E>,
+) -> impl Parser<'arn, 'grm, O, E> + 'a {
+    move |stream: Pos,
+          cache: &mut PCache<'arn, 'grm, E>,
+          context: &ParserContext|
+          -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), cache, context)
             .map(|(o, _)| o)
