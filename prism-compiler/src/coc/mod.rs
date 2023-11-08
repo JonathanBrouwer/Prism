@@ -2,26 +2,20 @@ pub mod beta;
 pub mod env;
 pub mod type_check;
 
-// use crate::coc::env::Env;
-use crate::coc::ExprInner::*;
 use prism_parser::core::span::Span;
 use prism_parser::rule_action::action_result::ActionResult;
 use std::fmt::{Display, Formatter};
-use std::rc::Rc;
-
-pub type W<T> = Rc<T>;
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct Expr<M: Clone>(M, ExprInner<M>);
+use prism_parser::parser::parser_instance::Arena;
+use crate::coc::Expr::*;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub enum ExprInner<M: Clone> {
+pub enum Expr<'arn> {
     Type,
-    Let(W<Expr<M>>, W<Expr<M>>),
+    Let(&'arn Expr<'arn>, &'arn Expr<'arn>),
     Var(usize),
-    FnType(W<Expr<M>>, W<Expr<M>>),
-    FnConstruct(W<Expr<M>>, W<Expr<M>>),
-    FnDestruct(W<Expr<M>>, W<Expr<M>>),
+    FnType(&'arn Expr<'arn>, &'arn Expr<'arn>),
+    FnConstruct(&'arn Expr<'arn>, &'arn Expr<'arn>),
+    FnDestruct(&'arn Expr<'arn>, &'arn Expr<'arn>),
 }
 
 #[allow(unused)]
@@ -30,8 +24,8 @@ pub struct SourceInfo {
     span: Span,
 }
 
-impl Expr<SourceInfo> {
-    pub fn from_action_result<'grm>(value: &ActionResult<'_, 'grm>, src: &'grm str) -> Self {
+impl<'arn> Expr<'arn> {
+    pub fn from_action_result<'grm>(value: &ActionResult<'_, 'grm>, src: &'grm str, arena: &'arn Arena<Expr<'arn>>) -> &'arn Self {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!();
         };
@@ -43,8 +37,8 @@ impl Expr<SourceInfo> {
             "Let" => {
                 assert_eq!(args.len(), 2);
                 Let(
-                    W::new(Expr::from_action_result(&args[0], src)),
-                    W::new(Expr::from_action_result(&args[1], src)),
+                    Expr::from_action_result(&args[0], src, arena),
+                    Expr::from_action_result(&args[1], src, arena),
                 )
             }
             "Var" => {
@@ -54,33 +48,33 @@ impl Expr<SourceInfo> {
             "FnType" => {
                 assert_eq!(args.len(), 2);
                 FnType(
-                    W::new(Expr::from_action_result(&args[0], src)),
-                    W::new(Expr::from_action_result(&args[1], src)),
+                    Expr::from_action_result(&args[0], src, arena),
+                    Expr::from_action_result(&args[1], src, arena),
                 )
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
                 FnConstruct(
-                    W::new(Expr::from_action_result(&args[0], src)),
-                    W::new(Expr::from_action_result(&args[1], src)),
+                    Expr::from_action_result(&args[0], src, arena),
+                    Expr::from_action_result(&args[1], src, arena),
                 )
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
                 FnDestruct(
-                    W::new(Expr::from_action_result(&args[0], src)),
-                    W::new(Expr::from_action_result(&args[1], src)),
+                    Expr::from_action_result(&args[0], src, arena),
+                    Expr::from_action_result(&args[1], src, arena),
                 )
             }
             _ => unreachable!(),
         };
-        Expr(SourceInfo { span: *span }, inner)
+        arena.alloc(inner)
     }
 }
 
-impl<M: Clone> Display for Expr<M> {
+impl Display for Expr<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self.1 {
+        match &self {
             Type => write!(f, "Type"),
             Let(v, b) => {
                 writeln!(f, "let {v};")?;
