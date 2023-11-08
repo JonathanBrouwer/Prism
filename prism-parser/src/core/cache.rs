@@ -6,6 +6,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
@@ -13,15 +14,14 @@ use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use typed_arena::Arena;
-use crate::error::error_printer::ErrorLabel::Debug;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
     pos: Pos,
-    block: ByAddress< & 'arn [BlockState<'arn, 'grm > ] >,
+    block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
     ctx: ParserContext,
     state: GrammarStateId,
-    params: Vec<(&'grm str, RuleId)>
+    params: Vec<(&'grm str, RuleId)>,
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -115,7 +115,12 @@ impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    id: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, ParserContext, GrammarStateId, Vec<(&'grm str, RuleId)>),
+    id: (
+        ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+        ParserContext,
+        GrammarStateId,
+        Vec<(&'grm str, RuleId)>,
+    ),
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached

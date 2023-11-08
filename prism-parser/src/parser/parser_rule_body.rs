@@ -32,7 +32,12 @@ pub fn parser_body_cache_recurse<
     move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, rule_args),
-            (ByAddress(bs), context.clone(), rules.unique_id(), rule_args.to_vec()),
+            (
+                ByAddress(bs),
+                context.clone(),
+                rules.unique_id(),
+                rule_args.to_vec(),
+            ),
         )
         .parse(stream, cache, context)
     }
@@ -85,7 +90,9 @@ fn parser_body_sub_constructors<
             let rule_ctx = rule_ctx
                 .iter()
                 .map(|(&k, v)| (k, Cow::Owned(ActionResult::RuleRef(*v))));
-            let rule_args_iter = rule_args.iter().map(|&(k, v)| (k, Cow::Owned(ActionResult::RuleRef(v))));
+            let rule_args_iter = rule_args
+                .iter()
+                .map(|&(k, v)| (k, Cow::Owned(ActionResult::RuleRef(v))));
             let vars: HashMap<&'grm str, Cow<'arn, ActionResult>> =
                 rule_args_iter.chain(rule_ctx).collect();
 

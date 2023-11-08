@@ -43,7 +43,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 let args = args
                     .iter()
-                    .map(|arg| apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()).as_rule())
+                    .map(|arg| {
+                        apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()).as_rule()
+                    })
                     .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
@@ -143,14 +145,16 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                let res =
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
                 res.map(|mut res| {
                     res.free.insert(name, res.rtrn.clone());
                     res
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                let res =
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
                 res.map(|res| {
                     let rtrn = apply_action(
                         action,
@@ -170,7 +174,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                let res =
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
                 res.map_with_span(|_, span| PR::with_rtrn(ActionResult::Value(span)))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, rule_args)

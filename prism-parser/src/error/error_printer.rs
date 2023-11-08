@@ -42,7 +42,7 @@ impl Display for ErrorLabel<'_> {
     }
 }
 
-pub fn print_base(span: Span) -> ReportBuilder<Span> {
+pub fn print_base(span: Span) -> ReportBuilder<'static, Span> {
     Report::build(ReportKind::Error, (), span.start.into())
         //Config
         .with_config(

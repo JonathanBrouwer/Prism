@@ -172,7 +172,6 @@ failing tests:
 
 }
 
-
 parse_test! {
 name: adaptive_sub2
 syntax: r#"
@@ -194,4 +193,3 @@ passing tests:
 failing tests:
 
 }
-

@@ -68,8 +68,10 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             let rule = if let Some(rule) = ctx.get(new_rule.name) {
                 *rule
             } else {
-                s.rules
-                    .push(Arc::new(RuleState::new_empty(new_rule.name, &new_rule.args)));
+                s.rules.push(Arc::new(RuleState::new_empty(
+                    new_rule.name,
+                    &new_rule.args,
+                )));
                 RuleId(s.rules.len() - 1)
             };
             result.push((new_rule.name, rule));
@@ -80,7 +82,8 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
             let mut r = (*s.rules[id.0]).clone();
-            r.update(rule, &ctx).map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
+            r.update(rule, &ctx)
+                .map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
             s.rules[id.0] = Arc::new(r);
         }
 
