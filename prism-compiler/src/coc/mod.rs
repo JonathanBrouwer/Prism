@@ -88,4 +88,3 @@ impl Display for Expr<'_> {
     }
 }
 
-// pub type SExpr<'a, M> = (&'a Expr<M>, Env<'a, M>);

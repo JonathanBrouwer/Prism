@@ -1,9 +1,11 @@
 pub mod coc;
 
+use std::mem::size_of;
 use crate::coc::Expr;
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::{Arena, run_parser_rule};
+use crate::coc::env::Env;
 
 fn main() {
     let grammar = include_str!("../resources/grammar");
@@ -32,6 +34,8 @@ fn main() {
         }
     };
     println!("Program:\n{}", &expr);
+
+    dbg!(size_of::<Env>());
 
     // let typ = match tc(&expr, &Env::new()) {
     //     Ok(typ) => typ,
