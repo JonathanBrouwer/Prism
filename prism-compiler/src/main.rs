@@ -35,8 +35,6 @@ fn main() {
     };
     println!("Program:\n{}", &expr);
 
-    dbg!(size_of::<Env>());
-
     // let typ = match tc(&expr, &Env::new()) {
     //     Ok(typ) => typ,
     //     Err(err) => {
