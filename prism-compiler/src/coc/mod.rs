@@ -82,7 +82,7 @@ impl Display for Expr<'_> {
             }
             Var(i) => write!(f, "#{i}"),
             FnType(a, b) => write!(f, "({a}) -> ({b})"),
-            FnConstruct(a, b) => write!(f, "({a}) |> ({b})"),
+            FnConstruct(a, b) => write!(f, "({a}) => ({b})"),
             FnDestruct(a, b) => write!(f, "({a}) ({b})"),
         }
     }
