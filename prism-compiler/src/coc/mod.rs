@@ -1,6 +1,7 @@
 pub mod beta;
 pub mod env;
 pub mod type_check;
+pub mod shift_free;
 
 use prism_parser::core::span::Span;
 use prism_parser::rule_action::action_result::ActionResult;

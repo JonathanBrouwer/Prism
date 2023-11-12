@@ -2,6 +2,9 @@ use crate::coc::env::{Env, EnvEntry, SExpr};
 use crate::coc::Expr;
 
 pub fn brh<'arn>((eo, so): SExpr<'arn>) -> SExpr<'arn> {
+    // Used if we need to insert types during beta reduction that we don't know
+    const PLACE_HOLDERTYPE: Expr<'static> = Expr::Type;
+
     let mut args = Vec::new();
 
     let mut e: &'arn Expr<'arn> = eo;
@@ -15,7 +18,7 @@ pub fn brh<'arn>((eo, so): SExpr<'arn>) -> SExpr<'arn> {
             }
             Expr::Let(v, b) => {
                 e = b;
-                s = s.cons(EnvEntry::NSubst((v, s.clone())));
+                s = s.cons(EnvEntry::NSubst(&PLACE_HOLDERTYPE, (v, s.clone())));
             }
             Expr::Var(i) => match &s[*i] {
                 EnvEntry::NType(_) => {
@@ -25,7 +28,7 @@ pub fn brh<'arn>((eo, so): SExpr<'arn>) -> SExpr<'arn> {
                         (eo, so.clone())
                     }
                 }
-                EnvEntry::NSubst((ne, ns)) => {
+                EnvEntry::NSubst(_, (ne, ns)) => {
                     e = ne;
                     s = ns.clone();
                 }
@@ -38,7 +41,7 @@ pub fn brh<'arn>((eo, so): SExpr<'arn>) -> SExpr<'arn> {
                 None => return (e, s.clone()),
                 Some(arg) => {
                     e = b;
-                    s = s.cons(EnvEntry::NSubst(arg));
+                    s = s.cons(EnvEntry::NSubst(&PLACE_HOLDERTYPE, arg));
                 }
             },
             Expr::FnDestruct(f, a) => {
@@ -151,22 +154,4 @@ pub fn brh<'arn>((eo, so): SExpr<'arn>) -> SExpr<'arn> {
 //     }
 // }
 //
-// pub fn shift_free<M: Clone>(e: Expr<M>, d: isize) -> Expr<M> {
-//     fn sub<M: Clone>(e: &Expr<M>, d: isize, from: usize) -> Expr<M> {
-//         match e {
-//             Type => Type,
-//             Let(v, b) => Let(W::new(sub(v, d, from)), W::new(sub(b, d, from + 1))),
-//             Var(i) => {
-//                 if *i >= from {
-//                     Var(i.checked_add_signed(d).unwrap())
-//                 } else {
-//                     Var(*i)
-//                 }
-//             }
-//             FnType(a, b) => FnType(W::new(sub(a, d, from)), W::new(sub(b, d, from + 1))),
-//             FnConstruct(a, b) => FnConstruct(W::new(sub(a, d, from)), W::new(sub(b, d, from + 1))),
-//             FnDestruct(f, a) => FnDestruct(W::new(sub(f, d, from)), W::new(sub(a, d, from))),
-//         }
-//     }
-//     sub(&e, d, 0)
-// }
+

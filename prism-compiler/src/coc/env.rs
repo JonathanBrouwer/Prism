@@ -5,7 +5,15 @@ use std::ops::Index;
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry<'arn> {
     NType(&'arn Expr<'arn>),
-    NSubst(SExpr<'arn>),
+    NSubst(&'arn Expr<'arn>, SExpr<'arn>),
+}
+
+impl<'arn> EnvEntry<'arn> {
+    pub fn typ(&self) -> &'arn Expr<'arn> {
+        match self {
+            EnvEntry::NType(t) | EnvEntry::NSubst(t, _) => t
+        }
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
