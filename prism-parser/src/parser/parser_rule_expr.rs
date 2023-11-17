@@ -155,7 +155,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Action(sub, action) => {
                 let res =
                     parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
-                res.map(|res| {
+                res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
                         &|k| {
@@ -164,7 +164,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 .cloned()
                                 .or_else(|| vars.get(k).map(|v| (*v).clone()))
                         },
-                        Span::invalid(),
+                        span,
                     );
 
                     PR {

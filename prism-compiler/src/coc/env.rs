@@ -1,17 +1,19 @@
 use crate::coc::Expr;
 use rpds::Vector;
 use std::ops::Index;
+use crate::coc::type_check::PartialExpr;
+use crate::union_find::UnionIndex;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry<'arn> {
-    NType(&'arn Expr<'arn>),
-    NSubst(&'arn Expr<'arn>, SExpr<'arn>),
+    NType(UnionIndex),
+    NSubst(UnionIndex, SExpr<'arn>),
 }
 
 impl<'arn> EnvEntry<'arn> {
-    pub fn typ(&self) -> &'arn Expr<'arn> {
+    pub fn typ(&self) -> UnionIndex {
         match self {
-            EnvEntry::NType(t) | EnvEntry::NSubst(t, _) => t
+            EnvEntry::NType(t) | EnvEntry::NSubst(t, _) => *t
         }
     }
 }
