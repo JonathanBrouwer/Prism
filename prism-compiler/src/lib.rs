@@ -11,7 +11,7 @@ use prism_parser::parser::parser_instance::{Arena, run_parser_rule};
 use crate::coc::Expr;
 
 pub mod coc;
-mod union_find;
+pub mod union_find;
 
 lazy_static! {
     pub static ref GRAMMAR: GrammarFile<'static, RuleAction<'static, 'static>> = {

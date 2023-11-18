@@ -64,10 +64,6 @@ impl UnionFind {
         self.parents[b.0] = a_root.0;
         a_root
     }
-
-    pub fn len(&self) -> usize {
-        self.data.len()
-    }
 }
 
 

@@ -1,5 +1,4 @@
 use test_each_file::test_each_file;
-use prism_compiler::coc::beta::brh;
 use prism_compiler::coc::env::Env;
 use prism_compiler::coc::type_check::TcEnv;
 use prism_compiler::parse_prism;
@@ -11,7 +10,7 @@ fn test([input, output]: [&str; 2]) {
     let output = parse_prism(output, &arena).expect("Failed to parse output");
 
     assert_eq!(
-        TcEnv::new().brh((input, Env::new())).0,
+        TcEnv::new(&arena).brh((input, Env::new())).0,
         output
     );
 }

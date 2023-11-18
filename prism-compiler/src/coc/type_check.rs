@@ -1,5 +1,5 @@
 use prism_parser::parser::parser_instance::Arena;
-use crate::coc::env::Env;
+use crate::coc::env::{Env, SExpr};
 use crate::coc::env::EnvEntry::{NSubst, NType};
 use crate::coc::{beta, Expr};
 use crate::union_find::{UnionFind, UnionIndex};
@@ -10,7 +10,7 @@ pub fn tc_root<'arn>(e: &'arn Expr<'arn>, arena: &'arn Arena<Expr<'arn>>) -> Res
     Ok(())
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr<'arn> {
     Type,
     Let(UnionIndex, UnionIndex),
@@ -21,6 +21,7 @@ pub enum PartialExpr<'arn> {
     Shift(UnionIndex, isize),
     Free,
     Expr(&'arn Expr<'arn>),
+    Subst(UnionIndex, SExpr<'arn>),
 }
 
 pub struct TcEnv<'arn> {
@@ -83,16 +84,11 @@ impl<'arn> TcEnv<'arn> {
                 let ft = self.tc_expr(f, s);
                 let at = self.tc_expr(a, s);
 
+                let rt = self.add_union_index(PartialExpr::Free);
+                let expect = self.add_union_index(PartialExpr::FnType(at, rt));
+                self.expect_beq((expect, s.clone()), (ft, s.clone()));
 
-                todo!()
-                // let x = match beta::brh((&ft, Env::new())) {
-                //     (FnType(da, db), sf) => {
-                //         beta::beq((&at, Env::new()), (da, sf.clone()))?;
-                //         Ok(beta::br((db, sf.cons(NSubst((a, s.clone()))))))
-                //     }
-                //     _ => Err(()),
-                // };
-                // x
+                PartialExpr::Subst(rt, (a, s.clone()))
             }
         };
         self.add_union_index(t)
