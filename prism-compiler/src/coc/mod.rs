@@ -1,4 +1,4 @@
-pub mod beta;
+pub mod brh_expr;
 pub mod env;
 pub mod type_check;
 pub mod shift_free;

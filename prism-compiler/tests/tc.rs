@@ -4,15 +4,16 @@ use prism_compiler::coc::type_check::TcEnv;
 use prism_compiler::parse_prism;
 use prism_parser::parser::parser_instance::Arena;
 
-fn test([input, output]: [&str; 2]) {
+fn test([input]: [&str; 1]) {
     let arena = Arena::new();
     let input = parse_prism(input, &arena).expect("Failed to parse input");
-    let output = parse_prism(output, &arena).expect("Failed to parse output");
 
-    assert_eq!(
-        TcEnv::new().brh((input, Env::new())).0,
-        output
-    );
+    TcEnv::new().tc_expr(input, &Env::new());
 }
 
-test_each_file! { for ["in", "brh"] in "prism-compiler/programs/eval/" => test }
+#[test]
+fn placeholder() {
+
+}
+
+test_each_file! { for ["in"] in "prism-compiler/programs/tc/" => test }

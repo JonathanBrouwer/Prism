@@ -1,14 +1,8 @@
 use prism_parser::parser::parser_instance::Arena;
 use crate::coc::env::{Env, SExpr};
 use crate::coc::env::EnvEntry::{NSubst, NType};
-use crate::coc::{beta, Expr};
+use crate::coc::{brh_expr, Expr};
 use crate::union_find::{UnionFind, UnionIndex};
-
-pub fn tc_root<'arn>(e: &'arn Expr<'arn>, arena: &'arn Arena<Expr<'arn>>) -> Result<(), ()> {
-    let mut env = TcEnv::new(arena);
-    env.tc_expr(e, &Env::new());
-    Ok(())
-}
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr<'arn> {
@@ -25,26 +19,49 @@ pub enum PartialExpr<'arn> {
 }
 
 pub struct TcEnv<'arn> {
-    pub arena: &'arn Arena<Expr<'arn>>,
     pub uf: UnionFind,
     pub types: Vec<PartialExpr<'arn>>,
 }
 
 impl<'arn> TcEnv<'arn> {
-    pub fn new(arena: &'arn Arena<Expr<'arn>>) -> Self {
+    pub fn new() -> Self {
         Self {
-            arena,
             uf: UnionFind::new(),
             types: Vec::new(),
         }
     }
 
-    pub fn expect_beq(&mut self, a: (UnionIndex, Env<'arn>), b: (UnionIndex, Env<'arn>)) {
+    pub fn brh<'a>(expr: &'a PartialExpr, env: Env<'arn>, types: &'a Vec<PartialExpr<'arn>>) -> &'a PartialExpr<'arn> {
+
+
         todo!()
     }
 
+    pub fn expect_beq(&mut self, (ai, ae): (UnionIndex, Env<'arn>), (bi, be): (UnionIndex, Env<'arn>)) {
+        let ai = self.uf.find(ai);
+        let bi = self.uf.find(bi);
+
+        let ape = Self::brh(&self.types[ai.0], ae.clone(), &self.types).clone();
+        let bpe = Self::brh(&self.types[bi.0], be.clone(), &self.types).clone();
+
+        match (ape, bpe) {
+            (PartialExpr::Type, PartialExpr::Type) => {},
+            (PartialExpr::FnType(a1, a2), PartialExpr::FnType(b1, b2)) => {
+                self.expect_beq((a1, ae.clone()), (b1, be.clone()));
+                self.expect_beq((a2, ae), (a2, be));
+            }
+            (_, _) => {}
+        }
+
+
+
+
+        // todo!()
+    }
+
     pub fn expect_beq_type(&mut self, a: (UnionIndex, Env<'arn>)) {
-        todo!()
+        let typ = self.add_union_index(PartialExpr::Type);
+        self.expect_beq(a, (typ, Env::new()))
     }
 
     fn add_union_index(&mut self, e: PartialExpr<'arn>) -> UnionIndex {
@@ -58,8 +75,9 @@ impl<'arn> TcEnv<'arn> {
             Expr::Let(v, b) => {
                 let vt = self.tc_expr(v, s);
                 self.expect_beq_type((vt, s.clone()));
-                let bt = self.tc_expr(b, &s.cons(NSubst(vt, (v, s.clone()))));
-                PartialExpr::Shift(bt, -1)
+                let s= s.cons(NSubst(vt, (v, s.clone())));
+                let bt = self.tc_expr(b, &s);
+                PartialExpr::Subst(bt, (v, s.clone()))
             }
             Expr::Var(i) => PartialExpr::Shift(
                 s[*i].typ(),

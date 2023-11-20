@@ -1,4 +1,6 @@
 use prism_compiler::{GRAMMAR, parse_prism};
+use prism_compiler::coc::env::Env;
+use prism_compiler::coc::type_check::TcEnv;
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::{Arena, run_parser_rule};
@@ -11,6 +13,9 @@ fn main() {
     };
 
     println!("Program:\n{}", &expr);
+
+    let mut tc_env = TcEnv::new();
+    tc_env.tc_expr(expr, &Env::new());
 
     // let typ = match tc(&expr, &Env::new()) {
     //     Ok(typ) => typ,
