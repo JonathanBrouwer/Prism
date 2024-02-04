@@ -1,6 +1,7 @@
+use std::marker::PhantomData;
 use std::mem;
 use prism_parser::parser::parser_instance::Arena;
-use crate::coc::env::{Env, SExpr};
+use crate::coc::env::{Env, EnvEntry, SExpr};
 use crate::coc::env::EnvEntry::{NSubst, NType};
 use crate::coc::{brh_expr, Expr};
 use crate::union_find::{UnionFind, UnionIndex};
@@ -21,7 +22,7 @@ pub enum PartialExpr<'arn> {
 
 pub struct TcEnv<'arn> {
     pub uf: UnionFind,
-    pub types: Vec<PartialExpr<'arn>>,
+    pub types: PhantomData<PartialExpr<'arn>>,
     pub errors: Vec<TcError>,
 }
 
@@ -31,7 +32,7 @@ impl<'arn> TcEnv<'arn> {
     pub fn new() -> Self {
         Self {
             uf: UnionFind::new(),
-            types: Vec::new(),
+            types: PhantomData::default(),
             errors: Vec::new(),
         }
     }
@@ -46,15 +47,16 @@ impl<'arn> TcEnv<'arn> {
 
     }
 
-    fn brh<'a>(expr: &'a PartialExpr<'arn>, env: Env<'arn>, types: &'a Vec<PartialExpr<'arn>>) -> (&'a PartialExpr<'arn>, Env<'arn>) {
+    fn brh<'a>(expr: &'a PartialExpr<'arn>, env: Env) -> (&'a PartialExpr<'arn>, Env) {
 
         (expr, env) //TODO
     }
 
-    fn expect_beq(&mut self, (ai, ae): (UnionIndex, Env<'arn>), (bi, be): (UnionIndex, Env<'arn>)) {
+    fn expect_beq(&mut self, (ai, ae): (UnionIndex, Env), (bi, be): (UnionIndex, Env)) {
         let ai = self.uf.find(ai);
         let bi = self.uf.find(bi);
 
+        //todo don't use self.types
         let (ape, anv) = Self::brh(&self.types[ai.0], ae.clone(), &self.types).clone();
         let (bpe, bnv) = Self::brh(&self.types[bi.0], be.clone(), &self.types).clone();
 
@@ -62,10 +64,16 @@ impl<'arn> TcEnv<'arn> {
             (PartialExpr::Type, PartialExpr::Type) => {},
             (&PartialExpr::FnType(a1, a2), &PartialExpr::FnType(b1, b2)) => {
                 self.expect_beq((a1, anv.clone()), (b1, bnv.clone()));
-                self.expect_beq((a2, anv), (a2, bnv));
+                self.expect_beq(
+                    (a2, anv.cons(NSubst(a1))),
+                    (b2, anv.cons(NSubst(b1))),
+                )
+                // self.expect_beq((a2, anv), (a2, bnv));
             }
             (PartialExpr::FnConstruct(a1, a2), PartialExpr::FnConstruct(b1, b2)) => {
-                self.expect_beq((a1, anv.clone()))
+                self.expect_beq((*a1, anv.clone()), (*b1, bnv.clone()));
+                // TODO
+
             }
             _ => {
                 self.errors.push(());
@@ -73,7 +81,7 @@ impl<'arn> TcEnv<'arn> {
         }
     }
 
-    fn expect_beq_type(&mut self, a: (UnionIndex, Env<'arn>)) {
+    fn expect_beq_type(&mut self, a: (UnionIndex, Env)) {
         let typ = self.add_union_index(PartialExpr::Type);
         self.expect_beq(a, (typ, Env::new()))
     }
@@ -83,18 +91,21 @@ impl<'arn> TcEnv<'arn> {
         self.uf.add()
     }
 
-    fn tc_expr(&mut self, e: &'arn Expr<'arn>, s: &Env<'arn>) -> UnionIndex {
+    fn tc_expr(&mut self, e: &'arn Expr<'arn>, s: &Env) -> UnionIndex {
         let t = match e {
             Expr::Type => PartialExpr::Type,
             Expr::Let(v, b) => {
                 let vt = self.tc_expr(v, s);
                 self.expect_beq_type((vt, s.clone()));
-                let s= s.cons(NSubst(vt, (v, s.clone())));
+                let s= s.cons(NSubst(vt));
                 let bt = self.tc_expr(b, &s);
                 PartialExpr::Subst(bt, (v, s.clone()))
             }
             Expr::Var(i) => PartialExpr::Shift(
-                s[*i].typ(),
+                match s[*i] {
+                    NType(t) => t,
+                    NSubst(v) => self.types[v.0],
+                },
                 (i + 1) as isize,
             ),
             Expr::FnType(a, b) => {
