@@ -7,7 +7,7 @@ use crate::union_find::UnionIndex;
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
     NType(UnionIndex),
-    NSubst(UnionIndex), //TODO don't add type info here because annoying for beta reduce
+    NSubst(UnionIndex),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

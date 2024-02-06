@@ -21,20 +21,39 @@ pub enum PartialExpr<'arn> {
 }
 
 pub struct TcEnv<'arn> {
-    pub uf: UnionFind,
-    pub types: PhantomData<PartialExpr<'arn>>,
-    pub errors: Vec<TcError>,
+    uf: UnionFind,
+    uf_values: Vec<PartialExpr<'arn>>,
+    uf_types: Vec<UnionIndex>,
+    errors: Vec<TcError>,
+}
+
+impl<'arn> TcEnv<'arn> {
+    fn get_val(&self, v: UnionIndex) -> &PartialExpr<'arn> {
+        &self.uf_values[v.0]
+    }
+
+    fn get_type(&self, v: UnionIndex) -> UnionIndex {
+        self.uf_types[v.0]
+    }
+
+    fn type_type() -> UnionIndex {
+        UnionIndex(0)
+    }
 }
 
 pub type TcError = ();
 
 impl<'arn> TcEnv<'arn> {
     pub fn new() -> Self {
-        Self {
+        let mut s = Self {
             uf: UnionFind::new(),
-            types: PhantomData::default(),
+            uf_values: Vec::default(),
+            uf_types: Vec::default(),
             errors: Vec::new(),
-        }
+        };
+        let type_type = s.add_union_index(PartialExpr::Type, None);
+        debug_assert_eq!(type_type.0, 0);
+        s
     }
 
     pub fn type_check(&mut self, expr: &'arn Expr<'arn>) -> Result<(), Vec<TcError>> {
@@ -47,7 +66,7 @@ impl<'arn> TcEnv<'arn> {
 
     }
 
-    fn brh<'a>(expr: &'a PartialExpr<'arn>, env: Env) -> (&'a PartialExpr<'arn>, Env) {
+    fn brh<'a>(expr: &'a PartialExpr<'arn>, env: Env, uf_values: &'a [PartialExpr<'arn>]) -> (&'a PartialExpr<'arn>, Env) {
 
         (expr, env) //TODO
     }
@@ -57,8 +76,8 @@ impl<'arn> TcEnv<'arn> {
         let bi = self.uf.find(bi);
 
         //todo don't use self.types
-        let (ape, anv) = Self::brh(&self.types[ai.0], ae.clone(), &self.types).clone();
-        let (bpe, bnv) = Self::brh(&self.types[bi.0], be.clone(), &self.types).clone();
+        let (ape, anv) = Self::brh(&self.uf_values[ai.0], ae.clone(), &self.uf_values).clone();
+        let (bpe, bnv) = Self::brh(&self.uf_values[bi.0], be.clone(), &self.uf_values).clone();
 
         match (ape, bpe) {
             (PartialExpr::Type, PartialExpr::Type) => {},
@@ -68,26 +87,27 @@ impl<'arn> TcEnv<'arn> {
                     (a2, anv.cons(NSubst(a1))),
                     (b2, anv.cons(NSubst(b1))),
                 )
-                // self.expect_beq((a2, anv), (a2, bnv));
             }
             (PartialExpr::FnConstruct(a1, a2), PartialExpr::FnConstruct(b1, b2)) => {
                 self.expect_beq((*a1, anv.clone()), (*b1, bnv.clone()));
                 // TODO
 
             }
-            _ => {
+            (e1, e2) => {
+                println!("Beq failed: {e1:?} / {e2:?}");
                 self.errors.push(());
             }
         }
     }
 
     fn expect_beq_type(&mut self, a: (UnionIndex, Env)) {
-        let typ = self.add_union_index(PartialExpr::Type);
+        let typ = self.add_union_index(PartialExpr::Type, None);
         self.expect_beq(a, (typ, Env::new()))
     }
 
-    fn add_union_index(&mut self, e: PartialExpr<'arn>) -> UnionIndex {
-        self.types.push(e);
+    fn add_union_index(&mut self, e: PartialExpr<'arn>, t: Option<UnionIndex>) -> UnionIndex {
+        self.uf_values.push(e);
+        self.uf_types.push(t.unwrap_or(Self::type_type()));
         self.uf.add()
     }
 
@@ -104,14 +124,14 @@ impl<'arn> TcEnv<'arn> {
             Expr::Var(i) => PartialExpr::Shift(
                 match s[*i] {
                     NType(t) => t,
-                    NSubst(v) => self.types[v.0],
+                    NSubst(v) => self.get_type(v),
                 },
                 (i + 1) as isize,
             ),
             Expr::FnType(a, b) => {
                 let at= self.tc_expr(a, s);
                 self.expect_beq_type((at, s.clone()));
-                let a = self.add_union_index(PartialExpr::Expr(a));
+                let a = self.add_union_index(PartialExpr::Expr(a), Some(at));
                 let bt = self.tc_expr(b, &s.cons(NType(a)));
                 self.expect_beq_type((bt, s.clone()));
                 PartialExpr::Type
@@ -119,7 +139,7 @@ impl<'arn> TcEnv<'arn> {
             Expr::FnConstruct(a, b) => {
                 let at = self.tc_expr(a, s);
                 self.expect_beq_type((at, s.clone()));
-                let a = self.add_union_index(PartialExpr::Expr(a));
+                let a = self.add_union_index(PartialExpr::Expr(a), Some(at));
                 let bt = self.tc_expr(b, &s.cons(NType(a)));
                 PartialExpr::FnType(at, bt)
             }
@@ -127,13 +147,13 @@ impl<'arn> TcEnv<'arn> {
                 let ft = self.tc_expr(f, s);
                 let at = self.tc_expr(a, s);
 
-                let rt = self.add_union_index(PartialExpr::Free);
-                let expect = self.add_union_index(PartialExpr::FnType(at, rt));
+                let rt = self.add_union_index(PartialExpr::Free, None);
+                let expect = self.add_union_index(PartialExpr::FnType(at, rt), None);
                 self.expect_beq((expect, s.clone()), (ft, s.clone()));
 
                 PartialExpr::Subst(rt, (a, s.clone()))
             }
         };
-        self.add_union_index(t)
+        self.add_union_index(t, None)
     }
 }

@@ -1,12 +1,1 @@
-grammar {
-    rule expr:
-        -- base
-        #0 <- "@"
-
-    rule comment:
-        "//" [^ '\n' | '\r']*
-        "/*" (@neg("*/") [])* "*/"
-
-};
-
-Type => #0 => @
+Type => #0 => #1

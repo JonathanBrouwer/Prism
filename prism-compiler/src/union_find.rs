@@ -1,5 +1,3 @@
-use std::ops::{Index, IndexMut};
-
 pub struct UnionFind {
     parents: Vec<usize>,
 }
