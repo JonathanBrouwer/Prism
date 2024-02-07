@@ -14,7 +14,7 @@ pub enum PartialExpr<'arn> {
     FnType(UnionIndex, UnionIndex),
     FnConstruct(UnionIndex, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
-    Shift(UnionIndex, isize),
+    Shift(UnionIndex, usize),
     Free,
     Expr(&'arn Expr<'arn>),
     Subst(UnionIndex, SExpr<'arn>),
@@ -66,26 +66,70 @@ impl<'arn> TcEnv<'arn> {
 
     }
 
-    fn brh<'a>(expr: &'a PartialExpr<'arn>, env: Env, uf_values: &'a [PartialExpr<'arn>]) -> (&'a PartialExpr<'arn>, Env) {
+    fn brh<'a>(start_expr: &'a PartialExpr<'arn>, start_env: Env, uf_values: &'a [PartialExpr<'arn>]) -> (&'a PartialExpr<'arn>, Env) {
+        let mut args = Vec::new();
 
-        (expr, env) //TODO
+        let mut e: &'a PartialExpr<'arn> = start_expr;
+        let mut s: Env = start_env.clone();
+
+        loop {
+            match e {
+                PartialExpr::Type => {
+                    assert!(args.is_empty());
+                    return (&PartialExpr::Type, Env::new())
+                }
+                PartialExpr::Let(v, b) => {
+                    e = &uf_values[b.0];
+                    s = s.cons(NSubst(*v, 0))
+                }
+                PartialExpr::Var(i) => match s[*i] {
+                    NType(_) => return if args.len() == 0 {
+                        (e, s)
+                    } else {
+                        (start_expr, start_env)
+                    },
+                    NSubst(v, shift) => {
+                        e = &uf_values[v.0];
+                        s.shift(*i + shift + 1);
+                    }
+                }
+                PartialExpr::FnType(_, _) => {
+                    assert!(args.is_empty());
+                    return (e, s)
+                }
+                PartialExpr::FnConstruct(_, b) => match args.pop() {
+                    None => return (e, s),
+                    Some((arg, arg_shift)) => {
+                        e = &uf_values[b.0];
+                        s = s.cons(NSubst(arg, arg_shift))
+                    }
+                }
+                PartialExpr::FnDestruct(f, a) => {
+                    e = &uf_values[f.0];
+                    args.push((*a, s.len()));
+                }
+                PartialExpr::Shift(v, shift) => {
+                    e = &uf_values[v.0];
+                    s = s.shift(*shift);
+                }
+                PartialExpr::Free => return (&PartialExpr::Free, Env::new()),
+                PartialExpr::Expr(_) => {}
+                PartialExpr::Subst(v, i) => {}
+            }
+        }
     }
 
     fn expect_beq(&mut self, (ai, ae): (UnionIndex, Env), (bi, be): (UnionIndex, Env)) {
-        let ai = self.uf.find(ai);
-        let bi = self.uf.find(bi);
-
-        //todo don't use self.types
-        let (ape, anv) = Self::brh(&self.uf_values[ai.0], ae.clone(), &self.uf_values).clone();
-        let (bpe, bnv) = Self::brh(&self.uf_values[bi.0], be.clone(), &self.uf_values).clone();
+        let (ape, anv) = Self::brh(&self.uf_values[self.uf.find(ai).0], ae.clone(), &self.uf_values).clone();
+        let (bpe, bnv) = Self::brh(&self.uf_values[self.uf.find(bi).0], be.clone(), &self.uf_values).clone();
 
         match (ape, bpe) {
             (PartialExpr::Type, PartialExpr::Type) => {},
             (&PartialExpr::FnType(a1, a2), &PartialExpr::FnType(b1, b2)) => {
                 self.expect_beq((a1, anv.clone()), (b1, bnv.clone()));
                 self.expect_beq(
-                    (a2, anv.cons(NSubst(a1))),
-                    (b2, anv.cons(NSubst(b1))),
+                    (a2, anv.cons(NSubst(a1, 0))),
+                    (b2, anv.cons(NSubst(b1, 0))),
                 )
             }
             (PartialExpr::FnConstruct(a1, a2), PartialExpr::FnConstruct(b1, b2)) => {
@@ -117,16 +161,16 @@ impl<'arn> TcEnv<'arn> {
             Expr::Let(v, b) => {
                 let vt = self.tc_expr(v, s);
                 self.expect_beq_type((vt, s.clone()));
-                let s= s.cons(NSubst(vt));
+                let s= s.cons(NSubst(vt, 0));
                 let bt = self.tc_expr(b, &s);
                 PartialExpr::Subst(bt, (v, s.clone()))
             }
             Expr::Var(i) => PartialExpr::Shift(
                 match s[*i] {
                     NType(t) => t,
-                    NSubst(v) => self.get_type(v),
+                    NSubst(v, _) => self.get_type(v),
                 },
-                (i + 1) as isize,
+                i + 1,
             ),
             Expr::FnType(a, b) => {
                 let at= self.tc_expr(a, s);

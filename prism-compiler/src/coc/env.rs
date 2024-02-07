@@ -7,7 +7,7 @@ use crate::union_find::UnionIndex;
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
     NType(UnionIndex),
-    NSubst(UnionIndex),
+    NSubst(UnionIndex, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -23,6 +23,27 @@ impl<'arn> Env {
     #[must_use]
     pub fn cons(&self, e: EnvEntry) -> Self {
         Env(self.0.push_back(e))
+    }
+
+    // TODO optimization
+    // #[must_use]
+    // pub fn cons_mut(mut self, e: EnvEntry) -> Self {
+    //     self.0.push_back_mut(e);
+    //     self
+    // }
+
+    // TODO optimization
+    pub fn shift(&self, count: usize) -> Self {
+        let mut s = self.0.clone();
+        assert!(s.len() >= count);
+        for _ in 0..count {
+            s.drop_last_mut();
+        }
+        Env(s)
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
