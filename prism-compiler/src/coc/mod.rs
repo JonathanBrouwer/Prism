@@ -1,22 +1,20 @@
-pub mod brh_expr;
 pub mod env;
 pub mod type_check;
-pub mod shift_free;
 
 use prism_parser::core::span::Span;
 use prism_parser::rule_action::action_result::ActionResult;
 use std::fmt::{Display, Formatter};
 use prism_parser::parser::parser_instance::Arena;
-use crate::coc::Expr::*;
+use crate::coc::SourceExpr::*;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub enum Expr<'arn> {
+pub enum SourceExpr<'arn> {
     Type,
-    Let(&'arn Expr<'arn>, &'arn Expr<'arn>),
+    Let(&'arn SourceExpr<'arn>, &'arn SourceExpr<'arn>),
     Var(usize),
-    FnType(&'arn Expr<'arn>, &'arn Expr<'arn>),
-    FnConstruct(&'arn Expr<'arn>, &'arn Expr<'arn>),
-    FnDestruct(&'arn Expr<'arn>, &'arn Expr<'arn>),
+    FnType(&'arn SourceExpr<'arn>, &'arn SourceExpr<'arn>),
+    FnConstruct(&'arn SourceExpr<'arn>, &'arn SourceExpr<'arn>),
+    FnDestruct(&'arn SourceExpr<'arn>, &'arn SourceExpr<'arn>),
 }
 
 #[allow(unused)]
@@ -25,8 +23,8 @@ pub struct SourceInfo {
     span: Span,
 }
 
-impl<'arn> Expr<'arn> {
-    pub fn from_action_result<'grm>(value: &ActionResult<'_, 'grm>, src: &'grm str, arena: &'arn Arena<Expr<'arn>>) -> &'arn Self {
+impl<'arn> SourceExpr<'arn> {
+    pub fn from_action_result<'grm>(value: &ActionResult<'_, 'grm>, src: &'grm str, arena: &'arn Arena<SourceExpr<'arn>>) -> &'arn Self {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!();
         };
@@ -38,8 +36,8 @@ impl<'arn> Expr<'arn> {
             "Let" => {
                 assert_eq!(args.len(), 2);
                 Let(
-                    Expr::from_action_result(&args[0], src, arena),
-                    Expr::from_action_result(&args[1], src, arena),
+                    SourceExpr::from_action_result(&args[0], src, arena),
+                    SourceExpr::from_action_result(&args[1], src, arena),
                 )
             }
             "Var" => {
@@ -49,22 +47,22 @@ impl<'arn> Expr<'arn> {
             "FnType" => {
                 assert_eq!(args.len(), 2);
                 FnType(
-                    Expr::from_action_result(&args[0], src, arena),
-                    Expr::from_action_result(&args[1], src, arena),
+                    SourceExpr::from_action_result(&args[0], src, arena),
+                    SourceExpr::from_action_result(&args[1], src, arena),
                 )
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
                 FnConstruct(
-                    Expr::from_action_result(&args[0], src, arena),
-                    Expr::from_action_result(&args[1], src, arena),
+                    SourceExpr::from_action_result(&args[0], src, arena),
+                    SourceExpr::from_action_result(&args[1], src, arena),
                 )
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
                 FnDestruct(
-                    Expr::from_action_result(&args[0], src, arena),
-                    Expr::from_action_result(&args[1], src, arena),
+                    SourceExpr::from_action_result(&args[0], src, arena),
+                    SourceExpr::from_action_result(&args[1], src, arena),
                 )
             }
             _ => unreachable!(),
@@ -73,7 +71,7 @@ impl<'arn> Expr<'arn> {
     }
 }
 
-impl Display for Expr<'_> {
+impl Display for SourceExpr<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self {
             Type => write!(f, "Type"),

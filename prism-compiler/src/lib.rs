@@ -8,7 +8,7 @@ use prism_parser::core::adaptive::GrammarState;
 use std::collections::HashMap;
 use prism_parser::core::adaptive::RuleId;
 use prism_parser::parser::parser_instance::{Arena, run_parser_rule};
-use crate::coc::Expr;
+use crate::coc::SourceExpr;
 
 pub mod coc;
 pub mod union_find;
@@ -28,9 +28,9 @@ lazy_static! {
     };
 }
 
-pub fn parse_prism<'arn>(program: &str, arena: &'arn Arena<Expr<'arn>>) -> Option<&'arn Expr<'arn>> {
+pub fn parse_prism<'arn>(program: &str, arena: &'arn Arena<SourceExpr<'arn>>) -> Option<&'arn SourceExpr<'arn>> {
     let expr: Result<_, _> = run_parser_rule(&GRAMMAR, "block", program, |r| {
-        Expr::from_action_result(r, program, &arena)
+        SourceExpr::from_action_result(r, program, &arena)
     });
     match expr {
         Ok(o) => Some(o),
