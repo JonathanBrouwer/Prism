@@ -8,9 +8,12 @@ fn test([input, output]: [&str; 2]) {
     let arena = Arena::new();
     let input = parse_prism(input, &arena).expect("Failed to parse input");
     let output = parse_prism(output, &arena).expect("Failed to parse output");
+    
+    let env = TcEnv::new();
+    env.
 
     assert_eq!(
-        TcEnv::new().brh((input, Env::new())).0,
+        .brh(input, &Env::new()).0,
         output
     );
 }

@@ -5,8 +5,13 @@ use crate::union_find::UnionIndex;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
-    NType(UnionIndex),
-    NSubst(UnionIndex, UnionIndex),
+    // Definitions used during type checking
+    CType(UnionIndex),
+    CSubst(UnionIndex, UnionIndex),
+    
+    // Definitions used during beta reduction
+    RType,
+    RSubst(UnionIndex, Env)
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -23,7 +28,12 @@ impl<'arn> Env {
     pub fn cons(&self, e: EnvEntry) -> Self {
         Env(self.0.push_back(e))
     }
-    
+
+    #[must_use]
+    pub fn shift(&self, count: usize) -> Self {
+        Env(self.0[0..(self.0.len() - count)])
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
