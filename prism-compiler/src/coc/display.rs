@@ -15,6 +15,7 @@ impl TcEnv {
         let mut i = self.uf.find(i);
         if br {
             (i, env) = self.brh(i, env.clone());
+            i = self.uf.find(i);
         }
 
         match self.uf_values[i.0] {

@@ -115,10 +115,10 @@ impl TcEnv {
                 self.expect_beq_internal(f1, &s1, f2, &s2);
                 self.expect_beq_internal(a1, &s1, a2, &s2);
             }
-            (_, &PartialExpr::Free) => {
+            (_e, &PartialExpr::Free) => {
                 self.uf.union_left(i1, i2);
             }
-            (&PartialExpr::Free, _) => {
+            (&PartialExpr::Free, _e) => {
                 self.uf.union_left(i2, i1);
             }
             (_e1, _e2) => {

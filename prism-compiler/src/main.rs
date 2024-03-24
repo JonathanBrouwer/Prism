@@ -13,9 +13,19 @@ fn main() {
 
     match tc_env.type_check() {
         Ok(i) => println!(
-            "> Type\n====================\n{}\n\n",
+            "> Type of program\n====================\n{}\n\n",
             tc_env.index_to_string(i, true).unwrap()
         ),
-        Err(_) => println!("Type check failed."),
+        Err(_) => {
+            println!("Type check failed.");
+            return;
+        },
     }
+
+    println!(
+        "> Evaluated\n====================\n{}\n\n",
+        tc_env.index_to_string(tc_env.root, true).unwrap()
+    );
+    
+    
 }
