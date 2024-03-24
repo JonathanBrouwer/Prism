@@ -1,50 +1,16 @@
-use std::marker::PhantomData;
 use std::mem;
-use crate::coc::env::{Env, EnvEntry};
+use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
-use crate::coc::SourceExpr;
-use crate::union_find::{UnionFind, UnionIndex};
+use crate::coc::{PartialExpr, TcEnv, TcError};
+use crate::union_find::{UnionIndex};
 
-pub struct TcEnv<'arn> {
-    uf: UnionFind,
-    uf_values: Vec<PartialExpr<'arn>>,
-    errors: Vec<TcError>,
-}
-
-#[derive(Clone)]
-pub enum PartialExpr<'arn> {
-    Type,
-    Let(UnionIndex, UnionIndex),
-    Var(usize),
-    FnType(UnionIndex, UnionIndex),
-    FnConstruct(UnionIndex, UnionIndex),
-    FnDestruct(UnionIndex, UnionIndex),
-    Free,
-    Shift(UnionIndex, usize),
-    Subst(UnionIndex, (UnionIndex, Env)),
-    SourceExpr((&'arn SourceExpr<'arn>, Env))
-}
-
-pub type TcError = ();
-
-impl<'arn> TcEnv<'arn> {
-    pub fn new() -> Self {
-        let mut s = Self {
-            uf: UnionFind::new(),
-            uf_values: Vec::default(),
-            errors: Vec::new(),
-        };
-        let type_type = s.add_union_index(PartialExpr::Type);
-        debug_assert_eq!(type_type.0, 0);
-        s
-    }
-
+impl TcEnv {
     fn type_type() -> UnionIndex {
         UnionIndex(0)
     }
 
-    pub fn type_check(&mut self, expr: &'arn SourceExpr) -> Result<(), Vec<TcError>> {
-        self.tc_expr(expr, &Env::new());
+    pub fn type_check(&mut self) -> Result<(), Vec<TcError>> {
+        self.tc_expr(self.root, &Env::new());
         if self.errors.is_empty() {
             Ok(())
         } else {
@@ -53,20 +19,19 @@ impl<'arn> TcEnv<'arn> {
     }
 
     ///Invariant: Returned UnionIndex is valid in Env `s`
-    fn tc_expr(&mut self, e: &'arn SourceExpr<'arn>, s: &Env) -> UnionIndex {
-        let t = match e {
-            SourceExpr::Type => PartialExpr::Type,
-            SourceExpr::Let(v, b) => {
+    fn tc_expr(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
+        let t = match self.uf_values[self.uf.find(i).0] {
+            PartialExpr::Type => PartialExpr::Type,
+            PartialExpr::Let(v, b) => {
                 // Check `v`
                 let vt = self.tc_expr(v, s);
                 self.expect_beq_type(vt, s);
 
-                let vi = self.add_union_index(PartialExpr::SourceExpr((&v, s.clone())));
-                let bt =  self.tc_expr(b, &s.cons(CSubst(vi, vt)));
-                PartialExpr::Subst(bt, (vi, s.clone()))
+                let bt =  self.tc_expr(b, &s.cons(CSubst(v, vt)));
+                PartialExpr::Subst(bt, (v, s.clone()))
             }
-            SourceExpr::Var(i) => PartialExpr::Shift(
-                match s[*i] {
+            PartialExpr::Var(i) => PartialExpr::Shift(
+                match s[i] {
                     CType(t) => t,
                     CSubst(_, t) => t,
                     _ => unreachable!(),
@@ -101,10 +66,10 @@ impl<'arn> TcEnv<'arn> {
             // }
             _ => todo!()
         };
-        self.add_union_index(t)
+        self.insert_union_index(t)
     }
 
-    fn add_union_index(&mut self, e: PartialExpr<'arn>) -> UnionIndex {
+    pub fn insert_union_index(&mut self, e: PartialExpr) -> UnionIndex {
         self.uf_values.push(e);
         self.uf.add()
     }
@@ -222,17 +187,6 @@ impl<'arn> TcEnv<'arn> {
                 PartialExpr::Subst(b, (v, ref vs)) => {
                     e = b;
                     s = s.cons(RSubst(v, vs.clone()))
-                }
-                PartialExpr::SourceExpr((v, ref vs)) => {
-                    match v {
-                        SourceExpr::Type => {}
-                        SourceExpr::Let(_, _) => {}
-                        SourceExpr::Var(_) => {}
-                        SourceExpr::FnType(_, _) => {}
-                        SourceExpr::FnConstruct(_, _) => {}
-                        SourceExpr::FnDestruct(_, _) => {}
-                    }
-                    todo!()
                 }
                 PartialExpr::Free => {
                     //TODO what about args???

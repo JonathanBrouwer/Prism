@@ -1,25 +1,18 @@
-use prism_compiler::{GRAMMAR, parse_prism};
-use prism_compiler::coc::env::Env;
-use prism_compiler::coc::type_check::{TcEnv, TcError};
-use prism_parser::error::error_printer::print_set_error;
-use prism_parser::parse_grammar;
-use prism_parser::parser::parser_instance::{Arena, run_parser_rule};
+use prism_compiler::parse_prism;
+use prism_compiler::coc::TcEnv;
 
 fn main() {
-    let arena = Arena::new();
     let input = include_str!("../resources/program.pr");
-    let Some(expr) = parse_prism(input, &arena) else {
+    let Some(mut tc_env) = parse_prism(input) else {
         return
     };
 
-    println!("Program:\n{}", &expr);
+    println!("Program:\n{}", tc_env.to_string(tc_env.root).unwrap());
 
-    let mut tc_env = TcEnv::new();
-    match tc_env.type_check(expr) {
+    match tc_env.type_check() {
         Ok(()) => println!("Type check ok."),
         Err(_) => println!("Type check failed."),
     }
-    tc_env.type_check(expr).unwrap();
 
     // let typ = match tc(&expr, &Env::new()) {
     //     Ok(typ) => typ,

@@ -55,6 +55,36 @@ impl UnionFind {
         UnionIndex(parent)
     }
 
+    pub fn find_const(&self, index: UnionIndex) -> UnionIndex {
+        let mut child = index.0;
+        let mut parent = self.parents[child];
+
+        // early exit if root
+        if parent == child {
+            return UnionIndex(parent);
+        }
+
+        let parent_parent = self.parents[parent];
+
+        // early exit if one away from root
+        if parent_parent == parent {
+            return UnionIndex(parent_parent);
+        }
+
+        child = parent_parent;
+
+        // loop until root is found
+        loop {
+            parent = self.parents[child];
+            if parent == child {
+                break;
+            }
+            child = parent;
+        }
+
+        UnionIndex(parent)
+    }
+
     pub fn union(&mut self, a: UnionIndex, b: UnionIndex) -> UnionIndex {
         let a_root = self.find(a);
         let b_root = self.find(b);

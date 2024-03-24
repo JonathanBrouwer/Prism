@@ -1,4 +1,3 @@
-use crate::coc::SourceExpr;
 use rpds::Vector;
 use std::ops::Index;
 use crate::union_find::UnionIndex;
@@ -16,8 +15,6 @@ pub enum EnvEntry {
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Env(Vector<EnvEntry>);
-
-pub type SExpr<'arn> = (&'arn SourceExpr<'arn>, Env);
 
 impl<'arn> Env {
     pub fn new() -> Self {
