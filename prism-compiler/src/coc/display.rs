@@ -1,38 +1,61 @@
 use std::fmt::{Display, Formatter};
 use std::fmt::Write;
 use crate::coc::{PartialExpr, TcEnv};
+use crate::coc::env::{Env, EnvEntry};
+use crate::coc::env::EnvEntry::RSubst;
 use crate::union_find::UnionIndex;
 
-struct TcEnvExpr<'a>(&'a TcEnv, UnionIndex);
-
-impl Display for TcEnvExpr<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self.0.uf_values[self.0.uf.find_const(self.1).0] {
-            PartialExpr::Type => write!(f, "Type"),
-            PartialExpr::Let(v, b) => {
-                writeln!(f, "let {};", TcEnvExpr(self.0, v))?;
-                write!(f, "{}", TcEnvExpr(self.0, b))
-            }
-            PartialExpr::Var(i) => write!(f, "#{i}"),
-            PartialExpr::FnType(a, b) => write!(f, "({}) -> ({})", TcEnvExpr(self.0, a), TcEnvExpr(self.0, b)),
-            PartialExpr::FnConstruct(a, b) => write!(f, "({}) => ({})", TcEnvExpr(self.0, a), TcEnvExpr(self.0, b)),
-            PartialExpr::FnDestruct(a, b) => write!(f, "({}) ({})", TcEnvExpr(self.0, a), TcEnvExpr(self.0, b)),
-            PartialExpr::Free => write!(f, "_"),
-            PartialExpr::Shift(b, i) => write!(f, "{} [SHIFT {i}]", TcEnvExpr(self.0, b)),
-            PartialExpr::Subst(b, (v, _)) => write!(f, "{} [SUBST {} ENV NOT SHOWN]", TcEnvExpr(self.0, b), TcEnvExpr(self.0, v)),
-        }
-    }
-}
-
-
 impl TcEnv {
-    pub fn display(&self, i: UnionIndex, mut w: impl Write) -> std::fmt::Result {
-        write!(w, "{}", TcEnvExpr(self, i))
+    pub fn display(&mut self, i: UnionIndex, mut env: Env, w: &mut impl Write, br: bool) -> std::fmt::Result {
+        let mut i = self.uf.find(i);
+        if br {
+            (i, env) = self.brh(i, env.clone());
+        }
+
+        match self.uf_values[i.0] {
+            PartialExpr::Type => write!(w, "Type")?,
+            PartialExpr::Let(v, b) => {
+                write!(w, "let ")?;
+                self.display(v, env.clone(), w, br)?;
+                writeln!(w, ";")?;
+                self.display(b, env.cons(EnvEntry::RSubst(v, env.clone())), w, br)?;
+            }
+            PartialExpr::Var(i) => write!(w, "#{i}")?,
+            PartialExpr::FnType(a, b) => {
+                write!(w, "(")?;
+                self.display(a, env.clone(), w, br)?;
+                write!(w, ") -> (")?;
+                self.display(b, env.cons(EnvEntry::RType), w, br)?;
+                write!(w, ")")?;
+            }
+            PartialExpr::FnConstruct(a, b) => {
+                write!(w, "(")?;
+                self.display(a, env.clone(), w, br)?;
+                write!(w, ") => (")?;
+                self.display(b, env.cons(EnvEntry::RType), w, br)?;
+                write!(w, ")")?;
+            }
+            PartialExpr::FnDestruct(a, b) => {
+                write!(w, "(")?;
+                self.display(a, env.clone(), w, br)?;
+                write!(w, ") (")?;
+                self.display(b, env.clone(), w, br)?;
+                write!(w, ")")?;
+            }
+            PartialExpr::Free => write!(w, "_")?,
+            PartialExpr::Shift(b, i) => {
+                self.display(b, env.shift(i), w, br)?;
+            }
+            PartialExpr::Subst(b, (v, ref vs)) => {
+                self.display(b, env.cons(RSubst(v, vs.clone())), w, br)?;
+            }
+        }
+        Ok(())
     }
 
-    pub fn to_string(&self, i: UnionIndex) -> Result<String, std::fmt::Error> {
+    pub fn index_to_string(&mut self, i: UnionIndex, br: bool) -> Result<String, std::fmt::Error> {
         let mut s = String::new();
-        self.display(i, &mut s)?;
+        self.display(i, Env::new(), &mut s, br)?;
         Ok(s)
     }
 }

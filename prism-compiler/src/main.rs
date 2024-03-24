@@ -1,5 +1,4 @@
 use prism_compiler::parse_prism;
-use prism_compiler::coc::TcEnv;
 
 fn main() {
     let input = include_str!("../resources/program.pr");
@@ -7,20 +6,11 @@ fn main() {
         return
     };
 
-    println!("Program:\n{}", tc_env.to_string(tc_env.root).unwrap());
+    println!("> Program:\n==========\n{}\n==========", tc_env.index_to_string(tc_env.root, false).unwrap());
 
     match tc_env.type_check() {
-        Ok(i) => println!("Type:\n{}", tc_env.to_string(i).unwrap()),
+        Ok(i) => println!("> Type:\n==========\n{}\n==========", tc_env.index_to_string(i, true).unwrap()),
         Err(_) => println!("Type check failed."),
     }
-
-    // let typ = match tc(&expr, &Env::new()) {
-    //     Ok(typ) => typ,
-    //     Err(err) => {
-    //         println!("Type error:\n{err:?}");
-    //         return;
-    //     }
-    // };
-    // println!("Type:\n{typ}");
 }
 

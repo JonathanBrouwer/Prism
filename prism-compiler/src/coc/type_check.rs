@@ -128,7 +128,7 @@ impl TcEnv {
     }
 
 
-    fn brh(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
+    pub fn brh(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
         let mut args: Vec<(UnionIndex, Env)> = Vec::new();
 
         let mut e: UnionIndex = start_expr;
@@ -138,7 +138,7 @@ impl TcEnv {
             match self.uf_values[self.uf.find(e).0] {
                 PartialExpr::Type => {
                     assert!(args.is_empty());
-                    return (e, Env::new())
+                    return (e, s)
                 }
                 PartialExpr::Let(v, b) => {
                     e = b;
@@ -182,15 +182,6 @@ impl TcEnv {
                     e = f;
                     args.push((a, s.clone()));
                 }
-
-                PartialExpr::Shift(b, i) => {
-                    e = b;
-                    s = s.shift(i);
-                }
-                PartialExpr::Subst(b, (v, ref vs)) => {
-                    e = b;
-                    s = s.cons(RSubst(v, vs.clone()))
-                }
                 PartialExpr::Free => {
                     return if args.len() == 0 {
                         (e, s)
@@ -198,6 +189,14 @@ impl TcEnv {
                         //TODO is this correct?
                         (start_expr, start_env)
                     }
+                }
+                PartialExpr::Shift(b, i) => {
+                    e = b;
+                    s = s.shift(i);
+                }
+                PartialExpr::Subst(b, (v, ref vs)) => {
+                    e = b;
+                    s = s.cons(RSubst(v, vs.clone()))
                 }
             }
         }
