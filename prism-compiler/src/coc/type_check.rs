@@ -38,33 +38,31 @@ impl TcEnv {
                 },
                 i + 1,
             ),
-            // SourceExpr::FnType(a, b) => {
-            //     let at= self.tc_expr(a, s);
-            //     self.expect_beq_type(at, s);
-            //     let a = self.add_union_index(PartialExpr::SourceExpr((a, s.clone())));
-            //     let bs = s.cons(NType(a));
-            //     let bt = self.tc_expr(b, &bs);
-            //     self.expect_beq_type(bt, &bs);
-            //     PartialExpr::Type
-            // }
-            // SourceExpr::FnConstruct(a, b) => {
-            //     let at = self.tc_expr(a, s);
-            //     self.expect_beq_type(at, s);
-            //     let a = self.add_union_index(PartialExpr::SourceExpr((a, s.clone())));
-            //     let bt = self.tc_expr(b, &s.cons(NType(a)));
-            //     PartialExpr::FnType(at, bt)
-            // }
-            // SourceExpr::FnDestruct(f, a) => {
-            //     let ft = self.tc_expr(f, s);
-            //     let at = self.tc_expr(a, s);
-            //
-            //     let rt = self.add_union_index(PartialExpr::Free);
-            //     let expect = self.add_union_index(PartialExpr::FnType(at, rt));
-            //     self.expect_beq(expect, ft, s);
-            //
-            //     PartialExpr::Subst(rt, (a, s.clone()))
-            // }
-            _ => todo!()
+            PartialExpr::FnType(a, b) => {
+                let at= self.tc_expr(a, s);
+                self.expect_beq_type(at, s);
+                let bs = s.cons(CType(a));
+                let bt = self.tc_expr(b, &bs);
+                self.expect_beq_type(bt, &bs);
+                PartialExpr::Type
+            }
+            PartialExpr::FnConstruct(a, b) => {
+                let at = self.tc_expr(a, s);
+                self.expect_beq_type(at, s);
+                let bt = self.tc_expr(b, &s.cons(CType(a)));
+                PartialExpr::FnType(at, bt)
+            }
+            PartialExpr::FnDestruct(f, a) => {
+                let ft = self.tc_expr(f, s);
+                let at = self.tc_expr(a, s);
+
+                let rt = self.insert_union_index(PartialExpr::Free);
+                let expect = self.insert_union_index(PartialExpr::FnType(at, rt));
+                self.expect_beq(expect, ft, s);
+
+                PartialExpr::Subst(rt, (a, s.clone()))
+            }
+            PartialExpr::Free | PartialExpr::Shift(..) | PartialExpr::Subst(..) => unreachable!()
         };
         self.insert_union_index(t)
     }
@@ -86,10 +84,13 @@ impl TcEnv {
 
     ///Invariant: `a` and `b` are valid in `s`
     fn expect_beq_internal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) {
+        // Brh and reduce i1 and i2
         let (i1, s1) = self.brh(i1, s1.clone());
         let (i2, s2) = self.brh(i2, s2.clone());
+        let i1 = self.uf.find(i1);
+        let i2 = self.uf.find(i2);
 
-        match (&self.uf_values[self.uf.find(i1).0], &self.uf_values[self.uf.find(i2).0]) {
+        match (&self.uf_values[i1.0], &self.uf_values[i2.0]) {
             (&PartialExpr::Type, &PartialExpr::Type) => {
                 // If brh returns a Type, we're done. Easy work!
             }
@@ -114,8 +115,11 @@ impl TcEnv {
                 self.expect_beq_internal(f1, &s1, f2, &s2);
                 self.expect_beq_internal(a1, &s1, a2, &s2);
             }
-            (&PartialExpr::Free, e) | (e, &PartialExpr::Free) => {
-                todo!()
+            (_, &PartialExpr::Free) => {
+                self.uf.union_left(i1, i2);
+            }
+            (&PartialExpr::Free, _) => {
+                self.uf.union_left(i2, i1);
             }
             (_e1, _e2) => {
                 self.errors.push(());
@@ -131,7 +135,6 @@ impl TcEnv {
         let mut s: Env = start_env.clone();
 
         loop {
-            // let v = &;
             match self.uf_values[self.uf.find(e).0] {
                 PartialExpr::Type => {
                     assert!(args.is_empty());
@@ -189,8 +192,12 @@ impl TcEnv {
                     s = s.cons(RSubst(v, vs.clone()))
                 }
                 PartialExpr::Free => {
-                    //TODO what about args???
-                    return (e, Env::new())
+                    return if args.len() == 0 {
+                        (e, s)
+                    } else {
+                        //TODO is this correct?
+                        (start_expr, start_env)
+                    }
                 }
             }
         }

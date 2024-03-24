@@ -88,9 +88,16 @@ impl UnionFind {
     pub fn union(&mut self, a: UnionIndex, b: UnionIndex) -> UnionIndex {
         let a_root = self.find(a);
         let b_root = self.find(b);
-        self.parents[b_root.0] = a_root.0;
-        self.parents[b.0] = a_root.0;
+        self.union_left(a_root, b_root);
         a_root
+    }
+
+    /// `a` will be the new root.
+    /// Constraint: `a` and `b` must be roots.
+    pub fn union_left(&mut self, a: UnionIndex, b: UnionIndex) {
+        assert_eq!(self.parents[a.0], a.0);
+        assert_eq!(self.parents[b.0], b.0);
+        self.parents[b.0] = a.0;
     }
 }
 
