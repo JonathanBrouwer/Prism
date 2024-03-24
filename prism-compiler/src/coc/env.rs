@@ -29,9 +29,15 @@ impl<'arn> Env {
         Env(self.0.push_back(e))
     }
 
+    /// Drops the last `count` elements from the Environment 
     #[must_use]
     pub fn shift(&self, count: usize) -> Self {
-        Env(self.0[0..(self.0.len() - count)])
+        let mut s = self.0.clone();
+        assert!(s.len() >= count);
+        for _ in 0..count {
+            s.drop_last_mut();
+        }
+        Env(s)
     }
 
     pub fn len(&self) -> usize {
