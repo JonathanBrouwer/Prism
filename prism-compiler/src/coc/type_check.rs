@@ -234,6 +234,10 @@ impl<'arn> TcEnv<'arn> {
                     }
                     todo!()
                 }
+                PartialExpr::Free => {
+                    //TODO what about args???
+                    return (e, Env::new())
+                }
             }
         }
     }
