@@ -13,12 +13,12 @@ pub enum EnvEntry {
     RSubst(UnionIndex, Env),
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug, Default)]
 pub struct Env(Vector<EnvEntry>);
 
-impl<'arn> Env {
+impl Env {
     pub fn new() -> Self {
-        Self(Vector::new())
+        Self::default()
     }
 
     #[must_use]
@@ -40,9 +40,13 @@ impl<'arn> Env {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
-impl<'arn> Index<usize> for Env {
+impl Index<usize> for Env {
     type Output = EnvEntry;
 
     fn index(&self, index: usize) -> &Self::Output {

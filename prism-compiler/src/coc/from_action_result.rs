@@ -21,7 +21,7 @@ impl TcEnv {
         value: &ActionResult<'_, 'grm>,
         src: &'grm str,
     ) -> UnionIndex {
-        let ActionResult::Construct(span, constructor, args) = value else {
+        let ActionResult::Construct(_span, constructor, args) = value else {
             unreachable!();
         };
         let inner = match *constructor {

@@ -145,7 +145,7 @@ impl TcEnv {
                 }
                 PartialExpr::Var(i) => match s[i] {
                     CType(_) | RType => {
-                        return if args.len() == 0 {
+                        return if args.is_empty() {
                             (e, s)
                         } else {
                             (start_expr, start_env)
@@ -182,7 +182,7 @@ impl TcEnv {
                     args.push((a, s.clone()));
                 }
                 PartialExpr::Free => {
-                    return if args.len() == 0 {
+                    return if args.is_empty() {
                         (e, s)
                     } else {
                         //TODO is this correct?

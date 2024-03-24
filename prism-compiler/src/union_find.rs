@@ -1,3 +1,4 @@
+#[derive(Default)]
 pub struct UnionFind {
     parents: Vec<usize>,
 }
@@ -7,9 +8,7 @@ pub struct UnionIndex(pub usize);
 
 impl UnionFind {
     pub fn new() -> Self {
-        Self {
-            parents: Vec::new(),
-        }
+        Self::default()
     }
 
     pub fn add(&mut self) -> UnionIndex {

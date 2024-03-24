@@ -3,7 +3,6 @@ use crate::coc::env::{Env, EnvEntry};
 use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
 use std::fmt::Write;
-use std::fmt::{Display, Formatter};
 
 impl TcEnv {
     pub fn display(

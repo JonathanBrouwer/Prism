@@ -1,15 +1,10 @@
-use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
+use crate::coc::{TcEnv};
 use lazy_static::lazy_static;
-use prism_parser::core::adaptive::GrammarState;
-use prism_parser::core::adaptive::RuleId;
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
-use prism_parser::parser::parser_instance::{run_parser_rule, Arena};
+use prism_parser::parser::parser_instance::{run_parser_rule};
 use prism_parser::rule_action::RuleAction;
-use std::cell::OnceCell;
-use std::collections::HashMap;
 
 pub mod coc;
 pub mod union_find;
@@ -29,7 +24,7 @@ lazy_static! {
     };
 }
 
-pub fn parse_prism<'arn>(program: &str) -> Option<TcEnv> {
+pub fn parse_prism(program: &str) -> Option<TcEnv> {
     let expr: Result<_, _> = run_parser_rule(&GRAMMAR, "block", program, |r| {
         TcEnv::from_action_result(r, program)
     });
