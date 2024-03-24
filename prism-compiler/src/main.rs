@@ -10,7 +10,7 @@ fn main() {
     println!("Program:\n{}", tc_env.to_string(tc_env.root).unwrap());
 
     match tc_env.type_check() {
-        Ok(()) => println!("Type check ok."),
+        Ok(i) => println!("Type:\n{}", tc_env.to_string(i).unwrap()),
         Err(_) => println!("Type check failed."),
     }
 

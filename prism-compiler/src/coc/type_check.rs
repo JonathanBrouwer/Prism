@@ -9,10 +9,10 @@ impl TcEnv {
         UnionIndex(0)
     }
 
-    pub fn type_check(&mut self) -> Result<(), Vec<TcError>> {
-        self.tc_expr(self.root, &Env::new());
+    pub fn type_check(&mut self) -> Result<UnionIndex, Vec<TcError>> {
+        let ti = self.tc_expr(self.root, &Env::new());
         if self.errors.is_empty() {
-            Ok(())
+            Ok(ti)
         } else {
             Err(mem::take(&mut self.errors))
         }
