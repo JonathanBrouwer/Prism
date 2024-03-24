@@ -7,13 +7,13 @@ fn main() {
     };
 
     println!(
-        "> Program:\n==========\n{}\n==========",
+        "> Program\n====================\n{}\n\n",
         tc_env.index_to_string(tc_env.root, false).unwrap()
     );
 
     match tc_env.type_check() {
         Ok(i) => println!(
-            "> Type:\n==========\n{}\n==========",
+            "> Type\n====================\n{}\n\n",
             tc_env.index_to_string(i, true).unwrap()
         ),
         Err(_) => println!("Type check failed."),
