@@ -2,19 +2,19 @@ use prism_compiler::parse_prism;
 
 fn main() {
     let input = include_str!("../resources/program.pr");
-    let Some(mut tc_env) = parse_prism(input) else {
+    let Some((mut tc_env, root)) = parse_prism(input) else {
         return;
     };
 
     println!(
         "> Program\n====================\n{}\n\n",
-        tc_env.index_to_string(tc_env.root, false).unwrap()
+        tc_env.index_to_string(root, false)
     );
 
-    match tc_env.type_check() {
+    match tc_env.type_check(root) {
         Ok(i) => println!(
             "> Type of program\n====================\n{}\n\n",
-            tc_env.index_to_string(i, true).unwrap()
+            tc_env.index_to_string(i, true)
         ),
         Err(_) => {
             println!("Type check failed.");
@@ -24,7 +24,7 @@ fn main() {
 
     println!(
         "> Evaluated\n====================\n{}\n\n",
-        tc_env.index_to_string(tc_env.root, true).unwrap()
+        tc_env.index_to_string(root, true)
     );
     
     

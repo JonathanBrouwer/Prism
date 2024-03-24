@@ -1,8 +1,9 @@
-use crate::coc::env::EnvEntry::*;
-use crate::coc::env::{Env, EnvEntry};
-use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
 use std::fmt::Write;
+
+use crate::coc::{PartialExpr, TcEnv};
+use crate::coc::env::Env;
+use crate::coc::env::EnvEntry::*;
+use crate::union_find::UnionIndex;
 
 impl TcEnv {
     pub fn display(
@@ -31,14 +32,14 @@ impl TcEnv {
                 write!(w, "(")?;
                 self.display(a, env.clone(), w, br)?;
                 write!(w, ") -> (")?;
-                self.display(b, env.cons(EnvEntry::RType), w, br)?;
+                self.display(b, env.cons(RType), w, br)?;
                 write!(w, ")")?;
             }
             PartialExpr::FnConstruct(a, b) => {
                 write!(w, "(")?;
                 self.display(a, env.clone(), w, br)?;
                 write!(w, ") => (")?;
-                self.display(b, env.cons(EnvEntry::RType), w, br)?;
+                self.display(b, env.cons(RType), w, br)?;
                 write!(w, ")")?;
             }
             PartialExpr::FnDestruct(a, b) => {
@@ -59,9 +60,9 @@ impl TcEnv {
         Ok(())
     }
 
-    pub fn index_to_string(&mut self, i: UnionIndex, br: bool) -> Result<String, std::fmt::Error> {
+    pub fn index_to_string(&mut self, i: UnionIndex, br: bool) -> String {
         let mut s = String::new();
-        self.display(i, Env::new(), &mut s, br)?;
-        Ok(s)
+        self.display(i, Env::new(), &mut s, br).expect("Writing to String shouldn't fail");
+        s
     }
 }

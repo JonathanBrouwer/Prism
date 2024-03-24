@@ -1,16 +1,17 @@
+use std::mem;
+
+use crate::coc::{PartialExpr, TcEnv, TcError};
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv, TcError};
 use crate::union_find::UnionIndex;
-use std::mem;
 
 impl TcEnv {
     fn type_type() -> UnionIndex {
         UnionIndex(0)
     }
 
-    pub fn type_check(&mut self) -> Result<UnionIndex, Vec<TcError>> {
-        let ti = self.tc_expr(self.root, &Env::new());
+    pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, Vec<TcError>> {
+        let ti = self.tc_expr(root, &Env::new());
         if self.errors.is_empty() {
             Ok(ti)
         } else {
@@ -92,13 +93,15 @@ impl TcEnv {
 
         match (&self.uf_values[i1.0], &self.uf_values[i2.0]) {
             (&PartialExpr::Type, &PartialExpr::Type) => {
-                // If brh returns a Type, we're done. Easy work!
+                // If beta_reduce returns a Type, we're done. Easy work!
             }
             (&PartialExpr::Var(i1), &PartialExpr::Var(i2)) => {
-                // If brh returns a Var, these must be a variable from `sa`/`sb` that is also present in `s`.
+                // If beta_reduce returns a Var, these must be a variable from `sa`/`sb` that is also present in `s`.
                 // I don't have a formal proof for this, but I think this is true
-                let i1 = i1 - s1.len();
-                let i2 = i2 - s2.len();
+                // We want i1 - s1.len() == i2 - s2.len()
+                // This is equivalent to i1 + s2.len() == i2 + s1.len(), and avoids overflow issues
+                let i1 = i1 + s2.len();
+                let i2 = i2 + s1.len();
                 if i1 != i2 {
                     self.errors.push(());
                 }

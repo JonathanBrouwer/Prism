@@ -5,12 +5,13 @@ mod display;
 pub mod env;
 pub mod from_action_result;
 pub mod type_check;
+mod eq;
 
+#[derive(Default)]
 pub struct TcEnv {
     uf: UnionFind,
     uf_values: Vec<PartialExpr>,
     errors: Vec<TcError>,
-    pub root: UnionIndex,
 }
 
 #[derive(Clone)]

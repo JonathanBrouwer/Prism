@@ -5,6 +5,7 @@ use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::rule_action::RuleAction;
+use crate::union_find::UnionIndex;
 
 pub mod coc;
 pub mod union_find;
@@ -24,9 +25,9 @@ lazy_static! {
     };
 }
 
-pub fn parse_prism(program: &str) -> Option<TcEnv> {
+pub fn parse_prism_in_env(program: &str, env: &mut TcEnv) -> Option<UnionIndex> {
     let expr: Result<_, _> = run_parser_rule(&GRAMMAR, "block", program, |r| {
-        TcEnv::from_action_result(r, program)
+        env.insert_from_action_result(r, program)
     });
     match expr {
         Ok(o) => Some(o),
@@ -37,4 +38,9 @@ pub fn parse_prism(program: &str) -> Option<TcEnv> {
             None
         }
     }
+}
+
+pub fn parse_prism(program: &str) -> Option<(TcEnv, UnionIndex)> {
+    let mut env = TcEnv::new();
+    parse_prism_in_env(program, &mut env).map(|i| (env, i))
 }
