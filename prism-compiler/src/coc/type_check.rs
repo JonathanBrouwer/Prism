@@ -1,8 +1,8 @@
-use std::mem;
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
 use crate::coc::{PartialExpr, TcEnv, TcError};
-use crate::union_find::{UnionIndex};
+use crate::union_find::UnionIndex;
+use std::mem;
 
 impl TcEnv {
     fn type_type() -> UnionIndex {
@@ -27,7 +27,7 @@ impl TcEnv {
                 let vt = self.tc_expr(v, s);
                 self.expect_beq_type(vt, s);
 
-                let bt =  self.tc_expr(b, &s.cons(CSubst(v, vt)));
+                let bt = self.tc_expr(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Subst(bt, (v, s.clone()))
             }
             PartialExpr::Var(i) => PartialExpr::Shift(
@@ -39,7 +39,7 @@ impl TcEnv {
                 i + 1,
             ),
             PartialExpr::FnType(a, b) => {
-                let at= self.tc_expr(a, s);
+                let at = self.tc_expr(a, s);
                 self.expect_beq_type(at, s);
                 let bs = s.cons(CType(a));
                 let bt = self.tc_expr(b, &bs);
@@ -62,7 +62,7 @@ impl TcEnv {
 
                 PartialExpr::Subst(rt, (a, s.clone()))
             }
-            PartialExpr::Free | PartialExpr::Shift(..) | PartialExpr::Subst(..) => unreachable!()
+            PartialExpr::Free | PartialExpr::Shift(..) | PartialExpr::Subst(..) => unreachable!(),
         };
         self.insert_union_index(t)
     }
@@ -127,7 +127,6 @@ impl TcEnv {
         }
     }
 
-
     pub fn brh(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
         let mut args: Vec<(UnionIndex, Env)> = Vec::new();
 
@@ -138,32 +137,32 @@ impl TcEnv {
             match self.uf_values[self.uf.find(e).0] {
                 PartialExpr::Type => {
                     assert!(args.is_empty());
-                    return (e, s)
+                    return (e, s);
                 }
                 PartialExpr::Let(v, b) => {
                     e = b;
                     s = s.cons(RSubst(v, s.clone()))
                 }
-                PartialExpr::Var(i) => {
-                    match s[i] {
-                        CType(_) | RType => return if args.len() == 0 {
+                PartialExpr::Var(i) => match s[i] {
+                    CType(_) | RType => {
+                        return if args.len() == 0 {
                             (e, s)
                         } else {
                             (start_expr, start_env)
-                        },
-                        CSubst(v, _) => {
-                            e = v;
-                            s = s.shift(i + 1);
-                        }
-                        RSubst(v, ref vs) => {
-                            e = v;
-                            s = vs.clone();
                         }
                     }
-                }
+                    CSubst(v, _) => {
+                        e = v;
+                        s = s.shift(i + 1);
+                    }
+                    RSubst(v, ref vs) => {
+                        e = v;
+                        s = vs.clone();
+                    }
+                },
                 PartialExpr::FnType(_, _) => {
                     assert!(args.is_empty());
-                    return (e, s)
+                    return (e, s);
                 }
                 PartialExpr::FnConstruct(_, b) => match args.pop() {
                     None => return (e, s),
@@ -177,7 +176,7 @@ impl TcEnv {
                             start_env = s.clone();
                         }
                     }
-                }
+                },
                 PartialExpr::FnDestruct(f, a) => {
                     e = f;
                     args.push((a, s.clone()));
@@ -188,7 +187,7 @@ impl TcEnv {
                     } else {
                         //TODO is this correct?
                         (start_expr, start_env)
-                    }
+                    };
                 }
                 PartialExpr::Shift(b, i) => {
                     e = b;
@@ -201,5 +200,4 @@ impl TcEnv {
             }
         }
     }
-
 }

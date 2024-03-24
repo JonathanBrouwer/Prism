@@ -1,6 +1,6 @@
-use prism_parser::rule_action::action_result::ActionResult;
 use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::{UnionFind, UnionIndex};
+use prism_parser::rule_action::action_result::ActionResult;
 
 impl TcEnv {
     pub fn from_action_result<'grm>(value: &ActionResult<'_, 'grm>, src: &'grm str) -> Self {
@@ -15,8 +15,12 @@ impl TcEnv {
         s.root = s.insert_from_action_result(value, src);
         s
     }
-    
-    pub fn insert_from_action_result<'grm>(&mut self, value: &ActionResult<'_, 'grm>, src: &'grm str) -> UnionIndex {
+
+    pub fn insert_from_action_result<'grm>(
+        &mut self,
+        value: &ActionResult<'_, 'grm>,
+        src: &'grm str,
+    ) -> UnionIndex {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!();
         };
@@ -62,4 +66,3 @@ impl TcEnv {
         self.insert_union_index(inner)
     }
 }
-

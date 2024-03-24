@@ -1,16 +1,16 @@
+use crate::union_find::UnionIndex;
 use rpds::Vector;
 use std::ops::Index;
-use crate::union_find::UnionIndex;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
     // Definitions used during type checking
     CType(UnionIndex),
     CSubst(UnionIndex, UnionIndex),
-    
+
     // Definitions used during beta reduction
     RType,
-    RSubst(UnionIndex, Env)
+    RSubst(UnionIndex, Env),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -26,7 +26,7 @@ impl<'arn> Env {
         Env(self.0.push_back(e))
     }
 
-    /// Drops the last `count` elements from the Environment 
+    /// Drops the last `count` elements from the Environment
     #[must_use]
     pub fn shift(&self, count: usize) -> Self {
         let mut s = self.0.clone();

@@ -1,12 +1,18 @@
-use std::fmt::{Display, Formatter};
-use std::fmt::Write;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::coc::env::EnvEntry::*;
 use crate::coc::env::{Env, EnvEntry};
-use crate::coc::env::EnvEntry::RSubst;
+use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
+use std::fmt::Write;
+use std::fmt::{Display, Formatter};
 
 impl TcEnv {
-    pub fn display(&mut self, i: UnionIndex, mut env: Env, w: &mut impl Write, br: bool) -> std::fmt::Result {
+    pub fn display(
+        &mut self,
+        i: UnionIndex,
+        mut env: Env,
+        w: &mut impl Write,
+        br: bool,
+    ) -> std::fmt::Result {
         let mut i = self.uf.find(i);
         if br {
             (i, env) = self.brh(i, env.clone());
@@ -18,7 +24,7 @@ impl TcEnv {
                 write!(w, "let ")?;
                 self.display(v, env.clone(), w, br)?;
                 writeln!(w, ";")?;
-                self.display(b, env.cons(EnvEntry::RSubst(v, env.clone())), w, br)?;
+                self.display(b, env.cons(RSubst(v, env.clone())), w, br)?;
             }
             PartialExpr::Var(i) => write!(w, "#{i}")?,
             PartialExpr::FnType(a, b) => {

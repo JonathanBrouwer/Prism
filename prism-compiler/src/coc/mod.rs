@@ -1,10 +1,10 @@
 use crate::coc::env::Env;
 use crate::union_find::{UnionFind, UnionIndex};
 
-pub mod env;
-pub mod type_check;
-pub mod from_action_result;
 mod display;
+pub mod env;
+pub mod from_action_result;
+pub mod type_check;
 
 pub struct TcEnv {
     uf: UnionFind,
@@ -27,4 +27,3 @@ pub enum PartialExpr {
 }
 
 pub type TcError = ();
-

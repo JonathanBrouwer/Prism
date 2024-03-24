@@ -71,7 +71,6 @@ impl UnionFind {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
