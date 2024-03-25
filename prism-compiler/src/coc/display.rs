@@ -32,20 +32,22 @@ impl TcEnv {
             PartialExpr::Var(i) => {
                 //TODO for non-bh, let also needs a unique id.
                 //TODO then  `depth - unique id - 1 for each var?`
-                write!(w, "#{}", )?
+                write!(w, "#{i}", )?
             },
             PartialExpr::FnType(a, b) => {
                 write!(w, "(")?;
                 self.display(a, env.clone(), depth, w, br)?;
                 write!(w, ") -> (")?;
-                self.display(b, env.cons(RType(UniqueVariableId(depth))), depth + 1, w, br)?;
+                let id = self.new_tc_id();
+                self.display(b, env.cons(RType(id)), depth + 1, w, br)?;
                 write!(w, ")")?;
             }
             PartialExpr::FnConstruct(a, b) => {
                 write!(w, "(")?;
                 self.display(a, env.clone(), depth, w, br)?;
                 write!(w, ") => (")?;
-                self.display(b, env.cons(RType(UniqueVariableId(depth))), depth + 1, w, br)?;
+                let id = self.new_tc_id();
+                self.display(b, env.cons(RType(id)), depth + 1, w, br)?;
                 write!(w, ")")?;
             }
             PartialExpr::FnDestruct(a, b) => {
@@ -58,6 +60,7 @@ impl TcEnv {
             PartialExpr::Free => write!(w, "_")?,
             PartialExpr::Shift(b, i) => {
                 self.display(b, env.shift(i), depth, w, br)?;
+                write!(w, " [SHIFT {i}]")?;
             }
             PartialExpr::Subst(b, (v, ref vs)) => {
                 self.display(b, env.cons(RSubst(v, vs.clone())), depth, w, br)?;

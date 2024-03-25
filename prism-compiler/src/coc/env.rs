@@ -4,7 +4,7 @@ use std::ops::Index;
 use crate::coc::TcEnv;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct UniqueVariableId(pub usize);
+pub struct UniqueVariableId(usize);
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
