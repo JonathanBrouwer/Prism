@@ -5,7 +5,9 @@ mod display;
 pub mod env;
 pub mod from_action_result;
 pub mod type_check;
-mod eq;
+mod beq;
+mod expect_beq;
+mod brh;
 
 #[derive(Default)]
 pub struct TcEnv {

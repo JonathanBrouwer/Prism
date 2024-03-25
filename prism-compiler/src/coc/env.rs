@@ -17,17 +17,25 @@ pub enum EnvEntry {
     RSubst(UnionIndex, Env),
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
-pub struct Env(Vector<EnvEntry>);
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct GenericEnv<T>(Vector<T>);
 
-impl Env {
+impl<T> Default for GenericEnv<T> {
+    fn default() -> Self {
+        Self(Vector::default())
+    }
+}
+
+pub type Env = GenericEnv<EnvEntry>;
+
+impl<T> GenericEnv<T> {
     pub fn new() -> Self {
         Self::default()
     }
 
     #[must_use]
-    pub fn cons(&self, e: EnvEntry) -> Self {
-        Env(self.0.push_back(e))
+    pub fn cons(&self, e: T) -> Self {
+        Self(self.0.push_back(e))
     }
 
     /// Drops the last `count` elements from the Environment
@@ -38,7 +46,7 @@ impl Env {
         for _ in 0..count {
             s.drop_last_mut();
         }
-        Env(s)
+        Self(s)
     }
 
     pub fn len(&self) -> usize {
@@ -50,8 +58,8 @@ impl Env {
     }
 }
 
-impl Index<usize> for Env {
-    type Output = EnvEntry;
+impl<T> Index<usize> for GenericEnv<T> {
+    type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[self.0.len() - 1 - index]
