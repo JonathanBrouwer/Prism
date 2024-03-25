@@ -1,0 +1,8 @@
+### Input
+(Type => #0 => #0) (Type -> Type)
+
+### Eval
+(Type -> Type) => #0
+
+### Type
+(Type -> Type) -> (Type -> Type)

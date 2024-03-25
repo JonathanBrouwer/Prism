@@ -1,15 +1,19 @@
 use crate::union_find::UnionIndex;
 use rpds::Vector;
 use std::ops::Index;
+use crate::coc::TcEnv;
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct UniqueVariableId(pub usize);
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
     // Definitions used during type checking
-    CType(UnionIndex),
+    CType(UniqueVariableId, UnionIndex),
     CSubst(UnionIndex, UnionIndex),
 
     // Definitions used during beta reduction
-    RType,
+    RType(UniqueVariableId),
     RSubst(UnionIndex, Env),
 }
 
@@ -51,5 +55,13 @@ impl Index<usize> for Env {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[self.0.len() - 1 - index]
+    }
+}
+
+impl TcEnv {
+    pub fn new_tc_id(&mut self) -> UniqueVariableId {
+        let id = UniqueVariableId(self.tc_id);
+        self.tc_id += 1;
+        id
     }
 }

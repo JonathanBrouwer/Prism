@@ -33,7 +33,7 @@ impl TcEnv {
             }
             PartialExpr::Var(i) => PartialExpr::Shift(
                 match s[i] {
-                    CType(t) => t,
+                    CType(_, t) => t,
                     CSubst(_, t) => t,
                     _ => unreachable!(),
                 },
@@ -42,7 +42,7 @@ impl TcEnv {
             PartialExpr::FnType(a, b) => {
                 let at = self.tc_expr(a, s);
                 self.expect_beq_type(at, s);
-                let bs = s.cons(CType(a));
+                let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self.tc_expr(b, &bs);
                 self.expect_beq_type(bt, &bs);
                 PartialExpr::Type
@@ -50,8 +50,9 @@ impl TcEnv {
             PartialExpr::FnConstruct(a, b) => {
                 let at = self.tc_expr(a, s);
                 self.expect_beq_type(at, s);
-                let bt = self.tc_expr(b, &s.cons(CType(a)));
-                PartialExpr::FnType(at, bt)
+                let id = self.new_tc_id();
+                let bt = self.tc_expr(b, &s.cons(CType(id, a)));
+                PartialExpr::FnType(a, bt)
             }
             PartialExpr::FnDestruct(f, a) => {
                 let ft = self.tc_expr(f, s);
@@ -96,23 +97,27 @@ impl TcEnv {
                 // If beta_reduce returns a Type, we're done. Easy work!
             }
             (&PartialExpr::Var(i1), &PartialExpr::Var(i2)) => {
-                // If beta_reduce returns a Var, these must be a variable from `sa`/`sb` that is also present in `s`.
-                // I don't have a formal proof for this, but I think this is true
-                // We want i1 - s1.len() == i2 - s2.len()
-                // This is equivalent to i1 + s2.len() == i2 + s1.len(), and avoids overflow issues
-                let i1 = i1 + s2.len();
-                let i2 = i2 + s1.len();
-                if i1 != i2 {
+                let id1 = match s1[i1] {
+                    CType(id, _) | RType(id) => id,
+                    CSubst(..) | RSubst(..) => unreachable!(),
+                };
+                let id2 = match s2[i2] {
+                    CType(id, _) | RType(id) => id,
+                    CSubst(..) | RSubst(..) => unreachable!(),
+                };
+                if id1 != id2 { 
                     self.errors.push(());
                 }
             }
             (&PartialExpr::FnType(a1, b1), &PartialExpr::FnType(a2, b2)) => {
                 self.expect_beq_internal(a1, &s1, a2, &s2);
-                self.expect_beq_internal(b1, &s1.cons(RType), b2, &s2.cons(RType));
+                let id = self.new_tc_id();
+                self.expect_beq_internal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id)));
             }
             (&PartialExpr::FnConstruct(a1, b1), &PartialExpr::FnConstruct(a2, b2)) => {
                 self.expect_beq_internal(a1, &s1, a2, &s2);
-                self.expect_beq_internal(b1, &s1.cons(RType), b2, &s2.cons(RType));
+                let id = self.new_tc_id();
+                self.expect_beq_internal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id)));
             }
             (&PartialExpr::FnDestruct(f1, a1), &PartialExpr::FnDestruct(f2, a2)) => {
                 self.expect_beq_internal(f1, &s1, f2, &s2);
@@ -147,7 +152,7 @@ impl TcEnv {
                     s = s.cons(RSubst(v, s.clone()))
                 }
                 PartialExpr::Var(i) => match s[i] {
-                    CType(_) | RType => {
+                    CType(_, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
                         } else {

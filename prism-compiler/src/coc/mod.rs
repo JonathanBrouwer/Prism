@@ -12,6 +12,7 @@ pub struct TcEnv {
     uf: UnionFind,
     uf_values: Vec<PartialExpr>,
     errors: Vec<TcError>,
+    tc_id: usize,
 }
 
 #[derive(Clone)]
