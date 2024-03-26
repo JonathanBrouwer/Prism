@@ -13,7 +13,7 @@ fn test([test]: [&str; 1]) {
     let expected_eval = parse_prism_in_env(eval, &mut env).expect("Failed to parse input");
 
     assert!(
-        env.beq(input, &Env::new(), expected_eval, &Env::new()),
+        env.is_beta_equal(input, &Env::new(), expected_eval, &Env::new()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
         env.index_to_br_string(input),

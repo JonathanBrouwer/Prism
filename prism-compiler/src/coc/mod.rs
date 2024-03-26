@@ -1,13 +1,13 @@
 use crate::union_find::{UnionFind, UnionIndex};
 
-mod beq;
-mod br;
-mod brh;
+mod is_beta_equal;
+mod beta_reduce;
+mod beta_reduce_head;
 mod display;
 pub mod env;
 mod expect_beq;
 pub mod from_action_result;
-mod sm;
+mod simplify;
 pub mod type_check;
 
 #[derive(Default)]

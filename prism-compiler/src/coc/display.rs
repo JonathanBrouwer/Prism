@@ -55,7 +55,7 @@ impl TcEnv {
     }
 
     pub fn index_to_br_string(&mut self, i: UnionIndex) -> String {
-        let i = self.br(i);
+        let i = self.beta_reduce(i);
         let mut s = String::new();
         self.display(i, &mut s)
             .expect("Writing to String shouldn't fail");

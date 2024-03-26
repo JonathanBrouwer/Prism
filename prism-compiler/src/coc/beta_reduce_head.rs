@@ -4,7 +4,7 @@ use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
 
 impl TcEnv {
-    pub fn brh(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
+    pub fn beta_reduce_head(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
         let mut args: Vec<(UnionIndex, Env)> = Vec::new();
 
         let mut e: UnionIndex = start_expr;

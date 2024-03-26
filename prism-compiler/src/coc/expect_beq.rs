@@ -17,8 +17,8 @@ impl TcEnv {
     ///Invariant: `a` and `b` are valid in `s`
     fn expect_beq_internal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) {
         // Brh and reduce i1 and i2
-        let (i1, s1) = self.brh(i1, s1.clone());
-        let (i2, s2) = self.brh(i2, s2.clone());
+        let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
+        let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
         let i1 = self.uf.find(i1);
         let i2 = self.uf.find(i2);
 

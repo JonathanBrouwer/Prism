@@ -10,10 +10,10 @@ fn test([test]: [&str; 1]) {
 
     let mut env = TcEnv::new();
     let input = parse_prism_in_env(input, &mut env).expect("Failed to parse input");
-    let sm = env.br(input);
+    let sm = env.beta_reduce(input);
 
     assert!(
-        env.beq(input, &Env::new(), sm, &Env::new()),
+        env.is_beta_equal(input, &Env::new(), sm, &Env::new()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
         env.index_to_br_string(input),
