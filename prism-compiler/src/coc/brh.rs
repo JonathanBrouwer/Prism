@@ -1,6 +1,6 @@
-use crate::coc::{PartialExpr, TcEnv};
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
+use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
 
 impl TcEnv {
@@ -69,10 +69,6 @@ impl TcEnv {
                 PartialExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
-                }
-                PartialExpr::Subst(b, (v, ref vs)) => {
-                    e = b;
-                    s = s.cons(RSubst(v, vs.clone()))
                 }
             }
         }

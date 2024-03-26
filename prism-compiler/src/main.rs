@@ -8,24 +8,22 @@ fn main() {
 
     println!(
         "> Program\n====================\n{}\n\n",
-        tc_env.index_to_string(root, false)
+        tc_env.index_to_sm_string(root),
     );
 
     match tc_env.type_check(root) {
         Ok(i) => println!(
             "> Type of program\n====================\n{}\n\n",
-            tc_env.index_to_string(i, true)
+            tc_env.index_to_br_string(i)
         ),
         Err(_) => {
             println!("Type check failed.");
             return;
-        },
+        }
     }
 
     println!(
         "> Evaluated\n====================\n{}\n\n",
-        tc_env.index_to_string(root, true)
+        tc_env.index_to_br_string(root)
     );
-    
-    
 }

@@ -1,6 +1,6 @@
-use crate::coc::{PartialExpr, TcEnv};
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
+use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
 
 impl TcEnv {

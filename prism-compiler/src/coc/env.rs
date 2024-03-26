@@ -1,9 +1,9 @@
+use crate::coc::TcEnv;
 use crate::union_find::UnionIndex;
 use rpds::Vector;
 use std::ops::Index;
-use crate::coc::TcEnv;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
 
 #[derive(Clone, Eq, PartialEq, Debug)]

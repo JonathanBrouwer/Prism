@@ -1,8 +1,8 @@
 use std::mem;
 
-use crate::coc::{PartialExpr, TcEnv, TcError};
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
+use crate::coc::{PartialExpr, TcEnv, TcError};
 use crate::union_find::UnionIndex;
 
 impl TcEnv {
@@ -27,7 +27,7 @@ impl TcEnv {
                 // Check `v`
                 let vt = self.tc_expr(v, s);
                 let bt = self.tc_expr(b, &s.cons(CSubst(v, vt)));
-                PartialExpr::Subst(bt, (v, s.clone()))
+                PartialExpr::Let(vt, bt)
             }
             PartialExpr::Var(i) => PartialExpr::Shift(
                 match s[i] {
@@ -60,9 +60,9 @@ impl TcEnv {
                 let expect = self.insert_union_index(PartialExpr::FnType(at, rt));
                 self.expect_beq(expect, ft, s);
 
-                PartialExpr::Subst(rt, (a, s.clone()))
+                PartialExpr::Let(a, rt)
             }
-            PartialExpr::Free | PartialExpr::Shift(..) | PartialExpr::Subst(..) => unreachable!(),
+            PartialExpr::Free | PartialExpr::Shift(..) => unreachable!(),
         };
         self.insert_union_index(t)
     }

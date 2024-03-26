@@ -1,11 +1,11 @@
 use crate::coc::TcEnv;
+use crate::union_find::UnionIndex;
 use lazy_static::lazy_static;
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::rule_action::RuleAction;
-use crate::union_find::UnionIndex;
 
 pub mod coc;
 pub mod union_find;
