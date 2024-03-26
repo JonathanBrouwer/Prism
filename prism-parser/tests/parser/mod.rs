@@ -32,8 +32,8 @@ macro_rules! parse_test {
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
-            use crate::parser::errors_to_str;
             use prism_parser::rule_action::RuleAction;
+            use itertools::Itertools;
 
             let syntax: &'static str = $syntax;
             let grammar: GrammarFile<_> = match parse_grammar::<SetError<_>>(syntax) {
@@ -75,7 +75,9 @@ macro_rules! parse_test {
                 }
                 Err(es) => {
                     $(
-                    let got = errors_to_str(&es);
+                    let got = es.iter()
+                        .map(|e| format!("{}..{}", e.span.start, e.span.end))
+                        .join(" ");
                     assert_eq!(got, $errors);
                     )?
                 }
@@ -85,14 +87,5 @@ macro_rules! parse_test {
     }
 }
 
-#[allow(dead_code)]
-fn errors_to_str(e: &Vec<SetError<ErrorLabel>>) -> String {
-    e.iter()
-        .map(|e| format!("{}..{}", e.span.start, e.span.end))
-        .join(" ")
-}
 
-use itertools::Itertools;
 pub(crate) use parse_test;
-use prism_parser::error::error_printer::ErrorLabel;
-use prism_parser::error::set_error::SetError;

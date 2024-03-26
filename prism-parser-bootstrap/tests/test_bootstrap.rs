@@ -17,7 +17,7 @@ fn get_new_grammar(input: &str) -> GrammarFile<RuleAction> {
     }
 }
 
-#[test]
+#[cfg_attr(not(debug_assertions), test)]
 pub fn test_bootstrap() {
     let grammar: &'static GrammarFile<RuleAction> = &META_GRAMMAR;
 

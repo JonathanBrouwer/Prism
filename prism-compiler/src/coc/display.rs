@@ -1,14 +1,11 @@
-use std::collections::HashMap;
 use std::fmt::Write;
 
-use crate::coc::env::EnvEntry::*;
-use crate::coc::env::{Env, GenericEnv, UniqueVariableId};
 use crate::coc::{PartialExpr, TcEnv};
 use crate::union_find::UnionIndex;
 
 impl TcEnv {
     pub fn display(&mut self, i: UnionIndex, w: &mut impl Write) -> std::fmt::Result {
-        let mut i = self.uf.find(i);
+        let i = self.uf.find(i);
 
         match self.uf_values[i.0] {
             PartialExpr::Type => write!(w, "Type")?,

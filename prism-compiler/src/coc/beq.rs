@@ -57,6 +57,6 @@ impl TcEnv {
             }
         }
 
-        return true;
+        true
     }
 }

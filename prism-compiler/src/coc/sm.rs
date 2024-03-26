@@ -26,13 +26,13 @@ impl TcEnv {
             }
             PartialExpr::Var(v) => match &s[v] {
                 EnvEntry::CType(_, _) | EnvEntry::CSubst(_, _) => unreachable!(),
-                EnvEntry::RType(id) => PartialExpr::Var(var_map.len() - var_map[&id] - 1),
+                EnvEntry::RType(id) => PartialExpr::Var(var_map.len() - var_map[id] - 1),
                 EnvEntry::RSubst(subst, subst_env) => {
                     return self.sm_inner(*subst, subst_env, var_map)
                 }
             },
             PartialExpr::FnType(a, b) => {
-                let a = self.sm_inner(a, &s, var_map);
+                let a = self.sm_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.sm_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
@@ -40,7 +40,7 @@ impl TcEnv {
                 PartialExpr::FnType(a, b)
             }
             PartialExpr::FnConstruct(a, b) => {
-                let a = self.sm_inner(a, &s, var_map);
+                let a = self.sm_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.sm_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
@@ -48,8 +48,8 @@ impl TcEnv {
                 PartialExpr::FnConstruct(a, b)
             }
             PartialExpr::FnDestruct(a, b) => {
-                let a = self.sm_inner(a, &s, var_map);
-                let b = self.sm_inner(b, &s, var_map);
+                let a = self.sm_inner(a, s, var_map);
+                let b = self.sm_inner(b, s, var_map);
                 PartialExpr::FnDestruct(a, b)
             }
             PartialExpr::Free => PartialExpr::Free,
