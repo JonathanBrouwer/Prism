@@ -17,7 +17,7 @@ fn test([test]: [&str; 1]) {
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_string(input, false),
         env.index_to_string(input, true),
-        env.index_to_string(expected_eval, false),
+        env.index_to_string(expected_eval, false), 
         env.index_to_string(expected_eval, true),
     ); 
 } 

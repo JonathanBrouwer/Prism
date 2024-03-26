@@ -26,8 +26,6 @@ impl TcEnv {
             PartialExpr::Let(v, b) => {
                 // Check `v`
                 let vt = self.tc_expr(v, s);
-                self.expect_beq_type(vt, s);
-
                 let bt = self.tc_expr(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Subst(bt, (v, s.clone()))
             }

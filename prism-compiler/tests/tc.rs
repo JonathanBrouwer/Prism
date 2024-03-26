@@ -15,7 +15,7 @@ fn test([test]: [&str; 1]) {
     let expected_typ = parse_prism_in_env(expected_typ, &mut env).expect("Failed to parse input");
 
     assert!(
-        false, //env.beq(typ, &Env::new(), expected_typ, &Env::new()),
+        env.beq(typ, &Env::new(), expected_typ, &Env::new()),
         "Unexpected type of term:\n\n------\n{}\n------ Term reduces to -->\n{}\n------\n\n------\n{}\n------ Type of term reduces to -->\n{}\n------\n\n------\n{}\n------ Expected type reduces to -->\n{}\n------\n\n.",
         env.index_to_string(input, false),
         env.index_to_string(input, true),
