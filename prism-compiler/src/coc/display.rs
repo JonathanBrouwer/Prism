@@ -47,7 +47,7 @@ impl TcEnv {
     }
 
     pub fn index_to_sm_string(&mut self, i: UnionIndex) -> String {
-        //TODO sm
+        let i = self.simplify(i);
         let mut s = String::new();
         self.display(i, &mut s)
             .expect("Writing to String shouldn't fail");

@@ -6,8 +6,14 @@ use test_each_file::test_each_file;
 fn test([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();
     let (input, rest) = rest.split_once("### Eval\n").unwrap();
-    let (_eval, _expected_typ) = rest.split_once("### Type\n").unwrap();
+    let (eval, expected_typ) = rest.split_once("### Type\n").unwrap();
+    
+    check(input);
+    check(eval);
+    check(expected_typ);
+}
 
+fn check(input: &str) {
     let mut env = TcEnv::new();
     let input = parse_prism_in_env(input, &mut env).expect("Failed to parse input");
     let sm = env.beta_reduce(input);

@@ -27,7 +27,7 @@ impl TcEnv {
                 // Check `v`
                 let vt = self.type_check_expr(v, s);
                 let bt = self.type_check_expr(b, &s.cons(CSubst(v, vt)));
-                PartialExpr::Let(vt, bt)
+                PartialExpr::Let(v, bt)
             }
             PartialExpr::Var(i) => PartialExpr::Shift(
                 match s[i] {
