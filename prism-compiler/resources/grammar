@@ -12,6 +12,7 @@ rule expr:
     -- base
     t <- "(" t:expr ")"
     Type() <- "Type"
+    Free() <- "_"
 
     @disable_layout
     @disable_recovery

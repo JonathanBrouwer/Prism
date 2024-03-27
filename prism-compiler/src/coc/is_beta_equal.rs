@@ -11,9 +11,9 @@ impl TcEnv {
         let i1 = self.uf.find(i1);
         let i2 = self.uf.find(i2);
 
-        match (&self.uf_values[i1.0], &self.uf_values[i2.0]) {
-            (&PartialExpr::Type, &PartialExpr::Type) => {}
-            (&PartialExpr::Var(i1), &PartialExpr::Var(i2)) => {
+        match (self.uf_values[i1.0], self.uf_values[i2.0]) {
+            (PartialExpr::Type, PartialExpr::Type) => {}
+            (PartialExpr::Var(i1), PartialExpr::Var(i2)) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
@@ -26,7 +26,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (&PartialExpr::FnType(a1, b1), &PartialExpr::FnType(a2, b2)) => {
+            (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
                 if !self.is_beta_equal(a1, &s1, a2, &s2) {
                     return false;
                 }
@@ -35,7 +35,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (&PartialExpr::FnConstruct(a1, b1), &PartialExpr::FnConstruct(a2, b2)) => {
+            (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
                 if !self.is_beta_equal(a1, &s1, a2, &s2) {
                     return false;
                 }
@@ -44,7 +44,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (&PartialExpr::FnDestruct(f1, a1), &PartialExpr::FnDestruct(f2, a2)) => {
+            (PartialExpr::FnDestruct(f1, a1), PartialExpr::FnDestruct(f2, a2)) => {
                 if !self.is_beta_equal(f1, &s1, f2, &s2) {
                     return false;
                 }

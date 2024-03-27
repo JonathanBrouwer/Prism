@@ -18,7 +18,13 @@ pub struct TcEnv {
     tc_id: usize,
 }
 
-#[derive(Clone)]
+impl TcEnv {
+    pub fn errors(&self) -> &[TcError] {
+        &self.errors
+    }
+}
+
+#[derive(Copy, Clone)]
 pub enum PartialExpr {
     Type,
     Let(UnionIndex, UnionIndex),

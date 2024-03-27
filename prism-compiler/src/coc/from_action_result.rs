@@ -52,6 +52,10 @@ impl TcEnv {
                     self.insert_from_action_result(&args[1], src),
                 )
             }
+            "Free" => {
+                assert_eq!(args.len(), 0);
+                PartialExpr::Free
+            }
             _ => unreachable!(),
         };
         self.insert_union_index(inner)
