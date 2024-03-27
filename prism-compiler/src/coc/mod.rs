@@ -14,14 +14,7 @@ pub mod type_check;
 pub struct TcEnv {
     uf: UnionFind,
     uf_values: Vec<PartialExpr>,
-    errors: Vec<TcError>,
     tc_id: usize,
-}
-
-impl TcEnv {
-    pub fn errors(&self) -> &[TcError] {
-        &self.errors
-    }
 }
 
 #[derive(Copy, Clone)]
@@ -36,4 +29,3 @@ pub enum PartialExpr {
     Shift(UnionIndex, usize),
 }
 
-pub type TcError = ();

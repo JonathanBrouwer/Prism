@@ -11,8 +11,9 @@ fn test_inference_in_scopes() {
     
     let id = env.new_tc_id();
     let s = Env::new().cons(EnvEntry::RType(id));
-    env.expect_beq(t1, t2, &s);
+    let mut errors = Vec::new();
+    env.expect_beq(t1, t2, &s, &mut errors);
     
-    assert!(env.errors().is_empty());
+    assert!(errors.is_empty());
     assert!(env.is_beta_equal(t1, &s, t2, &s));
 }
