@@ -60,7 +60,7 @@ impl TcEnv {
                 self.expect_beq_free(i1, e1, &s1, var_map1, i2, &s2, var_map2, errors);
             }
             (PartialExpr::Free, e2) => {
-                self.expect_beq_free(i1, e2, &s2, var_map2, i1, &s1, var_map1, errors);
+                self.expect_beq_free(i2, e2, &s2, var_map2, i1, &s1, var_map1, errors);
             }
             (_e1, _e2) => {
                 errors.push(());
