@@ -1,7 +1,6 @@
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
+use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
     pub fn beta_reduce_head(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
@@ -11,7 +10,7 @@ impl TcEnv {
         let mut s: Env = start_env.clone();
 
         loop {
-            match self.uf_values[self.uf.find(e).0] {
+            match self.values[e.0] {
                 PartialExpr::Type => {
                     assert!(args.is_empty());
                     return (e, s);

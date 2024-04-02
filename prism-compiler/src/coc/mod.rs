@@ -1,4 +1,3 @@
-use crate::union_find::{UnionFind, UnionIndex};
 
 mod is_beta_equal;
 mod beta_reduce;
@@ -12,10 +11,13 @@ pub mod type_check;
 
 #[derive(Default)]
 pub struct TcEnv {
-    uf: UnionFind,
-    uf_values: Vec<PartialExpr>,
+    // uf: UnionFind,
+    values: Vec<PartialExpr>,
     tc_id: usize,
 }
+
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
+pub struct UnionIndex(usize);
 
 #[derive(Copy, Clone)]
 pub enum PartialExpr {

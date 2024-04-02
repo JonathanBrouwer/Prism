@@ -1,5 +1,6 @@
-use crate::coc::TcEnv;
-use crate::union_find::UnionIndex;
+extern crate core;
+
+use crate::coc::{TcEnv, UnionIndex};
 use lazy_static::lazy_static;
 use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::GrammarFile;
@@ -8,7 +9,6 @@ use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::rule_action::RuleAction;
 
 pub mod coc;
-pub mod union_find;
 
 lazy_static! {
     pub static ref GRAMMAR: GrammarFile<'static, RuleAction<'static, 'static>> = {

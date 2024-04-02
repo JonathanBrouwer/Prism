@@ -1,6 +1,5 @@
 use crate::coc::env::{Env, EnvEntry, UniqueVariableId};
-use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
+use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 use std::collections::HashMap;
 
 impl TcEnv {
@@ -16,7 +15,7 @@ impl TcEnv {
     ) -> UnionIndex {
         let (i, s) = self.beta_reduce_head(i, s.clone());
 
-        let e_new = match self.uf_values[self.uf.find(i).0] {
+        let e_new = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(_, _) => unreachable!(),
             PartialExpr::Var(v) => {

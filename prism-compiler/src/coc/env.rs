@@ -1,5 +1,4 @@
-use crate::coc::TcEnv;
-use crate::union_find::UnionIndex;
+use crate::coc::{TcEnv, UnionIndex};
 use rpds::Vector;
 use std::ops::Index;
 

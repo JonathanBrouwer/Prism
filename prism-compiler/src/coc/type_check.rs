@@ -1,7 +1,7 @@
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
 use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
+use crate::coc::UnionIndex;
 
 pub type TcError = ();
 
@@ -24,7 +24,7 @@ impl TcEnv {
 
     ///Invariant: Returned UnionIndex is valid in Env `s`
     fn type_check_expr(&mut self, i: UnionIndex, s: &Env, constraints: &mut Vec<(UnionIndex, UnionIndex, Env)>) -> UnionIndex {
-        let t = match self.uf_values[self.uf.find(i).0] {
+        let t = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(v, b) => {
                 // Check `v`
@@ -71,8 +71,8 @@ impl TcEnv {
     }
 
     pub fn insert_union_index(&mut self, e: PartialExpr) -> UnionIndex {
-        self.uf_values.push(e);
-        self.uf.add()
+        self.values.push(e);
+        UnionIndex(self.values.len() - 1)
     }
     
     pub fn solve_constraints(&mut self, constraints: &Vec<(UnionIndex, UnionIndex, Env)>) -> Vec<TcError> {

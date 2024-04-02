@@ -1,24 +1,23 @@
-use crate::coc::env::Env;
+use std::collections::HashMap;
+use crate::coc::env::{Env, EnvEntry, UniqueVariableId};
 use crate::coc::env::EnvEntry::*;
 use crate::coc::{PartialExpr, TcEnv};
 use crate::coc::type_check::TcError;
-use crate::union_find::UnionIndex;
+use crate::coc::UnionIndex;
 
 impl TcEnv {
     ///Invariant: `a` and `b` are valid in `s`
     pub fn expect_beq(&mut self, i1: UnionIndex, i2: UnionIndex, s: &Env, errors: &mut Vec<TcError>) {
-        self.expect_beq_internal(i1, s, i2, s, errors)
+        self.expect_beq_internal(i1, s, &mut HashMap::new(), i2, s, &mut HashMap::new(), errors)
     }
 
     ///Invariant: `a` and `b` are valid in `s`
-    fn expect_beq_internal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env, errors: &mut Vec<TcError>) {
+    fn expect_beq_internal(&mut self, i1: UnionIndex, s1: &Env, var_map1: &mut HashMap<UniqueVariableId, usize>, i2: UnionIndex, s2: &Env, var_map2: &mut HashMap<UniqueVariableId, usize>, errors: &mut Vec<TcError>) {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
-        let i1 = self.uf.find(i1);
-        let i2 = self.uf.find(i2);
 
-        match (self.uf_values[i1.0], self.uf_values[i2.0]) {
+        match (self.values[i1.0], self.values[i2.0]) {
             (PartialExpr::Type, PartialExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
             }
@@ -36,34 +35,85 @@ impl TcEnv {
                 }
             }
             (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
-                self.expect_beq_internal(a1, &s1, a2, &s2, errors);
+                self.expect_beq_internal(a1, &s1, var_map1, a2, &s2, var_map2, errors);
                 let id = self.new_tc_id();
-                self.expect_beq_internal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id)), errors);
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                self.expect_beq_internal(b1, &s1.cons(RType(id)), var_map1, b2, &s2.cons(RType(id)), var_map2, errors);
             }
             (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
-                self.expect_beq_internal(a1, &s1, a2, &s2, errors);
+                self.expect_beq_internal(a1, &s1, var_map1, a2, &s2, var_map2, errors);
                 let id = self.new_tc_id();
-                self.expect_beq_internal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id)), errors);
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                self.expect_beq_internal(b1, &s1.cons(RType(id)), var_map1, b2, &s2.cons(RType(id)), var_map2, errors);
             }
             (PartialExpr::FnDestruct(f1, a1), PartialExpr::FnDestruct(f2, a2)) => {
-                self.expect_beq_internal(f1, &s1, f2, &s2, errors);
-                self.expect_beq_internal(a1, &s1, a2, &s2, errors);
+                self.expect_beq_internal(f1, &s1, var_map1, f2, &s2, var_map2, errors);
+                self.expect_beq_internal(a1, &s1, var_map1, a2, &s2, var_map2, errors);
             }
-            (_e, PartialExpr::Free) => {
-                //TODO this is incorrect, need to capture environment -> 
-                // - Traverse left side, and fill in right side based on that. 
-                // - Need a hashmap to keep track of UniqueId -> Index
-                // - For free/free case, need to wait with solving until later. Maybe keep track of all frees?
-
-                self.uf.union_left(i1, i2);
+            (PartialExpr::Free, PartialExpr::Free) => {
+                //TODO queue this constraint
+                todo!()
             }
-            (PartialExpr::Free, _e) => {
-                //TODO this is also incorrect
-                self.uf.union_left(i2, i1);
+            (e1, PartialExpr::Free) => {
+                self.expect_beq_free(i1, e1, &s1, var_map1, i2, &s2, var_map2, errors);
+            }
+            (PartialExpr::Free, e2) => {
+                self.expect_beq_free(i1, e2, &s2, var_map2, i1, &s1, var_map1, errors);
             }
             (_e1, _e2) => {
                 errors.push(());
             }
+        }
+    }
+
+    // i2 should be free
+    fn expect_beq_free(&mut self, i1: UnionIndex, e1: PartialExpr, s1: &Env, var_map1: &mut HashMap<UniqueVariableId, usize>, i2: UnionIndex, s2: &Env, var_map2: &mut HashMap<UniqueVariableId, usize>, errors: &mut Vec<TcError>) {
+        match e1 {
+            PartialExpr::Type => {
+                self.values[i2.0] = PartialExpr::Type
+            }
+            PartialExpr::Var(v1) => {
+                self.values[i2.0] = match s1[v1] {
+                    CType(id, _) => {
+                        let v2 = v1 + s2.len() - s1.len();
+
+                        // Sanity check
+                        let CType(id2, _) = s2[v2] else {
+                            panic!("Sanity check failed")
+                        };
+                        assert_eq!(id, id2);
+
+                        PartialExpr::Var(v2)
+                    }
+                    RType(id) => {
+                        let v2 = s2.len() - var_map2[&id] - 1;
+
+                        // Sanity check
+                        let RType(id2) = s2[v2] else {
+                            panic!("Sanity check failed")
+                        };
+                        assert_eq!(id, id2);
+
+                        PartialExpr::Var(v2)
+                    }
+                    RSubst(_, _) | CSubst(_, _) => unreachable!(),
+                }
+            }
+            PartialExpr::FnType(_, _) => {
+                self.values[i2.0] = PartialExpr::FnType(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.expect_beq_internal(i1, s1, var_map1, i2, s2, var_map2, errors);
+            }
+            PartialExpr::FnConstruct(_, _) => {
+                self.values[i2.0] = PartialExpr::FnConstruct(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.expect_beq_internal(i1, s1, var_map1, i2, s2, var_map2, errors);
+            }
+            PartialExpr::FnDestruct(_, _) => {
+                self.values[i2.0] = PartialExpr::FnDestruct(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.expect_beq_internal(i1, s1, var_map1, i2, s2, var_map2, errors);
+            }
+            PartialExpr::Shift(_, _) | PartialExpr::Let(_, _) | PartialExpr::Free => unreachable!(),
         }
     }
 }

@@ -1,17 +1,14 @@
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv};
-use crate::union_find::UnionIndex;
+use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
     pub fn is_beta_equal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
-        let i1 = self.uf.find(i1);
-        let i2 = self.uf.find(i2);
 
-        match (self.uf_values[i1.0], self.uf_values[i2.0]) {
+        match (self.values[i1.0], self.values[i2.0]) {
             (PartialExpr::Type, PartialExpr::Type) => {}
             (PartialExpr::Var(i1), PartialExpr::Var(i2)) => {
                 let id1 = match s1[i1] {
