@@ -34,3 +34,27 @@ fn free_chains() {
     assert!(errors.is_empty());
     assert!(env.is_beta_equal(v1, &Env::new(), v3, &Env::new()));
 }
+
+#[test]
+fn free_chains_long() {
+    let mut env = TcEnv::new();
+
+    let v1 = env.insert_union_index(PartialExpr::Type);
+    let v2 = env.insert_union_index(PartialExpr::Free);
+    let v3 = env.insert_union_index(PartialExpr::Free);
+    let v4 = env.insert_union_index(PartialExpr::Free);
+    let v5 = env.insert_union_index(PartialExpr::Free);
+    let v6 = env.insert_union_index(PartialExpr::Free);
+    let v7 = env.insert_union_index(PartialExpr::Free);
+
+    let mut errors = Vec::new();
+    env.expect_beq(v6, v7, &Env::new(), &mut errors);
+    env.expect_beq(v3, v4, &Env::new(), &mut errors);
+    env.expect_beq(v5, v6, &Env::new(), &mut errors);
+    env.expect_beq(v2, v3, &Env::new(), &mut errors);
+    env.expect_beq(v1, v2, &Env::new(), &mut errors);
+    env.expect_beq(v4, v5, &Env::new(), &mut errors);
+
+    assert!(errors.is_empty());
+    assert!(env.is_beta_equal(v1, &Env::new(), v7, &Env::new()));
+}

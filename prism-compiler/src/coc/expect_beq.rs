@@ -53,14 +53,15 @@ impl TcEnv {
                 self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2), errors);
             }
             (PartialExpr::Free, PartialExpr::Free) => {
-                //TODO queue this constraint
-                todo!()
+                // TODO performance of var_map clones
+                self.queued_contraints.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
+                self.queued_contraints.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
             }
-            (e1, PartialExpr::Free) => {
-                self.expect_beq_free((i1, e1, &s1, var_map1), (i2, &s2, var_map2), errors);
+            (_, PartialExpr::Free) => {
+                self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2), errors);
             }
-            (PartialExpr::Free, e2) => {
-                self.expect_beq_free((i2, e2, &s2, var_map2), (i1, &s1, var_map1), errors);
+            (PartialExpr::Free, _) => {
+                self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1), errors);
             }
             (_e1, _e2) => {
                 errors.push(());
@@ -69,8 +70,9 @@ impl TcEnv {
     }
 
     // i2 should be free
-    fn expect_beq_free(&mut self, (i1, e1, s1, var_map1): (UnionIndex, PartialExpr, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), errors: &mut Vec<TcError>) {
-        match e1 {
+    fn expect_beq_free(&mut self, (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), errors: &mut Vec<TcError>) {
+        // Solve e2
+        match self.values[i1.0] {
             PartialExpr::Type => {
                 self.values[i2.0] = PartialExpr::Type
             }
@@ -114,6 +116,17 @@ impl TcEnv {
                 self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2), errors);
             }
             PartialExpr::Shift(_, _) | PartialExpr::Let(_, _) | PartialExpr::Free => unreachable!(),
+        }
+
+        // Check queued constraints
+        if let Some(queued) = self.queued_contraints.remove(&i2) {
+            for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
+                // Sanity checks
+                assert_eq!(s2, &s2n);
+                assert_eq!(var_map2, &var_map2n);
+                
+                self.expect_beq_free((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3), errors);
+            }
         }
     }
 }

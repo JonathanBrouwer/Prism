@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use crate::coc::env::{Env, UniqueVariableId};
 
 mod is_beta_equal;
 mod beta_reduce;
@@ -14,6 +16,7 @@ pub struct TcEnv {
     // uf: UnionFind,
     values: Vec<PartialExpr>,
     tc_id: usize,
+    queued_contraints: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
