@@ -55,6 +55,6 @@ impl TcEnv {
             PartialExpr::Free => PartialExpr::Free,
             PartialExpr::Shift(b, i) => return self.simplify_inner(b, &s.shift(i), var_map),
         };
-        self.insert_union_index(e_new)
+        self.store(e_new)
     }
 }

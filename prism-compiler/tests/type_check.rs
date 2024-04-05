@@ -43,7 +43,7 @@ fn test_fail([test]: [&str; 1]) {
         env.index_to_sm_string(*typ.as_ref().unwrap()),
         env.index_to_br_string(*typ.as_ref().unwrap()),
     );
-}
+}   
 
 test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
 

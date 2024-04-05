@@ -58,6 +58,6 @@ impl TcEnv {
             }
             _ => unreachable!(),
         };
-        self.insert_union_index(inner)
+        self.store(inner)
     }
 }

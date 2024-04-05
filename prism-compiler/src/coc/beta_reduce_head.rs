@@ -68,7 +68,7 @@ impl TcEnv {
                 PartialExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
-                }
+                },
             }
         }
     }

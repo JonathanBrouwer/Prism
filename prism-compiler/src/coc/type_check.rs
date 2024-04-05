@@ -12,7 +12,7 @@ impl TcEnv {
     }
 
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, Vec<TcError>> {
-        let ti = self.type_check_expr(root, &Env::new());
+        let ti = self._type_check(root, &Env::new());
 
         let errors = mem::take(&mut self.errors);
         if errors.is_empty() {
@@ -23,13 +23,18 @@ impl TcEnv {
     }
 
     ///Invariant: Returned UnionIndex is valid in Env `s`
-    fn type_check_expr(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
+    fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
         let t = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(v, b) => {
+            PartialExpr::Let(mut v, b) => {
                 // Check `v`
-                let vt = self.type_check_expr(v, s);
-                let bt = self.type_check_expr(b, &s.cons(CSubst(v, vt)));
+                let err_count = self.errors.len();
+                let vt = self._type_check(v, s);
+                if self.errors.len() > err_count {
+                    v = self.store(PartialExpr::Free);
+                }
+
+                let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Let(v, bt)
             }
             PartialExpr::Var(i) => PartialExpr::Shift(
@@ -38,43 +43,62 @@ impl TcEnv {
                     Some(&CSubst(_, t)) => t,
                     None => {
                         self.errors.push(());
-                        self.insert_union_index(PartialExpr::Free)
+                        self.store(PartialExpr::Free)
                     }
                     _ => unreachable!(),
                 },
                 i + 1,
             ),
-            PartialExpr::FnType(a, b) => {
-                let at = self.type_check_expr(a, s);
+            PartialExpr::FnType(mut a, b) => {
+                let err_count = self.errors.len();
+                let at = self._type_check(a, s);
                 self.expect_beq(at, Self::type_type(), &s);
+                if self.errors.len() > err_count {
+                    a = self.store(PartialExpr::Free);
+                }
+
                 let bs = s.cons(CType(self.new_tc_id(), a));
-                let bt = self.type_check_expr(b, &bs);
+                let bt = self._type_check(b, &bs);
                 self.expect_beq(bt, Self::type_type(), &bs);
+
                 PartialExpr::Type
             }
-            PartialExpr::FnConstruct(a, b) => {
-                let at = self.type_check_expr(a, s);
+            PartialExpr::FnConstruct(mut a, b) => {
+                let err_count = self.errors.len();
+                let at = self._type_check(a, s);
                 self.expect_beq(at, Self::type_type(), &s);
-                let id = self.new_tc_id();
-                let bt = self.type_check_expr(b, &s.cons(CType(id, a)));
+                if self.errors.len() > err_count {
+                    a = self.store(PartialExpr::Free);
+                }
+
+                let bs = s.cons(CType(self.new_tc_id(), a));
+                let bt = self._type_check(b, &bs);
                 PartialExpr::FnType(a, bt)
             }
-            PartialExpr::FnDestruct(f, a) => {
-                let ft = self.type_check_expr(f, s);
-                let at = self.type_check_expr(a, s);
+            PartialExpr::FnDestruct(f, mut a) => {
+                let err_count = self.errors.len();
+                let at = self._type_check(a, s);
+                if self.errors.len() > err_count {
+                    a = self.store(PartialExpr::Free);
+                };
 
-                let rt = self.insert_union_index(PartialExpr::Free);
-                let expect = self.insert_union_index(PartialExpr::FnType(at, rt));
-                self.expect_beq(expect, ft, &s);
+                let rt = self.store(PartialExpr::Free);
+                
+                let err_count = self.errors.len();
+                let ft = self._type_check(f, s);
+                if self.errors.len() == err_count {
+                    let expect = self.store(PartialExpr::FnType(at, rt));
+                    self.expect_beq(expect, ft, &s);
+                }
 
                 PartialExpr::Let(a, rt)
             }
             PartialExpr::Free | PartialExpr::Shift(..) => unreachable!(),
         };
-        self.insert_union_index(t)
+        self.store(t)
     }
 
-    pub fn insert_union_index(&mut self, e: PartialExpr) -> UnionIndex {
+    pub fn store(&mut self, e: PartialExpr) -> UnionIndex {
         self.values.push(e);
         UnionIndex(self.values.len() - 1)
     }

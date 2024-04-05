@@ -31,8 +31,8 @@ fn arbitrary_rec<'a>(scope_size: usize, env: &mut TcEnv, u: &mut DataSourceTaker
         ),
         _ => unreachable!(),
     };
-    
-    Ok(env.insert_union_index(expr))
+
+    Ok(env.store(expr))
 }
 
 impl Debug for ExprWithEnv {

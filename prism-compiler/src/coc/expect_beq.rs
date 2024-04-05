@@ -5,7 +5,8 @@ use crate::coc::{PartialExpr, TcEnv};
 use crate::coc::UnionIndex;
 
 impl TcEnv {
-    ///Invariant: `a` and `b` are valid in `s`
+    /// Invariant: `a` and `b` are valid in `s`
+    /// Returns whether the expectation succeeded
     pub fn expect_beq(&mut self, i1: UnionIndex, i2: UnionIndex, s: &Env) {
         self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new()))
     }
@@ -56,6 +57,7 @@ impl TcEnv {
                 self.queued_contraints.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
                 self.queued_contraints.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
             }
+            //TODO can we encounter Lets here if they have Frees in them?
             (_, PartialExpr::Free) => {
                 self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2));
             }
@@ -103,15 +105,15 @@ impl TcEnv {
                 }
             }
             PartialExpr::FnType(_, _) => {
-                self.values[i2.0] = PartialExpr::FnType(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.values[i2.0] = PartialExpr::FnType(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
                 self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
             }
             PartialExpr::FnConstruct(_, _) => {
-                self.values[i2.0] = PartialExpr::FnConstruct(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.values[i2.0] = PartialExpr::FnConstruct(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
                 self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
             }
             PartialExpr::FnDestruct(_, _) => {
-                self.values[i2.0] = PartialExpr::FnDestruct(self.insert_union_index(PartialExpr::Free), self.insert_union_index(PartialExpr::Free));
+                self.values[i2.0] = PartialExpr::FnDestruct(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
                 self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
             }
             PartialExpr::Shift(_, _) | PartialExpr::Let(_, _) | PartialExpr::Free => unreachable!(),

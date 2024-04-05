@@ -48,6 +48,6 @@ impl TcEnv {
             PartialExpr::Free => PartialExpr::Free,
             PartialExpr::Shift(_, _) => unreachable!(),
         };
-        self.insert_union_index(e_new)
+        self.store(e_new)
     }
 }
