@@ -12,7 +12,7 @@ impl TcEnv {
         loop {
             match self.values[e.0] {
                 PartialExpr::Type => {
-                    assert!(args.is_empty());
+                    debug_assert!(args.is_empty());
                     return (e, s);
                 }
                 PartialExpr::Let(v, b) => {
@@ -37,7 +37,7 @@ impl TcEnv {
                     }
                 },
                 PartialExpr::FnType(_, _) => {
-                    assert!(args.is_empty());
+                    debug_assert!(args.is_empty());
                     return (e, s);
                 }
                 PartialExpr::FnConstruct(_, b) => match args.pop() {

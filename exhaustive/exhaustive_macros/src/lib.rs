@@ -6,7 +6,7 @@ extern crate syn;
 use std::mem;
 
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote, ToTokens};
 use syn::punctuated::Punctuated;
 use syn::{
     parse::{Parse, Parser},
@@ -26,23 +26,36 @@ pub fn exhaustive_test(args: TokenStream, input: TokenStream) -> TokenStream {
             let name = &orig_fn.sig.ident;
             let attrs = mem::replace(&mut orig_fn.attrs, Vec::new());
 
-            let args = orig_fn
+            let mut args = Vec::new();
+            let bindings = orig_fn
                 .sig
                 .inputs
                 .iter()
-                .map(|input| match input {
+                .enumerate()
+                .map(|(i, input)| match input {
                     FnArg::Typed(t) => {
                         let ty = &t.ty;
+                        let ident = format_ident!("_v{i}");
+                        args.push(ident.clone());
                         quote! {
-                            match <#ty>::arbitrary(&mut run) {
+                            let #ident = match <#ty>::arbitrary(&mut run) {
                                 Ok(v) => v,
                                 Err(_) => continue,
-                            }
+                            };
                         }
                     }
                     _ => panic!("Unsupported kind of function argument"),
-                })
-                .collect::<Punctuated<_, Token![,]>>();
+                }).collect::<Vec<_>>();
+            let debug_prints = orig_fn.sig.inputs.iter().zip(args.iter()).map(|(arg, arg_name)| {
+                let aname = match arg {
+                    FnArg::Typed(t) => t.pat.to_token_stream().to_string(),
+                    _ => panic!("Unsupported kind of function argument"),
+                };
+                quote!{
+                println!(">>>>> {} =====\n{:?}\n\n", #aname, #arg_name);
+            }
+            });
+
             quote! {
                 #[test]
                 #(#attrs)*
@@ -54,7 +67,19 @@ pub fn exhaustive_test(args: TokenStream, input: TokenStream) -> TokenStream {
                     let mut source = DataSource::new(#max_choices);
                     let mut count = 0;
                     while let Some(mut run) = source.next_run() {
-                        #name(#args);
+                        #(#bindings)*
+
+                        if let Err(e) = std::panic::catch_unwind(|| {
+                            #name(#(#args),*);
+                        }) {
+                            println!("================================================================================");
+                            println!("This panic happened while trying to execute the test with parameters:\n");
+                            run.reset(#max_choices);
+                            #(#bindings)*
+                            #(#debug_prints)*
+                            std::panic::resume_unwind(e);
+                        }
+
                         count += 1;
                     }
                     assert!(count > 0, "Zero test cases were executed, this is probably a mistake. Try increasing the choice limit?");

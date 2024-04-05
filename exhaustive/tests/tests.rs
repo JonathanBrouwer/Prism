@@ -27,9 +27,17 @@ fn test_vec_bool() {
 
 
 #[test]
-fn test_reverse() {
+fn test_larger() {
     assert_eq!(
         Vec::<bool>::iter_exhaustive(8).count(),
         255
+    )
+}
+
+#[test]
+fn test_vec_unit() {
+    assert_eq!(
+        Vec::<()>::iter_exhaustive(4).count(),
+        5
     )
 }

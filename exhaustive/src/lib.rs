@@ -1,10 +1,13 @@
 use std::iter;
 use std::marker::PhantomData;
 
+pub use exhaustive_macros::Exhaustive;
+pub use exhaustive_macros::exhaustive_test;
+
 mod impls;
 
 pub trait Exhaustive: Sized {
-    fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError>;
+    fn arbitrary(u: &mut DataSourceTaker) -> Result<Self>;
 
     fn iter_exhaustive(max_length: usize) -> impl Iterator<Item=Self> {
         let mut source = DataSource::new(max_length);
@@ -19,11 +22,18 @@ pub struct DataSourceTaker<'a> {
     buffer_idx: usize,
 }
 
+pub type Result<T> = std::result::Result<T, ChoiceError>;
+
 #[derive(Debug)]
 pub struct ChoiceError;
 
 impl<'a> DataSourceTaker<'a> {
-    pub fn choice(&mut self, range: usize) -> Result<usize, ChoiceError> {
+    pub fn reset(&mut self, max_choices: usize) {
+        self.choices_left = max_choices;
+        self.buffer_idx = 0;
+    }
+    
+    pub fn choice(&mut self, range: usize) -> Result<usize> {
         assert!(range > 0);
         if range == 1 {
             return Ok(0)
@@ -46,8 +56,8 @@ impl<'a> DataSourceTaker<'a> {
         Ok(0)
     }
 
-    pub fn iter_of<'b, T: Exhaustive>(&'b mut self) -> Result<DataSourceTakerIter<'a, 'b, T>, ChoiceError> {
-        let max_count = self.choice(usize::MAX)?;
+    pub fn iter_of<'b, T: Exhaustive>(&'b mut self) -> Result<DataSourceTakerIter<'a, 'b, T>> {
+        let max_count = self.choice(self.choices_left + 1)?;
         Ok(DataSourceTakerIter {
             max_count_idx: self.buffer_idx - 1,
             max_count,
@@ -65,7 +75,7 @@ pub struct DataSourceTakerIter<'a, 'b, T: Exhaustive> {
 }
 
 impl<T: Exhaustive> Iterator for DataSourceTakerIter<'_, '_, T> {
-    type Item = Result<T, ChoiceError>;
+    type Item = Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.max_count == 0 {
