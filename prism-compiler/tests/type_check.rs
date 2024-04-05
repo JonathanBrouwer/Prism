@@ -47,7 +47,7 @@ fn test_fail([test]: [&str; 1]) {
 
 test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
 
-#[exhaustive_test(3)]
+#[exhaustive_test(7)]
 fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
     match env.type_check(root) {
         Ok(ty) => {
