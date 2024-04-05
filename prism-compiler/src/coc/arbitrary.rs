@@ -5,7 +5,7 @@ use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 pub struct ExprWithEnv(pub TcEnv, pub UnionIndex);
 
 impl Exhaustive for ExprWithEnv {
-    fn arbitrary(u: &mut DataSourceTaker) -> exhaustive::Result<Self> {
+    fn generate(u: &mut DataSourceTaker) -> exhaustive::Result<Self> {
         let mut env = TcEnv::new();
         let idx = arbitrary_rec(0, &mut env, u)?;
         Ok(ExprWithEnv(env, idx))

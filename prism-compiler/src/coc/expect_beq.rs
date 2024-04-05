@@ -123,8 +123,8 @@ impl TcEnv {
         if let Some(queued) = self.queued_contraints.remove(&i2) {
             for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
                 // Sanity checks
-                assert_eq!(s2, &s2n);
-                assert_eq!(var_map2, &var_map2n);
+                debug_assert_eq!(s2, &s2n);
+                debug_assert_eq!(var_map2, &var_map2n);
                 
                 self.expect_beq_free((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
             }

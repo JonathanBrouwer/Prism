@@ -9,7 +9,7 @@ edition = "2021"
 prism-parser = { path = "../prism-parser" }
 rpds = "1.1.0"
 lazy_static = "1.4.0"
-exhaustive = {path = "../exhaustive" }
+exhaustive = "0.2.1"
 
 [dev-dependencies]
 test_each_file = "0.3.0"
