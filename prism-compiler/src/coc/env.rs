@@ -55,13 +55,21 @@ impl<T> GenericEnv<T> {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub fn get(&self, index: usize) -> Option<&T> {
+        if index >= self.len() {
+            None
+        } else {
+            self.0.get(self.0.len() - 1 - index)
+        }
+    }
 }
 
 impl<T> Index<usize> for GenericEnv<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.0[self.0.len() - 1 - index]
+        self.get(index).unwrap()
     }
 }
 

@@ -28,7 +28,7 @@ impl PartialExpr {
 }
 
 impl TcEnv {
-    fn display(&mut self, i: UnionIndex, w: &mut impl Write, max_precedence: PrecedenceLevel) -> std::fmt::Result {
+    fn display(&self, i: UnionIndex, w: &mut impl Write, max_precedence: PrecedenceLevel) -> std::fmt::Result {
         let e = self.values[i.0];
 
         if e.precendence_level() < max_precedence {
@@ -70,19 +70,20 @@ impl TcEnv {
         Ok(())
     }
 
-    pub fn index_to_sm_string(&mut self, i: UnionIndex) -> String {
-        let i = self.simplify(i);
+    pub fn index_to_string(&self, i: UnionIndex) -> String {
         let mut s = String::new();
         self.display(i, &mut s, PrecedenceLevel::default())
             .expect("Writing to String shouldn't fail");
         s
     }
 
+    pub fn index_to_sm_string(&mut self, i: UnionIndex) -> String {
+        let i = self.simplify(i);
+        self.index_to_string(i)
+    }
+
     pub fn index_to_br_string(&mut self, i: UnionIndex) -> String {
         let i = self.beta_reduce(i);
-        let mut s = String::new();
-        self.display(i, &mut s, PrecedenceLevel::default())
-            .expect("Writing to String shouldn't fail");
-        s
+        self.index_to_string(i)
     }
 }

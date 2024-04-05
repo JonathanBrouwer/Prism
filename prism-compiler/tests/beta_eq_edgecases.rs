@@ -12,10 +12,9 @@ fn test_inference_in_scopes() {
     let tid = env.insert_union_index(PartialExpr::Type);
     let id = env.new_tc_id();
     let s = Env::new().cons(EnvEntry::CType(id, tid));
-    let mut errors = Vec::new();
-    env.expect_beq(t1, t2, &s, &mut errors);
+    env.expect_beq(t1, t2, &s);
     
-    assert!(errors.is_empty());
+    assert!(env.errors.is_empty());
     assert!(env.is_beta_equal(t1, &s, t2, &s));
 }
 
@@ -27,11 +26,10 @@ fn free_chains() {
     let v2 = env.insert_union_index(PartialExpr::Free);
     let v3 = env.insert_union_index(PartialExpr::Free);
 
-    let mut errors = Vec::new();
-    env.expect_beq(v2, v3, &Env::new(), &mut errors);
-    env.expect_beq(v1, v2, &Env::new(), &mut errors);
+    env.expect_beq(v2, v3, &Env::new());
+    env.expect_beq(v1, v2, &Env::new());
 
-    assert!(errors.is_empty());
+    assert!(env.errors.is_empty());
     assert!(env.is_beta_equal(v1, &Env::new(), v3, &Env::new()));
 }
 
@@ -47,14 +45,13 @@ fn free_chains_long() {
     let v6 = env.insert_union_index(PartialExpr::Free);
     let v7 = env.insert_union_index(PartialExpr::Free);
 
-    let mut errors = Vec::new();
-    env.expect_beq(v6, v7, &Env::new(), &mut errors);
-    env.expect_beq(v3, v4, &Env::new(), &mut errors);
-    env.expect_beq(v5, v6, &Env::new(), &mut errors);
-    env.expect_beq(v2, v3, &Env::new(), &mut errors);
-    env.expect_beq(v1, v2, &Env::new(), &mut errors);
-    env.expect_beq(v4, v5, &Env::new(), &mut errors);
+    env.expect_beq(v6, v7, &Env::new());
+    env.expect_beq(v3, v4, &Env::new());
+    env.expect_beq(v5, v6, &Env::new());
+    env.expect_beq(v2, v3, &Env::new());
+    env.expect_beq(v1, v2, &Env::new());
+    env.expect_beq(v4, v5, &Env::new());
 
-    assert!(errors.is_empty());
+    assert!(env.errors.is_empty());
     assert!(env.is_beta_equal(v1, &Env::new(), v7, &Env::new()));
 }
