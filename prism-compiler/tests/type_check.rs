@@ -19,7 +19,7 @@ fn test_ok([test]: [&str; 1]) {
     assert!(
         env.is_beta_equal(typ, &Env::new(), expected_typ, &Env::new()),
         "Unexpected type of term:\n\n------\n{}\n------ Term reduces to -->\n{}\n------\n\n------\n{}\n------ Type of term reduces to -->\n{}\n------\n\n------\n{}\n------ Expected type reduces to -->\n{}\n------\n\n.",
-        env.index_to_sm_string(input),
+        env.index_to_string(input),
         env.index_to_br_string(input),
         env.index_to_sm_string(typ),
         env.index_to_br_string(typ),
@@ -51,6 +51,7 @@ test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as 
 fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
     match env.type_check(root) {
         Ok(ty) => {
+            let ty = env.simplify(ty);
             let ty_ty = env.type_check(ty).unwrap();
             assert!(env.is_beta_equal(ty_ty, &Env::new(), TcEnv::type_type(), &Env::new()));
         }

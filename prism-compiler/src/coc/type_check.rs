@@ -83,7 +83,7 @@ impl TcEnv {
                 };
 
                 let rt = self.store(PartialExpr::Free);
-                
+
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, s);
                 if self.errors.len() == err_count {
