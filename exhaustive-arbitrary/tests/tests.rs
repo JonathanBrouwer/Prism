@@ -3,7 +3,7 @@ use exhaustive_arbitrary::ExhaustiveArbitrary;
 #[test]
 fn test_bool() {
     assert_eq!(
-        bool::iter_exhaustive(0).collect::<Vec<_>>(),
+        bool::iter_exhaustive(2).collect::<Vec<_>>(),
         vec![false, true],
     );
 }
@@ -11,7 +11,7 @@ fn test_bool() {
 #[test]
 fn test_vec_bool() {
     assert_eq!(
-        Vec::<bool>::iter_exhaustive(2).collect::<Vec<_>>(),
+        Vec::<bool>::iter_exhaustive(3).collect::<Vec<_>>(),
         vec![
             vec![],
             vec![false],
@@ -26,9 +26,10 @@ fn test_vec_bool() {
 
 
 
-// #[test]
-// fn test_reverse() {
-//     for v in Vec::<bool>::iter_exhaustive(8) {
-//
-//     }
-// }
+#[test]
+fn test_reverse() {
+    assert_eq!(
+        Vec::<bool>::iter_exhaustive(8).count(),
+        255
+    )
+}
