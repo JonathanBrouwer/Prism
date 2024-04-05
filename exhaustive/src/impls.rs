@@ -3,93 +3,93 @@ use std::collections::{BinaryHeap, BTreeMap, BTreeSet, HashMap, HashSet, LinkedL
 use std::hash::Hash;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, RwLock};
-use crate::{ChoiceError, DataSourceTaker, ExhaustiveArbitrary};
+use crate::{ChoiceError, DataSourceTaker, Exhaustive};
 
-impl ExhaustiveArbitrary for bool {
+impl Exhaustive for bool {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.choice(2)? != 0)
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Box<T> {
+impl<T: Exhaustive> Exhaustive for Box<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Rc<T> {
+impl<T: Exhaustive> Exhaustive for Rc<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Arc<T> {
+impl<T: Exhaustive> Exhaustive for Arc<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Cell<T> {
+impl<T: Exhaustive> Exhaustive for Cell<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for RefCell<T> {
+impl<T: Exhaustive> Exhaustive for RefCell<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for UnsafeCell<T> {
+impl<T: Exhaustive> Exhaustive for UnsafeCell<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Mutex<T> {
+impl<T: Exhaustive> Exhaustive for Mutex<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for RwLock<T> {
+impl<T: Exhaustive> Exhaustive for RwLock<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(Self::new(T::arbitrary(u)?))
     }
 }
 
-impl ExhaustiveArbitrary for () {
+impl Exhaustive for () {
     fn arbitrary(_: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(())
     }
 }
 
-impl<T1: ExhaustiveArbitrary> ExhaustiveArbitrary for (T1,) {
+impl<T1: Exhaustive> Exhaustive for (T1,) {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok((T1::arbitrary(u)?,))
     }
 }
 
-impl<T1: ExhaustiveArbitrary, T2: ExhaustiveArbitrary> ExhaustiveArbitrary for (T1,T2) {
+impl<T1: Exhaustive, T2: Exhaustive> Exhaustive for (T1, T2) {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok((T1::arbitrary(u)?,T2::arbitrary(u)?,))
     }
 }
 
-impl<T1: ExhaustiveArbitrary, T2: ExhaustiveArbitrary, T3: ExhaustiveArbitrary> ExhaustiveArbitrary for (T1,T2,T3) {
+impl<T1: Exhaustive, T2: Exhaustive, T3: Exhaustive> Exhaustive for (T1, T2, T3) {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok((T1::arbitrary(u)?,T2::arbitrary(u)?,T3::arbitrary(u)?,))
     }
 }
 
-impl<T1: ExhaustiveArbitrary, T2: ExhaustiveArbitrary, T3: ExhaustiveArbitrary, T4: ExhaustiveArbitrary> ExhaustiveArbitrary for (T1,T2,T3,T4) {
+impl<T1: Exhaustive, T2: Exhaustive, T3: Exhaustive, T4: Exhaustive> Exhaustive for (T1, T2, T3, T4) {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok((T1::arbitrary(u)?,T2::arbitrary(u)?,T3::arbitrary(u)?,T4::arbitrary(u)?))
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Option<T> {
+impl<T: Exhaustive> Exhaustive for Option<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         if bool::arbitrary(u)? {
             Ok(None)
@@ -99,7 +99,7 @@ impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Option<T> {
     }
 }
 
-impl<T: ExhaustiveArbitrary, E: ExhaustiveArbitrary> ExhaustiveArbitrary for Result<T, E> {
+impl<T: Exhaustive, E: Exhaustive> Exhaustive for Result<T, E> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         if bool::arbitrary(u)? {
             Ok(Ok(T::arbitrary(u)?))
@@ -109,56 +109,56 @@ impl<T: ExhaustiveArbitrary, E: ExhaustiveArbitrary> ExhaustiveArbitrary for Res
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for Vec<T> {
+impl<T: Exhaustive> Exhaustive for Vec<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for LinkedList<T> {
+impl<T: Exhaustive> Exhaustive for LinkedList<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<T: ExhaustiveArbitrary> ExhaustiveArbitrary for VecDeque<T> {
+impl<T: Exhaustive> Exhaustive for VecDeque<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
 
-impl<T: ExhaustiveArbitrary + Ord> ExhaustiveArbitrary for BTreeSet<T> {
+impl<T: Exhaustive + Ord> Exhaustive for BTreeSet<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<K: ExhaustiveArbitrary + Ord, V: ExhaustiveArbitrary> ExhaustiveArbitrary for BTreeMap<K, V> {
+impl<K: Exhaustive + Ord, V: Exhaustive> Exhaustive for BTreeMap<K, V> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<(K, V)>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<T: ExhaustiveArbitrary + Hash + Eq> ExhaustiveArbitrary for HashSet<T> {
+impl<T: Exhaustive + Hash + Eq> Exhaustive for HashSet<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<K: ExhaustiveArbitrary + Hash + Eq, V: ExhaustiveArbitrary> ExhaustiveArbitrary for HashMap<K, V> {
+impl<K: Exhaustive + Hash + Eq, V: Exhaustive> Exhaustive for HashMap<K, V> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<(K, V)>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<T: ExhaustiveArbitrary + Ord> ExhaustiveArbitrary for BinaryHeap<T> {
+impl<T: Exhaustive + Ord> Exhaustive for BinaryHeap<T> {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok(u.iter_of::<T>()?.collect::<Result<_, _>>()?)
     }
 }
 
-impl<const N: usize, T: ExhaustiveArbitrary> ExhaustiveArbitrary for [T; N] {
+impl<const N: usize, T: Exhaustive> Exhaustive for [T; N] {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError> {
         Ok((0..N).map(|_| T::arbitrary(u)).collect::<Result<Vec<_>, _>>()?.try_into().unwrap_or_else(|_| unreachable!()))
     }

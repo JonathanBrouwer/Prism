@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 mod impls;
 
-pub trait ExhaustiveArbitrary: Sized {
+pub trait Exhaustive: Sized {
     fn arbitrary(u: &mut DataSourceTaker) -> Result<Self, ChoiceError>;
 
     fn iter_exhaustive(max_length: usize) -> impl Iterator<Item=Self> {
@@ -19,6 +19,7 @@ pub struct DataSourceTaker<'a> {
     buffer_idx: usize,
 }
 
+#[derive(Debug)]
 pub struct ChoiceError;
 
 impl<'a> DataSourceTaker<'a> {
@@ -45,7 +46,7 @@ impl<'a> DataSourceTaker<'a> {
         Ok(0)
     }
 
-    pub fn iter_of<'b, T: ExhaustiveArbitrary>(&'b mut self) -> Result<DataSourceTakerIter<'a, 'b, T>, ChoiceError> {
+    pub fn iter_of<'b, T: Exhaustive>(&'b mut self) -> Result<DataSourceTakerIter<'a, 'b, T>, ChoiceError> {
         let max_count = self.choice(usize::MAX)?;
         Ok(DataSourceTakerIter {
             max_count_idx: self.buffer_idx - 1,
@@ -56,14 +57,14 @@ impl<'a> DataSourceTaker<'a> {
     }
 }
 
-pub struct DataSourceTakerIter<'a, 'b, T: ExhaustiveArbitrary> {
+pub struct DataSourceTakerIter<'a, 'b, T: Exhaustive> {
     max_count_idx: usize,
     max_count: usize,
     taker: &'b mut DataSourceTaker<'a>,
     phantom: PhantomData<T>,
 }
 
-impl<T: ExhaustiveArbitrary> Iterator for DataSourceTakerIter<'_, '_, T> {
+impl<T: Exhaustive> Iterator for DataSourceTakerIter<'_, '_, T> {
     type Item = Result<T, ChoiceError>;
 
     fn next(&mut self) -> Option<Self::Item> {

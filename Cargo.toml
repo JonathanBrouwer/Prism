@@ -1,6 +1,6 @@
 [workspace]
-members = [ "exhaustive-arbitrary","prism-compiler", "prism-parser", "prism-parser-bootstrap"]
-default-members = ["exhaustive-arbitrary","prism-compiler", "prism-parser", "prism-parser-bootstrap"]
+members = ["exhaustive","prism-compiler", "prism-parser", "prism-parser-bootstrap"]
+default-members = ["exhaustive","prism-compiler", "prism-parser", "prism-parser-bootstrap"]
 resolver = "2"
 
 [profile.test]

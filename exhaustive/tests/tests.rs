@@ -1,4 +1,4 @@
-use exhaustive_arbitrary::ExhaustiveArbitrary;
+use exhaustive::Exhaustive;
 
 #[test]
 fn test_bool() {
