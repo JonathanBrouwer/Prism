@@ -94,7 +94,7 @@ impl TcEnv {
             }
             PartialExpr::Free => {
                 let t = self.store(PartialExpr::Free);
-                self.queued_tc.insert(i, (s.clone(), t));
+                // TODO self.queued_tc.insert(i, (s.clone(), t));
                 return t;
             }
             PartialExpr::Shift(..) => unreachable!(),

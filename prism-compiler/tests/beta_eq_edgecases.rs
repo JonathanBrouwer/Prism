@@ -55,3 +55,24 @@ fn free_chains_long() {
     assert!(env.errors.is_empty());
     assert!(env.is_beta_equal(v1, &Env::new(), v7, &Env::new()));
 }
+
+#[test]
+fn dumb_shift() {
+    let mut env = TcEnv::new();
+
+    // Construct env
+    let tid = env.store(PartialExpr::Type);
+    let id = env.new_tc_id();
+    let s = Env::new().cons(EnvEntry::CType(id, tid));
+    
+    // Construct left side
+    let left = env.store(PartialExpr::Var(0));
+    
+    // Construct right side
+    let right_inner = env.store(PartialExpr::Free);
+    let right = env.store(PartialExpr::Shift(right_inner, 1));
+    
+    // Test
+    env.expect_beq(left, right, &s);
+    //TODO what do we even expect here?
+}

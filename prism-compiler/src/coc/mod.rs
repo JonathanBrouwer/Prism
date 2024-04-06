@@ -1,6 +1,8 @@
 use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::type_check::TcError;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -21,14 +23,7 @@ pub struct TcEnv {
     pub errors: Vec<TcError>,
 
     // Queues
-    queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
-    queued_beq: HashMap<
-        UnionIndex,
-        Vec<(
-            (Env, HashMap<UniqueVariableId, usize>),
-            (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
-        )>,
-    >,
+    //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]

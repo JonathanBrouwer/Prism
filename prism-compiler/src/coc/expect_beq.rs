@@ -97,6 +97,8 @@ impl TcEnv {
             PartialExpr::Var(v1) => {
                 match &s1[v1] {
                     &CType(id, _) => {
+                        //TODO BUG this is not guaranteed to be in scope! We could've shifted this out of scope, what then?
+                        //TODO Same for CSubst
                         let v2 = v1 + s2.len() - s1.len();
 
                         // Sanity check
@@ -178,20 +180,20 @@ impl TcEnv {
                 self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
             }
             PartialExpr::Free => {
-                //TODO can this happen? If so early exit
-                debug_assert_ne!(i1, i2);
-
-                // Queue this constraint and early-exit
-                // TODO clones of varmaps are slow, structural sharing?
-                self.queued_beq.entry(i1).or_default().push((
-                    (s1.clone(), var_map1.clone()),
-                    (i2, s2.clone(), var_map2.clone()),
-                ));
-                self.queued_beq.entry(i2).or_default().push((
-                    (s2.clone(), var_map2.clone()),
-                    (i1, s1.clone(), var_map1.clone()),
-                ));
-                return;
+                // //TODO can this happen? If so early exit
+                // debug_assert_ne!(i1, i2);
+                // 
+                // // Queue this constraint and early-exit
+                // // TODO clones of varmaps are slow, structural sharing?
+                // self.queued_beq.entry(i1).or_default().push((
+                //     (s1.clone(), var_map1.clone()),
+                //     (i2, s2.clone(), var_map2.clone()),
+                // ));
+                // self.queued_beq.entry(i2).or_default().push((
+                //     (s2.clone(), var_map2.clone()),
+                //     (i1, s1.clone(), var_map1.clone()),
+                // ));
+                // return;
             }
             PartialExpr::Let(v1, b1) => {
                 self.expect_beq_free(
@@ -204,19 +206,19 @@ impl TcEnv {
             }
         }
 
-        // Check queued constraints
-        if let Some(queued) = self.queued_beq.remove(&i2) {
-            for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
-                // Sanity checks
-                debug_assert_eq!(s2.len(), s2n.len());
-
-                //TODO performance: this causes expect_beq(i3, i2) to be executed
-                self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
-            }
-        }
-        if let Some((s, t2)) = self.queued_tc.remove(&i2) {
-            let t1 = self._type_check(i2, &s);
-            self.expect_beq(t1, t2, &s);
-        }
+        // // Check queued constraints
+        // if let Some(queued) = self.queued_beq.remove(&i2) {
+        //     for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
+        //         // Sanity checks
+        //         debug_assert_eq!(s2.len(), s2n.len());
+        // 
+        //         //TODO performance: this causes expect_beq(i3, i2) to be executed
+        //         self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
+        //     }
+        // }
+        // if let Some((s, t2)) = self.queued_tc.remove(&i2) {
+        //     let t1 = self._type_check(i2, &s);
+        //     self.expect_beq(t1, t2, &s);
+        // }
     }
 }
