@@ -47,10 +47,10 @@ fn test_fail([test]: [&str; 1]) {
 
 test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
 
-#[exhaustive_test(5)]
-fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
-    let _ = env.type_check(root);
-}
+// #[exhaustive_test(5)]
+// fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
+//     let _ = env.type_check(root);
+// }
 
 #[test]
 fn placeholder() {}

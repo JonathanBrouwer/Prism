@@ -52,15 +52,6 @@ impl TcEnv {
                 self.expect_beq_internal((f1, &s1, var_map1), (f2, &s2, var_map2));
                 self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
             }
-            (PartialExpr::Free, PartialExpr::Free) => {
-                //TODO can this happen? If so early exit
-                debug_assert_ne!(i1, i2);
-                
-                // TODO performance of var_map clones
-                self.queued_beq.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
-                self.queued_beq.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
-            }
-            //TODO can we encounter Lets here if they have Frees in them?
             (_, PartialExpr::Free) => {
                 self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2));
             }
@@ -76,6 +67,17 @@ impl TcEnv {
     // i2 should be free
     fn expect_beq_free(&mut self, (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>)) {
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
+
+        let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
+        
+        // Check whether it is safe to substitute
+        //TODO do this during substitution, this is O(n^2) :c
+        // if self.contains_index(i1, s1, i2) {
+        //     self.errors.push(());
+        //     return
+        // }
+
+        
 
         // Solve e2
         match self.values[i1.0] {
@@ -115,19 +117,48 @@ impl TcEnv {
                     RSubst(_, _) | CSubst(_, _) => unreachable!(),
                 }
             }
-            PartialExpr::FnType(_, _) => {
-                self.values[i2.0] = PartialExpr::FnType(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
-                self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
+            PartialExpr::FnType(a1, b1) => {
+                let a2 = self.store(PartialExpr::Free);
+                let b2 = self.store(PartialExpr::Free);
+                self.values[i2.0] = PartialExpr::FnType(a2, b2);
+
+                self.expect_beq_free((a1, &s1, var_map1), (a2, s2, var_map2));
+
+                let id = self.new_tc_id();
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                self.expect_beq_free((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
             }
-            PartialExpr::FnConstruct(_, _) => {
-                self.values[i2.0] = PartialExpr::FnConstruct(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
-                self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
+            PartialExpr::FnConstruct(a1, b1) => {
+                let a2 = self.store(PartialExpr::Free);
+                let b2 = self.store(PartialExpr::Free);
+                self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
+
+                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+
+                let id = self.new_tc_id();
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                self.expect_beq_free((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
             }
-            PartialExpr::FnDestruct(_, _) => {
-                self.values[i2.0] = PartialExpr::FnDestruct(self.store(PartialExpr::Free), self.store(PartialExpr::Free));
-                self.expect_beq_internal((i1, s1, var_map1), (i2, s2, var_map2));
+            PartialExpr::FnDestruct(f1, a1) => {
+                let f2 = self.store(PartialExpr::Free);
+                let a2 = self.store(PartialExpr::Free);
+                self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
+
+                self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
+                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
             }
-            PartialExpr::Shift(_, _) | PartialExpr::Let(_, _) | PartialExpr::Free => unreachable!(),
+            PartialExpr::Free => {
+                //TODO can this happen? If so early exit
+                debug_assert_ne!(i1, i2);
+
+                // Queue this constraint and early-exit
+                self.queued_beq.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
+                self.queued_beq.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
+                return;
+            }
+            PartialExpr::Shift(_, _) | PartialExpr::Let(_, _) => unreachable!(),
         }
 
         // Check queued constraints
@@ -142,7 +173,7 @@ impl TcEnv {
         }
         if let Some((s, t2)) = self.queued_tc.remove(&i2) {
             let t1 = self._type_check(i2, &s);
-                    self.expect_beq(t1, t2, &s);
+            self.expect_beq(t1, t2, &s);
         }
     }
 }
