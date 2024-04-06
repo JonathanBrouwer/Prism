@@ -28,7 +28,7 @@ pub struct TcEnv {
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct UnionIndex(usize);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum PartialExpr {
     Type,
     Let(UnionIndex, UnionIndex),
