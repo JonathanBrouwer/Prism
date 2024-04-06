@@ -5,7 +5,7 @@ use prism_compiler::parse_prism_in_env;
 #[test]
 fn test_inference_in_scopes() {
     let mut env = TcEnv::new();
-    
+
     let t1 = parse_prism_in_env("let Type; _", &mut env).unwrap();
     let t2 = parse_prism_in_env("#0", &mut env).unwrap();
 
@@ -13,7 +13,7 @@ fn test_inference_in_scopes() {
     let id = env.new_tc_id();
     let s = Env::new().cons(EnvEntry::CType(id, tid));
     env.expect_beq(t1, t2, &s);
-    
+
     assert!(env.errors.is_empty());
     assert!(env.is_beta_equal(t1, &s, t2, &s));
 }
@@ -21,7 +21,7 @@ fn test_inference_in_scopes() {
 #[test]
 fn free_chains() {
     let mut env = TcEnv::new();
-    
+
     let v1 = env.store(PartialExpr::Type);
     let v2 = env.store(PartialExpr::Free);
     let v3 = env.store(PartialExpr::Free);

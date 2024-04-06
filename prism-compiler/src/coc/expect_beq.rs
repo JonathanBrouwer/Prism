@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::UnionIndex;
+use crate::coc::{PartialExpr, TcEnv};
+use std::collections::HashMap;
 
 impl TcEnv {
     /// Invariant: `a` and `b` are valid in `s`
@@ -12,7 +12,11 @@ impl TcEnv {
     }
 
     ///Invariant: `a` and `b` are valid in `s`
-    fn expect_beq_internal(&mut self, (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>)) {
+    fn expect_beq_internal(
+        &mut self,
+        (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+    ) {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
@@ -39,14 +43,20 @@ impl TcEnv {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
-                self.expect_beq_internal((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
+                self.expect_beq_internal(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
             }
             (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
                 self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
-                self.expect_beq_internal((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
+                self.expect_beq_internal(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
             }
             (PartialExpr::FnDestruct(f1, a1), PartialExpr::FnDestruct(f2, a2)) => {
                 self.expect_beq_internal((f1, &s1, var_map1), (f2, &s2, var_map2));
@@ -65,7 +75,11 @@ impl TcEnv {
     }
 
     // i2 should be free
-    fn expect_beq_free(&mut self, (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>)) {
+    fn expect_beq_free(
+        &mut self,
+        (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+    ) {
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
 
         // Check whether it is safe to substitute
@@ -78,7 +92,7 @@ impl TcEnv {
         // Solve e2
         match self.values[i1.0] {
             PartialExpr::Type => {
-                self.values[i2.0] = PartialExpr::Type
+                self.values[i2.0] = PartialExpr::Type;
             }
             PartialExpr::Var(v1) => {
                 match &s1[v1] {
@@ -108,12 +122,15 @@ impl TcEnv {
                             assert_eq!(id, id2);
                         }
 
-                        self.values[i2.0] = PartialExpr::Var(v2)
+                        self.values[i2.0] = PartialExpr::Var(v2);
                     }
                     RSubst(i1, s1) => {
                         self.expect_beq_free((*i1, &s1, var_map1), (i2, s2, var_map2));
                     }
-                    &CSubst(_, _) => todo!(),
+                    &CSubst(_, _) => {
+                        let v2 = v1 + s2.len() - s1.len();
+                        self.values[i2.0] = PartialExpr::Var(v2);
+                    }
                 }
             }
             PartialExpr::FnType(a1, b1) => {
@@ -126,7 +143,10 @@ impl TcEnv {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
-                self.expect_beq_free((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
+                self.expect_beq_free(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
 
                 self.values[i2.0] = PartialExpr::FnType(a2, b2);
             }
@@ -140,7 +160,10 @@ impl TcEnv {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
-                self.expect_beq_free((b1, &s1.cons(RType(id)), var_map1), (b2, &s2.cons(RType(id)), var_map2));
+                self.expect_beq_free(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
 
                 self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
             }
@@ -160,17 +183,25 @@ impl TcEnv {
 
                 // Queue this constraint and early-exit
                 // TODO clones of varmaps are slow, structural sharing?
-                self.queued_beq.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
-                self.queued_beq.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
+                self.queued_beq.entry(i1).or_default().push((
+                    (s1.clone(), var_map1.clone()),
+                    (i2, s2.clone(), var_map2.clone()),
+                ));
+                self.queued_beq.entry(i2).or_default().push((
+                    (s2.clone(), var_map2.clone()),
+                    (i1, s1.clone(), var_map1.clone()),
+                ));
                 return;
             }
             PartialExpr::Let(v1, b1) => {
-                
-                todo!()
+                self.expect_beq_free(
+                    (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
+                    (i2, &s2, var_map2),
+                );
             }
             PartialExpr::Shift(v1, i) => {
                 self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, &s2, var_map2));
-            },
+            }
         }
 
         // Check queued constraints

@@ -1,4 +1,6 @@
+use exhaustive::exhaustive_test;
 use prism_compiler::coc::env::Env;
+use prism_compiler::coc::exhaustive::ExprWithEnv;
 use prism_compiler::coc::TcEnv;
 use prism_compiler::parse_prism_in_env;
 use test_each_file::test_each_file;
@@ -10,7 +12,7 @@ fn test_ok([test]: [&str; 1]) {
 
     let mut env = TcEnv::new();
     let input = parse_prism_in_env(input, &mut env).expect("Failed to parse input");
-    let typ = env.type_check(input).unwrap(); 
+    let typ = env.type_check(input).unwrap();
 
     let expected_typ = parse_prism_in_env(expected_typ, &mut env).expect("Failed to parse input");
 
@@ -23,7 +25,7 @@ fn test_ok([test]: [&str; 1]) {
         env.index_to_br_string(typ),
         env.index_to_sm_string(expected_typ),
         env.index_to_br_string(expected_typ),
-    ); 
+    );
 }
 
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok }
@@ -41,14 +43,14 @@ fn test_fail([test]: [&str; 1]) {
         env.index_to_sm_string(*typ.as_ref().unwrap()),
         env.index_to_br_string(*typ.as_ref().unwrap()),
     );
-}   
+}
 
 test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
 
-// #[exhaustive_test(5)]
-// fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
-//     let _ = env.type_check(root);
-// }
+#[exhaustive_test(5)]
+fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
+    let _ = env.type_check(root);
+}
 
 #[test]
 fn placeholder() {}

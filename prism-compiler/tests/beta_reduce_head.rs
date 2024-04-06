@@ -19,7 +19,7 @@ fn test([test]: [&str; 1]) {
         env.index_to_br_string(input),
         env.index_to_sm_string(expected_eval),
         env.index_to_br_string(expected_eval),
-    ); 
+    );
 }
 
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test }

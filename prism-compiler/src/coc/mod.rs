@@ -1,17 +1,17 @@
-use std::collections::HashMap;
 use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::type_check::TcError;
+use std::collections::HashMap;
 
-mod is_beta_equal;
 mod beta_reduce;
 mod beta_reduce_head;
 mod display;
 pub mod env;
+pub mod exhaustive;
 mod expect_beq;
 pub mod from_action_result;
+mod is_beta_equal;
 mod simplify;
 pub mod type_check;
-pub mod exhaustive;
 
 #[derive(Default)]
 pub struct TcEnv {
@@ -19,10 +19,16 @@ pub struct TcEnv {
     values: Vec<PartialExpr>,
     tc_id: usize,
     pub errors: Vec<TcError>,
-    
+
     // Queues
     queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
-    queued_beq: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
+    queued_beq: HashMap<
+        UnionIndex,
+        Vec<(
+            (Env, HashMap<UniqueVariableId, usize>),
+            (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
+        )>,
+    >,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -39,4 +45,3 @@ pub enum PartialExpr {
     Free,
     Shift(UnionIndex, usize),
 }
-

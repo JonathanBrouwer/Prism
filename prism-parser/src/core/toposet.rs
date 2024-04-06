@@ -58,13 +58,13 @@ impl<'grm> TopoSet<'grm> {
             }
         }
 
-        let mut todo: VecDeque<&'grm str> = counts
+        let mut queue: VecDeque<&'grm str> = counts
             .iter()
             .filter(|(_, v)| **v == 0)
             .map(|(k, _)| *k)
             .collect();
 
-        while let Some(k) = todo.pop_front() {
+        while let Some(k) = queue.pop_front() {
             counts.remove(k);
             result.push(k);
 
@@ -72,7 +72,7 @@ impl<'grm> TopoSet<'grm> {
                 let count = counts.get_mut(nb).unwrap();
                 *count -= 1;
                 if *count == 0 {
-                    todo.push_back(nb);
+                    queue.push_back(nb);
                 }
             }
         }

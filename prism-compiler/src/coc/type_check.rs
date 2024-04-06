@@ -1,8 +1,8 @@
-use std::mem;
 use crate::coc::env::Env;
 use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv};
 use crate::coc::UnionIndex;
+use crate::coc::{PartialExpr, TcEnv};
+use std::mem;
 
 pub type TcError = ();
 
@@ -95,7 +95,7 @@ impl TcEnv {
             PartialExpr::Free => {
                 let t = self.store(PartialExpr::Free);
                 self.queued_tc.insert(i, (s.clone(), t));
-                return t
+                return t;
             }
             PartialExpr::Shift(..) => unreachable!(),
         };

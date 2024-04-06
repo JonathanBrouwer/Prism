@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
-use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 use crate::coc::display::PrecedenceLevel::*;
+use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 enum PrecedenceLevel {
@@ -29,7 +29,12 @@ impl PartialExpr {
 }
 
 impl TcEnv {
-    fn display(&self, i: UnionIndex, w: &mut impl Write, max_precedence: PrecedenceLevel) -> std::fmt::Result {
+    fn display(
+        &self,
+        i: UnionIndex,
+        w: &mut impl Write,
+        max_precedence: PrecedenceLevel,
+    ) -> std::fmt::Result {
         let e = self.values[i.0];
 
         if e.precendence_level() < max_precedence {

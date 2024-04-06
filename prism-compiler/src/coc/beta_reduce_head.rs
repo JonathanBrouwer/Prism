@@ -3,7 +3,11 @@ use crate::coc::env::EnvEntry::*;
 use crate::coc::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
-    pub fn beta_reduce_head(&mut self, mut start_expr: UnionIndex, mut start_env: Env) -> (UnionIndex, Env) {
+    pub fn beta_reduce_head(
+        &mut self,
+        mut start_expr: UnionIndex,
+        mut start_env: Env,
+    ) -> (UnionIndex, Env) {
         let mut args: Vec<(UnionIndex, Env)> = Vec::new();
 
         let mut e: UnionIndex = start_expr;
@@ -61,14 +65,13 @@ impl TcEnv {
                     return if args.is_empty() {
                         (e, s)
                     } else {
-                        //TODO is this correct?
                         (start_expr, start_env)
                     };
                 }
                 PartialExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
-                },
+                }
             }
         }
     }

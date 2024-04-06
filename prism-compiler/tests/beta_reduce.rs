@@ -7,7 +7,7 @@ fn test([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();
     let (input, rest) = rest.split_once("### Eval\n").unwrap();
     let (eval, expected_typ) = rest.split_once("### Type\n").unwrap();
-    
+
     check(input);
     check(eval);
     check(expected_typ);
