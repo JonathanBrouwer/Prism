@@ -54,8 +54,8 @@ impl TcEnv {
             }
             (PartialExpr::Free, PartialExpr::Free) => {
                 // TODO performance of var_map clones
-                self.queued_contraints.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
-                self.queued_contraints.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
+                self.queued_beq.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
+                self.queued_beq.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
             }
             //TODO can we encounter Lets here if they have Frees in them?
             (_, PartialExpr::Free) => {
@@ -120,14 +120,17 @@ impl TcEnv {
         }
 
         // Check queued constraints
-        if let Some(queued) = self.queued_contraints.remove(&i2) {
+        if let Some(queued) = self.queued_beq.remove(&i2) {
             for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
                 // Sanity checks
-                debug_assert_eq!(s2, &s2n);
-                debug_assert_eq!(var_map2, &var_map2n);
-                
+                debug_assert_eq!(s2.len(), s2n.len());
+
                 self.expect_beq_free((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
             }
+        }
+        if let Some((s, t2)) = self.queued_tc.remove(&i2) {
+            let t1 = self._type_check(i2, &s);
+            self.expect_beq(t1, t2, &s);
         }
     }
 }

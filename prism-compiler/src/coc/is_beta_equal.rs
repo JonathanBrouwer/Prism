@@ -49,6 +49,7 @@ impl TcEnv {
                     return false;
                 }
             }
+            (PartialExpr::Free, PartialExpr::Free) => {}
             _ => {
                 return false;
             }

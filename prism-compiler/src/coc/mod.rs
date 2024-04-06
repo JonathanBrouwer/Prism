@@ -19,7 +19,10 @@ pub struct TcEnv {
     values: Vec<PartialExpr>,
     tc_id: usize,
     pub errors: Vec<TcError>,
-    queued_contraints: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
+    
+    // Queues
+    queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
+    queued_beq: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]

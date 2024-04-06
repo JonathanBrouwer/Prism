@@ -13,7 +13,7 @@ impl Exhaustive for ExprWithEnv {
 }
 
 fn arbitrary_rec<'a>(scope_size: usize, env: &mut TcEnv, u: &mut DataSourceTaker) -> exhaustive::Result<UnionIndex> {
-    let expr = match u.choice(5)? {
+    let expr = match u.choice(6)? {
         0 => PartialExpr::Type,
         1 if scope_size > 0 => PartialExpr::Var(u.choice(scope_size)?),
         1 if scope_size == 0 => PartialExpr::Type,
@@ -29,6 +29,7 @@ fn arbitrary_rec<'a>(scope_size: usize, env: &mut TcEnv, u: &mut DataSourceTaker
             arbitrary_rec(scope_size, env, u)?,
             arbitrary_rec(scope_size, env, u)?
         ),
+        5 => PartialExpr::Free,
         _ => unreachable!(),
     };
 

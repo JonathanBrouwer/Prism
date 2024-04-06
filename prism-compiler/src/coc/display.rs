@@ -8,6 +8,7 @@ enum PrecedenceLevel {
     #[default]
     Let,
     Construct,
+    FnType,
     Destruct,
     Base,
 }
@@ -18,7 +19,7 @@ impl PartialExpr {
             PartialExpr::Type => Base,
             PartialExpr::Let(_, _) => Let,
             PartialExpr::Var(_) => Base,
-            PartialExpr::FnType(_, _) => Construct,
+            PartialExpr::FnType(_, _) => FnType,
             PartialExpr::FnConstruct(_, _) => Construct,
             PartialExpr::FnDestruct(_, _) => Destruct,
             PartialExpr::Free => Base,
@@ -47,10 +48,10 @@ impl TcEnv {
             PartialExpr::FnType(a, b) => {
                 self.display(a, w, Destruct)?;
                 write!(w, " -> ")?;
-                self.display(b, w, Construct)?;
+                self.display(b, w, FnType)?;
             }
             PartialExpr::FnConstruct(a, b) => {
-                self.display(a, w, Destruct)?;
+                self.display(a, w, FnType)?;
                 write!(w, " => ")?;
                 self.display(b, w, Construct)?;
             }
