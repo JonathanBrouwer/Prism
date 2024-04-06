@@ -53,6 +53,9 @@ impl TcEnv {
                 self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
             }
             (PartialExpr::Free, PartialExpr::Free) => {
+                //TODO can this happen? If so early exit
+                debug_assert_ne!(i1, i2);
+                
                 // TODO performance of var_map clones
                 self.queued_beq.entry(i1).or_default().push(((s1.clone(), var_map1.clone()), (i2, s2.clone(), var_map2.clone())));
                 self.queued_beq.entry(i2).or_default().push(((s2.clone(), var_map2.clone()), (i1, s1.clone(), var_map1.clone())));
