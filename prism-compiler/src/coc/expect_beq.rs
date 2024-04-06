@@ -97,41 +97,58 @@ impl TcEnv {
             PartialExpr::Var(v1) => {
                 match &s1[v1] {
                     &CType(id, _) => {
-                        //TODO BUG this is not guaranteed to be in scope! We could've shifted this out of scope, what then?
-                        //TODO Same for CSubst
-                        let v2 = v1 + s2.len() - s1.len();
-
-                        // Sanity check
-                        #[cfg(debug_assertions)]
-                        {
-                            let CType(id2, _) = s2[v2] else {
-                                panic!("Sanity check failed")
-                            };
-                            assert_eq!(id, id2);
-                        }
+                        // We may have shifted away part of the env that we need during this beq
+                        // AFAIK this can only happen in programs that have too many frees in them
+                        // We still need to check for this since otherwise we'll continue type checking based on wrong assumptions
+                        let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
+                            self.errors.push(());
+                            return;
+                        };
+                        let CType(id2, _) = s2[v2] else {
+                            self.errors.push(());
+                            return;
+                        };
+                        // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
+                        debug_assert_eq!(id, id2);
 
                         self.values[i2.0] = PartialExpr::Var(v2)
                     }
-                    &RType(id) => {
-                        let v2 = s2.len() - var_map2[&id] - 1;
+                    &CSubst(_, _) => {
+                        // Same story as above, except we don't have the `id` to double check with here.
+                        // The logic should still hold even without the sanity check though
+                        let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
+                            self.errors.push(());
+                            return;
+                        };
+                        let CSubst(_, _) = s2[v2] else {
+                            self.errors.push(());
+                            return;
+                        };
 
-                        // Sanity check
-                        #[cfg(debug_assertions)]
-                        {
-                            let RType(id2) = s2[v2] else {
-                                panic!("Sanity check failed")
-                            };
-                            assert_eq!(id, id2);
+                        self.values[i2.0] = PartialExpr::Var(v2);
+                    }
+                    &RType(id) => {
+                        // If `id` still exists in s2, we will find it here
+                        let Some(v2) = s2.len().checked_sub(var_map2[&id] + 1) else {
+                            self.errors.push(());
+                            return;
+                        };
+                        // Check if it still exists, if not we shifted it out and another entry came in the place for it
+                        let RType(id2) = s2[v2] else {
+                            self.errors.push(());
+                            panic!("I think this can happen but I want an example for it");
+                            // TODO return;
+                        };
+                        if id != id2 {
+                            self.errors.push(());
+                            panic!("I think this can happen but I want an example for it");
+                            // TODO return;
                         }
 
                         self.values[i2.0] = PartialExpr::Var(v2);
                     }
                     RSubst(i1, s1) => {
                         self.expect_beq_free((*i1, &s1, var_map1), (i2, s2, var_map2));
-                    }
-                    &CSubst(_, _) => {
-                        let v2 = v1 + s2.len() - s1.len();
-                        self.values[i2.0] = PartialExpr::Var(v2);
                     }
                 }
             }
@@ -182,7 +199,7 @@ impl TcEnv {
             PartialExpr::Free => {
                 // //TODO can this happen? If so early exit
                 // debug_assert_ne!(i1, i2);
-                // 
+                //
                 // // Queue this constraint and early-exit
                 // // TODO clones of varmaps are slow, structural sharing?
                 // self.queued_beq.entry(i1).or_default().push((
@@ -211,7 +228,7 @@ impl TcEnv {
         //     for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
         //         // Sanity checks
         //         debug_assert_eq!(s2.len(), s2n.len());
-        // 
+        //
         //         //TODO performance: this causes expect_beq(i3, i2) to be executed
         //         self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
         //     }
