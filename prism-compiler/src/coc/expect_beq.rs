@@ -72,6 +72,8 @@ impl TcEnv {
 
     // i2 should be free
     fn expect_beq_free(&mut self, (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>), (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>)) {
+        debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
+
         // Solve e2
         match self.values[i1.0] {
             PartialExpr::Type => {
@@ -83,10 +85,13 @@ impl TcEnv {
                         let v2 = v1 + s2.len() - s1.len();
 
                         // Sanity check
-                        let CType(id2, _) = s2[v2] else {
-                            panic!("Sanity check failed")
-                        };
-                        assert_eq!(id, id2);
+                        #[cfg(debug_assertions)]
+                        {
+                            let CType(id2, _) = s2[v2] else {
+                                panic!("Sanity check failed")
+                            };
+                            assert_eq!(id, id2);
+                        }
 
                         PartialExpr::Var(v2)
                     }
@@ -94,10 +99,13 @@ impl TcEnv {
                         let v2 = s2.len() - var_map2[&id] - 1;
 
                         // Sanity check
-                        let RType(id2) = s2[v2] else {
-                            panic!("Sanity check failed")
-                        };
-                        assert_eq!(id, id2);
+                        #[cfg(debug_assertions)]
+                        {
+                            let RType(id2) = s2[v2] else {
+                                panic!("Sanity check failed")
+                            };
+                            assert_eq!(id, id2);
+                        }
 
                         PartialExpr::Var(v2)
                     }
@@ -125,12 +133,13 @@ impl TcEnv {
                 // Sanity checks
                 debug_assert_eq!(s2.len(), s2n.len());
 
-                self.expect_beq_free((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
+                //TODO performance: this causes expect_beq(i3, i2) to be executed
+                self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
             }
         }
         if let Some((s, t2)) = self.queued_tc.remove(&i2) {
             let t1 = self._type_check(i2, &s);
-            self.expect_beq(t1, t2, &s);
+                    self.expect_beq(t1, t2, &s);
         }
     }
 }

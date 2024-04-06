@@ -3,7 +3,7 @@ use prism_compiler::coc::TcEnv;
 use prism_compiler::parse_prism_in_env;
 use test_each_file::test_each_file;
 use exhaustive::exhaustive_test;
-use prism_compiler::coc::arbitrary::ExprWithEnv;
+use prism_compiler::coc::exhaustive::ExprWithEnv;
 
 fn test_ok([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();

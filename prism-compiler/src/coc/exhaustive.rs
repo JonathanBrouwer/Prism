@@ -17,19 +17,19 @@ fn arbitrary_rec<'a>(scope_size: usize, env: &mut TcEnv, u: &mut DataSourceTaker
         0 => PartialExpr::Type,
         1 if scope_size > 0 => PartialExpr::Var(u.choice(scope_size)?),
         1 if scope_size == 0 => PartialExpr::Type,
-        2 => PartialExpr::FnType(
+        2 => PartialExpr::Free,
+        3 => PartialExpr::FnType(
             arbitrary_rec(scope_size, env, u)?,
             arbitrary_rec(scope_size + 1, env, u)?
         ),
-        3 => PartialExpr::FnConstruct(
+        4 => PartialExpr::FnConstruct(
             arbitrary_rec(scope_size, env, u)?,
             arbitrary_rec( scope_size + 1, env, u)?
         ),
-        4 => PartialExpr::FnDestruct(
+        5 => PartialExpr::FnDestruct(
             arbitrary_rec(scope_size, env, u)?,
             arbitrary_rec(scope_size, env, u)?
         ),
-        5 => PartialExpr::Free,
         _ => unreachable!(),
     };
 

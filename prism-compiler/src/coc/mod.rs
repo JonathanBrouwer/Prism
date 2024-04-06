@@ -11,7 +11,7 @@ mod expect_beq;
 pub mod from_action_result;
 mod simplify;
 pub mod type_check;
-pub mod arbitrary;
+pub mod exhaustive;
 
 #[derive(Default)]
 pub struct TcEnv {
