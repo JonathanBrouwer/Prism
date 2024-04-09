@@ -176,42 +176,33 @@ impl TcEnv {
                 );
             }
             PartialExpr::FnConstruct(a1, b1) => {
-                // let a2 = self.store(PartialExpr::Free);
-                // let b2 = self.store(PartialExpr::Free);
-                // self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
-                //
-                // self.toxic_values.insert(i2);
-                // self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
-                //
-                // let id = self.new_tc_id();
-                // var_map1.insert(id, s1.len());
-                // var_map2.insert(id, s2.len());
-                // self.expect_beq_free(
-                //     (b1, &s1.cons(RType(id)), var_map1),
-                //     (b2, &s2.cons(RType(id)), var_map2),
-                // );
-                //
-                // self.handle_constraints(i2, s2);
-                // self.toxic_values.remove(&i2);
-
-                //TODO
-                self.errors.push(());
-                return;
-            }
-            PartialExpr::FnDestruct(_, _) => {
-                //         let f2 = self.store(PartialExpr::Free);
-                //         let a2 = self.store(PartialExpr::Free);
-                //         self.values[i2.0] = TOXIC;
-                //
-                //         self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
-                //         self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
-                //
-                //         self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
-                //TODO
-                self.errors.push(());
-                return;
+                let a2 = self.store(PartialExpr::Free);
+                let b2 = self.store(PartialExpr::Free);
+                self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
 
                 self.handle_constraints(i2, s2);
+
+                self.toxic_values.insert(i2);
+                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+
+                let id = self.new_tc_id();
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                self.expect_beq_free(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
+            }
+            PartialExpr::FnDestruct(f1, a1) => {
+                let f2 = self.store(PartialExpr::Free);
+                let a2 = self.store(PartialExpr::Free);
+                self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
+
+                self.handle_constraints(i2, s2);
+
+                self.toxic_values.insert(i2);
+                self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
+                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
             }
             PartialExpr::Free => {
                 self.queued_beq_free.entry(i1).or_default().push((

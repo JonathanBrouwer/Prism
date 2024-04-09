@@ -6,3 +6,5 @@
 * Think about how to do names
   * Built-in magic pass?
 * Fast-mode for parser & type checker without errors
+* Eta reduction
+  * expect_beq `fn_destruct == fn_construct` is possible
