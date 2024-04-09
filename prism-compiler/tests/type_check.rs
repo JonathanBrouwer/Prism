@@ -49,7 +49,8 @@ test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as 
 
 #[exhaustive_test(9)]
 fn test_exhaustive(mut e: ExprWithEnv) {
-    let _ = e.0.type_check(e.1);
+    let s = e.0.index_to_string(e.1);
+    let _ = e.0.type_check(e.1); 
 }
 
 #[test]

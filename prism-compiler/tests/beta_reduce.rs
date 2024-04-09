@@ -29,6 +29,3 @@ fn check(input: &str) {
 }
 
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test }
-
-#[test]
-fn placeholder() {}

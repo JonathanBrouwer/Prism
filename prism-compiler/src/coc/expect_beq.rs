@@ -8,7 +8,8 @@ impl TcEnv {
     /// Invariant: `a` and `b` are valid in `s`
     /// Returns whether the expectation succeeded
     pub fn expect_beq(&mut self, i1: UnionIndex, i2: UnionIndex, s: &Env) {
-        self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new()))
+        self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new()));
+        self.toxic_values.clear();
     }
 
     ///Invariant: `a` and `b` are valid in `s`
@@ -68,7 +69,7 @@ impl TcEnv {
             (PartialExpr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1));
             }
-            (_e1, _e2) => {
+            _ => {
                 self.errors.push(());
             }
         }
@@ -82,17 +83,21 @@ impl TcEnv {
     ) {
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
 
-        // Check whether it is safe to substitute
-        const TOXIC: PartialExpr = PartialExpr::Var(usize::MAX);
-        if self.values[i1.0] == TOXIC {
+        if self.toxic_values.contains(&i1) {
             self.errors.push(());
             return;
         }
 
-        // Solve e2
-        match self.values[i1.0] {
+        return match self.values[i1.0] {
             PartialExpr::Type => {
                 self.values[i2.0] = PartialExpr::Type;
+                self.handle_constraints(i2, s2);
+            }
+            PartialExpr::Let(v1, b1) => {
+                self.expect_beq_free(
+                    (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
+                    (i2, &s2, var_map2),
+                );
             }
             PartialExpr::Var(v1) => {
                 match &s1[v1] {
@@ -151,14 +156,17 @@ impl TcEnv {
                         self.expect_beq_free((*i1, &s1, var_map1), (i2, s2, var_map2));
                     }
                 }
+                self.handle_constraints(i2, s2);
             }
             PartialExpr::FnType(a1, b1) => {
                 let a2 = self.store(PartialExpr::Free);
                 let b2 = self.store(PartialExpr::Free);
-                self.values[i2.0] = TOXIC;
+                self.values[i2.0] = PartialExpr::FnType(a2, b2);
 
+                self.handle_constraints(i2, s2);
+
+                self.toxic_values.insert(i2);
                 self.expect_beq_free((a1, &s1, var_map1), (a2, s2, var_map2));
-
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -166,76 +174,76 @@ impl TcEnv {
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
                 );
-
-                self.values[i2.0] = PartialExpr::FnType(a2, b2);
             }
             PartialExpr::FnConstruct(a1, b1) => {
-                let a2 = self.store(PartialExpr::Free);
-                let b2 = self.store(PartialExpr::Free);
-                self.values[i2.0] = TOXIC;
+                // let a2 = self.store(PartialExpr::Free);
+                // let b2 = self.store(PartialExpr::Free);
+                // self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
+                //
+                // self.toxic_values.insert(i2);
+                // self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+                //
+                // let id = self.new_tc_id();
+                // var_map1.insert(id, s1.len());
+                // var_map2.insert(id, s2.len());
+                // self.expect_beq_free(
+                //     (b1, &s1.cons(RType(id)), var_map1),
+                //     (b2, &s2.cons(RType(id)), var_map2),
+                // );
+                //
+                // self.handle_constraints(i2, s2);
+                // self.toxic_values.remove(&i2);
 
-                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
-
-                let id = self.new_tc_id();
-                var_map1.insert(id, s1.len());
-                var_map2.insert(id, s2.len());
-                self.expect_beq_free(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
-                );
-
-                self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
+                //TODO
+                self.errors.push(());
+                return;
             }
-            PartialExpr::FnDestruct(f1, a1) => {
-                let f2 = self.store(PartialExpr::Free);
-                let a2 = self.store(PartialExpr::Free);
-                self.values[i2.0] = TOXIC;
+            PartialExpr::FnDestruct(_, _) => {
+                //         let f2 = self.store(PartialExpr::Free);
+                //         let a2 = self.store(PartialExpr::Free);
+                //         self.values[i2.0] = TOXIC;
+                //
+                //         self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
+                //         self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+                //
+                //         self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
+                //TODO
+                self.errors.push(());
+                return;
 
-                self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
-                self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
-
-                self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
+                self.handle_constraints(i2, s2);
             }
             PartialExpr::Free => {
-                // //TODO can this happen? If so early exit
-                // debug_assert_ne!(i1, i2);
-                //
-                // // Queue this constraint and early-exit
-                // // TODO clones of varmaps are slow, structural sharing?
-                // self.queued_beq.entry(i1).or_default().push((
-                //     (s1.clone(), var_map1.clone()),
-                //     (i2, s2.clone(), var_map2.clone()),
-                // ));
-                // self.queued_beq.entry(i2).or_default().push((
-                //     (s2.clone(), var_map2.clone()),
-                //     (i1, s1.clone(), var_map1.clone()),
-                // ));
-                // return;
-            }
-            PartialExpr::Let(v1, b1) => {
-                self.expect_beq_free(
-                    (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
-                    (i2, &s2, var_map2),
-                );
+                self.queued_beq_free.entry(i1).or_default().push((
+                    (s1.clone(), var_map1.clone()),
+                    (i2, s2.clone(), var_map2.clone()),
+                ));
+                self.queued_beq_free.entry(i2).or_default().push((
+                    (s2.clone(), var_map2.clone()),
+                    (i1, s1.clone(), var_map1.clone()),
+                ));
             }
             PartialExpr::Shift(v1, i) => {
                 self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, &s2, var_map2));
             }
         }
 
-        // // Check queued constraints
-        // if let Some(queued) = self.queued_beq.remove(&i2) {
-        //     for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
-        //         // Sanity checks
-        //         debug_assert_eq!(s2.len(), s2n.len());
-        //
-        //         //TODO performance: this causes expect_beq(i3, i2) to be executed
-        //         self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
-        //     }
-        // }
         // if let Some((s, t2)) = self.queued_tc.remove(&i2) {
         //     let t1 = self._type_check(i2, &s);
         //     self.expect_beq(t1, t2, &s);
         // }
+    }
+
+    fn handle_constraints(&mut self, i2: UnionIndex, s2: &Env) {
+        // Check queued constraints
+        if let Some(queued) = self.queued_beq_free.remove(&i2) {
+            for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
+                // Sanity checks
+                debug_assert_eq!(s2.len(), s2n.len());
+
+                //TODO performance: this causes expect_beq(i3, i2) to be executed
+                self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
+            }
+        }
     }
 }

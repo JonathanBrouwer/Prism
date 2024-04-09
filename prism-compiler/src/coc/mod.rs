@@ -1,6 +1,6 @@
 use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::type_check::TcError;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
@@ -21,8 +21,10 @@ pub struct TcEnv {
     values: Vec<PartialExpr>,
     tc_id: usize,
     pub errors: Vec<TcError>,
+    toxic_values: HashSet<UnionIndex>,
 
     // Queues
+    queued_beq_free: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
     //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
