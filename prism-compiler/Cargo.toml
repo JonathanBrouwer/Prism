@@ -10,6 +10,7 @@ prism-parser = { path = "../prism-parser" }
 rpds = "1.1.0"
 lazy_static = "1.4.0"
 exhaustive = "0.2.1"
+ariadne = "0.4.0"
 
 [dev-dependencies]
 test_each_file = "0.3.0"

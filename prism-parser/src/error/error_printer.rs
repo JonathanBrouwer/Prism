@@ -47,7 +47,7 @@ pub fn print_base(span: Span) -> ReportBuilder<'static, Span> {
         //Config
         .with_config(
             Config::default()
-                .with_compact(true)
+                // .with_compact(true)
                 .with_label_attach(LabelAttach::Start),
         )
         //Header

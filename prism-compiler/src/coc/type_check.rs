@@ -3,8 +3,8 @@ use crate::coc::env::EnvEntry::*;
 use crate::coc::UnionIndex;
 use crate::coc::{PartialExpr, TcEnv};
 use std::mem;
-
-pub type TcError = ();
+use crate::coc::error::TcError;
+use crate::coc::error::TcError::IndexOutOfBound;
 
 impl TcEnv {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, Vec<TcError>> {
@@ -33,17 +33,17 @@ impl TcEnv {
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Let(v, bt)
             }
-            PartialExpr::Var(i) => PartialExpr::Shift(
-                match s.get(i) {
+            PartialExpr::Var(index) => PartialExpr::Shift(
+                match s.get(index) {
                     Some(&CType(_, t)) => t,
                     Some(&CSubst(_, t)) => t,
                     None => {
-                        self.errors.push(());
+                        self.errors.push(IndexOutOfBound(i));
                         self.store(PartialExpr::Free)
                     }
                     _ => unreachable!(),
                 },
-                i + 1,
+                index + 1,
             ),
             PartialExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();

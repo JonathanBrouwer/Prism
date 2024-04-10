@@ -1,6 +1,6 @@
 use crate::coc::env::{Env, UniqueVariableId};
-use crate::coc::type_check::TcError;
 use std::collections::{HashMap, HashSet};
+use crate::coc::error::TcError;
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -12,6 +12,7 @@ pub mod from_action_result;
 mod is_beta_equal;
 mod simplify;
 pub mod type_check;
+mod error;
 
 #[derive(Default)]
 pub struct TcEnv {

@@ -3,6 +3,7 @@ use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::UnionIndex;
 use crate::coc::{PartialExpr, TcEnv};
 use std::collections::HashMap;
+use crate::coc::error::TcError;
 
 impl TcEnv {
     /// Invariant: `a` and `b` are valid in `s`
@@ -26,17 +27,17 @@ impl TcEnv {
             (PartialExpr::Type, PartialExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
             }
-            (PartialExpr::Var(i1), PartialExpr::Var(i2)) => {
-                let id1 = match s1[i1] {
+            (PartialExpr::Var(index1), PartialExpr::Var(index2)) => {
+                let id1 = match s1[index1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
-                let id2 = match s2[i2] {
+                let id2 = match s2[index2] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 if id1 != id2 {
-                    self.errors.push(());
+                    self.errors.push(TcError::ExpectEq(i1, i2));
                 }
             }
             (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
@@ -70,7 +71,7 @@ impl TcEnv {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1));
             }
             _ => {
-                self.errors.push(());
+                self.errors.push(TcError::ExpectEq(i1, i2));
             }
         }
     }
@@ -84,7 +85,7 @@ impl TcEnv {
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
 
         if self.toxic_values.contains(&i1) {
-            self.errors.push(());
+            self.errors.push(TcError::InfiniteType(i1));
             return;
         }
 
@@ -103,14 +104,18 @@ impl TcEnv {
                 match &s1[v1] {
                     &CType(id, _) => {
                         // We may have shifted away part of the env that we need during this beq
-                        // AFAIK this can only happen in programs that have too many frees in them
-                        // We still need to check for this since otherwise we'll continue type checking based on wrong assumptions
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             return;
                         };
                         let CType(id2, _) = s2[v2] else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             return;
                         };
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
@@ -122,11 +127,17 @@ impl TcEnv {
                         // Same story as above, except we don't have the `id` to double check with here.
                         // The logic should still hold even without the sanity check though
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             return;
                         };
                         let CSubst(_, _) = s2[v2] else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             return;
                         };
 
@@ -135,17 +146,26 @@ impl TcEnv {
                     &RType(id) => {
                         // If `id` still exists in s2, we will find it here
                         let Some(v2) = s2.len().checked_sub(var_map2[&id] + 1) else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             return;
                         };
                         // Check if it still exists, if not we shifted it out and another entry came in the place for it
                         let RType(id2) = s2[v2] else {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             panic!("I think this can happen but I want an example for it");
                             // TODO return;
                         };
                         if id != id2 {
-                            self.errors.push(());
+                            self.errors.push(TcError::BadInfer {
+                                free_var: i2,
+                                inferred_var: i1,
+                            });
                             panic!("I think this can happen but I want an example for it");
                             // TODO return;
                         }
