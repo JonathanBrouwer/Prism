@@ -54,10 +54,13 @@ impl TcEnv {
                     a = self.store(PartialExpr::Free);
                 }
 
+                let err_count = self.errors.len();
                 let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
-                let bt_expect = self.store(PartialExpr::Type);
-                self.expect_beq(bt, bt_expect, &bs);
+                if self.errors.len() == err_count {
+                    let bt_expect = self.store(PartialExpr::Type);
+                    self.expect_beq(bt, bt_expect, &bs);
+                }
 
                 PartialExpr::Type
             }

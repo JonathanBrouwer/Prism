@@ -1,8 +1,6 @@
 use crate::coc::env::{Env, UniqueVariableId};
 use crate::coc::type_check::TcError;
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
 
 mod beta_reduce;
 mod beta_reduce_head;

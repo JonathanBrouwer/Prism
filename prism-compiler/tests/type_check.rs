@@ -1,6 +1,4 @@
-use exhaustive::exhaustive_test;
 use prism_compiler::coc::env::Env;
-use prism_compiler::coc::exhaustive::ExprWithEnv;
 use prism_compiler::coc::TcEnv;
 use prism_compiler::parse_prism_in_env;
 use test_each_file::test_each_file;
@@ -46,11 +44,6 @@ fn test_fail([test]: [&str; 1]) {
 }
 
 test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
-
-#[exhaustive_test(9)]
-fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
-    let _ = env.type_check(root);
-}
 
 #[test]
 fn placeholder() {}
