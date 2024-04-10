@@ -74,5 +74,5 @@ fn dumb_shift() {
     
     // Test
     env.expect_beq(left, right, &s);
-    //TODO what do we even expect here?
+    assert!(env.errors.len() > 0);
 }
