@@ -1,6 +1,6 @@
-use crate::coc::env::{Env, UniqueVariableId};
+use crate::lang::env::{Env, UniqueVariableId};
 use std::collections::{HashMap, HashSet};
-use crate::coc::error::TcError;
+use crate::lang::error::TcError;
 
 mod beta_reduce;
 mod beta_reduce_head;

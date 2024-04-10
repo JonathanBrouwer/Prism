@@ -1,5 +1,5 @@
-use prism_compiler::coc::env::{Env, EnvEntry};
-use prism_compiler::coc::{PartialExpr, TcEnv};
+use prism_compiler::lang::env::{Env, EnvEntry};
+use prism_compiler::lang::{PartialExpr, TcEnv};
 use prism_compiler::parse_prism_in_env;
 
 #[test]

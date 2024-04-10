@@ -1,9 +1,9 @@
-use crate::coc::env::EnvEntry::*;
-use crate::coc::env::{Env, UniqueVariableId};
-use crate::coc::UnionIndex;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::lang::env::EnvEntry::*;
+use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::UnionIndex;
+use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
-use crate::coc::error::TcError;
+use crate::lang::error::TcError;
 
 impl TcEnv {
     /// Invariant: `a` and `b` are valid in `s`

@@ -1,6 +1,6 @@
-use crate::coc::env::Env;
-use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv, UnionIndex};
+use crate::lang::env::Env;
+use crate::lang::env::EnvEntry::*;
+use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
     pub fn beta_reduce_head(

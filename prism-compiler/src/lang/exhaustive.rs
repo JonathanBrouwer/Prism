@@ -1,4 +1,4 @@
-use crate::coc::{PartialExpr, TcEnv, UnionIndex};
+use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 use exhaustive::{DataSourceTaker, Exhaustive};
 use std::fmt::{Debug, Formatter};
 

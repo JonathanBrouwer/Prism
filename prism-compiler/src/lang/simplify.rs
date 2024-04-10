@@ -1,6 +1,6 @@
-use crate::coc::env::{Env, EnvEntry, UniqueVariableId};
-use crate::coc::UnionIndex;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
+use crate::lang::UnionIndex;
+use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
 impl TcEnv {

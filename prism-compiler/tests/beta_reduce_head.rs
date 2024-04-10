@@ -1,5 +1,5 @@
-use prism_compiler::coc::env::Env;
-use prism_compiler::coc::TcEnv;
+use prism_compiler::lang::env::Env;
+use prism_compiler::lang::TcEnv;
 use prism_compiler::parse_prism_in_env;
 use test_each_file::test_each_file;
 

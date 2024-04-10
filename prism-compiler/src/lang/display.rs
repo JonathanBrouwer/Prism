@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
-use crate::coc::display::PrecedenceLevel::*;
-use crate::coc::{PartialExpr, TcEnv, UnionIndex};
+use crate::lang::display::PrecedenceLevel::*;
+use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 enum PrecedenceLevel {

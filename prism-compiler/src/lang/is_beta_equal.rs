@@ -1,6 +1,6 @@
-use crate::coc::env::Env;
-use crate::coc::env::EnvEntry::*;
-use crate::coc::{PartialExpr, TcEnv, UnionIndex};
+use crate::lang::env::Env;
+use crate::lang::env::EnvEntry::*;
+use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
     pub fn is_beta_equal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) -> bool {

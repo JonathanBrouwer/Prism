@@ -1,6 +1,6 @@
 use ariadne::{Config, LabelAttach, Report, ReportKind};
 use prism_parser::core::span::Span;
-use crate::coc::{TcEnv, UnionIndex};
+use crate::lang::{TcEnv, UnionIndex};
 
 pub enum TcError {
     ExpectEq(UnionIndex, UnionIndex),

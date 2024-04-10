@@ -1,10 +1,10 @@
-use crate::coc::env::Env;
-use crate::coc::env::EnvEntry::*;
-use crate::coc::UnionIndex;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::lang::env::Env;
+use crate::lang::env::EnvEntry::*;
+use crate::lang::UnionIndex;
+use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
-use crate::coc::error::TcError;
-use crate::coc::error::TcError::IndexOutOfBound;
+use crate::lang::error::TcError;
+use crate::lang::error::TcError::IndexOutOfBound;
 
 impl TcEnv {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, Vec<TcError>> {

@@ -1,5 +1,5 @@
-use crate::coc::UnionIndex;
-use crate::coc::{PartialExpr, TcEnv};
+use crate::lang::UnionIndex;
+use crate::lang::{PartialExpr, TcEnv};
 use prism_parser::rule_action::action_result::ActionResult;
 
 impl TcEnv {
