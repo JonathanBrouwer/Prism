@@ -1,6 +1,5 @@
-* Implement unification solver
-  * Nadenken over infinite types, check toevoegen
 * Spans & error messages
+* * Queued type constraints
 * Maybe remove type from FnConstruct? Think about how to desugar
 * Make parser non-recursive
 * Think about how to do names

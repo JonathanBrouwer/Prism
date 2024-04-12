@@ -1,19 +1,20 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use std::collections::{HashMap, HashSet};
 use prism_parser::core::span::Span;
-use crate::lang::error::TcError;
+use crate::lang::error::TypeError;
 
 mod beta_reduce;
 mod beta_reduce_head;
-mod display;
+pub mod display;
 pub mod env;
 pub mod exhaustive;
 mod expect_beq;
 pub mod from_action_result;
-mod is_beta_equal;
-mod simplify;
+pub mod is_beta_equal;
+pub mod simplify;
 pub mod type_check;
-mod error;
+pub mod error;
+mod expect_beq_internal;
 
 #[derive(Default)]
 pub struct TcEnv {
@@ -22,7 +23,7 @@ pub struct TcEnv {
     value_origins: Vec<ValueOrigin>,
 
     tc_id: usize,
-    pub errors: Vec<TcError>,
+    pub errors: Vec<TypeError>,
     toxic_values: HashSet<UnionIndex>,
 
     // Queues
@@ -33,7 +34,6 @@ pub struct TcEnv {
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
     SourceCode(Span),
-    IsType(UnionIndex),
     TypeOf(UnionIndex),
     FreeSub(UnionIndex),
     FreeValueFailure(UnionIndex),
@@ -64,7 +64,7 @@ impl TcEnv {
     pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
         self.store(e, ValueOrigin::Test)
     }
-    
+
     fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
         self.values.push(e);
         self.value_origins.push(origin);

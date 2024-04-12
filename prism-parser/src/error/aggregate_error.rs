@@ -17,11 +17,11 @@ impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p> AggregatedParseError<'p, E> {
     }
 }
 
-pub trait ResultExt<T> {
+pub trait ParseResultExt<T> {
     fn unwrap_or_eprint(self) -> T;
 }
 
-impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p, T> ResultExt<T> for Result<T, AggregatedParseError<'p, E>> {
+impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p, T> ParseResultExt<T> for Result<T, AggregatedParseError<'p, E>> {
     fn unwrap_or_eprint(self) -> T {
         self.unwrap_or_else(|es| {
             es.eprint().unwrap();

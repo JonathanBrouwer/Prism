@@ -39,7 +39,7 @@ impl Display for ErrorLabel<'_> {
 }
 
 pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
-    Report::build(ReportKind::Error, (), span.start.into())
+    Report::build(ReportKind::Error, (), 0)
         //Config
         .with_config(
             Config::default()

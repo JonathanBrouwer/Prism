@@ -3,19 +3,19 @@ use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
-use crate::lang::error::TcError;
-use crate::lang::error::TcError::IndexOutOfBound;
-use crate::lang::ValueOrigin::{FreeTypeFailure, FreeValueFailure, IsType, TypeOf};
+use crate::lang::error::{AggregatedTypeError};
+use crate::lang::error::TypeError::IndexOutOfBound;
+use crate::lang::ValueOrigin::{FreeTypeFailure, FreeValueFailure, TypeOf};
 
 impl TcEnv {
-    pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, Vec<TcError>> {
+    pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
         let ti = self._type_check(root, &Env::new());
 
         let errors = mem::take(&mut self.errors);
         if errors.is_empty() {
             Ok(ti)
         } else {
-            Err(errors)
+            Err(AggregatedTypeError { errors })
         }
     }
 
@@ -49,8 +49,7 @@ impl TcEnv {
             PartialExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
-                let at_expect = self.store(PartialExpr::Type, IsType(at));
-                self.expect_beq(at, at_expect, &s);
+                self.expect_beq_type(at, &s);
                 if self.errors.len() > err_count {
                     a = self.store(PartialExpr::Free, FreeValueFailure(a));
                 }
@@ -59,8 +58,7 @@ impl TcEnv {
                 let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
                 if self.errors.len() == err_count {
-                    let bt_expect = self.store(PartialExpr::Type, IsType(bt));
-                    self.expect_beq(bt, bt_expect, &bs);
+                    self.expect_beq_type(bt, &bs);
                 }
 
                 PartialExpr::Type
@@ -68,8 +66,7 @@ impl TcEnv {
             PartialExpr::FnConstruct(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
-                let at_expect = self.store(PartialExpr::Type, IsType(at));
-                self.expect_beq(at, at_expect, &s);
+                self.expect_beq_type(at, &s);
                 if self.errors.len() > err_count {
                     a = self.store(PartialExpr::Free, FreeValueFailure(a));
                 }

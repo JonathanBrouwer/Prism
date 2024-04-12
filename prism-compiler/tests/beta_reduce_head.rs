@@ -2,7 +2,7 @@ use prism_compiler::lang::env::Env;
 use prism_compiler::lang::TcEnv;
 use test_each_file::test_each_file;
 use prism_compiler::parser::parse_prism_in_env;
-use prism_parser::error::aggregate_error::ResultExt;
+use prism_parser::error::aggregate_error::ParseResultExt;
 
 fn test([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();

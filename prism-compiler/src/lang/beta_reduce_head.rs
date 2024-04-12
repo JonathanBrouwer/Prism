@@ -4,7 +4,7 @@ use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 
 impl TcEnv {
     pub fn beta_reduce_head(
-        &mut self,
+        &self,
         mut start_expr: UnionIndex,
         mut start_env: Env,
     ) -> (UnionIndex, Env) {

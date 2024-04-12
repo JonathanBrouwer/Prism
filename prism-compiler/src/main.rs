@@ -1,7 +1,4 @@
-use prism_compiler::lang::{TcEnv, UnionIndex};
 use prism_compiler::parser::parse_prism;
-use prism_parser::error::aggregate_error::{AggregatedParseError, ResultExt};
-use prism_parser::error::set_error::SetError;
 
 fn main() {
     let input = include_str!("../resources/program.pr");
@@ -25,10 +22,7 @@ fn main() {
             tc_env.index_to_br_string(i)
         ),
         Err(e) => {
-            for e in e {
-                
-            }
-            println!("Type check failed.");
+            e.eprint(&tc_env, input).unwrap();
             return;
         }
     }
