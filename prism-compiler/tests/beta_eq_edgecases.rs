@@ -1,7 +1,7 @@
 use prism_compiler::lang::env::{Env, EnvEntry};
 use prism_compiler::lang::{PartialExpr, TcEnv};
 use prism_compiler::parser::parse_prism_in_env;
-use prism_parser::error::aggregate_errors::ResultExt;
+use prism_parser::error::aggregate_error::ResultExt;
 
 #[test]
 fn test_inference_in_scopes() {

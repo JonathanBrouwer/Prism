@@ -1,6 +1,6 @@
 use prism_compiler::lang::{TcEnv, UnionIndex};
 use prism_compiler::parser::parse_prism;
-use prism_parser::error::aggregate_errors::{AggregatedParseError, ResultExt};
+use prism_parser::error::aggregate_error::{AggregatedParseError, ResultExt};
 use prism_parser::error::set_error::SetError;
 
 fn main() {

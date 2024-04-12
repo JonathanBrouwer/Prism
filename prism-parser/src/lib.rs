@@ -11,7 +11,7 @@ use crate::rule_action::from_action_result::parse_rule_action;
 use crate::rule_action::RuleAction;
 use grammar::from_action_result::parse_grammarfile;
 use std::collections::HashMap;
-use crate::error::aggregate_errors::AggregatedParseError;
+use crate::error::aggregate_error::AggregatedParseError;
 
 pub mod core;
 pub mod error;

@@ -35,7 +35,7 @@ macro_rules! parse_test {
             use prism_parser::error::tree_error::TreeError;
             use prism_parser::rule_action::RuleAction;
             use itertools::Itertools;
-            use prism_parser::error::aggregate_errors::ResultExt;
+            use prism_parser::error::aggregate_error::ResultExt;
 
             let syntax: &'static str = $syntax;
             let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax).unwrap_or_eprint();

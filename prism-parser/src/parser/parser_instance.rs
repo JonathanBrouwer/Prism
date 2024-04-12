@@ -14,7 +14,7 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::error::aggregate_errors::AggregatedParseError;
+use crate::error::aggregate_error::AggregatedParseError;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,

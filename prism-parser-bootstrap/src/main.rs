@@ -8,7 +8,7 @@ use prism_parser::rule_action::RuleAction;
 use prism_parser::{run_parser_rule_here, META_GRAMMAR, parse_grammar};
 use std::fs::{read, File};
 use prism_parser::error::set_error::SetError;
-use prism_parser::error::aggregate_errors::ResultExt;
+use prism_parser::error::aggregate_error::ResultExt;
 
 fn main() {
     normal();
