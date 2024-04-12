@@ -3,18 +3,20 @@ use crate::core::span::Span;
 use crate::error::ParseError;
 use std::cmp::max;
 use std::collections::HashSet;
-use std::hash::Hash;
+use ariadne::{Label, Report};
+use itertools::Itertools;
+use crate::error::error_printer::{base_report, ErrorLabel};
 
 /// Set error keeps track of the set of labels at the furthest position.
-#[derive(Clone, Debug)]
-pub struct SetError<L: Eq + Hash + Clone> {
+#[derive(Clone)]
+pub struct SetError<'grm> {
     pub span: Span,
-    pub labels: HashSet<L>,
+    pub labels: HashSet<ErrorLabel<'grm>>,
     pub explicit: bool,
 }
 
-impl<L: Eq + Hash + Clone> ParseError for SetError<L> {
-    type L = L;
+impl<'grm> ParseError for SetError<'grm> {
+    type L = ErrorLabel<'grm>;
 
     fn new(span: Span) -> Self {
         Self {
@@ -53,5 +55,26 @@ impl<L: Eq + Hash + Clone> ParseError for SetError<L> {
 
     fn set_end(&mut self, end: Pos) {
         self.span.end = end;
+    }
+
+    fn report(&self, enable_debug: bool) -> Report<'static, Span> {
+        let mut report = base_report(self.span);
+
+        //Add labels
+        for (start, labels) in self
+            .labels
+            .iter()
+            .filter(|l| enable_debug || !l.is_debug())
+            .into_group_map_by(|l| l.span().start)
+            .into_iter()
+        {
+            report = report.with_label(
+                Label::new(start.span_to(start))
+                    .with_message(format!("Expected {}", labels.into_iter().format(" / ")))
+                    .with_order(-(<Pos as Into<usize>>::into(start) as i32)),
+            );
+        }
+
+        report.finish()
     }
 }

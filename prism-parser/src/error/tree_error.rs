@@ -5,6 +5,8 @@ use itertools::Itertools;
 use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
+use ariadne::{Label, Report, ReportBuilder};
+use crate::error::error_printer::{base_report, ErrorLabel};
 
 #[derive(Clone, Debug)]
 pub struct ErrorTree<L: Eq + Hash + Clone>(Option<L>, Vec<Self>);
@@ -27,14 +29,14 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
         }
     }
 
-    pub fn into_paths(self) -> Vec<Vec<L>> {
-        let mut subs = self.1.into_iter().map(|t| t.into_paths()).concat();
-        if let Some(l) = self.0 {
+    pub fn into_paths(&self) -> Vec<Vec<&L>> {
+        let mut subs = self.1.iter().map(|t| t.into_paths()).concat();
+        if let Some(l) = &self.0 {
             if subs.is_empty() {
                 subs.push(vec![l]);
             } else {
                 subs.iter_mut().for_each(|v| {
-                    v.push(l.clone());
+                    v.push(&l);
                 });
             }
         }
@@ -43,14 +45,14 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 }
 
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
-#[derive(Clone, Debug)]
-pub struct TreeError<L: Eq + Hash + Clone> {
+#[derive(Clone)]
+pub struct TreeError<'grm> {
     pub span: Span,
-    pub labels: ErrorTree<L>,
+    pub labels: ErrorTree<ErrorLabel<'grm>>,
 }
 
-impl<L: Eq + Hash + Clone> TreeError<L> {
-    fn add_label(&mut self, label: L) {
+impl<'grm> TreeError<'grm> {
+    fn add_label(&mut self, label: ErrorLabel<'grm>) {
         let mut tree = ErrorTree(None, vec![]);
         mem::swap(&mut self.labels, &mut tree);
         tree = tree.label(label);
@@ -58,8 +60,8 @@ impl<L: Eq + Hash + Clone> TreeError<L> {
     }
 }
 
-impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
-    type L = L;
+impl<'grm> ParseError for TreeError<'grm> {
+    type L = ErrorLabel<'grm>;
 
     fn new(span: Span) -> Self {
         Self {
@@ -87,5 +89,29 @@ impl<L: Eq + Hash + Clone> ParseError for TreeError<L> {
 
     fn set_end(&mut self, end: Pos) {
         self.span.end = end;
+    }
+
+    fn report(&self, enable_debug: bool) -> Report<'static, Span> {
+        let mut report: ReportBuilder<Span> = base_report(self.span);
+
+        //Add labels
+        for path in self.labels.into_paths() {
+            let path = path
+                .iter()
+                .filter(|l| enable_debug || !l.is_debug())
+                .collect_vec();
+            if path.is_empty() {
+                continue;
+            }
+            let label = &path[0];
+
+            report = report.with_label(
+                Label::new(label.span())
+                    .with_message(format!("{}", path.iter().format(" <- ")))
+                    .with_order(-(<Pos as Into<usize>>::into(label.span().start) as i32)),
+            );
+        }
+
+        report.finish()
     }
 }

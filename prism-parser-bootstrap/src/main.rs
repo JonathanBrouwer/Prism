@@ -1,26 +1,14 @@
 #![allow(dead_code)]
 
-use prism_parser::error::error_printer::print_set_error;
 use prism_parser::grammar::from_action_result::parse_grammarfile;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::rule_action::action_result::ActionResult;
 use prism_parser::rule_action::from_action_result::parse_rule_action;
 use prism_parser::rule_action::RuleAction;
-use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
+use prism_parser::{run_parser_rule_here, META_GRAMMAR, parse_grammar};
 use std::fs::{read, File};
-
-fn get_new_grammar(input: &str) -> GrammarFile<RuleAction> {
-    match parse_grammar(input) {
-        Ok(o) => o,
-        Err(es) => {
-            for e in es {
-                // print_tree_error(e, "file", input, true);
-                print_set_error(e, input, true);
-            }
-            panic!();
-        }
-    }
-}
+use prism_parser::error::set_error::SetError;
+use prism_parser::error::aggregate_errors::ResultExt;
 
 fn main() {
     normal();
@@ -30,7 +18,7 @@ fn main() {
 
 fn normal() {
     let input = include_str!("../resources/meta.grammar");
-    let grammar2 = get_new_grammar(input);
+    let grammar2 = parse_grammar::<SetError>(input).unwrap_or_eprint();
 
     // let grammar: &'static GrammarFile = &META_GRAMMAR;
     // assert_eq!(grammar, &grammar2); // Safety check
@@ -44,17 +32,8 @@ fn normal() {
 fn part1() {
     let input = include_str!("../resources/meta.grammar");
 
-    run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", input);
-    let result = match result {
-        Ok(o) => o,
-        Err(es) => {
-            for e in es {
-                // print_tree_error(e, "file", input, true);
-                print_set_error(e, input, true);
-            }
-            return;
-        }
-    };
+    run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
+    let result = result.unwrap_or_eprint();
 
     let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
     bincode::serialize_into(&mut file, &result).unwrap();

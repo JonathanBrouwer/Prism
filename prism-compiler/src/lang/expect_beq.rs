@@ -4,6 +4,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 use crate::lang::error::TcError;
+use crate::lang::ValueOrigin::FreeSub;
 
 impl TcEnv {
     /// Invariant: `a` and `b` are valid in `s`
@@ -179,8 +180,8 @@ impl TcEnv {
                 self.handle_constraints(i2, s2);
             }
             PartialExpr::FnType(a1, b1) => {
-                let a2 = self.store(PartialExpr::Free);
-                let b2 = self.store(PartialExpr::Free);
+                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
+                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
                 self.values[i2.0] = PartialExpr::FnType(a2, b2);
 
                 self.handle_constraints(i2, s2);
@@ -196,8 +197,8 @@ impl TcEnv {
                 );
             }
             PartialExpr::FnConstruct(a1, b1) => {
-                let a2 = self.store(PartialExpr::Free);
-                let b2 = self.store(PartialExpr::Free);
+                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
+                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
                 self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
 
                 self.handle_constraints(i2, s2);
@@ -214,8 +215,8 @@ impl TcEnv {
                 );
             }
             PartialExpr::FnDestruct(f1, a1) => {
-                let f2 = self.store(PartialExpr::Free);
-                let a2 = self.store(PartialExpr::Free);
+                let f2 = self.store(PartialExpr::Free, FreeSub(i2));
+                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
                 self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
 
                 self.handle_constraints(i2, s2);

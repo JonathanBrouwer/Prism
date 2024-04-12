@@ -2,10 +2,12 @@ pub mod empty_error;
 pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
+pub mod aggregate_errors;
 
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use std::cmp::Ordering;
+use ariadne::Report;
 
 pub trait ParseError: Sized + Clone {
     type L;
@@ -15,6 +17,7 @@ pub trait ParseError: Sized + Clone {
     fn add_label_implicit(&mut self, label: Self::L);
     fn merge(self, other: Self) -> Self;
     fn set_end(&mut self, end: Pos);
+    fn report(&self, enable_debug: bool) -> Report<'static, Span>;
 }
 
 pub fn err_combine<E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) -> (E, Pos) {

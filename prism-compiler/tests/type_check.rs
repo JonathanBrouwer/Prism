@@ -1,7 +1,8 @@
 use prism_compiler::lang::env::Env;
 use prism_compiler::lang::TcEnv;
-use prism_compiler::parse_prism_in_env;
 use test_each_file::test_each_file;
+use prism_compiler::parser::parse_prism_in_env;
+use prism_parser::error::aggregate_errors::ResultExt;
 
 fn test_ok([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();
@@ -9,10 +10,10 @@ fn test_ok([test]: [&str; 1]) {
     let (_eval, expected_typ) = rest.split_once("### Type\n").unwrap();
 
     let mut env = TcEnv::new();
-    let input = parse_prism_in_env(input, &mut env).expect("Failed to parse input");
+    let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
     let typ = env.type_check(input).unwrap();
 
-    let expected_typ = parse_prism_in_env(expected_typ, &mut env).expect("Failed to parse input");
+    let expected_typ = parse_prism_in_env(expected_typ, &mut env).unwrap_or_eprint();
 
     assert!(
         env.is_beta_equal(typ, &Env::new(), expected_typ, &Env::new()),
@@ -30,7 +31,7 @@ test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok 
 
 fn test_fail([test]: [&str; 1]) {
     let mut env = TcEnv::new();
-    let input = parse_prism_in_env(test, &mut env).expect("Failed to parse input");
+    let input = parse_prism_in_env(test, &mut env).unwrap_or_eprint();
     let typ = env.type_check(input);
 
     assert!(

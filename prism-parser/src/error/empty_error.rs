@@ -2,13 +2,15 @@ use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
 use std::marker::PhantomData;
+use ariadne::{Report, ReportKind};
+use crate::error::error_printer::ErrorLabel;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.
 #[derive(Clone)]
-pub struct EmptyError<L: Clone>(PhantomData<L>);
+pub struct EmptyError<'grm>(PhantomData<&'grm str>);
 
-impl<L: Clone> ParseError for EmptyError<L> {
-    type L = L;
+impl<'grm> ParseError for EmptyError<'grm> {
+    type L = ErrorLabel<'grm>;
 
     fn new(_: Span) -> Self {
         Self(PhantomData)
@@ -23,4 +25,11 @@ impl<L: Clone> ParseError for EmptyError<L> {
     }
 
     fn set_end(&mut self, _: Pos) {}
+
+    fn report(&self, _enable_debug: bool) -> Report<'static, Span> {
+        Report::build(ReportKind::Error, (), 0)
+            .with_message("Parsing error in this file")
+            .with_help("Parsing was run in fast-mode, rerun without fast-mode to get more error details")
+            .finish()
+    }
 }

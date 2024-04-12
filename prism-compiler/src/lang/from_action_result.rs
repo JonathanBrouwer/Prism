@@ -12,7 +12,7 @@ impl TcEnv {
         value: &ActionResult<'_, 'grm>,
         src: &'grm str,
     ) -> UnionIndex {
-        let ActionResult::Construct(_span, constructor, args) = value else {
+        let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!();
         };
         let inner = match *constructor {
@@ -58,6 +58,6 @@ impl TcEnv {
             }
             _ => unreachable!(),
         };
-        self.store(inner)
+        self.store_from_source(inner, *span)
     }
 }

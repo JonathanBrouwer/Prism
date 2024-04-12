@@ -32,50 +32,34 @@ macro_rules! parse_test {
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
+            use prism_parser::error::tree_error::TreeError;
             use prism_parser::rule_action::RuleAction;
             use itertools::Itertools;
+            use prism_parser::error::aggregate_errors::ResultExt;
 
             let syntax: &'static str = $syntax;
-            let grammar: GrammarFile<_> = match parse_grammar::<SetError<_>>(syntax) {
-                Ok(ok) => ok,
-                Err(es) => {
-                    for e in es {
-                        print_set_error(e, syntax, true);
-                    }
-                    panic!("Failed to parse grammar under test.");
-                }
-            };
+            let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
 
             $({
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            match run_parser_rule(&grammar, "start", input, |v| v.to_string(input)) {
-                Ok(got) => {
-                    assert_eq!($expected, got);
-                }
-                Err(es) => {
-                    for e in es {
-                        // print_set_error(e, "tests", input, true);
-                        print_tree_error(e, input, true);
-                    }
-                    panic!();
-                }
-            }
+            let got = run_parser_rule::<TreeError, _>(&grammar, "start", input, |v| v.to_string(input)).unwrap_or_eprint();
+            assert_eq!($expected, got);
             })*
 
             $({
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            match run_parser_rule::<SetError<_>, _>(&grammar, "start", input, |v| v.to_string(input)) {
+            match run_parser_rule::<SetError, _>(&grammar, "start", input, |v| v.to_string(input)) {
                 Ok(got) => {
                     println!("Got: {:?}", got);
                     panic!();
                 }
                 Err(es) => {
                     $(
-                    let got = es.iter()
+                    let got = es.errors.iter()
                         .map(|e| format!("{}..{}", e.span.start, e.span.end))
                         .join(" ");
                     assert_eq!(got, $errors);

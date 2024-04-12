@@ -37,7 +37,7 @@ fn arbitrary_rec<'a>(
         _ => unreachable!(),
     };
 
-    Ok(env.store(expr))
+    Ok(env.store_test(expr))
 }
 
 impl Debug for ExprWithEnv {

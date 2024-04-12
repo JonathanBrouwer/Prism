@@ -11,6 +11,7 @@ use crate::rule_action::from_action_result::parse_rule_action;
 use crate::rule_action::RuleAction;
 use grammar::from_action_result::parse_grammarfile;
 use std::collections::HashMap;
+use crate::error::aggregate_errors::AggregatedParseError;
 
 pub mod core;
 pub mod error;
@@ -34,7 +35,7 @@ lazy_static! {
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     grammar: &'grm str,
-) -> Result<GrammarFile<'grm, RuleAction<'grm, 'grm>>, Vec<E>> {
+) -> Result<GrammarFile<'grm, RuleAction<'grm, 'grm>>, AggregatedParseError<'grm, E>> {
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar| {
         parse_grammarfile(ar, grammar, parse_rule_action)
             .expect("Grammars parsed by the meta grammar should have a legal AST.")

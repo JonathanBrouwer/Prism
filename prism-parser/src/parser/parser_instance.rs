@@ -14,6 +14,7 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
+use crate::error::aggregate_errors::AggregatedParseError;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -56,14 +57,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
-    pub fn run(&'arn mut self, rule: &'grm str) -> Result<&'arn ActionResult<'arn, 'grm>, Vec<E>> {
+    pub fn run(&'arn mut self, rule: &'grm str) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
             .iter()
             .map(|(&k, &v)| (k, Cow::Owned(ActionResult::RuleRef(v))))
             .collect();
-        let x = parse_with_recovery(
+        let result = parse_with_recovery(
             &full_input_layout(
                 &self.state,
                 &rule_ctx,
@@ -73,7 +74,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
             &mut self.cache,
             &self.context,
         );
-        x
+        result.map_err(|errors| AggregatedParseError {
+            input: self.cache.input,
+            errors
+        })
     }
 }
 
@@ -82,7 +86,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
     rule: &'grm str,
     input: &'grm str,
     ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>) -> T,
-) -> Result<T, Vec<E>> {
+) -> Result<T, AggregatedParseError<'grm, E>> {
     let allocs: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
@@ -94,14 +98,14 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
 
 #[macro_export]
 macro_rules! run_parser_rule_here {
-    ($id: ident = $rules: expr, $rule: expr, $input: expr) => {
+    ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
         let bump = $crate::core::cache::Allocs {
             alo_grammarfile: &$crate::parser::parser_instance::Arena::new(),
             alo_grammarstate: &$crate::parser::parser_instance::Arena::new(),
             alo_ar: &$crate::parser::parser_instance::Arena::new(),
         };
         let mut instance =
-            $crate::parser::parser_instance::ParserInstance::new($input, bump, $rules).unwrap();
+            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules).unwrap();
         let $id = instance.run($rule);
     };
 }
