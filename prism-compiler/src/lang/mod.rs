@@ -7,7 +7,6 @@ mod beta_reduce;
 mod beta_reduce_head;
 pub mod display;
 pub mod env;
-pub mod exhaustive;
 mod expect_beq;
 pub mod from_action_result;
 pub mod is_beta_equal;
@@ -21,6 +20,7 @@ pub struct TcEnv {
     // uf: UnionFind,
     values: Vec<PartialExpr>,
     value_origins: Vec<ValueOrigin>,
+    value_types: HashMap<UnionIndex, UnionIndex>,
 
     tc_id: usize,
     pub errors: Vec<TypeError>,

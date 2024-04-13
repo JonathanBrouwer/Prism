@@ -94,12 +94,15 @@ impl TcEnv {
                 PartialExpr::Let(a, rt)
             }
             PartialExpr::Free => {
-                let t = self.store(PartialExpr::Free, TypeOf(i));
+                let tid = self.store(PartialExpr::Free, TypeOf(i));
                 // TODO self.queued_tc.insert(i, (s.clone(), t));
-                return t;
+                self.value_types.insert(i, tid);
+                return tid;
             }
             PartialExpr::Shift(..) => unreachable!(),
         };
-        self.store(t, TypeOf(i))
+        let tid = self.store(t, TypeOf(i));
+        self.value_types.insert(i, tid);
+        tid
     }
 }

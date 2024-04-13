@@ -9,7 +9,10 @@ impl TcEnv {
     /// Invariant: `i1` and `i2` are valid in `s`
     /// Returns whether the expectation succeeded
     pub fn expect_beq(&mut self, i1: UnionIndex, i2: UnionIndex, s: &Env) {
-        self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new()));
+        if !self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new())) {
+            //TODO fix this
+            self.errors.push(TypeError::InfiniteType(i1));
+        }
         self.toxic_values.clear();
     }
 
@@ -20,7 +23,9 @@ impl TcEnv {
             PartialExpr::Type => {}
             PartialExpr::Free => {
                 self.values[i.0] = PartialExpr::Type;
-                self.handle_constraints(i, &s);
+                if !self.handle_constraints(i, &s) {
+                    self.errors.push(TypeError::ExpectType(io));
+                }
             }
             _ => {
                 self.errors.push(TypeError::ExpectType(io));

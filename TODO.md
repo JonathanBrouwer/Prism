@@ -23,3 +23,9 @@
   * `irrelevant/compile time only/available at runtime` notation on `variables`
 
   * `copy` types are opt-out, everything is automatically copy unless you don't want it to be
+
+* Visiblity:
+  * 3 different types of visibility:
+    * fully public: Both the signature and the implementation of the function are public. Changing anything about the implementation is a breaking change.
+    * public signature: The signature is public, but the implementation is not (this is relevant for evaluation during type checking). In this mode, functions can be fully evaluated but not partially evaluated during type checking. This makes sure you can change the implementation and as long as the input-output behaviour is unchanged it's not a breaking change
+    * private: Not visible, like in rust

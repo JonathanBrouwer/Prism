@@ -22,7 +22,7 @@ fn main() {
             tc_env.index_to_br_string(i)
         ),
         Err(e) => {
-            e.eprint(&tc_env, input).unwrap();
+            e.eprint(&mut tc_env, input).unwrap();
             return;
         }
     }
