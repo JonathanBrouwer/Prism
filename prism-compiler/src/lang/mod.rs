@@ -1,5 +1,6 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
+use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use std::collections::{HashMap, HashSet};
 
@@ -15,6 +16,11 @@ pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
 
+type QueuedConstraint = (
+    (Env, HashMap<UniqueVariableId, usize>),
+    (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
+);
+
 #[derive(Default)]
 pub struct TcEnv {
     // uf: UnionFind,
@@ -27,13 +33,8 @@ pub struct TcEnv {
     toxic_values: HashSet<UnionIndex>,
 
     // Queues
-    queued_beq_free: HashMap<
-        UnionIndex,
-        Vec<(
-            (Env, HashMap<UniqueVariableId, usize>),
-            (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
-        )>,
-    >, //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
+    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint>>,
+    //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -43,7 +44,6 @@ pub enum ValueOrigin {
     FreeSub(UnionIndex),
     FreeValueFailure(UnionIndex),
     FreeTypeFailure(UnionIndex),
-    Test,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -67,7 +67,10 @@ impl TcEnv {
     }
 
     pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
-        self.store(e, ValueOrigin::Test)
+        self.store(
+            e,
+            ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
+        )
     }
 
     fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {

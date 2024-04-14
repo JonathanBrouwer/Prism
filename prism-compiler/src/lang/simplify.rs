@@ -54,7 +54,9 @@ impl TcEnv {
                 PartialExpr::FnDestruct(a, b)
             }
             PartialExpr::Free => PartialExpr::Free,
-            PartialExpr::Shift(b, i) => return self.simplify_inner(b, &s.shift(i), var_map),
+            PartialExpr::Shift(b, i) => {
+                return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map)
+            }
         };
         self.store(e_new, self.value_origins[i.0])
     }

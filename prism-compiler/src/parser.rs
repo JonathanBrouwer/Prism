@@ -9,7 +9,7 @@ use prism_parser::rule_action::RuleAction;
 
 lazy_static! {
     pub static ref GRAMMAR: GrammarFile<'static, RuleAction<'static, 'static>> =
-        { parse_grammar::<SetError>(include_str!("../resources/grammar")).unwrap_or_eprint() };
+        parse_grammar::<SetError>(include_str!("../resources/grammar")).unwrap_or_eprint();
 }
 
 pub fn parse_prism_in_env<'p>(

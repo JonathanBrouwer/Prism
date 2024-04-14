@@ -2,9 +2,9 @@ use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
 use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
-use crate::lang::ValueOrigin::FreeSub;
 
 impl TcEnv {
     /// Expect `io` to be equal to `Type`.
@@ -34,7 +34,6 @@ impl TcEnv {
 
         match self.values[fr.0] {
             PartialExpr::FnType(f_at, f_rt) => {
-
                 if !self.expect_beq_internal((f_at, &sr, &mut var_map1), (at, s, &mut var_map2)) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
@@ -70,15 +69,13 @@ impl TcEnv {
                 let id = self.new_tc_id();
                 var_map1.insert(id, sr.len());
                 var_map2.insert(id, s.len());
-                
+
                 debug_assert!(self.expect_beq_free(
                     (f_rt, &sr.cons(RType(id)), &mut var_map1),
                     (rt, &s.cons(RType(id)), &mut var_map2),
                 ));
             }
-            _ => {
-                self.errors.push(TypeError::ExpectFn(ft))
-            }
+            _ => self.errors.push(TypeError::ExpectFn(ft)),
         }
 
         self.toxic_values.clear();

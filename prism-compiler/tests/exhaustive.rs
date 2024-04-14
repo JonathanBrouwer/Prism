@@ -50,5 +50,12 @@ impl Debug for ExprWithEnv {
 
 #[exhaustive_test(9)]
 fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
-    let _ = env.type_check(root);
+    match env.type_check(root) {
+        Ok(_) => {}
+        Err(errs) => {
+            for err in errs.errors {
+                env.report(&err);
+            }
+        }
+    }
 }

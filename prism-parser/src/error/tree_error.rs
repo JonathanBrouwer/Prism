@@ -36,7 +36,7 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
                 subs.push(vec![l]);
             } else {
                 subs.iter_mut().for_each(|v| {
-                    v.push(&l);
+                    v.push(l);
                 });
             }
         }

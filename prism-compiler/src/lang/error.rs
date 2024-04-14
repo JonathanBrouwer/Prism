@@ -23,32 +23,31 @@ pub enum TypeError {
 }
 
 impl TcEnv {
-    pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
+    pub fn report(&mut self, error: &TypeError) -> Report<'static, Span> {
         let report = Report::build(ReportKind::Error, (), 0);
-        Some(match error {
+        match error {
             TypeError::ExpectType(i) => {
-                let label = match self.value_origins[i.0] {
-                    ValueOrigin::TypeOf(j) => match self.value_origins[j.0] {
-                        ValueOrigin::SourceCode(span) => Label::new(span).with_message(format!(
-                            "Expected a type, found value of type: {}",
-                            self.index_to_sm_string(self.value_types[&j])
-                        )),
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
+                let ValueOrigin::TypeOf(j) = self.value_origins[i.0] else {
+                    unreachable!()
                 };
+                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                    unreachable!()
+                };
+                let label = Label::new(span).with_message(format!(
+                    "Expected a type, found value of type: {}",
+                    self.index_to_sm_string(self.value_types[&j])
+                ));
+
                 report
                     .with_message("Expected type")
                     .with_label(label)
                     .finish()
             }
             TypeError::IndexOutOfBound(i) => {
-                let label = match self.value_origins[i.0] {
-                    ValueOrigin::SourceCode(span) => {
-                        Label::new(span).with_message("This index is out of bounds.")
-                    }
-                    _ => unreachable!(),
+                let ValueOrigin::SourceCode(span) = self.value_origins[i.0] else {
+                    unreachable!()
                 };
+                let label = Label::new(span).with_message("This index is out of bounds.");
 
                 report
                     .with_message("De Bruijn index out of bounds")
@@ -56,49 +55,60 @@ impl TcEnv {
                     .finish()
             }
             TypeError::ExpectFn(i) => {
-                let label = match self.value_origins[i.0] {
-                    ValueOrigin::TypeOf(j) => match self.value_origins[j.0] {
-                        ValueOrigin::SourceCode(span) => Label::new(span).with_message(format!(
-                            "Expected a function, found value of type: {}",
-                            self.index_to_sm_string(self.value_types[&j])
-                        )),
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
+                let ValueOrigin::TypeOf(j) = self.value_origins[i.0] else {
+                    unreachable!()
                 };
+                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                    unreachable!()
+                };
+                let label = Label::new(span).with_message(format!(
+                    "Expected a function, found value of type: {}",
+                    self.index_to_sm_string(self.value_types[&j])
+                ));
                 report
                     .with_message("Expected function")
                     .with_label(label)
                     .finish()
             }
-            TypeError::ExpectFnArg { function_type, function_arg_type, arg_type } => {
-                let label_arg = match self.value_origins[arg_type.0] {
-                    ValueOrigin::TypeOf(j) => match self.value_origins[j.0] {
-                        ValueOrigin::SourceCode(span) => Label::new(span).with_message(format!(
-                            "This argument has type: {}",
-                            self.index_to_sm_string(*arg_type)
-                        )),
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
+            TypeError::ExpectFnArg {
+                function_type,
+                function_arg_type,
+                arg_type,
+            } => {
+                let ValueOrigin::TypeOf(j) = self.value_origins[arg_type.0] else {
+                    unreachable!()
                 };
-
-                let label_fn = match self.value_origins[function_type.0] {
-                    ValueOrigin::TypeOf(j) => match self.value_origins[j.0] {
-                        ValueOrigin::SourceCode(span) => Label::new(span).with_message(format!(
-                            "This function takes arguments of type: {}",
-                            self.index_to_sm_string(*function_arg_type)
-                        )).with_order(1).with_color(SECONDARY_COLOR),
-                        _ => unreachable!(),
-                    },
-                    _ => unreachable!(),
+                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                    unreachable!()
                 };
+                let label_arg = Label::new(span).with_message(format!(
+                    "This argument has type: {}",
+                    self.index_to_sm_string(*arg_type)
+                ));
 
-                report.with_message("Argument type mismatch in function application").with_label(label_arg).with_label(label_fn).finish()
-            },
-            TypeError::InfiniteType(_) => todo!(),
-            TypeError::BadInfer { .. } => todo!(),
-        })
+                let ValueOrigin::TypeOf(j) = self.value_origins[function_type.0] else {
+                    unreachable!()
+                };
+                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                    unreachable!()
+                };
+                let label_fn = Label::new(span)
+                    .with_message(format!(
+                        "This function takes arguments of type: {}",
+                        self.index_to_sm_string(*function_arg_type)
+                    ))
+                    .with_order(1)
+                    .with_color(SECONDARY_COLOR);
+
+                report
+                    .with_message("Argument type mismatch in function application")
+                    .with_label(label_arg)
+                    .with_label(label_fn)
+                    .finish()
+            }
+            TypeError::InfiniteType(_) => report.finish(),
+            TypeError::BadInfer { .. } => report.finish(),
+        }
     }
 }
 
@@ -109,7 +119,7 @@ pub struct AggregatedTypeError {
 impl AggregatedTypeError {
     pub fn eprint(&self, env: &mut TcEnv, input: &str) -> io::Result<()> {
         let mut input = Source::from(input);
-        for report in self.errors.iter().flat_map(|err| env.report(err)) {
+        for report in self.errors.iter().map(|err| env.report(err)) {
             report.eprint(&mut input)?;
         }
         Ok(())

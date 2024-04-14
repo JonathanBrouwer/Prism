@@ -49,7 +49,7 @@ impl TcEnv {
             PartialExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
-                self.expect_beq_type(at, &s);
+                self.expect_beq_type(at, s);
                 if self.errors.len() > err_count {
                     a = self.store(PartialExpr::Free, FreeValueFailure(a));
                 }
@@ -66,7 +66,7 @@ impl TcEnv {
             PartialExpr::FnConstruct(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
-                self.expect_beq_type(at, &s);
+                self.expect_beq_type(at, s);
                 if self.errors.len() > err_count {
                     a = self.store(PartialExpr::Free, FreeValueFailure(a));
                 }
@@ -87,7 +87,7 @@ impl TcEnv {
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, s);
                 if self.errors.len() == err_count {
-                    self.expect_beq_fn_type(ft, at, rt, &s);
+                    self.expect_beq_fn_type(ft, at, rt, s);
                 }
 
                 PartialExpr::Let(a, rt)

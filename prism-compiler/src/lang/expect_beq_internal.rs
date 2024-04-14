@@ -91,7 +91,7 @@ impl TcEnv {
             }
             PartialExpr::Let(v1, b1) => self.expect_beq_free(
                 (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
-                (i2, &s2, var_map2),
+                (i2, s2, var_map2),
             ),
             PartialExpr::Var(v1) => {
                 let subst_equal = match &s1[v1] {
@@ -168,9 +168,7 @@ impl TcEnv {
                         self.values[i2.0] = PartialExpr::Var(v2);
                         true
                     }
-                    RSubst(i1, s1) => {
-                        self.expect_beq_free((*i1, &s1, var_map1), (i2, s2, var_map2))
-                    }
+                    RSubst(i1, s1) => self.expect_beq_free((*i1, s1, var_map1), (i2, s2, var_map2)),
                 };
                 let constraints_eq = self.handle_constraints(i2, s2);
                 subst_equal && constraints_eq
@@ -183,7 +181,7 @@ impl TcEnv {
                 let constraints_eq = self.handle_constraints(i2, s2);
 
                 self.toxic_values.insert(i2);
-                let a_eq = self.expect_beq_free((a1, &s1, var_map1), (a2, s2, var_map2));
+                let a_eq = self.expect_beq_free((a1, s1, var_map1), (a2, s2, var_map2));
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -202,7 +200,7 @@ impl TcEnv {
                 let constraints_eq = self.handle_constraints(i2, s2);
 
                 self.toxic_values.insert(i2);
-                let a_eq = self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+                let a_eq = self.expect_beq_free((a1, s1, var_map1), (a2, s2, var_map2));
 
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
@@ -222,8 +220,8 @@ impl TcEnv {
                 let constraints_eq = self.handle_constraints(i2, s2);
 
                 self.toxic_values.insert(i2);
-                let f_eq = self.expect_beq_free((f1, &s1, var_map1), (f2, &s2, var_map2));
-                let a_eq = self.expect_beq_free((a1, &s1, var_map1), (a2, &s2, var_map2));
+                let f_eq = self.expect_beq_free((f1, s1, var_map1), (f2, s2, var_map2));
+                let a_eq = self.expect_beq_free((a1, s1, var_map1), (a2, s2, var_map2));
                 constraints_eq && f_eq && a_eq
             }
             PartialExpr::Free => {
@@ -238,7 +236,7 @@ impl TcEnv {
                 true
             }
             PartialExpr::Shift(v1, i) => {
-                self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, &s2, var_map2))
+                self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, s2, var_map2))
             }
         };
     }
