@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
+use prism_parser::error::aggregate_error::ParseResultExt;
+use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::from_action_result::parse_grammarfile;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::rule_action::action_result::ActionResult;
 use prism_parser::rule_action::from_action_result::parse_rule_action;
 use prism_parser::rule_action::RuleAction;
-use prism_parser::{run_parser_rule_here, META_GRAMMAR, parse_grammar};
+use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
-use prism_parser::error::set_error::SetError;
-use prism_parser::error::aggregate_error::ParseResultExt;
 
 fn main() {
     normal();

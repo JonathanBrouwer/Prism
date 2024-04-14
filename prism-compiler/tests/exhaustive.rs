@@ -1,8 +1,8 @@
 use exhaustive::exhaustive_test;
 
 use exhaustive::{DataSourceTaker, Exhaustive};
-use std::fmt::{Debug, Formatter};
 use prism_compiler::lang::{PartialExpr, TcEnv, UnionIndex};
+use std::fmt::{Debug, Formatter};
 
 pub struct ExprWithEnv(pub TcEnv, pub UnionIndex);
 

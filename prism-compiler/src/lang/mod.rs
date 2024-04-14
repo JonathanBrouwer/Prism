@@ -1,19 +1,19 @@
 use crate::lang::env::{Env, UniqueVariableId};
-use std::collections::{HashMap, HashSet};
-use prism_parser::core::span::Span;
 use crate::lang::error::TypeError;
+use prism_parser::core::span::Span;
+use std::collections::{HashMap, HashSet};
 
 mod beta_reduce;
 mod beta_reduce_head;
 pub mod display;
 pub mod env;
+pub mod error;
 mod expect_beq;
+mod expect_beq_internal;
 pub mod from_action_result;
 pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
-pub mod error;
-mod expect_beq_internal;
 
 #[derive(Default)]
 pub struct TcEnv {
@@ -27,8 +27,13 @@ pub struct TcEnv {
     toxic_values: HashSet<UnionIndex>,
 
     // Queues
-    queued_beq_free: HashMap<UnionIndex, Vec<((Env, HashMap<UniqueVariableId, usize>), (UnionIndex, Env, HashMap<UniqueVariableId, usize>))>>
-    //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
+    queued_beq_free: HashMap<
+        UnionIndex,
+        Vec<(
+            (Env, HashMap<UniqueVariableId, usize>),
+            (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
+        )>,
+    >, //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -38,7 +43,7 @@ pub enum ValueOrigin {
     FreeSub(UnionIndex),
     FreeValueFailure(UnionIndex),
     FreeTypeFailure(UnionIndex),
-    Test
+    Test,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]

@@ -1,10 +1,10 @@
 use crate::lang::env::EnvEntry::*;
 use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::error::TypeError;
 use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
-use crate::lang::error::TypeError;
-use crate::lang::ValueOrigin::FreeSub;
 
 impl TcEnv {
     #[must_use]
@@ -66,9 +66,7 @@ impl TcEnv {
             (PartialExpr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
             }
-            _ => {
-                false
-            }
+            _ => false,
         }
     }
 
@@ -91,12 +89,10 @@ impl TcEnv {
                 self.values[i2.0] = PartialExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            PartialExpr::Let(v1, b1) => {
-                self.expect_beq_free(
-                    (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
-                    (i2, &s2, var_map2),
-                )
-            }
+            PartialExpr::Let(v1, b1) => self.expect_beq_free(
+                (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
+                (i2, &s2, var_map2),
+            ),
             PartialExpr::Var(v1) => {
                 let subst_equal = match &s1[v1] {
                     &CType(id, _) => {
@@ -244,8 +240,7 @@ impl TcEnv {
             PartialExpr::Shift(v1, i) => {
                 self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, &s2, var_map2))
             }
-        }
-
+        };
     }
 
     #[must_use]
@@ -259,7 +254,8 @@ impl TcEnv {
                 debug_assert_eq!(s2.len(), s2n.len());
 
                 //TODO performance: this causes expect_beq(i3, i2) to be executed
-                eq &= self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
+                eq &=
+                    self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
             }
         }
 

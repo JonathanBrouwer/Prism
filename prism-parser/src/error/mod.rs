@@ -1,13 +1,13 @@
+pub mod aggregate_error;
 pub mod empty_error;
 pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
-pub mod aggregate_error;
 
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use std::cmp::Ordering;
 use ariadne::Report;
+use std::cmp::Ordering;
 
 pub trait ParseError: Sized + Clone {
     type L;

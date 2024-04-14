@@ -41,10 +41,7 @@ impl Display for ErrorLabel<'_> {
 pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
     Report::build(ReportKind::Error, (), 0)
         //Config
-        .with_config(
-            Config::default()
-                .with_label_attach(LabelAttach::Start),
-        )
+        .with_config(Config::default().with_label_attach(LabelAttach::Start))
         //Header
         .with_message("Parsing error")
         //Pointing label

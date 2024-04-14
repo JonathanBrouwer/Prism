@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 use crate::core::adaptive::GrammarState;
 use crate::core::adaptive::RuleId;
+use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::GrammarFile;
@@ -11,7 +12,6 @@ use crate::rule_action::from_action_result::parse_rule_action;
 use crate::rule_action::RuleAction;
 use grammar::from_action_result::parse_grammarfile;
 use std::collections::HashMap;
-use crate::error::aggregate_error::AggregatedParseError;
 
 pub mod core;
 pub mod error;

@@ -4,6 +4,7 @@ use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
+use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::GrammarFile;
@@ -14,7 +15,6 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::error::aggregate_error::AggregatedParseError;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -57,7 +57,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstance<'arn, 'grm, E> {
-    pub fn run(&'arn mut self, rule: &'grm str) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
+    pub fn run(
+        &'arn mut self,
+        rule: &'grm str,
+    ) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = self.rules[rule];
         let rule_ctx = self
             .rules
@@ -76,7 +79,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
         );
         result.map_err(|errors| AggregatedParseError {
             input: self.cache.input,
-            errors
+            errors,
         })
     }
 }
@@ -105,7 +108,8 @@ macro_rules! run_parser_rule_here {
             alo_ar: &$crate::parser::parser_instance::Arena::new(),
         };
         let mut instance =
-            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules).unwrap();
+            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules)
+                .unwrap();
         let $id = instance.run($rule);
     };
 }

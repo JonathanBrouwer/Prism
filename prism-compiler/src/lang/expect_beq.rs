@@ -1,21 +1,12 @@
+use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{Env};
+use crate::lang::error::TypeError;
 use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
-use crate::lang::error::TypeError;
+use crate::lang::ValueOrigin::FreeSub;
 
 impl TcEnv {
-    /// Invariant: `i1` and `i2` are valid in `s`
-    /// Returns whether the expectation succeeded
-    pub fn expect_beq(&mut self, i1: UnionIndex, i2: UnionIndex, s: &Env) {
-        if !self.expect_beq_internal((i1, s, &mut HashMap::new()), (i2, s, &mut HashMap::new())) {
-            //TODO fix this
-            self.errors.push(TypeError::InfiniteType(i1));
-        }
-        self.toxic_values.clear();
-    }
-
     /// Expect `io` to be equal to `Type`.
     pub fn expect_beq_type(&mut self, io: UnionIndex, s: &Env) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
@@ -31,41 +22,65 @@ impl TcEnv {
                 self.errors.push(TypeError::ExpectType(io));
             }
         }
+        self.toxic_values.clear();
     }
 
-    /// Expect `i_o` to be a function type with argument type `i_a` both valid in `s`, returns the return value of the function.
-    /// Note: Return value needs to be shifted with `1` relative to `s`.
-    pub fn expect_beq_fn_type(&mut self, i_fo: UnionIndex, i_a: UnionIndex, s: &Env) -> UnionIndex {
-        // let (i_f, s_f) = self.beta_reduce_head(i_fo, s.clone());
-        // match self.values[i_f.0] {
-        //     PartialExpr::FnType(a, b) => {
-        //         let mut var_map1 = HashMap::new();
-        //         let mut var_map2 = HashMap::new();
-        //         
-        //         self.expect_beq_internal((i_a, s, &mut var_map1), (a, &s_f, &mut var_map2));
-        // 
-        //         let id = self.new_tc_id();
-        //         var_map1.insert(id, s1.len());
-        //         var_map2.insert(id, s2.len());
-        //         self.expect_beq_internal(
-        //             (b1, &s1.cons(RType(id)), var_map1),
-        //             (b2, &s2.cons(RType(id)), var_map2),
-        //         );
-        //         
-        //         todo!()
-        //     }
-        //     PartialExpr::Free => {
-        //         self.values[i.0] = PartialExpr::Type;
-        //         self.handle_constraints(i, &s);
-        // 
-        //         todo!()
-        //     }
-        //     _ => {
-        //         self.errors.push(TypeError::ExpectType(io));
-        // 
-        //         todo!()
-        //     }
-        // }
-        todo!()
+    /// Expect `f` to be a function type with argument type `i_at` both valid in `s`.
+    /// `rt` should be free.
+    pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
+        let (fr, sr) = self.beta_reduce_head(ft, s.clone());
+        let mut var_map1 = HashMap::new();
+        let mut var_map2 = HashMap::new();
+
+        match self.values[fr.0] {
+            PartialExpr::FnType(f_at, f_rt) => {
+
+                if !self.expect_beq_internal((f_at, &sr, &mut var_map1), (at, s, &mut var_map2)) {
+                    self.errors.push(TypeError::ExpectFnArg {
+                        function_type: ft,
+                        function_arg_type: f_at,
+                        arg_type: at,
+                    })
+                }
+
+                let id = self.new_tc_id();
+                var_map1.insert(id, sr.len());
+                var_map2.insert(id, s.len());
+                debug_assert!(self.expect_beq_free(
+                    (f_rt, &sr.cons(RType(id)), &mut var_map1),
+                    (rt, &s.cons(RType(id)), &mut var_map2),
+                ));
+            }
+            PartialExpr::Free => {
+                let f_at = self.store(PartialExpr::Free, FreeSub(fr));
+                let f_rt = self.store(PartialExpr::Free, FreeSub(fr));
+                self.values[fr.0] = PartialExpr::FnType(f_at, f_rt);
+
+                // TODO this won't give good errors :c
+                // Figure out a way to keep the context of this constraint, maybe using tokio?
+                if !self.handle_constraints(fr, &sr) {
+                    self.errors.push(TypeError::ExpectFnArg {
+                        function_type: ft,
+                        function_arg_type: f_at,
+                        arg_type: at,
+                    })
+                }
+
+                self.toxic_values.insert(fr);
+                let id = self.new_tc_id();
+                var_map1.insert(id, sr.len());
+                var_map2.insert(id, s.len());
+                
+                debug_assert!(self.expect_beq_free(
+                    (f_rt, &sr.cons(RType(id)), &mut var_map1),
+                    (rt, &s.cons(RType(id)), &mut var_map2),
+                ));
+            }
+            _ => {
+                self.errors.push(TypeError::ExpectFn(ft))
+            }
+        }
+
+        self.toxic_values.clear();
     }
 }

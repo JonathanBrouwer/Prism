@@ -1,11 +1,11 @@
 use crate::core::pos::Pos;
 use crate::core::span::Span;
+use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
-use std::cmp::max;
-use std::collections::HashSet;
 use ariadne::{Label, Report};
 use itertools::Itertools;
-use crate::error::error_printer::{base_report, ErrorLabel};
+use std::cmp::max;
+use std::collections::HashSet;
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]

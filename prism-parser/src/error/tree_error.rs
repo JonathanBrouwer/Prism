@@ -1,12 +1,12 @@
 use crate::core::pos::Pos;
 use crate::core::span::Span;
+use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
+use ariadne::{Label, Report, ReportBuilder};
 use itertools::Itertools;
 use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
-use ariadne::{Label, Report, ReportBuilder};
-use crate::error::error_printer::{base_report, ErrorLabel};
 
 #[derive(Clone, Debug)]
 pub struct ErrorTree<L: Eq + Hash + Clone>(Option<L>, Vec<Self>);

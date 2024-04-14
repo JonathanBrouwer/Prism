@@ -1,11 +1,11 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
+use crate::lang::error::AggregatedTypeError;
+use crate::lang::error::TypeError::IndexOutOfBound;
 use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin::{FreeTypeFailure, FreeValueFailure, TypeOf};
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
-use crate::lang::error::{AggregatedTypeError};
-use crate::lang::error::TypeError::IndexOutOfBound;
-use crate::lang::ValueOrigin::{FreeTypeFailure, FreeValueFailure, TypeOf};
 
 impl TcEnv {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
@@ -87,8 +87,7 @@ impl TcEnv {
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, s);
                 if self.errors.len() == err_count {
-                    let expect = self.store(PartialExpr::FnType(at, rt), TypeOf(f));
-                    self.expect_beq(expect, ft, &s);
+                    self.expect_beq_fn_type(ft, at, rt, &s);
                 }
 
                 PartialExpr::Let(a, rt)

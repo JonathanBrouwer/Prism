@@ -1,9 +1,9 @@
 use prism_compiler::lang::env::Env;
+use prism_compiler::lang::error::{AggregatedTypeError, TypeResultExt};
 use prism_compiler::lang::{TcEnv, UnionIndex};
-use test_each_file::test_each_file;
 use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::error::aggregate_error::ParseResultExt;
-use prism_compiler::lang::error::{AggregatedTypeError, TypeResultExt};
+use test_each_file::test_each_file;
 
 fn test_ok([test]: [&str; 1]) {
     let (_, rest) = test.split_once("### Input\n").unwrap();
@@ -33,7 +33,7 @@ test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok 
 fn test_fail([test]: [&str; 1]) {
     let mut env = TcEnv::new();
     let input = parse_prism_in_env(test, &mut env).unwrap_or_eprint();
-    
+
     match env.type_check(input) {
         Ok(typ) => {
             eprint!(        "Expected type checking to fail:\n\n------\n{}\n------ Term reduces to -->\n{}\n------\n\n------\n{}\n------ Type of term reduces to -->\n{}\n------\n\n.",
@@ -41,7 +41,7 @@ fn test_fail([test]: [&str; 1]) {
                             env.index_to_br_string(input),
                             env.index_to_sm_string(typ),
                             env.index_to_br_string(typ));
-        },
+        }
         Err(_) => return,
     }
 }

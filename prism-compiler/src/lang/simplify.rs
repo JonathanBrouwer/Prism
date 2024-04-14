@@ -29,7 +29,7 @@ impl TcEnv {
                 Some(EnvEntry::RType(id)) => PartialExpr::Var(var_map.len() - var_map[id] - 1),
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
                     return self.simplify_inner(*subst, subst_env, var_map)
-                },
+                }
                 None => PartialExpr::Var(v),
             },
             PartialExpr::FnType(a, b) => {
