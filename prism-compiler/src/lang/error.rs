@@ -15,7 +15,7 @@ pub enum TypeError {
         arg_type: UnionIndex,
     },
     IndexOutOfBound(UnionIndex),
-    InfiniteType(UnionIndex),
+    InfiniteType(UnionIndex, UnionIndex),
     BadInfer {
         free_var: UnionIndex,
         inferred_var: UnionIndex,
@@ -23,9 +23,9 @@ pub enum TypeError {
 }
 
 impl TcEnv {
-    pub fn report(&mut self, error: &TypeError) -> Report<'static, Span> {
+    pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         let report = Report::build(ReportKind::Error, (), 0);
-        match error {
+        Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.value_origins[i.0] else {
                     unreachable!()
@@ -106,9 +106,39 @@ impl TcEnv {
                     .with_label(label_fn)
                     .finish()
             }
-            TypeError::InfiniteType(_) => report.finish(),
+            TypeError::InfiniteType(left, right) => {
+                let (left_span, left_description) = self.label_value(*left)?;
+                let (right_span, right_description) = self.label_value(*left)?;
+
+                report.with_message("Constraint creates an infinite type")
+                    .with_label(Label::new(left_span).with_message(format!("Left side of constraint from {left_description}: {}", self.index_to_sm_string(*left))))
+                    .with_label(Label::new(right_span).with_message(format!("Right side of constraint from {right_description}: {}", self.index_to_sm_string(*right))))
+                    .with_help("If this doesn't obviously create an infinite type, I'm sorry. This is probably because of hidden constraints.")
+                    .finish()
+            },
             TypeError::BadInfer { .. } => report.finish(),
-        }
+        })
+    }
+
+    fn label_value(&self, mut value: UnionIndex) -> Option<(Span, &'static str)> {
+        let mut origin_description = "this value";
+        let span = loop {
+            match self.value_origins[value.0] {
+                ValueOrigin::SourceCode(span) => break span,
+                ValueOrigin::TypeOf(sub_value) => {
+                    assert_eq!(origin_description, "this value");
+                    origin_description = "type of this value";
+                    value = sub_value;
+                }
+                ValueOrigin::FreeSub(v) => {
+                    origin_description = "type of this value";
+                    value = v
+                },
+                ValueOrigin::FreeValueFailure(_) => return None,
+                ValueOrigin::FreeTypeFailure(_) => return None,
+            }
+        };
+        Some((span, origin_description))
     }
 }
 
@@ -119,7 +149,7 @@ pub struct AggregatedTypeError {
 impl AggregatedTypeError {
     pub fn eprint(&self, env: &mut TcEnv, input: &str) -> io::Result<()> {
         let mut input = Source::from(input);
-        for report in self.errors.iter().map(|err| env.report(err)) {
+        for report in self.errors.iter().flat_map(|err| env.report(err)) {
             report.eprint(&mut input)?;
         }
         Ok(())

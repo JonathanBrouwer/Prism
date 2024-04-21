@@ -65,7 +65,7 @@ impl TcEnv {
                 write!(w, " ")?;
                 self.display(b, w, Base)?;
             }
-            PartialExpr::Free => write!(w, "_")?,
+            PartialExpr::Free => write!(w, "{{{}}}", i.0)?,
             PartialExpr::Shift(..) => unreachable!(),
         }
 
