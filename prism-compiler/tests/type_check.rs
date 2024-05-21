@@ -1,6 +1,6 @@
 use prism_compiler::lang::env::Env;
-use prism_compiler::lang::error::{AggregatedTypeError, TypeResultExt};
-use prism_compiler::lang::{TcEnv, UnionIndex};
+use prism_compiler::lang::error::TypeResultExt;
+use prism_compiler::lang::TcEnv;
 use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use test_each_file::test_each_file;
@@ -46,7 +46,7 @@ fn test_fail([test]: [&str; 1]) {
     }
 }
 
-// test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
+test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
 
 #[test]
 fn placeholder() {}

@@ -14,7 +14,7 @@ impl Exhaustive for ExprWithEnv {
     }
 }
 
-fn arbitrary_rec<'a>(
+fn arbitrary_rec(
     scope_size: usize,
     env: &mut TcEnv,
     u: &mut DataSourceTaker,

@@ -1,9 +1,9 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
-use crate::lang::ValueOrigin::{FreeSub, TypeOf};
+use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PartialExpr, TcEnv};
-use crate::lang::{UnionIndex, ValueOrigin};
+use crate::lang::UnionIndex;
 use std::collections::HashMap;
 
 impl TcEnv {

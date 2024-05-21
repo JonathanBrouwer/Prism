@@ -1,11 +1,10 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError::IndexOutOfBound;
-use crate::lang::error::{AggregatedTypeError, TypeError};
+use crate::lang::error::AggregatedTypeError;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::{Failure, TypeOf};
 use crate::lang::{PartialExpr, TcEnv};
-use std::collections::HashMap;
 use std::mem;
 
 impl TcEnv {
