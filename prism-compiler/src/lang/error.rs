@@ -115,7 +115,7 @@ impl TcEnv {
                     .with_label(Label::new(right_span).with_message(format!("Right side of constraint from {right_description}: {}", self.index_to_sm_string(*right))))
                     .with_help("If this doesn't obviously create an infinite type, I'm sorry. This is probably because of hidden constraints.")
                     .finish()
-            },
+            }
             TypeError::BadInfer { .. } => report.finish(),
         })
     }
@@ -133,7 +133,7 @@ impl TcEnv {
                 ValueOrigin::FreeSub(v) => {
                     origin_description = "type of this value";
                     value = v
-                },
+                }
                 ValueOrigin::Failure | ValueOrigin::Failure => return None,
             }
         };

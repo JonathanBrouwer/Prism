@@ -42,9 +42,7 @@ fn test_fail([test]: [&str; 1]) {
                             env.index_to_sm_string(typ),
                             env.index_to_br_string(typ));
         }
-        Err(errs) => {
-            errs.eprint(&mut env, test).unwrap()
-        },
+        Err(errs) => errs.eprint(&mut env, test).unwrap(),
     }
 }
 

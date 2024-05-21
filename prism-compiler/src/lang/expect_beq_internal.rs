@@ -78,7 +78,7 @@ impl TcEnv {
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
-        
+
         if self.toxic_values.contains(&i1) {
             self.errors.push(TypeError::InfiniteType(i1, i2));
             return true;

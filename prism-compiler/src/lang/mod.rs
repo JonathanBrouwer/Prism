@@ -74,7 +74,7 @@ impl TcEnv {
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)
     }
-    
+
     pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
         self.store(
             e,
