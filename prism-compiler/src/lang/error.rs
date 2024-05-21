@@ -3,7 +3,7 @@ use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::span::Span;
 use std::io;
 
-const SECONDARY_COLOR: Color = Color::RGB(0xA0, 0xA0, 0xA0);
+const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 #[derive(Debug)]
 pub enum TypeError {
@@ -164,7 +164,7 @@ impl<T> TypeResultExt<T> for Result<T, AggregatedTypeError> {
     fn unwrap_or_eprint(self, env: &mut TcEnv, input: &str) -> T {
         self.unwrap_or_else(|es| {
             es.eprint(env, input).unwrap();
-            panic!("Failed to parse grammar")
+            panic!("Failed to type check")
         })
     }
 }

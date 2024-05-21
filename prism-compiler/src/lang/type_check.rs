@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::AggregatedTypeError;
+use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::error::TypeError::IndexOutOfBound;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::{FreeTypeFailure, FreeValueFailure, TypeOf};
