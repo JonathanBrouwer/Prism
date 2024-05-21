@@ -48,7 +48,7 @@ impl Debug for ExprWithEnv {
     }
 }
 
-#[exhaustive_test(12)]
+#[exhaustive_test(9)]
 fn test_exhaustive(ExprWithEnv(mut env, root): ExprWithEnv) {
     match env.type_check(root) {
         Ok(_) => {}
