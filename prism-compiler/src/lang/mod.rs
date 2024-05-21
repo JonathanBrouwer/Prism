@@ -39,11 +39,14 @@ pub struct TcEnv {
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
+    /// This is an AST node directly from the source code
     SourceCode(Span),
+    /// This is the type of another AST node
     TypeOf(UnionIndex),
+    /// This is an AST node generated from expanding the given free variable
     FreeSub(UnionIndex),
-    FreeValueFailure(UnionIndex),
-    FreeTypeFailure(UnionIndex),
+    /// This is an (initally free) AST node generated because type checking a node failed
+    Failure,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -66,16 +69,16 @@ impl TcEnv {
         self.store(e, ValueOrigin::SourceCode(span))
     }
 
+    fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
+        self.values.push(e);
+        self.value_origins.push(origin);
+        UnionIndex(self.values.len() - 1)
+    }
+    
     pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
         self.store(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
-    }
-
-    fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
-        self.values.push(e);
-        self.value_origins.push(origin);
-        UnionIndex(self.values.len() - 1)
     }
 }

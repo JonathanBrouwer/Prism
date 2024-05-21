@@ -134,8 +134,7 @@ impl TcEnv {
                     origin_description = "type of this value";
                     value = v
                 },
-                ValueOrigin::FreeValueFailure(_) => return None,
-                ValueOrigin::FreeTypeFailure(_) => return None,
+                ValueOrigin::Failure | ValueOrigin::Failure => return None,
             }
         };
         Some((span, origin_description))
