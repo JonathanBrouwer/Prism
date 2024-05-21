@@ -1,9 +1,7 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::TypeError::IndexOutOfBound;
-use crate::lang::error::AggregatedTypeError;
-use crate::lang::UnionIndex;
-use crate::lang::ValueOrigin::{Failure, TypeOf};
+use crate::lang::error::{AggregatedTypeError, TypeError};
+use crate::lang::{UnionIndex, ValueOrigin};
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
 
@@ -21,6 +19,9 @@ impl TcEnv {
 
     ///Invariant: Returned UnionIndex is valid in Env `s`
     pub(crate) fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
+        // We should only type check values from the source code
+        debug_assert!(matches!(self.value_origins[i.0], ValueOrigin::SourceCode(_)));
+        
         let t = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(mut v, b) => {
@@ -28,7 +29,7 @@ impl TcEnv {
                 let err_count = self.errors.len();
                 let vt = self._type_check(v, s);
                 if self.errors.len() > err_count {
-                    v = self.store(PartialExpr::Free, Failure);
+                    v = self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
 
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
@@ -39,8 +40,8 @@ impl TcEnv {
                     Some(&CType(_, t)) => t,
                     Some(&CSubst(_, t)) => t,
                     None => {
-                        self.errors.push(IndexOutOfBound(i));
-                        self.store(PartialExpr::Free, Failure)
+                        self.errors.push(TypeError::IndexOutOfBound(i));
+                        self.store(PartialExpr::Free, ValueOrigin::Failure)
                     }
                     _ => unreachable!(),
                 },
@@ -51,7 +52,7 @@ impl TcEnv {
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
                 if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, Failure);
+                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
 
                 let err_count = self.errors.len();
@@ -68,7 +69,7 @@ impl TcEnv {
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
                 if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, Failure);
+                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
 
                 let bs = s.cons(CType(self.new_tc_id(), a));
@@ -79,10 +80,10 @@ impl TcEnv {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, Failure);
+                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
                 };
 
-                let rt = self.store(PartialExpr::Free, TypeOf(i));
+                let rt = self.store(PartialExpr::Free, ValueOrigin::TypeOf(i));
 
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, s);
@@ -93,14 +94,14 @@ impl TcEnv {
                 PartialExpr::Let(a, rt)
             }
             PartialExpr::Free => {
-                let tid = self.store(PartialExpr::Free, TypeOf(i));
+                let tid = self.store(PartialExpr::Free, ValueOrigin::TypeOf(i));
                 // TODO self.queued_tc.insert(i, (s.clone(), t));
                 self.value_types.insert(i, tid);
                 return tid;
             }
             PartialExpr::Shift(..) => unreachable!(),
         };
-        let tid = self.store(t, TypeOf(i));
+        let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);
         tid
     }

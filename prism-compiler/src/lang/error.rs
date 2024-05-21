@@ -126,12 +126,11 @@ impl TcEnv {
             match self.value_origins[value.0] {
                 ValueOrigin::SourceCode(span) => break span,
                 ValueOrigin::TypeOf(sub_value) => {
-                    assert_eq!(origin_description, "this value");
+                    debug_assert_eq!(origin_description, "this value");
                     origin_description = "type of this value";
                     value = sub_value;
                 }
                 ValueOrigin::FreeSub(v) => {
-                    origin_description = "type of this value";
                     value = v
                 }
                 ValueOrigin::Failure => return None,
