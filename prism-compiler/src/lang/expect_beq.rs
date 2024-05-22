@@ -29,12 +29,10 @@ impl TcEnv {
     /// `rt` should be free.
     pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
-        let mut var_map1 = HashMap::new();
-        let mut var_map2 = HashMap::new();
-
+        
         match self.values[fr.0] {
             PartialExpr::FnType(f_at, f_rt) => {
-                if !self.expect_beq_internal((f_at, &sr, &mut var_map1), (at, s, &mut var_map2)) {
+                if !self.expect_beq_internal((f_at, &sr, &mut HashMap::new()), (at, s, &mut HashMap::new())) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
@@ -42,13 +40,16 @@ impl TcEnv {
                     })
                 }
 
+                let mut var_map1 = HashMap::new();
+                let mut var_map2 = HashMap::new();
                 let id = self.new_tc_id();
                 var_map1.insert(id, sr.len());
                 var_map2.insert(id, s.len());
-                _ = self.expect_beq_free(
+                let is_beq_free = self.expect_beq_free(
                     (f_rt, &sr.cons(RType(id)), &mut var_map1),
                     (rt, &s.cons(RType(id)), &mut var_map2),
                 );
+                debug_assert!(is_beq_free);
             }
             PartialExpr::Free => {
                 let f_at = self.store(PartialExpr::Free, FreeSub(fr));
@@ -65,15 +66,19 @@ impl TcEnv {
                     })
                 }
 
-                self.toxic_values.insert(fr);
+                let is_beq_free = self.expect_beq_free((at, s, &mut HashMap::new()), (f_at, &sr, &mut HashMap::new()));
+                debug_assert!(is_beq_free);
+
+                let mut var_map1 = HashMap::new();
+                let mut var_map2 = HashMap::new();
                 let id = self.new_tc_id();
                 var_map1.insert(id, sr.len());
                 var_map2.insert(id, s.len());
-
-                _ = self.expect_beq_free(
+                let is_beq_free = self.expect_beq_free(
                     (f_rt, &sr.cons(RType(id)), &mut var_map1),
                     (rt, &s.cons(RType(id)), &mut var_map2),
                 );
+                debug_assert!(is_beq_free);
             }
             _ => self.errors.push(TypeError::ExpectFn(ft)),
         }

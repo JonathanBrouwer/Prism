@@ -41,12 +41,13 @@ fn test_fail([test]: [&str; 1]) {
                             env.index_to_br_string(input),
                             env.index_to_sm_string(typ),
                             env.index_to_br_string(typ));
+            panic!()
         }
-        Err(errs) => errs.eprint(&mut env, test).unwrap(),
+        Err(_) => {},
     }
 }
 
-test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as fails => test_fail }
+test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as type_check_fails => test_fail }
 
 #[test]
 fn placeholder() {}

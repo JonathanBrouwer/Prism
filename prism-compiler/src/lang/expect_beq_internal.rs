@@ -257,10 +257,9 @@ impl TcEnv {
             }
         }
 
-        //TODO handle queued type constraints
         // if let Some((s, t2)) = self.queued_tc.remove(&i2) {
         //     let t1 = self._type_check(i2, &s);
-        //     self.expect_beq(t1, t2, &s);
+        //     eq &= self.expect_beq_internal((t1, &s, &mut HashMap::new()), (t2, &s, &mut HashMap::new()));
         // }
 
         eq

@@ -89,7 +89,7 @@ impl TcEnv {
                 let ft = self._type_check(f, s);
                 if self.errors.len() == err_count {
                     self.expect_beq_fn_type(ft, at, rt, s)
-                };
+                }
 
                 PartialExpr::Let(a, rt)
             }

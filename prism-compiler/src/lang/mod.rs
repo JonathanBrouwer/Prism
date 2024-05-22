@@ -34,7 +34,7 @@ pub struct TcEnv {
 
     // Queues
     queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint>>,
-    //TODO readd queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
+    // queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
