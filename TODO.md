@@ -33,3 +33,13 @@
     * private not exported through module
     * public signature: type def exported through module
     * fully public: definition exported through module
+
+
+
+* Nieuwe ideeen om parsen beter te maken
+  * Tokenize met 
+    * alphanumeric
+    * structural []{}() etc
+    * operational +-<> etc
+* Grammars met rule{} ipv rule: en niet newline sensitive
+* Stop met grammar blocks en integreer rule{} meer met de taal?
