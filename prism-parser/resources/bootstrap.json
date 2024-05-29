@@ -38,13 +38,18 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
+                    "NameBind": [
+                      "rs",
                       {
                         "Repeat": {
                           "expr": {
                             "Rule": [
-                              "_n",
-                              []
+                              "prule",
+                              [
+                                {
+                                  "Name": "action"
+                                }
+                              ]
                             ]
                           },
                           "min": 0,
@@ -53,30 +58,6 @@
                             "Sequence": []
                           }
                         }
-                      },
-                      {
-                        "NameBind": [
-                          "rs",
-                          {
-                            "Repeat": {
-                              "expr": {
-                                "Rule": [
-                                  "prule",
-                                  [
-                                    {
-                                      "Name": "action"
-                                    }
-                                  ]
-                                ]
-                              },
-                              "min": 0,
-                              "max": null,
-                              "delim": {
-                                "Sequence": []
-                              }
-                            }
-                          }
-                        ]
                       }
                     ]
                   },
@@ -127,39 +108,18 @@
                         ]
                       },
                       {
-                        "Literal": "("
-                      },
-                      {
                         "NameBind": [
                           "args",
                           {
-                            "Repeat": {
-                              "expr": {
-                                "Rule": [
-                                  "identifier",
-                                  []
-                                ]
-                              },
-                              "min": 0,
-                              "max": null,
-                              "delim": {
-                                "Literal": ","
-                              }
-                            }
+                            "Rule": [
+                              "prule_args",
+                              []
+                            ]
                           }
                         ]
                       },
                       {
-                        "Literal": ")"
-                      },
-                      {
-                        "Literal": ":"
-                      },
-                      {
-                        "Rule": [
-                          "_n",
-                          []
-                        ]
+                        "Literal": "{"
                       },
                       {
                         "NameBind": [
@@ -175,6 +135,9 @@
                             ]
                           }
                         ]
+                      },
+                      {
+                        "Literal": "}"
                       }
                     ]
                   },
@@ -218,65 +181,11 @@
                         ]
                       },
                       {
-                        "Literal": ":"
-                      },
-                      {
-                        "Rule": [
-                          "_n",
-                          []
-                        ]
-                      },
-                      {
                         "NameBind": [
-                          "blocks",
+                          "args",
                           {
                             "Rule": [
-                              "prule_blocks",
-                              [
-                                {
-                                  "Name": "action"
-                                }
-                              ]
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "Rule",
-                      [
-                        {
-                          "Name": "name"
-                        },
-                        {
-                          "Nil": []
-                        },
-                        {
-                          "Name": "blocks"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "rule"
-                      },
-                      {
-                        "NameBind": [
-                          "name",
-                          {
-                            "Rule": [
-                              "identifier",
+                              "prule_args",
                               []
                             ]
                           }
@@ -301,10 +210,7 @@
                         ]
                       },
                       {
-                        "Rule": [
-                          "_n",
-                          []
-                        ]
+                        "Literal": ";"
                       }
                     ]
                   },
@@ -316,7 +222,7 @@
                           "Name": "name"
                         },
                         {
-                          "Nil": []
+                          "Name": "args"
                         },
                         {
                           "Cons": [
@@ -366,6 +272,70 @@
       ]
     },
     {
+      "name": "prule_args",
+      "args": [],
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "args",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Rule": [
+                                  "identifier",
+                                  []
+                                ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Literal": ","
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "args"
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Literal": ""
+                  },
+                  {
+                    "Nil": []
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
       "name": "prule_blocks",
       "args": [
         "action"
@@ -383,7 +353,7 @@
                       {
                         "Sequence": [
                           {
-                            "Literal": "--"
+                            "Literal": "group"
                           },
                           {
                             "Choice": [
@@ -409,10 +379,7 @@
                             ]
                           },
                           {
-                            "Rule": [
-                              "_n",
-                              []
-                            ]
+                            "Literal": "{"
                           },
                           {
                             "NameBind": [
@@ -428,6 +395,9 @@
                                 ]
                               }
                             ]
+                          },
+                          {
+                            "Literal": "}"
                           }
                         ]
                       },
@@ -558,21 +528,11 @@
                               "expr": {
                                 "Action": [
                                   {
-                                    "Sequence": [
-                                      {
-                                        "NameBind": [
-                                          "a",
-                                          {
-                                            "Rule": [
-                                              "prule_annotation",
-                                              []
-                                            ]
-                                          }
-                                        ]
-                                      },
+                                    "NameBind": [
+                                      "a",
                                       {
                                         "Rule": [
-                                          "_n",
+                                          "prule_annotation",
                                           []
                                         ]
                                       }
@@ -608,10 +568,7 @@
                         ]
                       },
                       {
-                        "Rule": [
-                          "_n",
-                          []
-                        ]
+                        "Literal": ";"
                       }
                     ]
                   },
@@ -2305,42 +2262,16 @@
                     [
                       " ",
                       " "
+                    ],
+                    [
+                      "\r",
+                      "\r"
+                    ],
+                    [
+                      "\n",
+                      "\n"
                     ]
                   ]
-                }
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "_n",
-      "args": [],
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Repeat": {
-                  "expr": {
-                    "CharClass": {
-                      "neg": false,
-                      "ranges": [
-                        [
-                          "\n",
-                          "\n"
-                        ]
-                      ]
-                    }
-                  },
-                  "min": 1,
-                  "max": null,
-                  "delim": {
-                    "Sequence": []
-                  }
                 }
               }
             ]
@@ -2364,38 +2295,26 @@
                 "DisableRecovery"
               ],
               {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "n",
-                      {
-                        "SliceInput": {
-                          "Repeat": {
-                            "expr": {
-                              "CharClass": {
-                                "neg": false,
-                                "ranges": [
-                                  [
-                                    "0",
-                                    "9"
-                                  ]
-                                ]
-                              }
-                            },
-                            "min": 1,
-                            "max": null,
-                            "delim": {
-                              "Sequence": []
-                            }
-                          }
-                        }
+                "SliceInput": {
+                  "Repeat": {
+                    "expr": {
+                      "CharClass": {
+                        "neg": false,
+                        "ranges": [
+                          [
+                            "0",
+                            "9"
+                          ]
+                        ]
                       }
-                    ]
-                  },
-                  {
-                    "Name": "n"
+                    },
+                    "min": 1,
+                    "max": null,
+                    "delim": {
+                      "Sequence": []
+                    }
                   }
-                ]
+                }
               }
             ]
           ]
@@ -2573,6 +2492,12 @@
               [],
               {
                 "Literal": "pos"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "group"
               }
             ]
           ]
