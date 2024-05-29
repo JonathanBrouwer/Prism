@@ -1,8 +1,6 @@
 rule toplevel = grammar(prule_action);
 
-rule grammar(action) {
-    GrammarFile(rs) <- rs:(prule(action)*);
-}
+rule grammar(action) = GrammarFile(rs) <- rs:(prule(action)*);
 
 rule prule(action) {
     Rule(name, args, blocks) <- "rule" name:identifier args:prule_args "{" blocks:prule_blocks(action) "}";
