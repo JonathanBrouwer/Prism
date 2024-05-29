@@ -606,7 +606,13 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@error"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "Literal": "error"
                       },
                       {
                         "Literal": "("
@@ -624,6 +630,9 @@
                       },
                       {
                         "Literal": ")"
+                      },
+                      {
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -645,7 +654,20 @@
               {
                 "Action": [
                   {
-                    "Literal": "@disable_layout"
+                    "Sequence": [
+                      {
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "Literal": "disable_layout"
+                      },
+                      {
+                        "Literal": "]"
+                      }
+                    ]
                   },
                   {
                     "Construct": [
@@ -661,7 +683,20 @@
               {
                 "Action": [
                   {
-                    "Literal": "@enable_layout"
+                    "Sequence": [
+                      {
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "Literal": "enable_layout"
+                      },
+                      {
+                        "Literal": "]"
+                      }
+                    ]
                   },
                   {
                     "Construct": [
@@ -677,7 +712,20 @@
               {
                 "Action": [
                   {
-                    "Literal": "@disable_recovery"
+                    "Sequence": [
+                      {
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "Literal": "disable_recovery"
+                      },
+                      {
+                        "Literal": "]"
+                      }
+                    ]
                   },
                   {
                     "Construct": [
@@ -693,7 +741,20 @@
               {
                 "Action": [
                   {
-                    "Literal": "@enable_recovery"
+                    "Sequence": [
+                      {
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "Literal": "enable_recovery"
+                      },
+                      {
+                        "Literal": "]"
+                      }
+                    ]
                   },
                   {
                     "Construct": [
@@ -1121,7 +1182,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@str"
+                        "Literal": "#str"
                       },
                       {
                         "Literal": "("
@@ -1166,7 +1227,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@pos"
+                        "Literal": "#pos"
                       },
                       {
                         "Literal": "("
@@ -1211,7 +1272,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@neg"
+                        "Literal": "#neg"
                       },
                       {
                         "Literal": "("
@@ -1289,7 +1350,7 @@
               {
                 "Action": [
                   {
-                    "Literal": "@this"
+                    "Literal": "#this"
                   },
                   {
                     "Construct": [
@@ -1305,7 +1366,7 @@
               {
                 "Action": [
                   {
-                    "Literal": "@next"
+                    "Literal": "#next"
                   },
                   {
                     "Construct": [
@@ -1323,7 +1384,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@adapt"
+                        "Literal": "#adapt"
                       },
                       {
                         "Literal": "("
@@ -1481,7 +1542,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@repeat"
+                        "Literal": "#repeat"
                       },
                       {
                         "Literal": "("
@@ -1562,7 +1623,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@repeat"
+                        "Literal": "#repeat"
                       },
                       {
                         "Literal": "("
@@ -1643,7 +1704,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@repeat"
+                        "Literal": "#repeat"
                       },
                       {
                         "Literal": "("
@@ -1738,7 +1799,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "@repeat"
+                        "Literal": "#repeat"
                       },
                       {
                         "Literal": "("

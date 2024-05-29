@@ -1,23 +1,29 @@
-rule block:
-    b <- "grammar" "{" g:grammar(expr) "}" ";" b:@adapt(g, block)
-    Let(v, b) <- "let" v:expr ";" b:block
-    expr
+rule block {
+    b <- "grammar" "{" g:grammar(expr) "}" ";" b:#adapt(g, block);
+    Let(v, b) <- "let" v:expr ";" b:block;
+    expr;
+}
 
-rule expr:
-    -- fnconstruct
-    FnConstruct(t, r) <- t:@next "=>" r:@this
-    -- fntype
-    FnType(at, bt) <- at:@next "->" bt:@this
-    -- fndestruct
-    FnDestruct(f, a) <- f:@this " " a:@next
-    -- base
-    t <- "(" t:expr ")"
-    Type() <- "Type"
-    Free() <- "_"
+rule expr {
+    group fnconstruct {
+        FnConstruct(t, r) <- t:#next "=>" r:#this;
+    }
+    group fntype {
+        FnType(at, bt) <- at:#next "->" bt:#this;
+    }
+    group fndestruct {
+        FnDestruct(f, a) <- f:#this " " a:#next;
+    }
+    group base {
+        t <- "(" t:expr ")";
+        Type() <- "Type";
+        Free() <- "_";
 
-    @disable_layout
-    @disable_recovery
-    @error("De Bruijn Index")
-    Var(i) <- "#" i:@str([ '0'-'9' ]+)
+        #[disable_layout]
+        #[disable_recovery]
+        #[error("De Bruijn Index")]
+        Var(i) <- "#" i:#str([ '0'-'9' ]+);
+    }
+}
 
-rule layout = [' ' | '\n']
+rule layout = [' ' | '\n'];
