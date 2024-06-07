@@ -70,7 +70,7 @@ impl<'grm> ParseError for SetError<'grm> {
         {
             report = report.with_label(
                 Label::new(start.span_to(start))
-                    .with_message(format!("Expected {}", labels.into_iter().format(" / ")))
+                    .with_message(format!("Tried parsing {}", labels.into_iter().format(" / ")))
                     .with_order(-(<Pos as Into<usize>>::into(start) as i32)),
             );
         }
