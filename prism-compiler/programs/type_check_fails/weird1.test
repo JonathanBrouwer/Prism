@@ -1,1 +1,1 @@
-(Type => Type) -> #0 Type
+v: (_: Type => Type) -> v Type

@@ -8,7 +8,7 @@ pub struct ExprWithEnv(pub TcEnv, pub UnionIndex);
 
 impl Exhaustive for ExprWithEnv {
     fn generate(u: &mut DataSourceTaker) -> exhaustive::Result<Self> {
-        let mut env = TcEnv::new();
+        let mut env = TcEnv::default();
         let idx = arbitrary_rec(0, &mut env, u)?;
         Ok(ExprWithEnv(env, idx))
     }

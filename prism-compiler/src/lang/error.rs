@@ -1,4 +1,5 @@
-use crate::lang::{TcEnv, UnionIndex, ValueOrigin};
+use crate::lang::{TcEnv, ValueOrigin};
+use crate::lang::UnionIndex;
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::span::Span;
 use std::io;
@@ -20,6 +21,7 @@ pub enum TypeError {
         free_var: UnionIndex,
         inferred_var: UnionIndex,
     },
+    UnknownName(Span),
 }
 
 impl TcEnv {
@@ -117,6 +119,11 @@ impl TcEnv {
                     .finish()
             }
             TypeError::BadInfer { .. } => report.finish(),
+            TypeError::UnknownName(name) => {
+                report.with_message("Undefined name within this scope.")
+                    .with_label(Label::new(*name).with_message("This name is undefined."))
+                    .finish()
+            }
         })
     }
 

@@ -1,17 +1,14 @@
 ### Input
-// Nat : (T:Type) -> zero:T -> succ:(T->T) -> T
-let Type -> #0 -> (#1 -> #2) -> #2;
-// zero : Nat
-let Type => #0 => (#1 -> #2) => #1;
+let Nat = T: Type -> T -> (T -> T) -> T;
+let zero = T: Type => z: T => s: (T -> T) => z;
 // add1 : Nat -> Nat
-// = (v:Nat) => (T:Type) => zero:T => succ:(T->T) => succ (v T zero succ)
-let #1 => Type => #0 => (#1 -> #2) => #0 (#3 #2 #1 #0);
-// add1 zero
-#0 #1
+let add1 = n: Nat => T: Type => z: T => s: (T -> T) => s (n T z s);
+
+add1 zero
 
 ### Eval
-Type => #0 => (#1 -> #2) => #0 #1
+T: Type => z: T => s: (T -> T) => s z
 
 ### Type
-Type -> #0 -> (#1 -> #2) -> #2
+T: Type -> T -> (T -> T) -> T
 

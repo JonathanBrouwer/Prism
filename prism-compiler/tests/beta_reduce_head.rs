@@ -9,7 +9,7 @@ fn test([test]: [&str; 1]) {
     let (input, rest) = rest.split_once("### Eval\n").unwrap();
     let (eval, _expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = TcEnv::new();
+    let mut env = TcEnv::default();
     let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
     let expected_eval = parse_prism_in_env(eval, &mut env).unwrap_or_eprint();
 

@@ -1,32 +1,37 @@
 rule block {
     b <- "grammar" "{" g:grammar(expr) "}" ";" b:#adapt(g, block);
-    Let(v, b) <- "let" v:expr ";" b:block;
+    Let(n, v, b) <- "let" n:identifier "=" v:expr ";" b:block;
     expr;
 }
 
 rule expr {
     group fnconstruct {
-        FnConstruct(t, r) <- t:#next "=>" r:#this;
+        FnConstruct(n, t, r) <- "(" n:identifier ":" t:#next ")" "=>" r:#this;
+        FnConstruct(n, t, r) <- n:identifier ":" t:#next "=>" r:#this;
     }
     group fntype {
-        FnType(at, bt) <- at:#next "->" bt:#this;
+        FnType(n, at, bt) <- "(" n:identifier ":" at:#next ")" "->" bt:#this;
+        FnType(n, at, bt) <- n:identifier ":" at:#next "->" bt:#this;
+        FnType("_", at, bt) <- at:#next "->" bt:#this;
     }
     group fndestruct {
         FnDestruct(f, a) <- f:#this " " a:#next;
     }
     group base {
-        t <- "(" t:expr ")";
+        t <- "(" t:block ")";
         Type() <- "Type";
-        Free() <- "_";
-
-        #[disable_layout]
-        #[disable_recovery]
-        #[error("De Bruijn Index")]
-        DeBruijnIndex(i) <- "#" i:#str([ '0'-'9' ]+);
+        Variable(n) <- n:identifier;
     }
 }
 
 rule layout {
     [' ' | '\n'];
     "//" [^'\n']* "\n";
+}
+
+rule identifier {
+    #[error("Identifier")]
+    #[disable_layout]
+    #[disable_recovery]
+    n <- n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
 }

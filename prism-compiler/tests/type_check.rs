@@ -10,7 +10,7 @@ fn test_ok([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (_eval, expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = TcEnv::new();
+    let mut env = TcEnv::default();
     let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
     let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
 
@@ -31,7 +31,7 @@ fn test_ok([test]: [&str; 1]) {
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok }
 
 fn test_fail([test]: [&str; 1]) {
-    let mut env = TcEnv::new();
+    let mut env = TcEnv::default();
     let input = parse_prism_in_env(test, &mut env).unwrap_or_eprint();
 
     match env.type_check(input) {

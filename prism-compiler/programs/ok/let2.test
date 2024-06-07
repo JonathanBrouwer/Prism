@@ -1,11 +1,11 @@
 ### Input
-let Type;
-let Type -> Type;
-let Type;
-let #1;
-let Type;
-let Type;
-#2
+let _ = Type;
+let v = Type -> Type;
+let _ = Type;
+let w = v;
+let _ = Type;
+let _ = Type;
+w
 
 ### Eval
 Type -> Type

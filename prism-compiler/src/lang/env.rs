@@ -1,6 +1,6 @@
-use crate::lang::{TcEnv, UnionIndex};
+use crate::lang::{TcEnv};
 use rpds::Vector;
-use std::ops::Index;
+use crate::lang::UnionIndex;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
@@ -65,7 +65,7 @@ impl<T> GenericEnv<T> {
     }
 }
 
-impl<T> Index<usize> for GenericEnv<T> {
+impl<T> std::ops::Index<usize> for GenericEnv<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {

@@ -11,7 +11,7 @@ use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-const MAX_RECOVERIES: usize = 10;
+const MAX_RECOVERIES: usize = 5;
 
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,

@@ -3,6 +3,9 @@ members = ["prism-compiler", "prism-parser", "prism-parser-bootstrap"]
 default-members = ["prism-compiler", "prism-parser", "prism-parser-bootstrap"]
 resolver = "2"
 
+[profile.test]
+opt-level = 1
+
 [workspace.package]
 edition = "2021"
 version = "0.1.0"

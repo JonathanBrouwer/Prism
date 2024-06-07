@@ -15,7 +15,7 @@ fn test([test]: [&str; 1]) {
 }
 
 fn check(input: &str) {
-    let mut env = TcEnv::new();
+    let mut env = TcEnv::default();
     let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
     let sm = env.beta_reduce(input);
 
@@ -30,3 +30,6 @@ fn check(input: &str) {
 }
 
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test }
+
+#[test]
+fn placeholder() {}

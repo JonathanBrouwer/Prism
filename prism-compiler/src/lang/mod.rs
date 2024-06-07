@@ -11,10 +11,10 @@ pub mod env;
 pub mod error;
 mod expect_beq;
 mod expect_beq_internal;
-pub mod from_action_result;
 pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
+mod from_parse_env;
 
 type QueuedConstraint = (
     (Env, HashMap<UniqueVariableId, usize>),
@@ -23,9 +23,8 @@ type QueuedConstraint = (
 
 #[derive(Default)]
 pub struct TcEnv {
-    // uf: UnionFind,
-    values: Vec<PartialExpr>,
-    value_origins: Vec<ValueOrigin>,
+    pub values: Vec<PartialExpr>,
+    pub value_origins: Vec<ValueOrigin>,
     value_types: HashMap<UnionIndex, UnionIndex>,
 
     tc_id: usize,

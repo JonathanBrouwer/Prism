@@ -1,8 +1,8 @@
 ### Input
-Type -> #0 -> #1
+T: Type -> T -> T
 
 ### Eval
-Type -> #0 -> #1
+T: Type -> T -> T
 
 ### Type
 Type

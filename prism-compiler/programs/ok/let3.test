@@ -1,7 +1,7 @@
 ### Input
-let Type -> Type;
-let #0;
-#0
+let v = Type -> Type;
+let w = v;
+w
 
 ### Eval
 Type -> Type

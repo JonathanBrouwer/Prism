@@ -1,9 +1,9 @@
 ### Input
-let Type => #0;
-#0
+let v = w: Type => w;
+v
 
 ### Eval
-Type => #0
+w: Type => w
 
 ### Type
 Type -> Type

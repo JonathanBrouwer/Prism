@@ -1,7 +1,8 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{AggregatedTypeError, TypeError};
-use crate::lang::{UnionIndex, ValueOrigin};
+use crate::lang::{ValueOrigin};
+use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
 
