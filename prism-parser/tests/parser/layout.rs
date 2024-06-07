@@ -3,38 +3,38 @@ use crate::parser::parse_test;
 parse_test! {
 name: arith_layout
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule num:
-        @disable_layout
-        @str(['0'-'9']+)
+    rule num {
+        #[disable_layout]
+        #str(['0'-'9']+);
+    }
 
-
-    rule start:
-        e <- e:expr
-
-
-    rule expr:
-        Add(l, r) <- l:expr2 "+" r:expr
-        Sub(l, r) <- l:expr2 "-" r:expr
-        expr2
+    rule start = e <- e:expr;
 
 
-    rule expr2:
-        Mul(l, r) <- l:expr3 "*" r:expr2
-        Div(l, r) <- l:expr3 "/" r:expr2
-        expr3
+    rule expr {
+        Add(l, r) <- l:expr2 "+" r:expr;
+        Sub(l, r) <- l:expr2 "-" r:expr;
+        expr2;
+    }
 
 
-    rule expr3:
-        Pow(l, r) <- l:expr3 "^" r:expr4
-        expr4
+    rule expr2 {
+        Mul(l, r) <- l:expr3 "*" r:expr2;
+        Div(l, r) <- l:expr3 "/" r:expr2;
+        expr3;
+    }
 
+    rule expr3{
+        Pow(l, r) <- l:expr3 "^" r:expr4;
+        expr4;
+    }
 
-    rule expr4:
-        Neg(e) <- "-" e:expr4
-        Num(e) <- e:num
-
+    rule expr4{
+        Neg(e) <- "-" e:expr4;
+        Num(e) <- e:num;
+    }
     "#
 passing tests:
     "123" => "Num('123')"
@@ -56,17 +56,17 @@ failing tests:
 parse_test! {
 name: num_layout
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule num:
-        @disable_layout
-        @str(['0'-'9']+)
+    rule num {
+        #[disable_layout]
+        #str(['0'-'9']+);
+    }
 
-
-    rule start:
-        Neg(e) <- "-" e:start
-        Num(e) <- e:num
-
+    rule start {
+        Neg(e) <- "-" e:start;
+        Num(e) <- e:num;
+    }
     "#
 passing tests:
     "123" => "Num('123')"
@@ -79,8 +79,8 @@ failing tests:
 parse_test! {
 name: trailing_layout
 syntax: r#"
-    rule layout = " "
-    rule start = "x"
+    rule layout = " ";
+    rule start = "x";
     "#
 passing tests:
     "x" => "'x'"
@@ -92,23 +92,24 @@ failing tests:
 parse_test! {
 name: disable_enable_layout
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule num:
-        @disable_layout
-        @str(num_char+)
+    rule num {
+        #[disable_layout]
+        #str(num_char+);
+    }
+    
+    rule num_char {
+        #str(['0'-'9']);
+        "{" start "}";
+    }
 
-    rule num_char:
-        @str(['0'-'9'])
-        "{" start "}"
-
-
-    rule start:
-        @enable_layout
-        Neg(e) <- "-" e:start
-        @enable_layout
-        Num(e) <- e:num
-
+    rule start {
+        #[enable_layout]
+        Neg(e) <- "-" e:start;
+        #[enable_layout]
+        Num(e) <- e:num;
+    }
     "#
 passing tests:
     "123" => "Num('123')"
@@ -126,9 +127,9 @@ failing tests:
 parse_test! {
 name: layout_in_rule
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = Ok() <- " " "x" " " "y" "z" " "
+    rule start = Ok() <- " " "x" " " "y" "z" " ";
 
     "#
 passing tests:
@@ -157,9 +158,9 @@ failing tests:
 parse_test! {
 name: slice_layout
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = @str("hey")
+    rule start = #str("hey");
 
     "#
 passing tests:
@@ -174,9 +175,9 @@ failing tests:
 parse_test! {
 name: slice_layout_2
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = s <- "hi" s:@str("hey")
+    rule start = s <- "hi" s:#str("hey");
 
     "#
 passing tests:
@@ -195,9 +196,9 @@ failing tests:
 parse_test! {
 name: slice_layout_3
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = @str("x"*)
+    rule start = #str("x"*);
 
     "#
 passing tests:
@@ -215,9 +216,9 @@ failing tests:
 parse_test! {
 name: slice_layout_4
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = @str(@pos(" ") "x"*)
+    rule start = #str(#pos(" ") "x"*);
 
     "#
 passing tests:
@@ -236,9 +237,9 @@ failing tests:
 parse_test! {
 name: slice_layout_5
 syntax: r#"
-    rule layout = " "
+    rule layout = " ";
 
-    rule start = s <- @pos(" ") s:@str("x"*)
+    rule start = s <- #pos(" ") s:#str("x"*);
 
     "#
 passing tests:

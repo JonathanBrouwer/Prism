@@ -3,36 +3,35 @@ use crate::parser::parse_test;
 parse_test! {
 name: arith
 syntax: r#"
-    rule _ = [' ']*
+    rule _ = [' ']*;
 
-    rule num:
-        @str(['0'-'9']+)
+    rule num = #str(['0'-'9']+);
+
+    rule start = e <- _ e:expr _;
     
 
-    rule start:
-        e <- _ e:expr _
+    rule expr {
+        Add(l, r) <- l:expr2 _ "+" _ r:expr;
+        Sub(l, r) <- l:expr2 _ "-" _ r:expr;
+        expr2;
+    }
     
 
-    rule expr:
-        Add(l, r) <- l:expr2 _ "+" _ r:expr
-        Sub(l, r) <- l:expr2 _ "-" _ r:expr
-        expr2
-    
+    rule expr2 {
+        Mul(l, r) <- l:expr3 _ "*" _ r:expr2;
+        Div(l, r) <- l:expr3 _ "/" _ r:expr2;
+        expr3;
+    }
 
-    rule expr2:
-        Mul(l, r) <- l:expr3 _ "*" _ r:expr2
-        Div(l, r) <- l:expr3 _ "/" _ r:expr2
-        expr3
-    
+    rule expr3 {
+        Pow(l, r) <- l:expr3 _ "^" _ r:expr4;
+        expr4;
+    }
 
-    rule expr3:
-        Pow(l, r) <- l:expr3 _ "^" _ r:expr4
-        expr4
-    
-
-    rule expr4:
-        Neg(e) <- "-" _ e:expr4
-        Num(e) <- e:num
+    rule expr4 {
+        Neg(e) <- "-" _ e:expr4;
+        Num(e) <- e:num;
+    }
     
     "#
 passing tests:

@@ -2,10 +2,10 @@ use crate::parser::parse_test;
 parse_test! {
 name: list_ast
 syntax: r#"
-    rule start:
-        Nodes(ns) <- "(" ns:start* ")"
-        Leaf() <- "x"
-
+    rule start {
+        Nodes(ns) <- "(" ns:start* ")";
+        Leaf() <- "x";
+    }
     "#
 passing tests:
     "x" => "Leaf()"
@@ -27,14 +27,14 @@ failing tests:
 parse_test! {
 name: list_rule
 syntax: r#"
-    rule start:
-        other*
+    rule start {
+        other*;
+    }
 
-
-    rule other:
-        Nodes(ns) <- "(" ns:other* ")"
-        Leaf() <- "x"
-
+    rule other {
+        Nodes(ns) <- "(" ns:other* ")";
+        Leaf() <- "x";
+    }
     "#
 passing tests:
     "x" => "[Leaf()]"
@@ -56,15 +56,15 @@ failing tests:
 parse_test! {
 name: list_rule_rec
 syntax: r#"
-    rule start:
-        o :: os <- o:other os:start
-        [] <- ""
+    rule start {
+        o :: os <- o:other os:start;
+        [] <- "";
+    }
 
-
-    rule other:
-        Nodes(ns) <- "(" ns:start ")"
-        Leaf() <- "x"
-
+    rule other {
+        Nodes(ns) <- "(" ns:start ")";
+        Leaf() <- "x";
+    }
     "#
 passing tests:
     "x" => "[Leaf()]"

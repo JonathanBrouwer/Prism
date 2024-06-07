@@ -3,7 +3,7 @@ use crate::parser::parse_test;
 parse_test! {
 name: recovery1
 syntax: r#"
-rule start = "seq" <- "a" "b" "c" "d"
+rule start = "seq" <- "a" "b" "c" "d";
 "#
 passing tests:
     "abcd" => "'seq'"
@@ -24,31 +24,33 @@ failing tests:
 parse_test! {
 name: recovery_with_norecovery
 syntax: r#"
-rule start = test*
+rule start = test*;
 
-rule test:
-    w <- w:@str(word) ";"
+rule test = w <- w:#str(word) ";";
 
-rule word:
-    @disable_recovery
-    ['a'-'z']+
+rule word {
+    #[disable_recovery]
+    ['a'-'z']+;
+}
 "#
 passing tests:
     "aaaaa;a;aa;" => "['aaaaa', 'a', 'aa']"
 
 failing tests:
-    "a@a;aa;" => "1..2"
-    "a@;aa;" => "1..2"
+    "a#a;aa;" => "1..2"
+    "a#;aa;" => "1..2"
 }
 
 parse_test! {
 name: recovery_new
 syntax: r#"
-rule start:
-    (s <- "{" s:stmt "}")*
-rule stmt:
-    "seq" <- "abc" ";"
-rule layout = [' ' | '\n']
+rule start {
+    (s <- "{" s:stmt "}")*;
+}
+rule stmt {
+    "seq" <- "abc" ";";
+}
+rule layout = [' ' | '\n'];
 "#
 passing tests:
     "{abc;}{abc;}{abc;}" => "['seq', 'seq', 'seq']"

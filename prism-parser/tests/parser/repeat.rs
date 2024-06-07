@@ -2,8 +2,7 @@ use crate::parser::parse_test;
 parse_test! {
 name: repeat_star
 syntax: r#"
-    rule start:
-        @str([ 'w'-'z' | '8' | 'p'-'q' ]*)
+    rule start = #str([ 'w'-'z' | '8' | 'p'-'q' ]*);
 
     "#
 passing tests:
@@ -35,8 +34,7 @@ failing tests:
 parse_test! {
 name: repeat_plus
 syntax: r#"
-    rule start:
-        @str([ 'w'-'z' | '8' | 'p'-'q' ]+)
+    rule start = #str([ 'w'-'z' | '8' | 'p'-'q' ]+);
 
     "#
 passing tests:
@@ -68,8 +66,7 @@ failing tests:
 parse_test! {
 name: repeat_option
 syntax: r#"
-    rule start:
-        @str([ 'w'-'z' | '8' | 'p'-'q' ]?)
+    rule start = #str([ 'w'-'z' | '8' | 'p'-'q' ]?);
 
     "#
 passing tests:
@@ -101,8 +98,7 @@ failing tests:
 parse_test! {
 name: repeat_delim_star
 syntax: r#"
-    rule start:
-        @repeat([ 'w'-'z' | '8' | 'p'-'q' ], ",", *)
+    rule start = #repeat([ 'w'-'z' | '8' | 'p'-'q' ], ",", *);
 
     "#
 passing tests:
@@ -138,8 +134,7 @@ failing tests:
 parse_test! {
 name: repeat_delim_inf
 syntax: r#"
-    rule start:
-        @repeat([ 'x' ], ",", 2, inf)
+    rule start = #repeat([ 'x' ], ",", 2, inf);
 
     "#
 passing tests:
@@ -160,8 +155,7 @@ failing tests:
 parse_test! {
 name: repeat_delim_specific
 syntax: r#"
-    rule start:
-        @repeat([ 'x' ], ",", 2, 6)
+    rule start = #repeat([ 'x' ], ",", 2, 6);
 
     "#
 passing tests:

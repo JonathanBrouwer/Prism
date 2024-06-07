@@ -2,9 +2,8 @@ use crate::parser::parse_test;
 parse_test! {
 name: literal
 syntax: r#"
-    rule start:
-        "lol"
-
+    rule start = "lol";
+   
     "#
 passing tests:
     "lol" => "'lol'"
@@ -22,11 +21,9 @@ failing tests:
 parse_test! {
 name: literal_indirect
 syntax: r#"
-    rule start:
-        lol
+    rule start = lol;
 
-    rule lol:
-        "lol"
+    rule lol = "lol";
 
     "#
 passing tests:
@@ -45,8 +42,7 @@ failing tests:
 parse_test! {
 name: charclass
 syntax: r#"
-    rule start:
-        @str([ 'w'-'z' | '8' | 'p'-'q' ])
+    rule start = #str([ 'w'-'z' | '8' | 'p'-'q' ]);
 
     "#
 passing tests:
