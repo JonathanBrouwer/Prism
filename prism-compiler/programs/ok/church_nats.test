@@ -1,7 +1,12 @@
 ### Input
+// Nat : (T:Type) -> zero:T -> succ:(T->T) -> T
 let Type -> #0 -> (#1 -> #2) -> #2;
+// zero : Nat
 let Type => #0 => (#1 -> #2) => #1;
+// add1 : Nat -> Nat
+// = (v:Nat) => (T:Type) => zero:T => succ:(T->T) => succ (v T zero succ)
 let #1 => Type => #0 => (#1 -> #2) => #0 (#3 #2 #1 #0);
+// add1 zero
 #0 #1
 
 ### Eval
