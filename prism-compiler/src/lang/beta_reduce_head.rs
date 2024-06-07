@@ -23,7 +23,7 @@ impl TcEnv {
                     e = b;
                     s = s.cons(RSubst(v, s.clone()))
                 }
-                PartialExpr::Var(i) => match s[i] {
+                PartialExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)

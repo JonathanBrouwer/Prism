@@ -56,7 +56,7 @@ pub struct UnionIndex(usize);
 pub enum PartialExpr {
     Type,
     Let(UnionIndex, UnionIndex),
-    Var(usize),
+    DeBruijnIndex(usize),
     FnType(UnionIndex, UnionIndex),
     FnConstruct(UnionIndex, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),

@@ -35,7 +35,7 @@ impl TcEnv {
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Let(v, bt)
             }
-            PartialExpr::Var(index) => PartialExpr::Shift(
+            PartialExpr::DeBruijnIndex(index) => PartialExpr::Shift(
                 match s.get(index) {
                     Some(&CType(_, t)) => t,
                     Some(&CSubst(_, t)) => t,

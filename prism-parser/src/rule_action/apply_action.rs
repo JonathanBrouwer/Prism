@@ -5,12 +5,12 @@ use crate::rule_action::RuleAction;
 
 pub fn apply_action<'arn, 'grm>(
     rule: &'arn RuleAction<'arn, 'grm>,
-    map: &impl Fn(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
+    eval_name: &impl Fn(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
     span: Span,
 ) -> Cow<'arn, ActionResult<'arn, 'grm>> {
     Cow::Owned(match rule {
         RuleAction::Name(name) => {
-            if let Some(ar) = map(name) {
+            if let Some(ar) = eval_name(name) {
                 return ar;
             } else {
                 panic!("Name '{name}' not in context")
@@ -18,16 +18,16 @@ pub fn apply_action<'arn, 'grm>(
         }
         RuleAction::InputLiteral(lit) => ActionResult::Literal(lit.clone()),
         RuleAction::Construct(name, args) => {
-            let args_vals = args.iter().map(|a| apply_action(a, map, span)).collect();
+            let args_vals = args.iter().map(|a| apply_action(a, eval_name, span)).collect();
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::Cons(h, t) => {
             //TODO this is ineffecient
-            let mut res = match apply_action(t, map, span).as_ref() {
+            let mut res = match apply_action(t, eval_name, span).as_ref() {
                 ActionResult::Construct(_, "List", v) => v.clone(),
                 x => unreachable!("{:?} is not a list", x),
             };
-            res.insert(0, apply_action(h, map, span));
+            res.insert(0, apply_action(h, eval_name, span));
 
             ActionResult::Construct(span, "List", res)
         }

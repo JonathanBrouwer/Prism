@@ -10,7 +10,7 @@ impl TcEnv {
 
         match (self.values[i1.0], self.values[i2.0]) {
             (PartialExpr::Type, PartialExpr::Type) => {}
-            (PartialExpr::Var(i1), PartialExpr::Var(i2)) => {
+            (PartialExpr::DeBruijnIndex(i1), PartialExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),

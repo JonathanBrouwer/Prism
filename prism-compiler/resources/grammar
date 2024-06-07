@@ -22,7 +22,7 @@ rule expr {
         #[disable_layout]
         #[disable_recovery]
         #[error("De Bruijn Index")]
-        Var(i) <- "#" i:#str([ '0'-'9' ]+);
+        DeBruijnIndex(i) <- "#" i:#str([ '0'-'9' ]+);
     }
 }
 

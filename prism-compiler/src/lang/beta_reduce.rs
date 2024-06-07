@@ -18,11 +18,11 @@ impl TcEnv {
         let e_new = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(_, _) => unreachable!(),
-            PartialExpr::Var(v) => {
+            PartialExpr::DeBruijnIndex(v) => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
                 };
-                PartialExpr::Var(var_map.len() - var_map[&id] - 1)
+                PartialExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
             }
             PartialExpr::FnType(a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);

@@ -13,7 +13,7 @@ impl TcEnv {
         src: &'grm str,
     ) -> UnionIndex {
         let ActionResult::Construct(span, constructor, args) = value else {
-            unreachable!();
+            unreachable!("Parsing an expression always returns a Construct");
         };
         let inner = match *constructor {
             "Type" => {
@@ -27,9 +27,9 @@ impl TcEnv {
                     self.insert_from_action_result(&args[1], src),
                 )
             }
-            "Var" => {
+            "DeBruijnIndex" => {
                 assert_eq!(args.len(), 1);
-                PartialExpr::Var(args[0].get_value(src).parse().unwrap())
+                PartialExpr::DeBruijnIndex(args[0].get_value(src).parse().unwrap())
             }
             "FnType" => {
                 assert_eq!(args.len(), 2);

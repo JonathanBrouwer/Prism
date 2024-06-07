@@ -22,7 +22,7 @@ impl TcEnv {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
-            (PartialExpr::Var(index1), PartialExpr::Var(index2)) => {
+            (PartialExpr::DeBruijnIndex(index1), PartialExpr::DeBruijnIndex(index2)) => {
                 let id1 = match s1[index1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
@@ -93,7 +93,7 @@ impl TcEnv {
                 (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
                 (i2, s2, var_map2),
             ),
-            PartialExpr::Var(v1) => {
+            PartialExpr::DeBruijnIndex(v1) => {
                 let subst_equal = match &s1[v1] {
                     &CType(id, _) => {
                         // We may have shifted away part of the env that we need during this beq
@@ -114,7 +114,7 @@ impl TcEnv {
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
                         debug_assert_eq!(id, id2);
 
-                        self.values[i2.0] = PartialExpr::Var(v2);
+                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     &CSubst(_, _) => {
@@ -135,7 +135,7 @@ impl TcEnv {
                             return true;
                         };
 
-                        self.values[i2.0] = PartialExpr::Var(v2);
+                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     &RType(id) => {
@@ -165,7 +165,7 @@ impl TcEnv {
                             // TODO return true;
                         }
 
-                        self.values[i2.0] = PartialExpr::Var(v2);
+                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     RSubst(i1, s1) => self.expect_beq_free((*i1, s1, var_map1), (i2, s2, var_map2)),

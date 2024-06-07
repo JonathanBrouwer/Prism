@@ -24,13 +24,13 @@ impl TcEnv {
                 var_map.remove(&id);
                 PartialExpr::Let(v, b)
             }
-            PartialExpr::Var(v) => match s.get(v) {
+            PartialExpr::DeBruijnIndex(v) => match s.get(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
-                Some(EnvEntry::RType(id)) => PartialExpr::Var(var_map.len() - var_map[id] - 1),
+                Some(EnvEntry::RType(id)) => PartialExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1),
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
                     return self.simplify_inner(*subst, subst_env, var_map)
                 }
-                None => PartialExpr::Var(v),
+                None => PartialExpr::DeBruijnIndex(v),
             },
             PartialExpr::FnType(a, b) => {
                 let a = self.simplify_inner(a, s, var_map);

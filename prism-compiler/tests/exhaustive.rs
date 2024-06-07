@@ -21,7 +21,7 @@ fn arbitrary_rec(
 ) -> exhaustive::Result<UnionIndex> {
     let expr = match u.choice(6)? {
         0 => PartialExpr::Type,
-        1 if scope_size > 0 => PartialExpr::Var(u.choice(scope_size)?),
+        1 if scope_size > 0 => PartialExpr::DeBruijnIndex(u.choice(scope_size)?),
         1 if scope_size == 0 => PartialExpr::Type,
         2 => PartialExpr::Free,
         3 => PartialExpr::FnType(

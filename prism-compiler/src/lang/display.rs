@@ -18,7 +18,7 @@ impl PartialExpr {
         match self {
             PartialExpr::Type => Base,
             PartialExpr::Let(_, _) => Let,
-            PartialExpr::Var(_) => Base,
+            PartialExpr::DeBruijnIndex(_) => Base,
             PartialExpr::FnType(_, _) => FnType,
             PartialExpr::FnConstruct(_, _) => Construct,
             PartialExpr::FnDestruct(_, _) => Destruct,
@@ -49,7 +49,7 @@ impl TcEnv {
                 writeln!(w, ";")?;
                 self.display(b, w, Let)?;
             }
-            PartialExpr::Var(i) => write!(w, "#{i}")?,
+            PartialExpr::DeBruijnIndex(i) => write!(w, "#{i}")?,
             PartialExpr::FnType(a, b) => {
                 self.display(a, w, Destruct)?;
                 write!(w, " -> ")?;
