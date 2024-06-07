@@ -26,4 +26,7 @@ rule expr {
     }
 }
 
-rule layout = [' ' | '\n'];
+rule layout {
+    [' ' | '\n'];
+    "//" [^'\n']* "\n";
+}

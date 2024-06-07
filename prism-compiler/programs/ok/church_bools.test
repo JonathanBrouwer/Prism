@@ -1,0 +1,20 @@
+### Input
+// Bool = (T: Type) -> T -> T -> T
+let Type -> #0 -> #1 -> #2;
+// false (left)
+let Type => #0 => #1 => #1;
+// true (right)
+let Type => #0 => #1 => #0;
+// and : Bool -> Bool -> Bool
+// = v1:Bool => v2:Bool => T:Type => t1:T => t2:T => (v1 T t1 (v2 T t1 t2))
+let #2 => #3 => Type => #0 => #1 => #4 #2 #1 (#3 #2 #1 #0);
+
+// and true true
+#0 #1 #1
+
+### Eval
+Type => #0 => #1 => #0
+
+### Type
+Type -> #0 -> #1 -> #2
+
