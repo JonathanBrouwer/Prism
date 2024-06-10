@@ -1,4 +1,4 @@
-use crate::core::adaptive::{AdaptResult, GrammarState, RuleId};
+use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::cache::{Allocs, PCache, ParserCache};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
@@ -35,7 +35,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         input: &'grm str,
         bump: Allocs<'arn, 'grm>,
         from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
-    ) -> Result<Self, AdaptResult<'grm>> {
+    ) -> Result<Self, AdaptError<'grm>> {
         let context = ParserContext::new();
         let cache = ParserCache::new(input, bump);
 

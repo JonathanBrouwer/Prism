@@ -29,7 +29,7 @@ impl<'arn, 'grm> Default for GrammarState<'arn, 'grm> {
 }
 
 #[derive(Debug)]
-pub enum AdaptResult<'grm> {
+pub enum AdaptError<'grm> {
     InvalidRuleMutation(&'grm str),
     SamePos(Pos),
 }
@@ -47,7 +47,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
         ctx: impl Iterator<Item = (&'grm str, RuleId)>,
         pos: Option<Pos>,
-    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'arn), AdaptResult<'grm>> {
+    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'arn), AdaptError<'grm>> {
         let mut s = Self {
             rules: self.rules.clone(),
             last_mut_pos: pos,
@@ -56,7 +56,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         if let Some(pos) = pos {
             if let Some(last_mut_pos) = self.last_mut_pos {
                 if pos == last_mut_pos {
-                    return Err(AdaptResult::SamePos(pos));
+                    return Err(AdaptError::SamePos(pos));
                 }
             }
         }
@@ -83,7 +83,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
             let mut r = (*s.rules[id.0]).clone();
             r.update(rule, &ctx)
-                .map_err(|_| AdaptResult::InvalidRuleMutation(rule.name))?;
+                .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?;
             s.rules[id.0] = Arc::new(r);
         }
 
