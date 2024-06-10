@@ -24,12 +24,6 @@ pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
     rules: HashMap<&'grm str, RuleId>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct Test<'arn> {
-    x: Box<Cow<'arn, &'arn Test<'arn>>>,
-    s: &'arn str,
-}
-
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn new(
         input: &'grm str,

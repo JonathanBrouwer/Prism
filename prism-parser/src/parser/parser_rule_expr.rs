@@ -201,7 +201,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, cache.input, convert_action_result) {
+                let g = match parse_grammarfile(gr, cache.input, |ar, _| Some(RuleAction::ActionResult(ar))) {
                     Some(g) => g,
                     None => {
                         let mut e = E::new(stream.span_to(stream));
@@ -254,11 +254,4 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
         }
     }
-}
-
-fn convert_action_result<'grm, 'arn>(
-    ar: &'arn ActionResult<'arn, 'grm>,
-    _src: &'grm str,
-) -> Option<RuleAction<'arn, 'grm>> {
-    Some(RuleAction::ActionResult(ar))
 }
