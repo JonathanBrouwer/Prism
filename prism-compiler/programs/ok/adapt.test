@@ -8,7 +8,7 @@ grammar {
     }
 };
 let x = Type -> Type;
-x
+%
 
 ### Eval
 Type
