@@ -86,4 +86,22 @@ passing tests:
     "x" => "Letters('x', 'x')"
 
 failing tests:
+    ""
+    "xy"
+}
+
+parse_test! {
+name: pass_value_twice
+syntax: r##"
+    rule start = id(id(letter));
+
+    rule letter = ['a'-'z'];
+    rule id(v) = v <- "";
+    "##
+passing tests:
+    "x" => "'x'"
+
+failing tests:
+    ""
+    "xy"
 }

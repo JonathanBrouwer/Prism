@@ -1,8 +1,10 @@
 rule block {
-    b <- "grammar" "{" g:grammar(expr) "}" ";" b:#adapt(g, block);
+    ScopeStart(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" ";" b:#adapt(g, block);
     Let(n, v, b) <- "let" n:identifier "=" v:expr ";" b:block;
     expr;
 }
+
+rule wrapped_expr(guid) = ScopeJump(e, guid) <- e:expr;
 
 rule expr {
     group fnconstruct {
