@@ -143,6 +143,7 @@ fn parse_rule_expr<'arn, 'grm, A>(
         }
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
+        Construct(_, "Guid", _) => RuleExpr::Guid,
         Construct(_, "Rule", b) => RuleExpr::Rule(
             parse_identifier(&b[0], src)?,
             result_match! {

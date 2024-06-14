@@ -1382,6 +1382,22 @@
               {
                 "Action": [
                   {
+                    "Literal": "#guid"
+                  },
+                  {
+                    "Construct": [
+                      "Guid",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
                     "Sequence": [
                       {
                         "Literal": "#adapt"

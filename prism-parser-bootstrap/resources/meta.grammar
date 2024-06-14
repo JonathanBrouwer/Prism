@@ -55,6 +55,7 @@ rule prule_expr(action) {
         r <- "(" r:prule_expr(action) ")";
         AtThis() <- "#this";
         AtNext() <- "#next";
+        Guid() <- "#guid";
         AtAdapt(a, n) <- "#adapt" "(" a:action "," n:identifier ")";
         Rule(n, as) <- n:identifier #neg(layout) "(" as:#repeat(action, ",", *) ")";
         Rule(n, []) <- n:identifier;
