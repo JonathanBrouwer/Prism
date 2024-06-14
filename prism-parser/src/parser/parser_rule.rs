@@ -14,7 +14,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rule: RuleId,
     args: &'a [RuleId],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
@@ -27,9 +27,9 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             .collect::<Vec<_>>();
 
         let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, &rule_args)
-            .parse(stream, state, context);
+            .parse(pos, state, context);
         res.add_label_implicit(ErrorLabel::Debug(
-            stream.span_to(res.end_pos()),
+            pos.span_to(res.end_pos()),
             rule_state.name,
         ));
         res.map(|pr| pr)

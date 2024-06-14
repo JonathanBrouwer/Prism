@@ -28,7 +28,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rule_args: &'a [(&'grm str, RuleId)],
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-    move |stream: Pos,
+    move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
@@ -48,7 +48,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     })
                     .collect::<Vec<_>>();
 
-                let res = parser_rule(rules, rule, &args).parse(stream, state, context);
+                let res = parser_rule(rules, rule, &args).parse(pos, state, context);
                 res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
             }
             RuleExpr::CharClass(cc) => {
@@ -56,14 +56,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let p = map_parser(p, &|(span, _)| Cow::Owned(ActionResult::Value(span)));
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, state, context).map(PR::with_cow_rtrn)
+                p.parse(pos, state, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p = move |stream: Pos,
+                let p = move |pos: Pos,
                               state: &mut PState<'arn, 'grm, E>,
                               context: &ParserContext| {
-                    let mut res = PResult::new_empty((), stream);
+                    let mut res = PResult::new_empty((), pos);
                     for char in literal.chars() {
                         res = res
                             .merge_seq_parser(&single(|c| *c == char), state, context)
@@ -72,14 +72,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     let mut res =
                         res.map_with_span(|_, span| Cow::Owned(ActionResult::Value(span)));
                     res.add_label_implicit(ErrorLabel::Literal(
-                        stream.span_to(res.end_pos().next(state.input).0),
+                        pos.span_to(res.end_pos().next(state.input).0),
                         literal.clone(),
                     ));
                     res
                 };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, state, context).map(PR::with_cow_rtrn)
+                p.parse(pos, state, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Repeat {
                 expr,
@@ -93,7 +93,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     *min as usize,
                     max.map(|max| max as usize),
                 )
-                .parse(stream, state, context);
+                .parse(pos, state, context);
                 res.map_with_span(|list, span| {
                     PR::with_rtrn(ActionResult::Construct(
                         span,
@@ -103,7 +103,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 })
             }
             RuleExpr::Sequence(subs) => {
-                let mut res = PResult::new_empty(HashMap::new(), stream);
+                let mut res = PResult::new_empty(HashMap::new(), pos);
                 //TODO can we do better than tracking res_vars by cloning?
                 let mut res_vars = vars.clone();
                 for sub in subs {
@@ -130,11 +130,11 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 })
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E> = PResult::PErr(E::new(stream.span_to(stream)), stream);
+                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
                 for sub in subs {
                     res = res.merge_choice_parser(
                         &parser_expr(rules, blocks, sub, rule_args, vars),
-                        stream,
+                        pos,
                         state,
                         context,
                     );
@@ -146,7 +146,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::NameBind(name, sub) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(pos, state, context);
                 res.map(|mut res| {
                     res.free.insert(name, res.rtrn.clone());
                     res
@@ -154,7 +154,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Action(sub, action) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(pos, state, context);
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
@@ -175,22 +175,22 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::SliceInput(sub) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(pos, state, context);
                 res.map_with_span(|_, span| PR::with_rtrn(ActionResult::Value(span)))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, rule_args)
-                .parse(stream, state, context)
+                .parse(pos, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::AtNext => parser_body_cache_recurse(rules, &blocks[1..], rule_args)
-                .parse(stream, state, context)
+                .parse(pos, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::PosLookahead(sub) => {
                 positive_lookahead(&parser_expr(rules, blocks, sub, rule_args, vars))
-                    .parse(stream, state, context)
+                    .parse(pos, state, context)
             }
             RuleExpr::NegLookahead(sub) => {
                 negative_lookahead(&parser_expr(rules, blocks, sub, rule_args, vars))
-                    .parse(stream, state, context)
+                    .parse(pos, state, context)
                     .map(|_| PR::with_rtrn(ActionResult::void()))
             }
             RuleExpr::AtAdapt(ga, b) => {
@@ -204,14 +204,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let g = match parse_grammarfile(gr, state.input, |ar, _| Some(RuleAction::ActionResult(ar))) {
                     Some(g) => g,
                     None => {
-                        let mut e = E::new(stream.span_to(stream));
+                        let mut e = E::new(pos.span_to(pos));
                         e.add_label_implicit(ErrorLabel::Explicit(
-                            stream.span_to(stream),
+                            pos.span_to(pos),
                             EscapedString::from_escaped(
                                 "language grammar to be correct, but adaptation AST was malformed.",
                             ),
                         ));
-                        return PResult::new_err(e, stream);
+                        return PResult::new_err(e, pos);
                     }
                 };
                 let g: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>> =
@@ -222,17 +222,17 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     ActionResult::RuleRef(r) => Some((*k, *r)),
                     _ => None,
                 });
-                let (rules, mut iter) = match rules.with(g, rule_vars, Some(stream)) {
+                let (rules, mut iter) = match rules.with(g, rule_vars, Some(pos)) {
                     Ok(rules) => rules,
                     Err(_) => {
-                        let mut e = E::new(stream.span_to(stream));
+                        let mut e = E::new(pos.span_to(pos));
                         e.add_label_implicit(ErrorLabel::Explicit(
-                            stream.span_to(stream),
+                            pos.span_to(pos),
                             EscapedString::from_escaped(
                                 "language grammar to be correct, but adaptation created cycle in block order.",
                             ),
                         ));
-                        return PResult::new_err(e, stream);
+                        return PResult::new_err(e, pos);
                     }
                 };
                 let rules: &'arn GrammarState = state.alloc.alo_grammarstate.alloc(rules);
@@ -247,15 +247,15 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 // Parse body
                 let mut res = parser_rule(rules, rule, &[])
-                    .parse(stream, state, context)
+                    .parse(pos, state, context)
                     .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)));
-                res.add_label_implicit(ErrorLabel::Debug(stream.span_to(stream), "adaptation"));
+                res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res
             }
             RuleExpr::Guid => {
                 let guid = state.guid_counter;
                 state.guid_counter += 1;
-                PResult::new_ok(PR::with_rtrn(ActionResult::Guid(guid)), stream, stream)
+                PResult::new_ok(PR::with_rtrn(ActionResult::Guid(guid)), pos, pos)
             }
         }
     }

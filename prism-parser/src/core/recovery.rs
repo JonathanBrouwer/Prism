@@ -15,7 +15,7 @@ const MAX_RECOVERIES: usize = 5;
 
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,
-    stream: Pos,
+    pos: Pos,
     state: &mut PState<'arn, 'grm, E>,
     context: &ParserContext,
 ) -> Result<O, Vec<E>> {
@@ -29,7 +29,7 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
             ..context.clone()
         };
 
-        match sub.parse(stream, state, &context) {
+        match sub.parse(pos, state, &context) {
             POk(o, _, _, _, _) => {
                 return if result_errors.is_empty() {
                     Ok(o)
@@ -84,13 +84,13 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
     item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
-    move |stream: Pos,
+    move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<_, E> {
         // First try original parse
         match item.parse(
-            stream,
+            pos,
             state,
             &ParserContext {
                 recovery_disabled: true,
@@ -102,7 +102,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
                         Cow::Owned(ActionResult::void()),
-                        stream,
+                        pos,
                         *to,
                         true,
                         Some((e, s)),

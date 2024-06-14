@@ -82,11 +82,11 @@ pub fn full_input_layout<
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |stream: Pos,
+    move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
-        let res = sub.parse(stream, state, context);
+        let res = sub.parse(pos, state, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
             .map(|(o, _)| o)
     }

@@ -171,7 +171,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_choice_parser<'grm, 'arn, P: Parser<'arn, 'grm, O, E>>(
         self,
         other: &P,
-        stream: Pos,
+        pos: Pos,
         state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> Self
@@ -183,7 +183,7 @@ impl<O, E: ParseError> PResult<O, E> {
             return self;
         }
 
-        self.merge_choice(other.parse(stream, state, context))
+        self.merge_choice(other.parse(pos, state, context))
     }
 
     #[inline(always)]

@@ -29,14 +29,14 @@ pub fn parser_body_cache_recurse<
     bs: &'arn [BlockState<'arn, 'grm>],
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, rule_args),
             ByAddress(bs),
             rules.unique_id(),
             rule_args.to_vec(),
         )
-        .parse(stream, state, context)
+        .parse(pos, state, context)
     }
 }
 
@@ -45,23 +45,23 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
     bs: &'arn [BlockState<'arn, 'grm>],
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos,
+    move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         match bs {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args)
-                .parse(stream, state, context),
+                .parse(pos, state, context),
             [b, brest @ ..] => {
                 // Parse current
                 let res = parser_body_sub_constructors(rules, bs, &b.constructors[..], rule_args)
-                    .parse(stream, state, context);
+                    .parse(pos, state, context);
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
                     &parser_body_cache_recurse(rules, brest, rule_args),
-                    stream,
+                    pos,
                     state,
                     context,
                 )
@@ -81,8 +81,8 @@ fn parser_body_sub_constructors<
     es: &'arn [Constructor<'arn, 'grm>],
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
-        [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
+        [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx
                 .iter()
@@ -94,11 +94,11 @@ fn parser_body_sub_constructors<
                 rule_args_iter.chain(rule_ctx).collect();
 
             let res = parser_body_sub_annotations(rules, blocks, annots, expr, rule_args, &vars)
-                .parse(stream, state, context)
+                .parse(pos, state, context)
                 .map(|v| state.alloc.uncow(v))
                 .merge_choice_parser(
                     &parser_body_sub_constructors(rules, blocks, rest, rule_args),
-                    stream,
+                    pos,
                     state,
                     context,
                 );
@@ -120,23 +120,23 @@ fn parser_body_sub_annotations<
     rule_args: &'a [(&'grm str, RuleId)],
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
-    move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match annots {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res = parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars)
-                .parse(stream, state, context);
+                .parse(pos, state, context);
             res.add_label_explicit(ErrorLabel::Explicit(
-                stream.span_to(res.end_pos().next(state.input).0),
+                pos.span_to(res.end_pos().next(state.input).0),
                 err_label.clone(),
             ));
             res
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
-            parser_with_layout(rules, vars, &move |stream: Pos,
+            parser_with_layout(rules, vars, &move |pos: Pos,
                                                    state: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
                                                    -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
-                    stream,
+                    pos,
                     state,
                     &ParserContext {
                         layout_disabled: true,
@@ -144,15 +144,15 @@ fn parser_body_sub_annotations<
                     },
                 )
             })
-            .parse(stream, state, context)
+            .parse(pos, state, context)
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
-            parser_with_layout(rules, vars, &move |stream: Pos,
+            parser_with_layout(rules, vars, &move |pos: Pos,
                                                    state: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
                                                    -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
-                    stream,
+                    pos,
                     state,
                     &ParserContext {
                         layout_disabled: false,
@@ -160,12 +160,12 @@ fn parser_body_sub_annotations<
                     },
                 )
             })
-            .parse(stream, state, context)
+            .parse(pos, state, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-            move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+            move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
-                    stream,
+                    pos,
                     state,
                     &ParserContext {
                         recovery_disabled: true,
@@ -174,10 +174,10 @@ fn parser_body_sub_annotations<
                 )
             },
         )
-        .parse(stream, state, context),
+        .parse(pos, state, context),
         [RuleAnnotation::EnableRecovery, rest @ ..] => {
             parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
-                stream,
+                pos,
                 state,
                 &ParserContext {
                     recovery_disabled: false,
@@ -186,7 +186,7 @@ fn parser_body_sub_annotations<
             )
         }
         &[] => parser_expr(rules, blocks, expr, rule_args, vars)
-            .parse(stream, state, context)
+            .parse(pos, state, context)
             .map(|pr| pr.rtrn),
     }
 }
