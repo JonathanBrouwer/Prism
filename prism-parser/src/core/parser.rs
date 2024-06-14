@@ -8,7 +8,7 @@ pub trait Parser<'arn, 'grm, O, E: ParseError> {
     fn parse(
         &self,
         stream: Pos,
-        cache: &mut PState<'arn, 'grm, E>,
+        state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> PResult<O, E>;
 }
@@ -17,8 +17,8 @@ pub fn map_parser<'a, 'arn: 'a, 'grm: 'arn, O, P, E: ParseError>(
     p: impl Parser<'arn, 'grm, O, E> + 'a,
     f: &'a impl Fn(O) -> P,
 ) -> impl Parser<'arn, 'grm, P, E> + 'a {
-    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
-        p.parse(stream, cache, context).map(f)
+    move |stream: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+        p.parse(stream, state, context).map(f)
     }
 }
 
@@ -34,9 +34,9 @@ impl<
     fn parse(
         &self,
         stream: Pos,
-        cache: &mut PState<'arn, 'grm, E>,
+        state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> PResult<O, E> {
-        self(stream, cache, context)
+        self(stream, state, context)
     }
 }

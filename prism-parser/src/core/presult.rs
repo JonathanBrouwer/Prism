@@ -172,7 +172,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P,
         stream: Pos,
-        cache: &mut PState<'arn, 'grm, E>,
+        state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> Self
     where
@@ -183,14 +183,14 @@ impl<O, E: ParseError> PResult<O, E> {
             return self;
         }
 
-        self.merge_choice(other.parse(stream, cache, context))
+        self.merge_choice(other.parse(stream, state, context))
     }
 
     #[inline(always)]
     pub fn merge_seq_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PState<'arn, 'grm, E>,
+        state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> PResult<(O, O2), E>
     where
@@ -202,14 +202,14 @@ impl<O, E: ParseError> PResult<O, E> {
         }
 
         let pos = self.end_pos();
-        self.merge_seq(other.parse(pos, cache, context))
+        self.merge_seq(other.parse(pos, state, context))
     }
 
     #[inline(always)]
     pub fn merge_seq_opt_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PState<'arn, 'grm, E>,
+        state: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where
@@ -221,7 +221,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
 
         let pos = self.end_pos();
-        let other_res = other.parse(pos, cache, context);
+        let other_res = other.parse(pos, state, context);
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)
     }

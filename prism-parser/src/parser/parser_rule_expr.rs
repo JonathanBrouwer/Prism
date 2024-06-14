@@ -29,7 +29,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PState<'arn, 'grm, E>,
+          state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
@@ -48,7 +48,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     })
                     .collect::<Vec<_>>();
 
-                let res = parser_rule(rules, rule, &args).parse(stream, cache, context);
+                let res = parser_rule(rules, rule, &args).parse(stream, state, context);
                 res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
             }
             RuleExpr::CharClass(cc) => {
@@ -56,30 +56,30 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let p = map_parser(p, &|(span, _)| Cow::Owned(ActionResult::Value(span)));
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, cache, context).map(PR::with_cow_rtrn)
+                p.parse(stream, state, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let p = move |stream: Pos,
-                              cache: &mut PState<'arn, 'grm, E>,
+                              state: &mut PState<'arn, 'grm, E>,
                               context: &ParserContext| {
                     let mut res = PResult::new_empty((), stream);
                     for char in literal.chars() {
                         res = res
-                            .merge_seq_parser(&single(|c| *c == char), cache, context)
+                            .merge_seq_parser(&single(|c| *c == char), state, context)
                             .map(|_| ());
                     }
                     let mut res =
                         res.map_with_span(|_, span| Cow::Owned(ActionResult::Value(span)));
                     res.add_label_implicit(ErrorLabel::Literal(
-                        stream.span_to(res.end_pos().next(cache.input).0),
+                        stream.span_to(res.end_pos().next(state.input).0),
                         literal.clone(),
                     ));
                     res
                 };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
-                p.parse(stream, cache, context).map(PR::with_cow_rtrn)
+                p.parse(stream, state, context).map(PR::with_cow_rtrn)
             }
             RuleExpr::Repeat {
                 expr,
@@ -93,7 +93,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     *min as usize,
                     max.map(|max| max as usize),
                 )
-                .parse(stream, cache, context);
+                .parse(stream, state, context);
                 res.map_with_span(|list, span| {
                     PR::with_rtrn(ActionResult::Construct(
                         span,
@@ -110,7 +110,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     res = res
                         .merge_seq_parser(
                             &parser_expr(rules, blocks, sub, rule_args, &res_vars),
-                            cache,
+                            state,
                             context,
                         )
                         .map(|(mut l, r)| {
@@ -135,7 +135,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     res = res.merge_choice_parser(
                         &parser_expr(rules, blocks, sub, rule_args, vars),
                         stream,
-                        cache,
+                        state,
                         context,
                     );
                     if res.is_ok() {
@@ -146,7 +146,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::NameBind(name, sub) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
                 res.map(|mut res| {
                     res.free.insert(name, res.rtrn.clone());
                     res
@@ -154,7 +154,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Action(sub, action) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
@@ -175,33 +175,33 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::SliceInput(sub) => {
                 let res =
-                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, cache, context);
+                    parser_expr(rules, blocks, sub, rule_args, vars).parse(stream, state, context);
                 res.map_with_span(|_, span| PR::with_rtrn(ActionResult::Value(span)))
             }
             RuleExpr::AtThis => parser_body_cache_recurse(rules, blocks, rule_args)
-                .parse(stream, cache, context)
+                .parse(stream, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::AtNext => parser_body_cache_recurse(rules, &blocks[1..], rule_args)
-                .parse(stream, cache, context)
+                .parse(stream, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::PosLookahead(sub) => {
                 positive_lookahead(&parser_expr(rules, blocks, sub, rule_args, vars))
-                    .parse(stream, cache, context)
+                    .parse(stream, state, context)
             }
             RuleExpr::NegLookahead(sub) => {
                 negative_lookahead(&parser_expr(rules, blocks, sub, rule_args, vars))
-                    .parse(stream, cache, context)
+                    .parse(stream, state, context)
                     .map(|_| PR::with_rtrn(ActionResult::void()))
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
                 let gr = apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
-                let gr: &'arn ActionResult = cache.alloc.uncow(gr);
+                let gr: &'arn ActionResult = state.alloc.uncow(gr);
 
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, cache.input, |ar, _| Some(RuleAction::ActionResult(ar))) {
+                let g = match parse_grammarfile(gr, state.input, |ar, _| Some(RuleAction::ActionResult(ar))) {
                     Some(g) => g,
                     None => {
                         let mut e = E::new(stream.span_to(stream));
@@ -215,7 +215,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     }
                 };
                 let g: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>> =
-                    cache.alloc.alo_grammarfile.alloc(g);
+                    state.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {
@@ -235,7 +235,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, stream);
                     }
                 };
-                let rules: &'arn GrammarState = cache.alloc.alo_grammarstate.alloc(rules);
+                let rules: &'arn GrammarState = state.alloc.alo_grammarstate.alloc(rules);
 
                 let rule = iter
                     .find(|(k, _)| k == b)
@@ -247,7 +247,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 // Parse body
                 let mut res = parser_rule(rules, rule, &[])
-                    .parse(stream, cache, context)
+                    .parse(stream, state, context)
                     .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)));
                 res.add_label_implicit(ErrorLabel::Debug(stream.span_to(stream), "adaptation"));
                 res

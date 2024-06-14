@@ -25,9 +25,9 @@ pub fn parser_with_layout<
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         if context.layout_disabled || !vars.contains_key("layout") {
-            return sub.parse(pos, cache, context);
+            return sub.parse(pos, state, context);
         }
 
         let layout = match vars["layout"].as_ref() {
@@ -38,7 +38,7 @@ pub fn parser_with_layout<
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);
         loop {
-            let sub_res = sub.parse(res.end_pos(), cache, context);
+            let sub_res = sub.parse(res.end_pos(), state, context);
             if sub_res.is_ok() {
                 return sub_res;
             }
@@ -47,7 +47,7 @@ pub fn parser_with_layout<
             // Add in optional error information from sub_res, then require another layout token
             let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
                 &parser_rule(rules, layout, &[]),
-                cache,
+                state,
                 &ParserContext {
                     layout_disabled: true,
                     ..context.clone()
@@ -83,11 +83,11 @@ pub fn full_input_layout<
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |stream: Pos,
-          cache: &mut PState<'arn, 'grm, E>,
+          state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
-        let res = sub.parse(stream, cache, context);
-        res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), cache, context)
+        let res = sub.parse(stream, state, context);
+        res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
             .map(|(o, _)| o)
     }
 }

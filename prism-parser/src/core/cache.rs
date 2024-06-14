@@ -119,19 +119,19 @@ impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
     block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
-    state: GrammarStateId,
+    grammar_state: GrammarStateId,
     params: Vec<(&'grm str, RuleId)>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,
             block,
             ctx: context.clone(),
-            state,
+            state: grammar_state,
             params: params.clone(),
         };
-        if let Some(cached) = cache.cache_get(&key) {
+        if let Some(cached) = state.cache_get(&key) {
             return cached.clone();
         }
 
@@ -140,8 +140,8 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
         res_recursive.add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
-        let cache_state = cache.cache_state_get();
-        cache.cache_insert(key.clone(), res_recursive);
+        let cache_state = state.cache_state_get();
+        state.cache_insert(key.clone(), res_recursive);
 
         //Now execute the grammar rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -150,24 +150,24 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         //- Try to parse the current (rule, position). If this fails, there is definitely no left recursion. Otherwise, we now have a seed.
         //- Put the new seed in the cache, and rerun on the current (rule, position). Make sure to revert the cache to the previous state.
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
-        let res = sub.parse(pos_start, cache, context);
+        let res = sub.parse(pos_start, state, context);
         match res {
             POk(mut o, mut spos, mut epos, mut empty, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
-                if !cache.cache_is_read(key.clone()).unwrap() {
+                if !state.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
                     let res = POk(o, spos, epos, empty, be);
-                    cache.cache_insert(key, res.clone());
+                    state.cache_insert(key, res.clone());
                     res
                 } else {
                     //There was leftrec, we need to grow the seed
                     loop {
                         //Insert the current seed into the cache
-                        cache.cache_state_revert(cache_state);
-                        cache.cache_insert(key.clone(), POk(o, spos, epos, empty, be.clone()));
+                        state.cache_state_revert(cache_state);
+                        state.cache_insert(key.clone(), POk(o, spos, epos, empty, be.clone()));
 
                         //Grow the seed
-                        let new_res = sub.parse(pos_start, cache, context);
+                        let new_res = sub.parse(pos_start, state, context);
                         match new_res {
                             POk(new_o, new_spos, new_epos, new_empty, new_be)
                                 if new_epos.cmp(&epos).is_gt() =>
@@ -195,7 +195,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
                 }
             }
             res @ PErr(_, _) => {
-                cache.cache_insert(key, res.clone());
+                state.cache_insert(key, res.clone());
                 res
             }
         }

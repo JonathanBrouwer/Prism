@@ -16,7 +16,7 @@ const MAX_RECOVERIES: usize = 5;
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,
     stream: Pos,
-    cache: &mut PState<'arn, 'grm, E>,
+    state: &mut PState<'arn, 'grm, E>,
     context: &ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
@@ -29,7 +29,7 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
             ..context.clone()
         };
 
-        match sub.parse(stream, cache, &context) {
+        match sub.parse(stream, state, &context) {
             POk(o, _, _, _, _) => {
                 return if result_errors.is_empty() {
                     Ok(o)
@@ -59,23 +59,23 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
                     err_state = Some((p, p));
                 } else if let Some((_err_state_start, err_state_end)) = &mut err_state {
                     //If the error now spans rest of file, we could not recover
-                    if *err_state_end == Pos::end(cache.input) {
+                    if *err_state_end == Pos::end(state.input) {
                         result_errors
                             .last_mut()
                             .unwrap()
-                            .set_end(Pos::end(cache.input));
+                            .set_end(Pos::end(state.input));
                         return Err(result_errors);
                     }
 
                     //Increase offset by one char and repeat
-                    *err_state_end = err_state_end.next(cache.input).0;
-                    debug_assert!(*err_state_end <= Pos::end(cache.input));
+                    *err_state_end = err_state_end.next(state.input).0;
+                    debug_assert!(*err_state_end <= Pos::end(state.input));
                 } else {
                     unreachable!()
                 }
                 recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
                 recovery_points.insert(err_state.unwrap().1, err_state.unwrap().1);
-                cache.clear();
+                state.clear();
             }
         }
     }
@@ -85,13 +85,13 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
     item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PState<'arn, 'grm, E>,
+          state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<_, E> {
         // First try original parse
         match item.parse(
             stream,
-            cache,
+            state,
             &ParserContext {
                 recovery_disabled: true,
                 ..context.clone()
