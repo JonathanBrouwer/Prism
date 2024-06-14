@@ -21,7 +21,7 @@ pub struct CacheKey<'grm, 'arn> {
     block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
     ctx: ParserContext,
     state: GrammarStateId,
-    params: Vec<(&'grm str, RuleId)>,
+    params: Vec<(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)>,
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -54,7 +54,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
     block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
     grammar_state: GrammarStateId,
-    params: Vec<(&'grm str, RuleId)>,
+    params: Vec<(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached

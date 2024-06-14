@@ -25,7 +25,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rules: &'arn GrammarState<'arn, 'grm>,
     blocks: &'arn [BlockState<'arn, 'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    rule_args: &'a [(&'grm str, RuleId)],
+    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
@@ -44,7 +44,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let args = args
                     .iter()
                     .map(|arg| {
-                        apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()).as_rule()
+                        apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid())
                     })
                     .collect::<Vec<_>>();
 

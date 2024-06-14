@@ -28,7 +28,7 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
-    rule_args: &'a [(&'grm str, RuleId)],
+    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
@@ -44,7 +44,7 @@ pub fn parser_body_cache_recurse<
 fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
-    rule_args: &'a [(&'grm str, RuleId)],
+    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
@@ -80,7 +80,7 @@ fn parser_body_sub_constructors<
     rules: &'arn GrammarState<'arn, 'grm>,
     blocks: &'arn [BlockState<'arn, 'grm>],
     es: &'arn [Constructor<'arn, 'grm>],
-    rule_args: &'a [(&'grm str, RuleId)],
+    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
@@ -89,8 +89,7 @@ fn parser_body_sub_constructors<
                 .iter()
                 .map(|(&k, v)| (k, Cow::Owned(ActionResult::RuleRef(*v))));
             let rule_args_iter = rule_args
-                .iter()
-                .map(|&(k, v)| (k, Cow::Owned(ActionResult::RuleRef(v))));
+                .iter().cloned();
             let vars: HashMap<&'grm str, Cow<'arn, ActionResult>> =
                 rule_args_iter.chain(rule_ctx).collect();
 
@@ -118,7 +117,7 @@ fn parser_body_sub_annotations<
     blocks: &'arn [BlockState<'arn, 'grm>],
     annots: &'arn [RuleAnnotation<'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    rule_args: &'a [(&'grm str, RuleId)],
+    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match annots {

@@ -8,11 +8,12 @@ use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
+use crate::core::cow::Cow;
 
 pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
-    args: &'a [RuleId],
+    args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
