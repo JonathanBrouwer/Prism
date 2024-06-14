@@ -2,11 +2,7 @@ use crate::desugar::{ParseEnv, ParseIndex, SourceExpr};
 use prism_parser::rule_action::action_result::ActionResult;
 
 impl ParseEnv {
-    pub fn insert_from_action_result<'grm>(
-        &mut self,
-        value: &ActionResult<'_, 'grm>,
-        program: &str,
-    ) -> ParseIndex {
+    pub fn insert_from_action_result(&mut self, value: &ActionResult, program: &str) -> ParseIndex {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!("Parsing an expression always returns a Construct");
         };

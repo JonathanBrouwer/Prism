@@ -36,7 +36,7 @@ impl TcEnv {
                 SourceExpr::Type => PartialExpr::Type,
                 SourceExpr::Let(name, value, body) => {
                     names[value.index()] = names[i].clone();
-                    names[body.index()] = names[i].insert(&name);
+                    names[body.index()] = names[i].insert(name);
                     PartialExpr::Let(
                         UnionIndex(value.index() + start),
                         UnionIndex(body.index() + start),
@@ -45,18 +45,16 @@ impl TcEnv {
                 SourceExpr::Variable(name) => {
                     if name == "_" {
                         PartialExpr::Free
+                    } else if let Some(depth) = names[i].0.get(name.as_str()) {
+                        PartialExpr::DeBruijnIndex(names[i].1 - depth - 1)
                     } else {
-                        if let Some(depth) = names[i].0.get(name.as_str()) {
-                            PartialExpr::DeBruijnIndex(names[i].1 - depth - 1)
-                        } else {
-                            self.errors.push(TypeError::UnknownName(*span));
-                            PartialExpr::Free
-                        }
+                        self.errors.push(TypeError::UnknownName(*span));
+                        PartialExpr::Free
                     }
                 }
                 SourceExpr::FnType(name, arg_type, return_type) => {
                     names[arg_type.index()] = names[i].clone();
-                    names[return_type.index()] = names[i].insert(&name);
+                    names[return_type.index()] = names[i].insert(name);
                     PartialExpr::FnType(
                         UnionIndex(arg_type.index() + start),
                         UnionIndex(return_type.index() + start),
@@ -64,7 +62,7 @@ impl TcEnv {
                 }
                 SourceExpr::FnConstruct(name, arg_type, body) => {
                     names[arg_type.index()] = names[i].clone();
-                    names[body.index()] = names[i].insert(&name);
+                    names[body.index()] = names[i].insert(name);
                     PartialExpr::FnConstruct(
                         UnionIndex(arg_type.index() + start),
                         UnionIndex(body.index() + start),
