@@ -73,4 +73,5 @@ pub enum RuleExpr<'grm, A> {
     AtThis,
     AtNext,
     AtAdapt(A, &'grm str),
+    Guid,
 }

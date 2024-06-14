@@ -1,5 +1,5 @@
 use crate::core::adaptive::GrammarState;
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -25,7 +25,7 @@ pub fn parser_with_layout<
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+    move |pos: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         if context.layout_disabled || !vars.contains_key("layout") {
             return sub.parse(pos, cache, context);
         }
@@ -83,7 +83,7 @@ pub fn full_input_layout<
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         let res = sub.parse(stream, cache, context);

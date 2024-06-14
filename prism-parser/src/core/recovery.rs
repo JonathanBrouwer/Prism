@@ -1,4 +1,4 @@
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::{Ignore, ParserContext};
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -16,7 +16,7 @@ const MAX_RECOVERIES: usize = 5;
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,
     stream: Pos,
-    cache: &mut PCache<'arn, 'grm, E>,
+    cache: &mut PState<'arn, 'grm, E>,
     context: &ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut recovery_points: HashMap<Pos, Pos> = HashMap::new();
@@ -85,7 +85,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
     item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<_, E> {
         // First try original parse

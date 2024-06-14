@@ -1,4 +1,4 @@
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -14,7 +14,7 @@ pub fn single<'arn, 'grm: 'arn, E: ParseError>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'arn, 'grm, (Span, char), E> {
     move |pos: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           _: &ParserContext|
           -> PResult<(Span, char), E> {
         match pos.next(cache.input) {
@@ -32,7 +32,7 @@ pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError>(
     p2: &'a impl Parser<'arn, 'grm, O2, E>,
 ) -> impl Parser<'arn, 'grm, (O1, O2), E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<(O1, O2), E> {
         let res1 = p1.parse(stream, cache, context);
@@ -47,7 +47,7 @@ pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError>(
     p2: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         p1.parse(stream, cache, context)
@@ -63,7 +63,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
     max: Option<usize>,
 ) -> impl Parser<'arn, 'grm, Vec<OP>, E> {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<Vec<OP>, E> {
         let mut last_res: PResult<Vec<OP>, E> = PResult::new_empty(vec![], stream);
@@ -114,7 +114,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
 
 #[inline(always)]
 pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, _: &ParserContext| -> PResult<(), E> {
+    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, _: &ParserContext| -> PResult<(), E> {
         match stream.next(cache.input) {
             (s, Some(_)) => PResult::new_err(E::new(stream.span_to(s)), stream),
             (s, None) => PResult::new_empty((), s),
@@ -127,7 +127,7 @@ pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + '_ {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<O, E> {
         match p.parse(stream, cache, context) {
@@ -142,7 +142,7 @@ pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, (), E> + '_ {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<(), E> {
         match p.parse(stream, cache, context) {

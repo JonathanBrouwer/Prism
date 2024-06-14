@@ -26,16 +26,18 @@ pub struct CacheKey<'grm, 'arn> {
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
-pub struct ParserCache<'grm, 'arn, E: ParseError> {
-    //Cache for parser_cache_recurse
+pub struct ParserState<'grm, 'arn, E: ParseError> {
+    // Cache for parser_cache_recurse
     cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<CacheVal<'grm, 'arn, E>>>,
     cache_stack: Vec<CacheKey<'grm, 'arn>>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn, 'grm>,
     pub input: &'grm str,
+    // For generating guids
+    pub guid_counter: usize,
 }
 
-pub type PCache<'arn, 'grm, E> = ParserCache<'grm, 'arn, E>;
+pub type PState<'arn, 'grm, E> = ParserState<'grm, 'arn, E>;
 
 #[derive(Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {
@@ -61,13 +63,14 @@ pub struct ParserCacheEntry<PR> {
     value: PR,
 }
 
-impl<'grm, 'arn, E: ParseError> ParserCache<'grm, 'arn, E> {
+impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
     pub fn new(input: &'grm str, alloc: Allocs<'arn, 'grm>) -> Self {
-        ParserCache {
+        ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             alloc,
             input,
+            guid_counter: 0,
         }
     }
 
@@ -119,7 +122,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
     state: GrammarStateId,
     params: Vec<(&'grm str, RuleId)>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos_start: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,

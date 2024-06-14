@@ -1,5 +1,5 @@
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
-use crate::core::cache::{Allocs, PCache, ParserCache};
+use crate::core::cache::{Allocs, PState, ParserState};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::pos::Pos;
@@ -18,7 +18,7 @@ pub use typed_arena::Arena;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
-    cache: PCache<'arn, 'grm, E>,
+    cache: PState<'arn, 'grm, E>,
 
     state: GrammarState<'arn, 'grm>,
     rules: HashMap<&'grm str, RuleId>,
@@ -31,7 +31,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> Result<Self, AdaptError<'grm>> {
         let context = ParserContext::new();
-        let cache = ParserCache::new(input, bump);
+        let cache = ParserState::new(input, bump);
 
         let visible_rules = [
             ("grammar", META_GRAMMAR_STATE.1["grammar"]),

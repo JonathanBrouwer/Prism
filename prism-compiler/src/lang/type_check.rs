@@ -100,7 +100,9 @@ impl TcEnv {
                 self.value_types.insert(i, tid);
                 return tid;
             }
-            PartialExpr::Shift(..) => unreachable!(),
+            PartialExpr::Shift(v, shift) => {
+                PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
+            },
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);

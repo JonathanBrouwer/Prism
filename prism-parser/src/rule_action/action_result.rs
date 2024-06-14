@@ -12,6 +12,7 @@ pub enum ActionResult<'arn, 'grm> {
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     RuleRef(RuleId),
+    Guid(usize),
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
@@ -43,7 +44,8 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                 c,
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
-            ActionResult::RuleRef(r) => format!("[{}]", r),
+            ActionResult::RuleRef(r) => format!("[{r}]"),
+            ActionResult::Guid(r) => format!("Guid({r})"),
         }
     }
 

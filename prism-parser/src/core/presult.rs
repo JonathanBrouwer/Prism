@@ -1,4 +1,4 @@
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -172,7 +172,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P,
         stream: Pos,
-        cache: &mut PCache<'arn, 'grm, E>,
+        cache: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> Self
     where
@@ -190,7 +190,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_seq_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PCache<'arn, 'grm, E>,
+        cache: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> PResult<(O, O2), E>
     where
@@ -209,7 +209,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_seq_opt_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        cache: &mut PCache<'arn, 'grm, E>,
+        cache: &mut PState<'arn, 'grm, E>,
         context: &ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where

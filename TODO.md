@@ -44,3 +44,9 @@
 * Grammars met rule{} ipv rule: en niet newline sensitive
 * Stop met grammar blocks en integreer rule{} meer met de taal?
 * Special struct creation syntax, rest can be normal. No namespaces
+
+
+#guid builtin 
+
+add Shift(v, guid) and Scope(v, guid)
+Match guids during desugar

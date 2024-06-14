@@ -1,5 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};
@@ -29,7 +29,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
@@ -61,7 +61,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let p = move |stream: Pos,
-                              cache: &mut PCache<'arn, 'grm, E>,
+                              cache: &mut PState<'arn, 'grm, E>,
                               context: &ParserContext| {
                     let mut res = PResult::new_empty((), stream);
                     for char in literal.chars() {
@@ -251,6 +251,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)));
                 res.add_label_implicit(ErrorLabel::Debug(stream.span_to(stream), "adaptation"));
                 res
+            }
+            RuleExpr::Guid => {
+                // ActionResult::Guid(self.s)
+                todo!()
             }
         }
     }

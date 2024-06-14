@@ -1,7 +1,7 @@
 use crate::core::cow::Cow;
 use std::collections::HashMap;
 
-use crate::core::cache::{parser_cache_recurse, PCache};
+use crate::core::cache::{parser_cache_recurse, PState};
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
@@ -29,7 +29,7 @@ pub fn parser_body_cache_recurse<
     bs: &'arn [BlockState<'arn, 'grm>],
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
             &parser_body_sub_blocks(rules, bs, rule_args),
             ByAddress(bs),
@@ -46,7 +46,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |stream: Pos,
-          cache: &mut PCache<'arn, 'grm, E>,
+          cache: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         match bs {
@@ -81,7 +81,7 @@ fn parser_body_sub_constructors<
     es: &'arn [Constructor<'arn, 'grm>],
     rule_args: &'a [(&'grm str, RuleId)],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| match es {
+    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(stream.span_to(stream)), stream),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx
@@ -120,7 +120,7 @@ fn parser_body_sub_annotations<
     rule_args: &'a [(&'grm str, RuleId)],
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| match annots {
+    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res = parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars)
                 .parse(stream, cache, context);
@@ -132,9 +132,9 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |stream: Pos,
-                                                   cache: &mut PCache<'arn, 'grm, E>,
+                                                   cache: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
-                  -> PResult<_, E> {
+                                                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
                     stream,
                     cache,
@@ -148,9 +148,9 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |stream: Pos,
-                                                   cache: &mut PCache<'arn, 'grm, E>,
+                                                   cache: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
-                  -> PResult<_, E> {
+                                                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
                     stream,
                     cache,
@@ -163,7 +163,7 @@ fn parser_body_sub_annotations<
             .parse(stream, cache, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-            move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+            move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
                     stream,
                     cache,

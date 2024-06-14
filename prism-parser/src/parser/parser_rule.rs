@@ -1,5 +1,5 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
-use crate::core::cache::PCache;
+use crate::core::cache::PState;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -14,7 +14,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rule: RuleId,
     args: &'a [RuleId],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |stream: Pos, cache: &mut PCache<'arn, 'grm, E>, context: &ParserContext| {
+    move |stream: Pos, cache: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
