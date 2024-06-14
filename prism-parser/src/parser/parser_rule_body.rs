@@ -135,7 +135,7 @@ fn parser_body_sub_annotations<
             parser_with_layout(rules, vars, &move |pos: Pos,
                                                    state: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
-                                                   -> PResult<_, E> {
+                  -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
                     pos,
                     state,
@@ -151,7 +151,7 @@ fn parser_body_sub_annotations<
             parser_with_layout(rules, vars, &move |pos: Pos,
                                                    state: &mut PState<'arn, 'grm, E>,
                                                    context: &ParserContext|
-                                                   -> PResult<_, E> {
+                  -> PResult<_, E> {
                 parser_body_sub_annotations(rules, blocks, rest, expr, rule_args, vars).parse(
                     pos,
                     state,

@@ -1,7 +1,7 @@
-use crate::core::state::PState;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
+use crate::core::state::PState;
 use crate::error::ParseError;
 
 pub trait Parser<'arn, 'grm, O, E: ParseError> {

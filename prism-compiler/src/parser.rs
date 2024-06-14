@@ -1,5 +1,5 @@
+use crate::desugar::ParseEnv;
 use crate::lang::{TcEnv, UnionIndex};
-use crate::desugar::{ParseEnv};
 use lazy_static::lazy_static;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;

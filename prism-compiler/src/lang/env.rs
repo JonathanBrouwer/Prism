@@ -1,6 +1,6 @@
-use crate::lang::{TcEnv};
-use rpds::Vector;
+use crate::lang::TcEnv;
 use crate::lang::UnionIndex;
+use rpds::Vector;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);

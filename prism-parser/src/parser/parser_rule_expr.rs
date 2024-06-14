@@ -1,5 +1,4 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
-use crate::core::state::PState;
 use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};
@@ -8,6 +7,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::core::recovery::recovery_point;
 use crate::core::span::Span;
+use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::escaped_string::EscapedString;
@@ -60,23 +60,22 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p = move |pos: Pos,
-                              state: &mut PState<'arn, 'grm, E>,
-                              context: &ParserContext| {
-                    let mut res = PResult::new_empty((), pos);
-                    for char in literal.chars() {
-                        res = res
-                            .merge_seq_parser(&single(|c| *c == char), state, context)
-                            .map(|_| ());
-                    }
-                    let mut res =
-                        res.map_with_span(|_, span| Cow::Owned(ActionResult::Value(span)));
-                    res.add_label_implicit(ErrorLabel::Literal(
-                        pos.span_to(res.end_pos().next(state.input).0),
-                        literal.clone(),
-                    ));
-                    res
-                };
+                let p =
+                    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+                        let mut res = PResult::new_empty((), pos);
+                        for char in literal.chars() {
+                            res = res
+                                .merge_seq_parser(&single(|c| *c == char), state, context)
+                                .map(|_| ());
+                        }
+                        let mut res =
+                            res.map_with_span(|_, span| Cow::Owned(ActionResult::Value(span)));
+                        res.add_label_implicit(ErrorLabel::Literal(
+                            pos.span_to(res.end_pos().next(state.input).0),
+                            literal.clone(),
+                        ));
+                        res
+                    };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
                 p.parse(pos, state, context).map(PR::with_cow_rtrn)
@@ -201,7 +200,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, state.input, |ar, _| Some(RuleAction::ActionResult(ar))) {
+                let g = match parse_grammarfile(gr, state.input, |ar, _| {
+                    Some(RuleAction::ActionResult(ar))
+                }) {
                     Some(g) => g,
                     None => {
                         let mut e = E::new(pos.span_to(pos));

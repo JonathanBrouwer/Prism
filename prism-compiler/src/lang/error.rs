@@ -1,5 +1,5 @@
-use crate::lang::{TcEnv, ValueOrigin};
 use crate::lang::UnionIndex;
+use crate::lang::{TcEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::span::Span;
 use std::io;
@@ -119,11 +119,10 @@ impl TcEnv {
                     .finish()
             }
             TypeError::BadInfer { .. } => report.finish(),
-            TypeError::UnknownName(name) => {
-                report.with_message("Undefined name within this scope.")
-                    .with_label(Label::new(*name).with_message("This name is undefined."))
-                    .finish()
-            }
+            TypeError::UnknownName(name) => report
+                .with_message("Undefined name within this scope.")
+                .with_label(Label::new(*name).with_message("This name is undefined."))
+                .finish(),
         })
     }
 
@@ -137,9 +136,7 @@ impl TcEnv {
                     origin_description = "type of this value";
                     value = sub_value;
                 }
-                ValueOrigin::FreeSub(v) => {
-                    value = v
-                }
+                ValueOrigin::FreeSub(v) => value = v,
                 ValueOrigin::Failure => return None,
             }
         };

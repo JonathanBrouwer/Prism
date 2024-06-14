@@ -18,7 +18,10 @@ pub fn apply_action<'arn, 'grm>(
         }
         RuleAction::InputLiteral(lit) => ActionResult::Literal(lit.clone()),
         RuleAction::Construct(name, args) => {
-            let args_vals = args.iter().map(|a| apply_action(a, eval_name, span)).collect();
+            let args_vals = args
+                .iter()
+                .map(|a| apply_action(a, eval_name, span))
+                .collect();
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::Cons(h, t) => {

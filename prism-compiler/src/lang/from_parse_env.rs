@@ -1,6 +1,6 @@
 use crate::desugar::{ParseEnv, ParseIndex, SourceExpr};
-use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
 use crate::lang::error::TypeError;
+use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
 
 /// Stores the variables in scope + the depth of the scope
 #[derive(Default, Clone)]
@@ -15,23 +15,32 @@ impl<'a> Scope<'a> {
 impl TcEnv {
     pub fn insert_parse_env(&mut self, parse_env: &ParseEnv, root: ParseIndex) -> UnionIndex {
         let mut names = vec![Scope::default(); parse_env.values().len()];
-        
+
         let start = self.values.len();
         let take_count = root.index() + 1;
-        
+
         self.values.resize(start + take_count, PartialExpr::Free);
-        self.value_origins.resize(start + take_count, ValueOrigin::Failure);
-        
-        for (i, (expr, span)) in parse_env.values().iter().zip(parse_env.value_spans().iter()).take(take_count).enumerate().rev() {
-            self.value_origins[start+i] = ValueOrigin::SourceCode(*span);
-            self.values[start+i] = match expr {
-                SourceExpr::Type => {
-                    PartialExpr::Type
-                }
+        self.value_origins
+            .resize(start + take_count, ValueOrigin::Failure);
+
+        for (i, (expr, span)) in parse_env
+            .values()
+            .iter()
+            .zip(parse_env.value_spans().iter())
+            .take(take_count)
+            .enumerate()
+            .rev()
+        {
+            self.value_origins[start + i] = ValueOrigin::SourceCode(*span);
+            self.values[start + i] = match expr {
+                SourceExpr::Type => PartialExpr::Type,
                 SourceExpr::Let(name, value, body) => {
                     names[value.index()] = names[i].clone();
                     names[body.index()] = names[i].insert(&name);
-                    PartialExpr::Let(UnionIndex(value.index() + start), UnionIndex(body.index() + start))
+                    PartialExpr::Let(
+                        UnionIndex(value.index() + start),
+                        UnionIndex(body.index() + start),
+                    )
                 }
                 SourceExpr::Variable(name) => {
                     if name == "_" {
@@ -48,17 +57,26 @@ impl TcEnv {
                 SourceExpr::FnType(name, arg_type, return_type) => {
                     names[arg_type.index()] = names[i].clone();
                     names[return_type.index()] = names[i].insert(&name);
-                    PartialExpr::FnType(UnionIndex(arg_type.index() + start), UnionIndex(return_type.index() + start))
+                    PartialExpr::FnType(
+                        UnionIndex(arg_type.index() + start),
+                        UnionIndex(return_type.index() + start),
+                    )
                 }
                 SourceExpr::FnConstruct(name, arg_type, body) => {
                     names[arg_type.index()] = names[i].clone();
                     names[body.index()] = names[i].insert(&name);
-                    PartialExpr::FnConstruct(UnionIndex(arg_type.index() + start), UnionIndex(body.index() + start))
+                    PartialExpr::FnConstruct(
+                        UnionIndex(arg_type.index() + start),
+                        UnionIndex(body.index() + start),
+                    )
                 }
                 SourceExpr::FnDestruct(function, arg) => {
                     names[function.index()] = names[i].clone();
                     names[arg.index()] = names[i].clone();
-                    PartialExpr::FnDestruct(UnionIndex(function.index() + start), UnionIndex(arg.index() + start))
+                    PartialExpr::FnDestruct(
+                        UnionIndex(function.index() + start),
+                        UnionIndex(arg.index() + start),
+                    )
                 }
             };
             names.pop();

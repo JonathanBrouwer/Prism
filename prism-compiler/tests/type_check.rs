@@ -43,7 +43,7 @@ fn test_fail([test]: [&str; 1]) {
                             env.index_to_br_string(typ));
             panic!()
         }
-        Err(_) => {},
+        Err(_) => {}
     }
 }
 

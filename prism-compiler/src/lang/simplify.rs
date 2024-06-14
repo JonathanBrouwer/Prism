@@ -26,7 +26,9 @@ impl TcEnv {
             }
             PartialExpr::DeBruijnIndex(v) => match s.get(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
-                Some(EnvEntry::RType(id)) => PartialExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1),
+                Some(EnvEntry::RType(id)) => {
+                    PartialExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
+                }
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
                     return self.simplify_inner(*subst, subst_env, var_map)
                 }

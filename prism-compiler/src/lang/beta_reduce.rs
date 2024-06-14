@@ -1,7 +1,7 @@
 use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
+use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
-use crate::lang::UnionIndex;
 
 impl TcEnv {
     pub fn beta_reduce(&mut self, i: UnionIndex) -> UnionIndex {

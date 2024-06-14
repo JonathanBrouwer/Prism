@@ -1,8 +1,8 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{AggregatedTypeError, TypeError};
-use crate::lang::{ValueOrigin};
 use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin;
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
 
@@ -21,8 +21,11 @@ impl TcEnv {
     ///Invariant: Returned UnionIndex is valid in Env `s`
     pub(crate) fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
         // We should only type check values from the source code
-        debug_assert!(matches!(self.value_origins[i.0], ValueOrigin::SourceCode(_)));
-        
+        debug_assert!(matches!(
+            self.value_origins[i.0],
+            ValueOrigin::SourceCode(_)
+        ));
+
         let t = match self.values[i.0] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(mut v, b) => {
@@ -102,7 +105,7 @@ impl TcEnv {
             }
             PartialExpr::Shift(v, shift) => {
                 PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
-            },
+            }
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);

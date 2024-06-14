@@ -1,9 +1,9 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
+use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PartialExpr, TcEnv};
-use crate::lang::UnionIndex;
 use std::collections::HashMap;
 
 impl TcEnv {
@@ -29,10 +29,13 @@ impl TcEnv {
     /// `rt` should be free.
     pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
-        
+
         match self.values[fr.0] {
             PartialExpr::FnType(f_at, f_rt) => {
-                if !self.expect_beq_internal((f_at, &sr, &mut HashMap::new()), (at, s, &mut HashMap::new())) {
+                if !self.expect_beq_internal(
+                    (f_at, &sr, &mut HashMap::new()),
+                    (at, s, &mut HashMap::new()),
+                ) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
@@ -66,7 +69,10 @@ impl TcEnv {
                     })
                 }
 
-                let is_beq_free = self.expect_beq_free((at, s, &mut HashMap::new()), (f_at, &sr, &mut HashMap::new()));
+                let is_beq_free = self.expect_beq_free(
+                    (at, s, &mut HashMap::new()),
+                    (f_at, &sr, &mut HashMap::new()),
+                );
                 debug_assert!(is_beq_free);
 
                 let mut var_map1 = HashMap::new();

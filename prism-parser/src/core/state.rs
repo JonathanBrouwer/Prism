@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
 use crate::error::ParseError;
+use std::collections::HashMap;
 
 pub struct ParserState<'grm, 'arn, E: ParseError> {
     // Cache for parser_cache_recurse

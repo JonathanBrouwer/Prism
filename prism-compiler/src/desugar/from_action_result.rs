@@ -1,5 +1,5 @@
+use crate::desugar::{ParseEnv, ParseIndex, SourceExpr};
 use prism_parser::rule_action::action_result::ActionResult;
-use crate::desugar::{ParseEnv, SourceExpr, ParseIndex};
 
 impl ParseEnv {
     pub fn insert_from_action_result<'grm>(
@@ -25,9 +25,7 @@ impl ParseEnv {
             }
             "Variable" => {
                 assert_eq!(args.len(), 1);
-                SourceExpr::Variable(
-                    args[0].get_value(program).to_string(),
-                ) 
+                SourceExpr::Variable(args[0].get_value(program).to_string())
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);

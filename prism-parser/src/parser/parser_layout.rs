@@ -1,5 +1,4 @@
 use crate::core::adaptive::GrammarState;
-use crate::core::state::PState;
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -7,6 +6,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
+use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
@@ -82,10 +82,7 @@ pub fn full_input_layout<
     vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
-          context: &ParserContext|
-          -> PResult<O, E> {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         let res = sub.parse(pos, state, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
             .map(|(o, _)| o)
