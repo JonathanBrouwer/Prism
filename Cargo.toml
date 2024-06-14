@@ -14,7 +14,7 @@ license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
 # Internal
-prism-parser = { path = "./prism-parser" }
+prism-parser = { path = "./prism-parser", version = "0.1" }
 
 # External
 serde = { version = "1.0", features = ["derive", "rc"] }

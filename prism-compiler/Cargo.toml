@@ -1,5 +1,6 @@
 [package]
 name = "prism-compiler"
+description = "An adaptive and functional programming language"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
