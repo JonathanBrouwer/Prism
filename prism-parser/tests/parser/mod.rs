@@ -1,4 +1,5 @@
 mod adaptive;
+mod arithmetic;
 mod infinite;
 mod lambda;
 mod layout;
@@ -32,7 +33,6 @@ macro_rules! parse_test {
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
-            use prism_parser::error::tree_error::TreeError;
             use prism_parser::rule_action::RuleAction;
             use itertools::Itertools;
             use prism_parser::error::aggregate_error::ParseResultExt;
@@ -44,7 +44,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            let got = run_parser_rule::<TreeError, _>(&grammar, "start", input, |v| v.to_string(input)).unwrap_or_eprint();
+            let got = run_parser_rule::<SetError, _>(&grammar, "start", input, |v| v.to_string(input)).unwrap_or_eprint();
             assert_eq!($expected, got);
             })*
 
