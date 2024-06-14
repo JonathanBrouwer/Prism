@@ -1,5 +1,5 @@
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
-use crate::core::cache::{Allocs, PState, ParserState};
+use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::pos::Pos;
@@ -15,6 +15,7 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
+use crate::core::state::{ParserState, PState};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,

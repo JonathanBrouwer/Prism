@@ -1,7 +1,7 @@
 use crate::core::cow::Cow;
 use std::collections::HashMap;
 
-use crate::core::cache::{parser_cache_recurse, PState};
+use crate::core::cache::parser_cache_recurse;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
@@ -14,6 +14,7 @@ use by_address::ByAddress;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
+use crate::core::state::PState;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;

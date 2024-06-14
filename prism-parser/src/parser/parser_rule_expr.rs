@@ -1,5 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
-use crate::core::cache::PState;
+use crate::core::state::PState;
 use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};

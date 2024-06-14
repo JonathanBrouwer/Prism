@@ -12,8 +12,8 @@ use crate::grammar::GrammarFile;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
-use std::collections::HashMap;
 use typed_arena::Arena;
+use crate::core::state::PState;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
@@ -25,19 +25,6 @@ pub struct CacheKey<'grm, 'arn> {
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
-
-pub struct ParserState<'grm, 'arn, E: ParseError> {
-    // Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<CacheVal<'grm, 'arn, E>>>,
-    cache_stack: Vec<CacheKey<'grm, 'arn>>,
-    // For allocating things that might be in the result
-    pub alloc: Allocs<'arn, 'grm>,
-    pub input: &'grm str,
-    // For generating guids
-    pub guid_counter: usize,
-}
-
-pub type PState<'arn, 'grm, E> = ParserState<'grm, 'arn, E>;
 
 #[derive(Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {
@@ -59,61 +46,8 @@ impl<'arn, 'grm> Allocs<'arn, 'grm> {
 }
 
 pub struct ParserCacheEntry<PR> {
-    read: bool,
-    value: PR,
-}
-
-impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
-    pub fn new(input: &'grm str, alloc: Allocs<'arn, 'grm>) -> Self {
-        ParserState {
-            cache: HashMap::new(),
-            cache_stack: Vec::new(),
-            alloc,
-            input,
-            guid_counter: 0,
-        }
-    }
-
-    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'arn>) -> Option<bool> {
-        self.cache.get(&key).map(|v| v.read)
-    }
-
-    pub(crate) fn cache_get(
-        &mut self,
-        key: &CacheKey<'grm, 'arn>,
-    ) -> Option<&CacheVal<'grm, 'arn, E>> {
-        if let Some(v) = self.cache.get_mut(key) {
-            v.read = true;
-            Some(&v.value)
-        } else {
-            None
-        }
-    }
-
-    pub(crate) fn cache_insert(
-        &mut self,
-        key: CacheKey<'grm, 'arn>,
-        value: CacheVal<'grm, 'arn, E>,
-    ) {
-        self.cache
-            .insert(key.clone(), ParserCacheEntry { read: false, value });
-        self.cache_stack.push(key);
-    }
-
-    pub(crate) fn cache_state_get(&self) -> usize {
-        self.cache_stack.len()
-    }
-
-    pub(crate) fn cache_state_revert(&mut self, state: usize) {
-        self.cache_stack.drain(state..).for_each(|key| {
-            self.cache.remove(&key);
-        })
-    }
-
-    pub(crate) fn clear(&mut self) {
-        self.cache.clear();
-        self.cache_stack.clear();
-    }
+    pub read: bool,
+    pub value: PR,
 }
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
