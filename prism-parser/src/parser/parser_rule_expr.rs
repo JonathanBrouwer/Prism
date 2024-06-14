@@ -253,8 +253,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 res
             }
             RuleExpr::Guid => {
-                // ActionResult::Guid(self.s)
-                todo!()
+                let guid = state.guid_counter;
+                state.guid_counter += 1;
+                PResult::new_ok(PR::with_rtrn(ActionResult::Guid(guid)), stream, stream)
             }
         }
     }
