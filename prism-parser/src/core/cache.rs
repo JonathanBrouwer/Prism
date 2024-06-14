@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;

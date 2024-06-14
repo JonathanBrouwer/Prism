@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};
@@ -43,9 +43,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 let args = args
                     .iter()
-                    .map(|arg| {
-                        apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid())
-                    })
+                    .map(|arg| apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()))
                     .collect::<Vec<_>>();
 
                 let res = parser_rule(rules, rule, &args).parse(pos, state, context);

@@ -7,7 +7,7 @@ use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 
@@ -88,8 +88,7 @@ fn parser_body_sub_constructors<
             let rule_ctx = rule_ctx
                 .iter()
                 .map(|(&k, v)| (k, Cow::Owned(ActionResult::RuleRef(*v))));
-            let rule_args_iter = rule_args
-                .iter().cloned();
+            let rule_args_iter = rule_args.iter().cloned();
             let vars: HashMap<&'grm str, Cow<'arn, ActionResult>> =
                 rule_args_iter.chain(rule_ctx).collect();
 

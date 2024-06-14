@@ -1,5 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::state::PState;
@@ -8,7 +9,6 @@ use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
-use crate::core::cow::Cow;
 
 pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
