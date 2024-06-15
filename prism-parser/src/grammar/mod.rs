@@ -5,29 +5,29 @@ pub mod escaped_string;
 pub mod from_action_result;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'grm, A> {
+pub struct GrammarFile<'grm, Action> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'grm, A>>,
+    pub rules: Vec<Rule<'grm, Action>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'grm, A> {
+pub struct Rule<'grm, Action> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
     #[serde(borrow)]
-    pub blocks: Vec<Block<'grm, A>>,
+    pub blocks: Vec<Block<'grm, Action>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm, A>(
+pub struct Block<'grm, Action>(
     pub &'grm str,
-    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, A>>,
+    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, Action>>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm, A>(
+pub struct AnnotatedRuleExpr<'grm, Action>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'grm, A>,
+    #[serde(borrow)] pub RuleExpr<'grm, Action>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -53,8 +53,8 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleExpr<'grm, A> {
-    Rule(&'grm str, Vec<A>),
+pub enum RuleExpr<'grm, Action> {
+    Rule(&'grm str, Vec<Action>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {
@@ -66,12 +66,12 @@ pub enum RuleExpr<'grm, A> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, A),
+    Action(Box<Self>, Action),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
     AtThis,
     AtNext,
-    AtAdapt(A, &'grm str),
+    AtAdapt(Action, &'grm str),
     Guid,
 }

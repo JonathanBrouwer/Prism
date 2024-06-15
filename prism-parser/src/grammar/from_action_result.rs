@@ -19,11 +19,11 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'arn, 'grm, A>(
+pub fn parse_grammarfile<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<GrammarFile<'grm, A>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<GrammarFile<'grm, Action>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
@@ -34,11 +34,11 @@ pub fn parse_grammarfile<'arn, 'grm, A>(
     }
 }
 
-fn parse_rule<'arn, 'grm, A>(
+fn parse_rule<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<Rule<'grm, A>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<Rule<'grm, Action>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
@@ -52,11 +52,11 @@ fn parse_rule<'arn, 'grm, A>(
     }
 }
 
-fn parse_block<'arn, 'grm, A>(
+fn parse_block<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<Block<'grm, A>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<Block<'grm, Action>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
@@ -64,22 +64,22 @@ fn parse_block<'arn, 'grm, A>(
     }
 }
 
-fn parse_constructors<'arn, 'grm, A>(
+fn parse_constructors<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<Vec<AnnotatedRuleExpr<'grm, A>>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<Vec<AnnotatedRuleExpr<'grm, Action>>> {
     result_match! {
         match r => Construct(_, "List", constructors),
         create constructors.iter().map(|c| parse_annotated_rule_expr(c, src, parse_a)).collect::<Option<Vec<_>>>()?
     }
 }
 
-fn parse_annotated_rule_expr<'arn, 'grm, A>(
+fn parse_annotated_rule_expr<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<AnnotatedRuleExpr<'grm, A>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<AnnotatedRuleExpr<'grm, Action>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
@@ -102,11 +102,11 @@ fn parse_rule_annotation<'arn, 'grm>(
     })
 }
 
-fn parse_rule_expr<'arn, 'grm, A>(
+fn parse_rule_expr<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<A>,
-) -> Option<RuleExpr<'grm, A>> {
+    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
+) -> Option<RuleExpr<'grm, Action>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             Box::new(parse_rule_expr(&b[0], src, parse_a)?),
