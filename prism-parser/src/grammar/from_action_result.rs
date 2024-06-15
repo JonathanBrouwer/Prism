@@ -84,7 +84,7 @@ fn parse_annotated_rule_expr<'arn, 'grm, Action>(
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
         match annots.as_ref() => Construct(_, "List", annots),
-        create crate::grammar::AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src, parse_a)?)
+        create AnnotatedRuleExpr(annots.iter().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src, parse_a)?)
     }
 }
 
