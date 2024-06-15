@@ -45,7 +45,7 @@ parse_test! {
 name: recovery_new
 syntax: r#"
 rule start {
-    (s <- "{" s:stmt "}")*;
+    <s <- "{" s:stmt "}">*;
 }
 rule stmt {
     "seq" <- "abc" ";";

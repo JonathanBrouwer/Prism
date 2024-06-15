@@ -356,25 +356,24 @@
                             "Literal": "group"
                           },
                           {
-                            "Choice": [
+                            "NameBind": [
+                              "n",
                               {
-                                "NameBind": [
-                                  "n",
-                                  {
-                                    "Rule": [
-                                      "identifier",
-                                      []
-                                    ]
+                                "SliceInput": {
+                                  "Repeat": {
+                                    "expr": {
+                                      "Rule": [
+                                        "identifier",
+                                        []
+                                      ]
+                                    },
+                                    "min": 0,
+                                    "max": 1,
+                                    "delim": {
+                                      "Sequence": []
+                                    }
                                   }
-                                ]
-                              },
-                              {
-                                "NameBind": [
-                                  "n",
-                                  {
-                                    "Literal": ""
-                                  }
-                                ]
+                                }
                               }
                             ]
                           },
@@ -1317,7 +1316,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "("
+                        "Literal": "<"
                       },
                       {
                         "NameBind": [
@@ -1335,7 +1334,7 @@
                         ]
                       },
                       {
-                        "Literal": ")"
+                        "Literal": ">"
                       }
                     ]
                   },

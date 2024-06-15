@@ -154,7 +154,7 @@ parse_test! {
 name: adaptive_sub
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:(start / #adapt(g, start));
+        b <- "{" g:grammar(prule_action) "}" b:<start / #adapt(g, start)>;
         X() <- "x";
         sub;
     }
@@ -207,7 +207,7 @@ parse_test! {
 name: adaptive_sub2
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:(sub2 / #adapt(g, sub2));
+        b <- "{" g:grammar(prule_action) "}" b:<sub2 / #adapt(g, sub2)>;
     }
 
     rule sub2 = sub;

@@ -1,6 +1,6 @@
 rule toplevel = grammar(prule_action);
 
-rule grammar(action) = GrammarFile(rs) <- rs:(prule(action)*);
+rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule(name, args, blocks) <- "rule" name:identifier args:prule_args "{" blocks:prule_blocks(action) "}";
@@ -13,12 +13,12 @@ rule prule_args {
 }
 
 rule prule_blocks(action) {
-    (Block(n, c) <- "group" (n:identifier / n:"") "{" c:prule_constructors(action) "}")+;
+    <Block(n, c) <- "group" n:#str(identifier?) "{" c:prule_constructors(action) "}">+;
     Block("", c) :: [] <- c:prule_constructors(action);
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;
-rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:(a <- a:prule_annotation)* e:prule_expr(action) ";";
+rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
 
 rule prule_annotation {
     Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
@@ -52,7 +52,7 @@ rule prule_expr(action) {
         SliceInput(r) <- "#str" "(" r:prule_expr(action) ")";
         PosLookahead(r) <- "#pos" "(" r:prule_expr(action) ")";
         NegLookahead(r) <- "#neg" "(" r:prule_expr(action) ")";
-        r <- "(" r:prule_expr(action) ")";
+        r <- "<" r:prule_expr(action) ">";
         AtThis() <- "#this";
         AtNext() <- "#next";
         Guid() <- "#guid";

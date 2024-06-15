@@ -105,3 +105,35 @@ failing tests:
     ""
     "xy"
 }
+
+parse_test! {
+name: pass_complex
+syntax: r##"
+    rule start = do(x <- x:"x" "y");
+    rule do(v) = v;
+    "##
+passing tests:
+    "xy" => "'x'"
+
+failing tests:
+    "x"
+    "y"
+    ""
+    "xyz"
+}
+
+parse_test! {
+name: run_value_as_rule
+syntax: r##"
+    rule start = Letters(v1, v2) <- v1:letter v2:id($v1);
+
+    rule letter = ['a'-'z'];
+    rule id(v) = v;
+    "##
+passing tests:
+    "x" => "Letters('x', 'x')"
+
+failing tests:
+    ""
+    "xy"
+}
