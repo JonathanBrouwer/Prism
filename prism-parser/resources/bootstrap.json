@@ -119,14 +119,7 @@
                           {
                             "RunVar": [
                               "prule_args",
-                              [
-                                {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
-                                }
-                              ]
+                              []
                             ]
                           }
                         ]
@@ -202,14 +195,7 @@
                           {
                             "RunVar": [
                               "prule_args",
-                              [
-                                {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
-                                }
-                              ]
+                              []
                             ]
                           }
                         ]
@@ -299,9 +285,7 @@
     },
     {
       "name": "prule_args",
-      "args": [
-        "action"
-      ],
+      "args": [],
       "blocks": [
         [
           "",
@@ -1537,8 +1521,15 @@
                             "Repeat": {
                               "expr": {
                                 "RunVar": [
-                                  "action",
-                                  []
+                                  "prule_expr",
+                                  [
+                                    {
+                                      "RunVar": [
+                                        "action",
+                                        []
+                                      ]
+                                    }
+                                  ]
                                 ]
                               },
                               "min": 0,

@@ -141,7 +141,7 @@ failing tests:
 parse_test! {
 name: parametric_literal
 syntax: r##"
-    rule start = id("hey")
+    rule start = id("hey");
     rule id(v) = v;
     "##
 passing tests:
