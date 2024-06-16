@@ -119,7 +119,14 @@
                           {
                             "Rule": [
                               "prule_args",
-                              []
+                              [
+                                {
+                                  "Rule": [
+                                    "action",
+                                    []
+                                  ]
+                                }
+                              ]
                             ]
                           }
                         ]
@@ -195,7 +202,14 @@
                           {
                             "Rule": [
                               "prule_args",
-                              []
+                              [
+                                {
+                                  "Rule": [
+                                    "action",
+                                    []
+                                  ]
+                                }
+                              ]
                             ]
                           }
                         ]
@@ -285,7 +299,9 @@
     },
     {
       "name": "prule_args",
-      "args": [],
+      "args": [
+        "action"
+      ],
       "blocks": [
         [
           "",

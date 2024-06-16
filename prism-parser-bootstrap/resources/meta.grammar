@@ -3,11 +3,11 @@ rule toplevel = grammar(prule_action);
 rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
-    Rule(name, args, blocks) <- "rule" name:identifier args:prule_args "{" blocks:prule_blocks(action) "}";
-    Rule(name, args, Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier args:prule_args "=" expr:prule_expr(action) ";";
+    Rule(name, args, blocks) <- "rule" name:identifier args:prule_args(action) "{" blocks:prule_blocks(action) "}";
+    Rule(name, args, Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier args:prule_args(action) "=" expr:prule_expr(action) ";";
 }
 
-rule prule_args {
+rule prule_args(action) {
     args <- "(" args:#repeat(identifier, ",", *) ")";
     [] <- "";
 }
