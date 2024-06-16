@@ -144,7 +144,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
         Construct(_, "Guid", _) => RuleExpr::Guid,
-        Construct(_, "Rule", b) => RuleExpr::Rule(
+        Construct(_, "Rule", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
@@ -152,7 +152,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
                     result_match!(
                         match sub.as_ref() => Construct(_, "Name", sub_val),
                         match sub_val[0].as_ref() => Value(span),
-                        create RuleExpr::Rule(&src[*span], vec![])
+                        create RuleExpr::RunVar(&src[*span], vec![])
                     )
                 }).collect::<Option<Vec<_>>>()?
             }?,

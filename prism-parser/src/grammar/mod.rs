@@ -54,7 +54,7 @@ pub enum RuleAnnotation<'grm> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleExpr<'grm, Action> {
-    Rule(&'grm str, Vec<Self>),
+    RunVar(&'grm str, Vec<Self>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {

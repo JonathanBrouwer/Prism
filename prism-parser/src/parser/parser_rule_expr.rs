@@ -36,7 +36,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::Rule(rule, args) => {
+            RuleExpr::RunVar(rule, args) => {
                 // Figure out which rule the variable `rule` refers to
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");

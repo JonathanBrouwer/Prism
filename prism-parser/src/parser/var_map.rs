@@ -74,7 +74,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         }
     }
     pub fn as_parser<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(&'a self, rules: &'arn GrammarState<'arn, 'grm>) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-        //TODO this code needs to be moved to parser_rule_expr
+        //TODO this code needs to be moved to parser_rule_expr::RunVar
         match self {
             VarMapValue::Expr(captured) => {
                 parser_expr(rules, captured.blocks.as_ref(), captured.expr, &captured.rule_args, &captured.vars)
