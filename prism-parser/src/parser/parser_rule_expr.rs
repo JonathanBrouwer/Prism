@@ -41,29 +41,41 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-                let rule = rule.to_parser(rules).parse(pos, state, context);
-                let args = args
-                    .iter()
-                    .map(|arg| {
-                        VarMapValue::Expr {
-                            expr,
-                            blocks: ByAddress(blocks),
-                            rule_args: rule_args.clone(),
-                            vars: vars.clone(),
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                rule.merge_seq_chain_parser(
-                    |rule| {
-                        println!("{rule:?}");
-                        let rule = rule.rtrn.as_rule().expect("Value should be a rule");
-                        map_parser(
-                            parser_rule(rules, rule, &args),
-                            &|v| PR::with_cow_rtrn(Cow::Borrowed(v))
-                        )
+                match rule {
+                    VarMapValue::Expr { expr, blocks, rule_args, vars } => {
+                        assert_eq!(args.len(), 0);
+                        parser_expr(rules, blocks, expr, rule_args, vars).parse(pos, state, context)
                     }
-                    , state, context
-                )
+                    VarMapValue::Value(rule) => {
+                        let args = args
+                            .iter()
+                            .map(|arg| {
+                                VarMapValue::Expr {
+                                    expr: arg,
+                                    blocks: ByAddress(blocks),
+                                    rule_args: rule_args.clone(),
+                                    vars: vars.clone(),
+                                }
+                            })
+                            .collect::<Vec<_>>();
+                        let res = parser_rule(rules, rule.as_rule().unwrap(), &args).parse(pos, state, context);
+                        res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                    }
+                }
+
+                // let rule = rule.to_parser(rules).parse(pos, state, context);
+
+                // rule.merge_seq_chain_parser(
+                //     |rule| {
+                //         println!("{rule:?}");
+                //         let rule = rule.rtrn.as_rule().expect("Value should be a rule");
+                //         map_parser(
+                //             parser_rule(rules, rule, &args),
+                //             &|v| PR::with_cow_rtrn(Cow::Borrowed(v))
+                //         )
+                //     }
+                //     , state, context
+                // )
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
