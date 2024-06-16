@@ -1,8 +1,8 @@
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 
-#[derive(Clone, Serialize, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub enum Cow<'a, T: 'a> {
     Borrowed(&'a T),
     Owned(T),
@@ -34,6 +34,18 @@ impl<T: Debug> Debug for Cow<'_, T> {
             Cow::Borrowed(v) => v.fmt(f),
             Cow::Owned(v) => v.fmt(f),
         }
+    }
+}
+
+impl<'de, 'a, T> Serialize for Cow<'a, T>
+where
+    T: Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        self.as_ref().serialize(serializer)
     }
 }
 
