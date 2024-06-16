@@ -30,7 +30,7 @@ pub struct AnnotatedRuleExpr<'grm, Action>(
     #[serde(borrow)] pub RuleExpr<'grm, Action>,
 );
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct CharClass {
     pub neg: bool,
     pub ranges: Vec<(char, char)>,
@@ -52,9 +52,9 @@ pub enum RuleAnnotation<'grm> {
     EnableRecovery,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleExpr<'grm, Action> {
-    Rule(&'grm str, Vec<Action>),
+    Rule(&'grm str, Vec<Self>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {

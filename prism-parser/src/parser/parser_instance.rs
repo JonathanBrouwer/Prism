@@ -16,6 +16,7 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
+use crate::parser::var_map::VarMapValue;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -40,7 +41,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         ]
         .into_iter();
 
-        let (state, rules) = META_GRAMMAR_STATE.0.with(from, visible_rules, None)?;
+        let (state, rules) = META_GRAMMAR_STATE.0.adapt_with(from, visible_rules, None)?;
 
         Ok(Self {
             context,
@@ -60,7 +61,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
         let rule_ctx = self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, Cow::Owned(ActionResult::RuleRef(v))))
+            .map(|(&k, &v)| (k, VarMapValue::Value(Cow::Owned(ActionResult::RuleRef(v)))))
             .collect();
         let result = parse_with_recovery(
             &full_input_layout(

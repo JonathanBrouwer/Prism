@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
@@ -9,11 +10,12 @@ use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::rule_action::action_result::ActionResult;
 use itertools::Itertools;
+use crate::parser::var_map::{VarMap, VarMapValue};
 
 pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
-    args: &'a [Cow<'arn, ActionResult<'arn, 'grm>>],
+    args: &'a [VarMapValue<'arn, 'grm>],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
@@ -25,7 +27,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             .iter()
             .cloned()
             .zip_eq(args.iter().cloned())
-            .collect::<Vec<_>>();
+            .collect::<VarMap>();
 
         let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, &rule_args)
             .parse(pos, state, context);

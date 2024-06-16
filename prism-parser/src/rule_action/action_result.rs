@@ -24,14 +24,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub fn as_rule(&self) -> RuleId {
-        if let ActionResult::RuleRef(rule) = self {
-            *rule
-        } else {
-            panic!("Tried to convert AR to rule, but it does not refer to a rule: {self:?}");
-        }
-    }
-
     pub fn to_string(&self, src: &str) -> String {
         match self {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
