@@ -35,18 +35,11 @@
     * fully public: definition exported through module
 
 
-
-* Nieuwe ideeen om parsen beter te maken
-  * Tokenize met 
-    * alphanumeric
-    * structural []{}() etc
-    * operational +-<> etc
-* Grammars met rule{} ipv rule: en niet newline sensitive
-* Stop met grammar blocks en integreer rule{} meer met de taal?
-* Special struct creation syntax, rest can be normal. No namespaces
+PARSER REFACTOR TODO:
+- Prevent it from being recursive
+- bincode -> postcard?
+- Refactor `variables` to be O(1) clone
 
 
-#guid builtin 
 
-add Shift(v, guid) and Scope(v, guid)
-Match guids during desugar
+

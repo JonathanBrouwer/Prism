@@ -78,23 +78,4 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             None
         }
     }
-
-    // pub fn to_parser<'a, E: ParseError<L= ErrorLabel<'grm>> + 'grm>(
-    //     &'a self,
-    //     rules: &'arn GrammarState<'arn, 'grm>,
-    // ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-    //     move |pos: Pos,
-    //           state: &mut PState<'arn, 'grm, E>,
-    //           context: &ParserContext|
-    //           -> PResult<PR<'arn, 'grm>, E> {
-    //         match self {
-    //             VarMapValue::Expr { expr, blocks, rule_args, vars } => {
-    //                 parser_expr(rules, blocks, expr, rule_args, vars).parse(pos, state, context)
-    //             }
-    //             VarMapValue::Value(ar) => {
-    //                 PResult::new_ok(PR::with_cow_rtrn(ar.clone()), pos, pos)
-    //             }
-    //         }
-    //     }
-    // }
 }
