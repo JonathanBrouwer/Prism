@@ -52,15 +52,15 @@ impl<'arn, 'grm> Hash for VarMap<'arn, 'grm> {
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct CapturedExpr<'arn, 'grm> {
-    expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    blocks: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
-    rule_args: VarMap<'arn, 'grm>,
-    vars: VarMap<'arn, 'grm>,
+    pub expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
+    pub blocks: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    pub rule_args: VarMap<'arn, 'grm>,
+    pub vars: VarMap<'arn, 'grm>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum VarMapValue<'arn, 'grm> {
-    Expr(Cow<'arn, CapturedExpr<'arn, 'grm>>),
+    Expr(CapturedExpr<'arn, 'grm>),
     RuleId(RuleId),
     Value(Cow<'arn, ActionResult<'arn, 'grm>>),
 }
@@ -73,17 +73,12 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             None
         }
     }
-    pub fn as_parser<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(&'a self, rules: &'arn GrammarState<'arn, 'grm>) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-        //TODO this code needs to be moved to parser_rule_expr::RunVar
-        match self {
-            VarMapValue::Expr(captured) => {
-                parser_expr(rules, captured.blocks.as_ref(), captured.expr, &captured.rule_args, &captured.vars)
-            }
-            VarMapValue::RuleId(rule) => {
-                parser_rule(rules, *rule, &[])
-            }
-            VarMapValue::Value(_) => panic!("Value cannot be a parser"),
+
+    pub fn as_rule_id(&self) -> Option<RuleId> {
+        if let VarMapValue::RuleId(rule) = self {
+            Some(*rule)
+        } else {
+            None
         }
     }
-
 }

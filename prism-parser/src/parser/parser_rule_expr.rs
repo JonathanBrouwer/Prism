@@ -21,7 +21,7 @@ use crate::rule_action::apply_action::apply_action;
 use crate::rule_action::RuleAction;
 use std::collections::HashMap;
 use by_address::ByAddress;
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::parser::var_map::{CapturedExpr, VarMap, VarMapValue};
 
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
@@ -42,45 +42,27 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-                // match rule {
-                //     VarMapValue::Expr(captured) => {
-                //         assert_eq!(args.len(), 0);
-                //         parser_expr(rules, &captured.blocks, &captured.expr, &captured.rule_args, &captured.vars).parse(pos, state, context)
-                //     }
-                //     VarMapValue::RuleId(r) => {
-                //         todo!()
-                //     }
-                //     VarMapValue::Value(rule) => {
-                //         unreachable!();
-                //         // let args = args
-                //         //     .iter()
-                //         //     .map(|arg| {
-                //         //         VarMapValue::Expr {
-                //         //             expr: arg,
-                //         //             blocks: ByAddress(blocks),
-                //         //             rule_args: rule_args.clone(),
-                //         //             vars: vars.clone(),
-                //         //         }
-                //         //     })
-                //         //     .collect::<Vec<_>>();
-                //         // let res = parser_rule(rules, rule.as_rule().unwrap(), &args).parse(pos, state, context);
-                //         // res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
-                //     }
-                // }
-
-                // let rule = rule.to_parser(rules).parse(pos, state, context);
-
-                // rule.merge_seq_chain_parser(
-                //     |rule| {
-                //         println!("{rule:?}");
-                //         let rule = rule.rtrn.as_rule().expect("Value should be a rule");
-                //         map_parser(
-                //             parser_rule(rules, rule, &args),
-                //             &|v| PR::with_cow_rtrn(Cow::Borrowed(v))
-                //         )
-                //     }
-                //     , state, context
-                // )
+                let args = args
+                    .iter()
+                    .map(|arg| {
+                        VarMapValue::Expr(CapturedExpr {
+                            expr: arg,
+                            blocks: ByAddress(blocks),
+                            rule_args: rule_args.clone(),
+                            vars: vars.clone(),
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                match rule {
+                    VarMapValue::Expr(captured) => {
+                        assert_eq!(args.len(), 0, "Applying arguments to captured expressions is currently unsupported");
+                        parser_expr(rules, captured.blocks.as_ref(), captured.expr, &captured.rule_args, &captured.vars).parse(pos, state, context)
+                    }
+                    VarMapValue::RuleId(rule) => {
+                        parser_rule(rules, *rule, &args).parse(pos, state, context).map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                    }
+                    VarMapValue::Value(_) => panic!("Value cannot be a parser"),
+                }
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
@@ -250,7 +232,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     state.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
-                let rule_vars = vars.iter().flat_map(|(k, v)| v.as_rule().map(|v| (k, v)));
+                let rule_vars = vars.iter().flat_map(|(k, v)| v.as_rule_id().map(|v| (k, v)));
                 let (rules, mut iter) = match rules.adapt_with(g, rule_vars, Some(pos)) {
                     Ok(rules) => rules,
                     Err(_) => {
@@ -269,7 +251,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let rule = iter
                     .find(|(k, _)| k == b)
                     .map(|(_, v)| v)
-                    .unwrap_or_else(|| vars.get(b).unwrap().as_rule().expect("Adaptation rule exists"));
+                    .unwrap_or_else(|| vars.get(b).unwrap().as_rule_id().expect("Adaptation rule exists"));
 
                 // Parse body
                 let mut res = parser_rule(rules, rule, &[])
