@@ -41,27 +41,31 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-                match rule {
-                    VarMapValue::Expr { expr, blocks, rule_args, vars } => {
-                        assert_eq!(args.len(), 0);
-                        parser_expr(rules, blocks, expr, rule_args, vars).parse(pos, state, context)
-                    }
-                    VarMapValue::Value(rule) => {
-                        let args = args
-                            .iter()
-                            .map(|arg| {
-                                VarMapValue::Expr {
-                                    expr: arg,
-                                    blocks: ByAddress(blocks),
-                                    rule_args: rule_args.clone(),
-                                    vars: vars.clone(),
-                                }
-                            })
-                            .collect::<Vec<_>>();
-                        let res = parser_rule(rules, rule.as_rule().unwrap(), &args).parse(pos, state, context);
-                        res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
-                    }
-                }
+                // match rule {
+                //     VarMapValue::Expr(captured) => {
+                //         assert_eq!(args.len(), 0);
+                //         parser_expr(rules, &captured.blocks, &captured.expr, &captured.rule_args, &captured.vars).parse(pos, state, context)
+                //     }
+                //     VarMapValue::RuleId(r) => {
+                //         todo!()
+                //     }
+                //     VarMapValue::Value(rule) => {
+                //         unreachable!();
+                //         // let args = args
+                //         //     .iter()
+                //         //     .map(|arg| {
+                //         //         VarMapValue::Expr {
+                //         //             expr: arg,
+                //         //             blocks: ByAddress(blocks),
+                //         //             rule_args: rule_args.clone(),
+                //         //             vars: vars.clone(),
+                //         //         }
+                //         //     })
+                //         //     .collect::<Vec<_>>();
+                //         // let res = parser_rule(rules, rule.as_rule().unwrap(), &args).parse(pos, state, context);
+                //         // res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                //     }
+                // }
 
                 // let rule = rule.to_parser(rules).parse(pos, state, context);
 

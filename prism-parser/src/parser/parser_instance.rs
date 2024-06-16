@@ -61,7 +61,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
         let rule_ctx = self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, VarMapValue::Value(Cow::Owned(ActionResult::RuleRef(v)))))
+            .map(|(&k, &v)| (k, VarMapValue::RuleId(v)))
             .collect();
         let result = parse_with_recovery(
             &full_input_layout(

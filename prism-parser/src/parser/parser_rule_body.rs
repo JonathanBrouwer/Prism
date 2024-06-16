@@ -88,7 +88,7 @@ fn parser_body_sub_constructors<
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx
                 .iter()
-                .map(|(&k, v)| (k, VarMapValue::Value(Cow::Owned(ActionResult::RuleRef(*v)))));
+                .map(|(&k, v)| (k, VarMapValue::RuleId(*v)));
             let rule_args_iter = rule_args.iter().map(|(k, v)| (k, v.clone()));
             let vars: VarMap<'arn, 'grm> =
                 rule_args_iter.chain(rule_ctx).collect();

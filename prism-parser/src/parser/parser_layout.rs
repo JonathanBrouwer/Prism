@@ -30,7 +30,7 @@ pub fn parser_with_layout<
         if context.layout_disabled || vars.get("layout").is_none() {
             return sub.parse(pos, state, context);
         }
-        let layout = vars.get("layout").expect("Layout exists").as_rule().expect("Layout is a rule");
+        let layout = vars.get("layout").expect("Layout exists").as_expr().expect("Layout is an expr").as_parser(rules);
 
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);
@@ -43,7 +43,7 @@ pub fn parser_with_layout<
             let pos_before_layout = sub_res.end_pos();
             // Add in optional error information from sub_res, then require another layout token
             let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
-                &parser_rule(rules, layout, &[]),
+                &layout,
                 state,
                 &ParserContext {
                     layout_disabled: true,
