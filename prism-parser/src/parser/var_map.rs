@@ -3,9 +3,17 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use by_address::ByAddress;
 use itertools::Itertools;
-use crate::core::adaptive::{BlockState, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
+use crate::core::parser::Parser;
+use crate::core::pos::Pos;
+use crate::core::presult::PResult;
+use crate::core::state::PState;
+use crate::error::error_printer::ErrorLabel;
+use crate::error::ParseError;
 use crate::grammar::RuleExpr;
+use crate::parser::parser_rule_expr::parser_expr;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
@@ -46,6 +54,7 @@ pub enum VarMapValue<'arn, 'grm> {
     Expr {
         expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
         blocks: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+        rule_args: VarMap<'arn, 'grm>,
         vars: VarMap<'arn, 'grm>,
     },
     Value(Cow<'arn, ActionResult<'arn, 'grm>>),
@@ -67,6 +76,25 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             Some(value)
         } else {
             None
+        }
+    }
+
+    pub fn to_parser<'a, E: ParseError<L= ErrorLabel<'grm>> + 'grm>(
+        &'a self,
+        rules: &'arn GrammarState<'arn, 'grm>,
+    ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
+        move |pos: Pos,
+              state: &mut PState<'arn, 'grm, E>,
+              context: &ParserContext|
+              -> PResult<PR<'arn, 'grm>, E> {
+            match self {
+                VarMapValue::Expr { expr, blocks, rule_args, vars } => {
+                    parser_expr(rules, blocks, expr, rule_args, vars).parse(pos, state, context)
+                }
+                VarMapValue::Value(ar) => {
+                    PResult::new_ok(PR::with_cow_rtrn(ar.clone()), pos, pos)
+                }
+            }
         }
     }
 }

@@ -37,26 +37,33 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::Rule(rule, args) => {
-                // Does `rule` refer to a variable containing a rule or to a rule directly?
-                let rule = if let Some(ar) = vars.get(rule) {
-                    ar.as_rule().expect("Tried to run non-rule as rule")
-                } else {
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-
+                let rule = rule.to_parser(rules).parse(pos, state, context);
                 let args = args
                     .iter()
                     .map(|arg| {
                         VarMapValue::Expr {
                             expr,
                             blocks: ByAddress(blocks),
+                            rule_args: rule_args.clone(),
                             vars: vars.clone(),
                         }
                     })
                     .collect::<Vec<_>>();
-
-                let res = parser_rule(rules, rule, &args).parse(pos, state, context);
-                res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                rule.merge_seq_chain_parser(
+                    |rule| {
+                        println!("{rule:?}");
+                        let rule = rule.rtrn.as_rule().expect("Value should be a rule");
+                        map_parser(
+                            parser_rule(rules, rule, &args),
+                            &|v| PR::with_cow_rtrn(Cow::Borrowed(v))
+                        )
+                    }
+                    , state, context
+                )
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));

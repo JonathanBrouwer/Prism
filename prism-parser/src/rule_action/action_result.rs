@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::parser::var_map::VarMapValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ActionResult<'arn, 'grm> {
@@ -39,6 +40,13 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::RuleRef(r) => format!("[{r}]"),
             ActionResult::Guid(r) => format!("Guid({r})"),
         }
+    }
+
+    pub fn as_rule(&self) -> Option<RuleId> {
+        let ActionResult::RuleRef(rule) = self else {
+            return None;
+        };
+        Some(*rule)
     }
 
     pub fn void() -> Self {

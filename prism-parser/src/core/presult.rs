@@ -1,5 +1,5 @@
 use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
+use crate::core::parser::{map_parser, Parser};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
@@ -196,6 +196,7 @@ impl<O, E: ParseError> PResult<O, E> {
     where
         'grm: 'arn,
     {
+        //TODO write as  self.merge_seq_chain_parser(|o1| map_parser(other, &|o2| (o1, o2)), state, context)
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
@@ -224,6 +225,22 @@ impl<O, E: ParseError> PResult<O, E> {
         let other_res = other.parse(pos, state, context);
         let should_continue = other_res.is_ok();
         (self.merge_seq_opt(other_res), should_continue)
+    }
+
+    #[inline(always)]
+    pub fn merge_seq_chain_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
+        self,
+        other: impl FnOnce(O) -> P2,
+        state: &mut PState<'arn, 'grm, E>,
+        context: &ParserContext,
+    ) -> PResult<O2, E>
+    where
+        'grm: 'arn,
+    {
+        match self {
+            POk(o, _, end_pos, _, _) => other(o).parse(end_pos, state, context),
+            PErr(_, _) => return self.map(|_| unreachable!()),
+        }
     }
 
     #[inline(always)]
