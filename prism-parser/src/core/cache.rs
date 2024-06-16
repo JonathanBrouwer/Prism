@@ -14,6 +14,7 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use typed_arena::Arena;
+use crate::parser::var_map::{VarMap};
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
@@ -21,7 +22,7 @@ pub struct CacheKey<'grm, 'arn> {
     block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
     ctx: ParserContext,
     state: GrammarStateId,
-    params: Vec<(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)>,
+    params: VarMap<'arn, 'grm>,
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -54,7 +55,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
     block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
     grammar_state: GrammarStateId,
-    params: Vec<(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)>,
+    params: &'a VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         //Check if this result is cached
@@ -63,7 +64,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
             block,
             ctx: context.clone(),
             state: grammar_state,
-            params: params.clone(),
+            params: params.clone()
         };
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();

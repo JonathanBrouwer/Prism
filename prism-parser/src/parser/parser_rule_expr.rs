@@ -20,34 +20,49 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_action;
 use crate::rule_action::RuleAction;
 use std::collections::HashMap;
+use by_address::ByAddress;
+use crate::parser::var_map::{CapturedExpr, VarMap, VarMapValue};
 
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     blocks: &'arn [BlockState<'arn, 'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    rule_args: &'a [(&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>)],
-    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    // TODO merge this with `blocks`
+    rule_args: &'a VarMap<'arn, 'grm>,
+    vars: &'a VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::Rule(rule, args) => {
-                // Does `rule` refer to a variable containing a rule or to a rule directly?
-                let rule = if let Some(ar) = vars.get(rule) {
-                    ar.as_rule()
-                } else {
+            //TODO match name in meta grammar
+            RuleExpr::RunVar(rule, args) => {
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-
                 let args = args
                     .iter()
-                    .map(|arg| apply_action(arg, &|v| vars.get(v).cloned(), Span::invalid()))
+                    .map(|arg| {
+                        VarMapValue::Expr(CapturedExpr {
+                            expr: arg,
+                            blocks: ByAddress(blocks),
+                            rule_args: rule_args.clone(),
+                            vars: vars.clone(),
+                        })
+                    })
                     .collect::<Vec<_>>();
-
-                let res = parser_rule(rules, rule, &args).parse(pos, state, context);
-                res.map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                match rule {
+                    VarMapValue::Expr(captured) => {
+                        assert_eq!(args.len(), 0, "Applying arguments to captured expressions is currently unsupported");
+                        parser_expr(rules, captured.blocks.as_ref(), captured.expr, &captured.rule_args, &captured.vars).parse(pos, state, context)
+                    }
+                    VarMapValue::RuleId(rule) => {
+                        parser_rule(rules, *rule, &args).parse(pos, state, context).map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                    }
+                    VarMapValue::Value(_) => panic!("Value cannot be a parser"),
+                }
             }
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
@@ -102,7 +117,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(HashMap::new(), pos);
                 //TODO can we do better than tracking res_vars by cloning?
-                let mut res_vars = vars.clone();
+                let mut res_vars: VarMap = vars.clone();
                 for sub in subs {
                     res = res
                         .merge_seq_parser(
@@ -117,7 +132,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     match &res.ok() {
                         None => break,
                         Some(o) => {
-                            res_vars.extend(o.iter().map(|(k, v)| (*k, v.clone())));
+                            res_vars.extend(o.iter().map(|(k, v)| (*k, VarMapValue::Value(v.clone()))));
                         }
                     }
                 }
@@ -159,7 +174,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                             res.free
                                 .get(k)
                                 .cloned()
-                                .or_else(|| vars.get(k).map(|v| (*v).clone()))
+                                .or_else(|| vars.get(k).and_then(|v| v.as_value()).cloned())
                         },
                         span,
                     );
@@ -192,7 +207,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::AtAdapt(ga, b) => {
                 // First, get the grammar actionresult
-                let gr = apply_action(ga, &|k| vars.get(k).cloned(), Span::invalid());
+                let gr = apply_action(ga, &|k| vars.get(k).and_then(|v| v.as_value()).cloned(), Span::invalid());
                 let gr: &'arn ActionResult = state.alloc.uncow(gr);
 
                 // Parse it into a grammar
@@ -217,11 +232,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     state.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
-                let rule_vars = vars.iter().flat_map(|(k, v)| match v.as_ref() {
-                    ActionResult::RuleRef(r) => Some((*k, *r)),
-                    _ => None,
-                });
-                let (rules, mut iter) = match rules.with(g, rule_vars, Some(pos)) {
+                let rule_vars = vars.iter().flat_map(|(k, v)| v.as_rule_id().map(|v| (k, v)));
+                let (rules, mut iter) = match rules.adapt_with(g, rule_vars, Some(pos)) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(pos.span_to(pos));
@@ -239,10 +251,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let rule = iter
                     .find(|(k, _)| k == b)
                     .map(|(_, v)| v)
-                    .unwrap_or_else(|| match vars[b].as_ref() {
-                        ActionResult::RuleRef(r) => *r,
-                        _ => panic!("Adaptation rule not found."),
-                    });
+                    .unwrap_or_else(|| vars.get(b).unwrap().as_rule_id().expect("Adaptation rule exists"));
 
                 // Parse body
                 let mut res = parser_rule(rules, rule, &[])

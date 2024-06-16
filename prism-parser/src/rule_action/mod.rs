@@ -16,7 +16,6 @@ pub enum RuleAction<'arn, 'grm> {
     Construct(&'grm str, Vec<Self>),
     Cons(Box<Self>, Box<Self>),
     Nil(),
-    RuleRef(RuleId),
     #[serde(skip)]
     ActionResult(&'arn ActionResult<'arn, 'grm>),
 }

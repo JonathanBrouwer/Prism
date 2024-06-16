@@ -11,6 +11,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
 use std::collections::HashMap;
+use crate::parser::var_map::VarMap;
 
 use crate::rule_action::action_result::ActionResult;
 
@@ -22,18 +23,14 @@ pub fn parser_with_layout<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    vars: &'a VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
-        if context.layout_disabled || !vars.contains_key("layout") {
+        if context.layout_disabled || vars.get("layout").is_none() {
             return sub.parse(pos, state, context);
         }
-
-        let layout = match vars["layout"].as_ref() {
-            ActionResult::RuleRef(r) => *r,
-            _ => panic!("Tried to evaluate RuleAction to rule, but it is not a rule."),
-        };
+        let layout = vars.get("layout").expect("Layout exists").as_rule_id().expect("Layout is an expr");
 
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);
@@ -79,7 +76,7 @@ pub fn full_input_layout<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    vars: &'a HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    vars: &'a VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {

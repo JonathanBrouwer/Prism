@@ -137,3 +137,18 @@ failing tests:
     ""
     "xy"
 }
+
+parse_test! {
+name: parametric_literal
+syntax: r##"
+    rule start = id("hey");
+    rule id(v) = v;
+    "##
+passing tests:
+    "hey" => "'hey'"
+
+failing tests:
+    ""
+    "heyy"
+}
+

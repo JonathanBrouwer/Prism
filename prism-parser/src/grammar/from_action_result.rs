@@ -144,11 +144,13 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
         Construct(_, "Guid", _) => RuleExpr::Guid,
-        Construct(_, "Rule", b) => RuleExpr::Rule(
+        Construct(_, "RunVar", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
-                create args.iter().map(|sub| parse_a(sub, src)).collect::<Option<Vec<_>>>()?
+                create args.iter().map(|sub| {
+                    parse_rule_expr(sub, src, parse_a)
+                }).collect::<Option<Vec<_>>>()?
             }?,
         ),
         Construct(_, "AtAdapt", b) => {

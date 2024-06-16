@@ -11,7 +11,6 @@ pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
-    RuleRef(RuleId),
     Guid(usize),
 }
 
@@ -21,14 +20,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
             ActionResult::Literal(s) => s.to_cow(),
             _ => panic!("Tried to get value of non-valued action result"),
-        }
-    }
-
-    pub fn as_rule(&self) -> RuleId {
-        if let ActionResult::RuleRef(rule) = self {
-            *rule
-        } else {
-            panic!("Tried to convert AR to rule, but it does not refer to a rule: {self:?}");
         }
     }
 
@@ -44,7 +35,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                 c,
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
-            ActionResult::RuleRef(r) => format!("[{r}]"),
             ActionResult::Guid(r) => format!("Guid({r})"),
         }
     }

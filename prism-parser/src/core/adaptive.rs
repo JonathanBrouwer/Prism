@@ -42,7 +42,9 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         }
     }
 
-    pub fn with(
+    /// Adapt this grammar state with `grammar`.
+    /// To unify rules, use the names of the rules in `ctx`
+    pub fn adapt_with(
         &self,
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
         ctx: impl Iterator<Item = (&'grm str, RuleId)>,
@@ -94,7 +96,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'arn) {
         GrammarState::new()
-            .with(grammar, iter::empty(), None)
+            .adapt_with(grammar, iter::empty(), None)
             .unwrap()
     }
 
@@ -174,7 +176,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BlockState<'arn, 'grm> {
     pub name: &'grm str,
     pub constructors: Vec<Constructor<'arn, 'grm>>,

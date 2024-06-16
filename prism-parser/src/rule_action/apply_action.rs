@@ -35,7 +35,6 @@ pub fn apply_action<'arn, 'grm>(
             ActionResult::Construct(span, "List", res)
         }
         RuleAction::Nil() => ActionResult::Construct(span, "List", Vec::new()),
-        RuleAction::RuleRef(r) => ActionResult::RuleRef(*r),
         RuleAction::ActionResult(ar) => return Cow::Borrowed(ar),
     })
 }
