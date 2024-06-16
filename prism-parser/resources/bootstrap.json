@@ -10,11 +10,11 @@
             [
               [],
               {
-                "Rule": [
+                "RunVar": [
                   "grammar",
                   [
                     {
-                      "Rule": [
+                      "RunVar": [
                         "prule_action",
                         []
                       ]
@@ -46,11 +46,11 @@
                       {
                         "Repeat": {
                           "expr": {
-                            "Rule": [
+                            "RunVar": [
                               "prule",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -106,7 +106,7 @@
                         "NameBind": [
                           "name",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -117,11 +117,11 @@
                         "NameBind": [
                           "args",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_args",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -138,11 +138,11 @@
                         "NameBind": [
                           "blocks",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_blocks",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -189,7 +189,7 @@
                         "NameBind": [
                           "name",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -200,11 +200,11 @@
                         "NameBind": [
                           "args",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_args",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -221,11 +221,11 @@
                         "NameBind": [
                           "expr",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -321,7 +321,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": [
+                                "RunVar": [
                                   "identifier",
                                   []
                                 ]
@@ -390,7 +390,7 @@
                                 "SliceInput": {
                                   "Repeat": {
                                     "expr": {
-                                      "Rule": [
+                                      "RunVar": [
                                         "identifier",
                                         []
                                       ]
@@ -412,11 +412,11 @@
                             "NameBind": [
                               "c",
                               {
-                                "Rule": [
+                                "RunVar": [
                                   "prule_constructors",
                                   [
                                     {
-                                      "Rule": [
+                                      "RunVar": [
                                         "action",
                                         []
                                       ]
@@ -462,11 +462,11 @@
                     "NameBind": [
                       "c",
                       {
-                        "Rule": [
+                        "RunVar": [
                           "prule_constructors",
                           [
                             {
-                              "Rule": [
+                              "RunVar": [
                                 "action",
                                 []
                               ]
@@ -517,11 +517,11 @@
               {
                 "Repeat": {
                   "expr": {
-                    "Rule": [
+                    "RunVar": [
                       "prule_annotated_expr",
                       [
                         {
-                          "Rule": [
+                          "RunVar": [
                             "action",
                             []
                           ]
@@ -567,7 +567,7 @@
                                     "NameBind": [
                                       "a",
                                       {
-                                        "Rule": [
+                                        "RunVar": [
                                           "prule_annotation",
                                           []
                                         ]
@@ -592,11 +592,11 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -660,7 +660,7 @@
                         "NameBind": [
                           "err",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "pstring",
                               []
                             ]
@@ -827,7 +827,7 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "action",
                               []
                             ]
@@ -916,7 +916,7 @@
                           "min": 2,
                           "max": null,
                           "delim": {
-                            "Rule": [
+                            "RunVar": [
                               "layout",
                               []
                             ]
@@ -953,7 +953,7 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -1156,7 +1156,7 @@
                     "NameBind": [
                       "s",
                       {
-                        "Rule": [
+                        "RunVar": [
                           "pstring",
                           []
                         ]
@@ -1189,7 +1189,7 @@
                         "NameBind": [
                           "c",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "charclass",
                               []
                             ]
@@ -1230,11 +1230,11 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1278,11 +1278,11 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1326,11 +1326,11 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1371,11 +1371,11 @@
                         "NameBind": [
                           "r",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1460,7 +1460,7 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "action",
                               []
                             ]
@@ -1474,7 +1474,7 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -1512,7 +1512,7 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -1521,7 +1521,7 @@
                       },
                       {
                         "NegLookahead": {
-                          "Rule": [
+                          "RunVar": [
                             "layout",
                             []
                           ]
@@ -1536,7 +1536,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": [
+                                "RunVar": [
                                   "action",
                                   []
                                 ]
@@ -1557,7 +1557,7 @@
                   },
                   {
                     "Construct": [
-                      "Rule",
+                      "RunVar",
                       [
                         {
                           "Name": "n"
@@ -1579,7 +1579,7 @@
                     "NameBind": [
                       "n",
                       {
-                        "Rule": [
+                        "RunVar": [
                           "identifier",
                           []
                         ]
@@ -1588,7 +1588,7 @@
                   },
                   {
                     "Construct": [
-                      "Rule",
+                      "RunVar",
                       [
                         {
                           "Name": "n"
@@ -1618,11 +1618,11 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1639,11 +1639,11 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1705,11 +1705,11 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1726,11 +1726,11 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1792,11 +1792,11 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1813,11 +1813,11 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1834,7 +1834,7 @@
                         "NameBind": [
                           "min",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "integer",
                               []
                             ]
@@ -1893,11 +1893,11 @@
                         "NameBind": [
                           "e",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1914,11 +1914,11 @@
                         "NameBind": [
                           "d",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_expr",
                               [
                                 {
-                                  "Rule": [
+                                  "RunVar": [
                                     "action",
                                     []
                                   ]
@@ -1935,7 +1935,7 @@
                         "NameBind": [
                           "min",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "integer",
                               []
                             ]
@@ -1949,7 +1949,7 @@
                         "NameBind": [
                           "max",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "integer",
                               []
                             ]
@@ -2030,7 +2030,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": [
+                                "RunVar": [
                                   "charclass_part",
                                   []
                                 ]
@@ -2086,7 +2086,7 @@
                         "NameBind": [
                           "c1",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "charclass_char",
                               []
                             ]
@@ -2106,7 +2106,7 @@
                         "NameBind": [
                           "c2",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "charclass_char",
                               []
                             ]
@@ -2147,7 +2147,7 @@
                         "NameBind": [
                           "c",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "charclass_char",
                               []
                             ]
@@ -2211,7 +2211,7 @@
             [
               [],
               {
-                "Rule": [
+                "RunVar": [
                   "char_escapes",
                   []
                 ]
@@ -2250,7 +2250,7 @@
                             "SliceInput": {
                               "Repeat": {
                                 "expr": {
-                                  "Rule": [
+                                  "RunVar": [
                                     "str_char",
                                     []
                                   ]
@@ -2312,7 +2312,7 @@
             [
               [],
               {
-                "Rule": [
+                "RunVar": [
                   "char_escapes",
                   []
                 ]
@@ -2496,7 +2496,7 @@
                         "NegLookahead": {
                           "Sequence": [
                             {
-                              "Rule": [
+                              "RunVar": [
                                 "reserved",
                                 []
                               ]
@@ -2733,7 +2733,7 @@
                         "NameBind": [
                           "n",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "identifier",
                               []
                             ]
@@ -2749,7 +2749,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Rule": [
+                                "RunVar": [
                                   "prule_action",
                                   []
                                 ]
@@ -2792,7 +2792,7 @@
                     "NameBind": [
                       "s",
                       {
-                        "Rule": [
+                        "RunVar": [
                           "pstring",
                           []
                         ]
@@ -2820,7 +2820,7 @@
                     "NameBind": [
                       "n",
                       {
-                        "Rule": [
+                        "RunVar": [
                           "identifier",
                           []
                         ]
@@ -2853,7 +2853,7 @@
                         "NameBind": [
                           "a",
                           {
-                            "Rule": [
+                            "RunVar": [
                               "prule_action",
                               []
                             ]

@@ -144,7 +144,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "AtThis", _) => RuleExpr::AtThis,
         Construct(_, "AtNext", _) => RuleExpr::AtNext,
         Construct(_, "Guid", _) => RuleExpr::Guid,
-        Construct(_, "Rule", b) => RuleExpr::RunVar(
+        Construct(_, "RunVar", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
