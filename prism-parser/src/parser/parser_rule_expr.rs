@@ -36,6 +36,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
+            //TODO match name in meta grammar
             RuleExpr::RunVar(rule, args) => {
                 // Figure out which rule the variable `rule` refers to
                 let Some(rule) = vars.get(rule) else {
