@@ -14,7 +14,7 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use typed_arena::Arena;
-use crate::parser::var_map::{VarMap};
+use crate::parser::var_map::{VarMap, VarMapNode};
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
@@ -32,6 +32,7 @@ pub struct Allocs<'arn, 'grm: 'arn> {
     pub alo_grammarfile: &'arn Arena<GrammarFile<'grm, RuleAction<'arn, 'grm>>>,
     pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
     pub alo_ar: &'arn Arena<ActionResult<'arn, 'grm>>,
+    pub alo_varmap: &'arn Arena<VarMapNode<'arn, 'grm>>,
 }
 
 impl<'arn, 'grm> Allocs<'arn, 'grm> {

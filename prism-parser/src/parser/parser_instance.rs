@@ -89,6 +89,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
         alo_ar: &Arena::new(),
+        alo_varmap: &Arena::new(),
     };
     let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
     instance.run(rule).map(ar_map)
@@ -101,6 +102,7 @@ macro_rules! run_parser_rule_here {
             alo_grammarfile: &$crate::parser::parser_instance::Arena::new(),
             alo_grammarstate: &$crate::parser::parser_instance::Arena::new(),
             alo_ar: &$crate::parser::parser_instance::Arena::new(),
+            alo_varmap: &$crate::parser::parser_instance::Arena::new(),
         };
         let mut instance =
             $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules)

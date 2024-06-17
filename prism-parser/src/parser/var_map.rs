@@ -9,36 +9,65 @@ use crate::grammar::RuleExpr;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Default, Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-struct VarMapNode<'arn, 'grm> {
+pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
     key: &'grm str,
     value: VarMapValue<'arn, 'grm>,
 }
 
+pub struct VarMapIterator<'arn, 'grm> {
+    current: Option<&'arn VarMapNode<'arn, 'grm>>,
+}
+
+impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
+    type Item = (&'grm str, &'arn VarMapValue<'arn, 'grm>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.current {
+            None => None,
+            Some(node) => {
+                self.current = node.next;
+                Some((node.key, &node.value))
+            }
+        }
+    }
+}
+
 impl<'arn, 'grm> VarMap<'arn, 'grm> {
     pub fn get<'a>(&'a self, k: &str) -> Option<&'a VarMapValue<'arn, 'grm>> {
-        todo!()
-        // self.0.get(k)
+        let mut node = *self.0?;
+        loop {
+            if node.key == k {
+                return Some(&node.value)
+            }
+            node = node.next?;
+        }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=(&'grm str, &VarMapValue<'arn, 'grm>)> {
-        todo!();
-        return iter::empty();
-        // self.0.iter().map(|(k, v)| (*k, v))
+    pub fn iter(&self) -> impl Iterator<Item=(&'grm str, &'arn VarMapValue<'arn, 'grm>)> {
+        VarMapIterator {
+            current: self.0.map(|v| *v)
+        }
     }
 
     pub fn extend<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(&mut self, iter: T, alloc: &Allocs<'arn, 'grm>) {
-        todo!()
-        // self.0.extend(iter)
+        for (key, value) in iter {
+            self.0 = Some(ByAddress(alloc.alo_varmap.alloc(VarMapNode {
+                next: self.0.map(|v| *v),
+                key,
+                value,
+            })))
+        }
     }
 
     pub fn from_iter<T: IntoIterator<Item=(&'grm str, VarMapValue<'arn, 'grm>)>>(iter: T, alloc: &Allocs<'arn, 'grm>) -> Self {
-        todo!()
-        // Self(RedBlackTreeMap::from_iter(iter))
+        let mut s = Self::default();
+        s.extend(iter, alloc);
+        s
     }
 }
 
