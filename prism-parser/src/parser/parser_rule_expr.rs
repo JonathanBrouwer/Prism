@@ -28,15 +28,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     blocks: &'arn [BlockState<'arn, 'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     // TODO merge this with `blocks`
-    rule_args: &'a VarMap<'arn, 'grm>,
-    vars: &'a VarMap<'arn, 'grm>,
+    rule_args: VarMap<'arn, 'grm>,
+    vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: &ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            //TODO match name in meta grammar
             RuleExpr::RunVar(rule, args) => {
                 // Figure out which rule the variable `rule` refers to
                 let Some(rule) = vars.get(rule) else {
@@ -56,7 +55,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 match rule {
                     VarMapValue::Expr(captured) => {
                         assert_eq!(args.len(), 0, "Applying arguments to captured expressions is currently unsupported");
-                        parser_expr(rules, captured.blocks.as_ref(), captured.expr, &captured.rule_args, &captured.vars).parse(pos, state, context)
+                        parser_expr(rules, captured.blocks.as_ref(), captured.expr, captured.rule_args, captured.vars).parse(pos, state, context)
                     }
                     VarMapValue::RuleId(rule) => {
                         parser_rule(rules, *rule, &args).parse(pos, state, context).map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
@@ -121,7 +120,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 for sub in subs {
                     res = res
                         .merge_seq_parser(
-                            &parser_expr(rules, blocks, sub, rule_args, &res_vars),
+                            &parser_expr(rules, blocks, sub, rule_args, res_vars),
                             state,
                             context,
                         )
@@ -132,7 +131,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     match &res.ok() {
                         None => break,
                         Some(o) => {
-                            res_vars.extend(o.iter().map(|(k, v)| (*k, VarMapValue::Value(v.clone()))));
+                            res_vars.extend(o.iter().map(|(k, v)| (*k, VarMapValue::Value(v.clone()))), &state.alloc);
                         }
                     }
                 }

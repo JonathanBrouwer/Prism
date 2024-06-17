@@ -23,7 +23,7 @@ pub fn parser_with_layout<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    vars: &'a VarMap<'arn, 'grm>,
+    vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
@@ -76,7 +76,7 @@ pub fn full_input_layout<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    vars: &'a VarMap<'arn, 'grm>,
+    vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {

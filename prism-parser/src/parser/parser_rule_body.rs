@@ -29,7 +29,7 @@ pub fn parser_body_cache_recurse<
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
-    rule_args: &'a VarMap<'arn, 'grm>,
+    rule_args: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
         parser_cache_recurse(
@@ -45,7 +45,7 @@ pub fn parser_body_cache_recurse<
 fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     bs: &'arn [BlockState<'arn, 'grm>],
-    rule_args: &'a VarMap<'arn, 'grm>,
+    rule_args: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
@@ -81,7 +81,7 @@ fn parser_body_sub_constructors<
     rules: &'arn GrammarState<'arn, 'grm>,
     blocks: &'arn [BlockState<'arn, 'grm>],
     es: &'arn [Constructor<'arn, 'grm>],
-    rule_args: &'a VarMap<'arn, 'grm>,
+    rule_args: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
@@ -91,9 +91,9 @@ fn parser_body_sub_constructors<
                 .map(|(&k, v)| (k, VarMapValue::RuleId(*v)));
             let rule_args_iter = rule_args.iter().map(|(k, v)| (k, v.clone()));
             let vars: VarMap<'arn, 'grm> =
-                rule_args_iter.chain(rule_ctx).collect();
+                VarMap::from_iter(rule_args_iter.chain(rule_ctx), &state.alloc);
 
-            let res = parser_body_sub_annotations(rules, blocks, annots, expr, rule_args, &vars)
+            let res = parser_body_sub_annotations(rules, blocks, annots, expr, rule_args, vars)
                 .parse(pos, state, context)
                 .map(|v| state.alloc.uncow(v))
                 .merge_choice_parser(
@@ -117,8 +117,8 @@ fn parser_body_sub_annotations<
     blocks: &'arn [BlockState<'arn, 'grm>],
     annots: &'arn [RuleAnnotation<'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    rule_args: &'a VarMap<'arn, 'grm>,
-    vars: &'a VarMap<'arn, 'grm>,
+    rule_args: VarMap<'arn, 'grm>,
+    vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {

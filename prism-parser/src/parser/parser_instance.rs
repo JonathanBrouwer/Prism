@@ -16,13 +16,13 @@ use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
 use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::parser::var_map::VarMapValue;
+use crate::parser::var_map::{VarMap, VarMapValue};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
-    cache: PState<'arn, 'grm, E>,
+    state: PState<'arn, 'grm, E>,
 
-    state: GrammarState<'arn, 'grm>,
+    grammar_state: GrammarState<'arn, 'grm>,
     rules: HashMap<&'grm str, RuleId>,
 }
 
@@ -45,8 +45,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 
         Ok(Self {
             context,
-            cache,
-            state,
+            state: cache,
+            grammar_state: state,
             rules: rules.collect(),
         })
     }
@@ -58,23 +58,22 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
         rule: &'grm str,
     ) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = self.rules[rule];
-        let rule_ctx = self
+        let rule_ctx = VarMap::from_iter(self
             .rules
             .iter()
-            .map(|(&k, &v)| (k, VarMapValue::RuleId(v)))
-            .collect();
+            .map(|(&k, &v)| (k, VarMapValue::RuleId(v))), &self.state.alloc);
         let result = parse_with_recovery(
             &full_input_layout(
-                &self.state,
-                &rule_ctx,
-                &parser_rule::parser_rule(&self.state, rule, &[]),
+                &self.grammar_state,
+                rule_ctx,
+                &parser_rule::parser_rule(&self.grammar_state, rule, &[]),
             ),
             Pos::start(),
-            &mut self.cache,
+            &mut self.state,
             &self.context,
         );
         result.map_err(|errors| AggregatedParseError {
-            input: self.cache.input,
+            input: self.state.input,
             errors,
         })
     }
