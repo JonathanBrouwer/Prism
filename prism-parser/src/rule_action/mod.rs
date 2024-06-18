@@ -1,4 +1,3 @@
-use crate::core::adaptive::RuleId;
 use serde::{Deserialize, Serialize};
 
 use crate::grammar::escaped_string::EscapedString;

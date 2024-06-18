@@ -1,7 +1,6 @@
-use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
+use crate::core::adaptive::{AdaptError, GrammarState};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
-use crate::core::cow::Cow;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
 use crate::core::state::{PState, ParserState};
@@ -11,19 +10,18 @@ use crate::error::ParseError;
 use crate::grammar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
+use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
-use std::collections::HashMap;
 pub use typed_arena::Arena;
-use crate::parser::var_map::{VarMap, VarMapValue};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
     state: PState<'arn, 'grm, E>,
 
     grammar_state: GrammarState<'arn, 'grm>,
-    rules: HashMap<&'grm str, RuleId>,
+    rules: VarMap<'arn, 'grm>,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
@@ -33,21 +31,44 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> Result<Self, AdaptError<'grm>> {
         let context = ParserContext::new();
-        let cache = ParserState::new(input, bump);
+        let state = ParserState::new(input, bump);
 
-        let visible_rules = [
-            ("grammar", META_GRAMMAR_STATE.1["grammar"]),
-            ("prule_action", META_GRAMMAR_STATE.1["prule_action"]),
-        ]
-        .into_iter();
+        let visible_rules = VarMap::from_iter(
+            [
+                (
+                    "grammar",
+                    VarMapValue::RuleId(
+                        META_GRAMMAR_STATE
+                            .1
+                            .get("grammar")
+                            .and_then(|v| v.as_rule_id())
+                            .expect("grammar is a rule in meta grammar"),
+                    ),
+                ),
+                (
+                    "prule_action",
+                    VarMapValue::RuleId(
+                        META_GRAMMAR_STATE
+                            .1
+                            .get("prule_action")
+                            .and_then(|v| v.as_rule_id())
+                            .expect("prule_action is a rule in meta grammar"),
+                    ),
+                ),
+            ],
+            state.alloc.alo_varmap,
+        );
 
-        let (state, rules) = META_GRAMMAR_STATE.0.adapt_with(from, visible_rules, None)?;
+        let (grammar_state, rules) =
+            META_GRAMMAR_STATE
+                .0
+                .adapt_with(from, visible_rules, None, state.alloc.alo_varmap)?;
 
         Ok(Self {
             context,
-            state: cache,
-            grammar_state: state,
-            rules: rules.collect(),
+            state,
+            grammar_state,
+            rules,
         })
     }
 }
@@ -57,15 +78,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
         &'arn mut self,
         rule: &'grm str,
     ) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
-        let rule = self.rules[rule];
-        let rule_ctx = VarMap::from_iter(self
+        let rule = self
             .rules
-            .iter()
-            .map(|(&k, &v)| (k, VarMapValue::RuleId(v))), &self.state.alloc);
+            .get(rule)
+            .expect("Rule exists")
+            .as_rule_id()
+            .expect("Rule is a rule");
         let result = parse_with_recovery(
             &full_input_layout(
                 &self.grammar_state,
-                rule_ctx,
+                self.rules,
                 &parser_rule::parser_rule(&self.grammar_state, rule, &[]),
             ),
             Pos::start(),

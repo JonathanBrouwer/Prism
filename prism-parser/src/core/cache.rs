@@ -10,11 +10,11 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
+use crate::parser::var_map::{VarMap, VarMapNode};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use typed_arena::Arena;
-use crate::parser::var_map::{VarMap, VarMapNode};
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
@@ -65,7 +65,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
             block,
             ctx: context.clone(),
             state: grammar_state,
-            params: params.clone()
+            params,
         };
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();

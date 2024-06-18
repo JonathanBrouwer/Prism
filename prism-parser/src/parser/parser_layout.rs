@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::ParserContext;
-use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -10,10 +9,8 @@ use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
-use std::collections::HashMap;
 use crate::parser::var_map::VarMap;
 
-use crate::rule_action::action_result::ActionResult;
 
 pub fn parser_with_layout<
     'a,
@@ -30,7 +27,11 @@ pub fn parser_with_layout<
         if context.layout_disabled || vars.get("layout").is_none() {
             return sub.parse(pos, state, context);
         }
-        let layout = vars.get("layout").expect("Layout exists").as_rule_id().expect("Layout is an expr");
+        let layout = vars
+            .get("layout")
+            .expect("Layout exists")
+            .as_rule_id()
+            .expect("Layout is an expr");
 
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);

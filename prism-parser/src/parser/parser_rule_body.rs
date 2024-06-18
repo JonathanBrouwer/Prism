@@ -1,5 +1,4 @@
 use crate::core::cow::Cow;
-use std::collections::HashMap;
 
 use crate::core::cache::parser_cache_recurse;
 use crate::core::parser::Parser;
@@ -18,7 +17,7 @@ use crate::core::state::PState;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::parser::var_map::VarMap;
 use crate::rule_action::action_result::ActionResult;
 
 pub fn parser_body_cache_recurse<
@@ -86,12 +85,11 @@ fn parser_body_sub_constructors<
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| match es {
         [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
-            let rule_ctx = rule_ctx
-                .iter()
-                .map(|(&k, v)| (k, VarMapValue::RuleId(*v)));
+            let rule_ctx = rule_ctx.iter().map(|(k, v)| (k, v.clone()));
+
             let rule_args_iter = rule_args.iter().map(|(k, v)| (k, v.clone()));
             let vars: VarMap<'arn, 'grm> =
-                VarMap::from_iter(rule_args_iter.chain(rule_ctx), &state.alloc);
+                VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc.alo_varmap);
 
             let res = parser_body_sub_annotations(rules, blocks, annots, expr, rule_args, vars)
                 .parse(pos, state, context)

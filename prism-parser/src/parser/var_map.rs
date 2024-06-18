@@ -1,13 +1,11 @@
-use std::hash::{Hash, Hasher};
-use std::iter;
-use by_address::ByAddress;
-use itertools::Itertools;
-use crate::core::adaptive::{BlockState, GrammarState, RuleId};
-use crate::core::cache::Allocs;
+use crate::core::adaptive::{BlockState, RuleId};
 use crate::core::cow::Cow;
 use crate::grammar::RuleExpr;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
+use by_address::ByAddress;
+use std::hash::Hash;
+use typed_arena::Arena;
 
 #[derive(Default, Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
@@ -42,32 +40,40 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         let mut node = *self.0?;
         loop {
             if node.key == k {
-                return Some(&node.value)
+                return Some(&node.value);
             }
             node = node.next?;
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=(&'grm str, &'arn VarMapValue<'arn, 'grm>)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&'grm str, &'arn VarMapValue<'arn, 'grm>)> {
         VarMapIterator {
-            current: self.0.map(|v| *v)
+            current: self.0.map(|v| *v),
         }
     }
 
-    pub fn extend<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(&mut self, iter: T, alloc: &Allocs<'arn, 'grm>) {
+    #[must_use]
+    pub fn extend<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(
+        mut self,
+        iter: T,
+        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    ) -> Self {
         for (key, value) in iter {
-            self.0 = Some(ByAddress(alloc.alo_varmap.alloc(VarMapNode {
+            self.0 = Some(ByAddress(alloc.alloc(VarMapNode {
                 next: self.0.map(|v| *v),
                 key,
                 value,
             })))
         }
+        self
     }
 
-    pub fn from_iter<T: IntoIterator<Item=(&'grm str, VarMapValue<'arn, 'grm>)>>(iter: T, alloc: &Allocs<'arn, 'grm>) -> Self {
-        let mut s = Self::default();
-        s.extend(iter, alloc);
-        s
+    pub fn from_iter<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(
+        iter: T,
+        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    ) -> Self {
+        let s = Self::default();
+        s.extend(iter, alloc)
     }
 }
 

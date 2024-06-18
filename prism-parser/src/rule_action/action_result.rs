@@ -1,4 +1,3 @@
-use crate::core::adaptive::RuleId;
 use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

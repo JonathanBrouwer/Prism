@@ -37,13 +37,13 @@ impl<T: Debug> Debug for Cow<'_, T> {
     }
 }
 
-impl<'de, 'a, T> Serialize for Cow<'a, T>
+impl<'a, T> Serialize for Cow<'a, T>
 where
     T: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer
+        S: Serializer,
     {
         self.as_ref().serialize(serializer)
     }

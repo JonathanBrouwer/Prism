@@ -1,12 +1,14 @@
 use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
+use crate::parser::var_map::{VarMap, VarMapNode, VarMapValue};
 use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::{iter, mem};
+use typed_arena::Arena;
 
 pub struct GrammarState<'arn, 'grm> {
     rules: Vec<Arc<RuleState<'arn, 'grm>>>,
@@ -47,14 +49,17 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     pub fn adapt_with(
         &self,
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
-        ctx: impl Iterator<Item = (&'grm str, RuleId)>,
+        ctx: VarMap<'arn, 'grm>,
         pos: Option<Pos>,
-    ) -> Result<(Self, impl Iterator<Item = (&'grm str, RuleId)> + 'arn), AdaptError<'grm>> {
+        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    ) -> Result<(Self, VarMap<'arn, 'grm>), AdaptError<'grm>> {
+        // Create a clone of self as a starting point
         let mut s = Self {
             rules: self.rules.clone(),
             last_mut_pos: pos,
         };
 
+        // If we already tried to adapt at this position before, crash to prevent infinite loop
         if let Some(pos) = pos {
             if let Some(last_mut_pos) = self.last_mut_pos {
                 if pos == last_mut_pos {
@@ -63,40 +68,47 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             }
         }
 
-        let mut ctx: HashMap<_, _> = ctx.collect();
+        // Create a new ruleid or find an existing rule id for each rule that is adopted
+        let mut new_ctx = ctx;
+        let result: Vec<_> = grammar
+            .rules
+            .iter()
+            .map(|new_rule| {
+                let rule = if let Some(rule) = ctx.get(new_rule.name) {
+                    rule.as_rule_id().expect("Can only adapt rule id")
+                } else {
+                    s.rules.push(Arc::new(RuleState::new_empty(
+                        new_rule.name,
+                        &new_rule.args,
+                    )));
+                    RuleId(s.rules.len() - 1)
+                };
+                new_ctx = new_ctx.extend(
+                    iter::once((new_rule.name, VarMapValue::RuleId(rule))),
+                    alloc,
+                );
+                (new_rule.name, rule)
+            })
+            .collect();
 
-        let mut result = vec![];
-        for new_rule in &grammar.rules {
-            let rule = if let Some(rule) = ctx.get(new_rule.name) {
-                *rule
-            } else {
-                s.rules.push(Arc::new(RuleState::new_empty(
-                    new_rule.name,
-                    &new_rule.args,
-                )));
-                RuleId(s.rules.len() - 1)
-            };
-            result.push((new_rule.name, rule));
-            ctx.insert(new_rule.name, rule);
-        }
-
-        let ctx = Arc::new(ctx);
-
+        // Update each rule that is to be adopted, stored in `result`
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
             let mut r = (*s.rules[id.0]).clone();
-            r.update(rule, &ctx)
+            r.update(rule, new_ctx)
                 .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?;
             s.rules[id.0] = Arc::new(r);
         }
 
-        Ok((s, result.into_iter()))
+        Ok((s, new_ctx))
     }
 
     pub fn new_with(
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
-    ) -> (Self, impl Iterator<Item = (&'grm str, RuleId)> + 'arn) {
+        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    ) -> (Self, VarMap<'arn, 'grm>) {
+        // We create a new grammar by adapting an empty one
         GrammarState::new()
-            .adapt_with(grammar, iter::empty(), None)
+            .adapt_with(grammar, VarMap::default(), None, alloc)
             .unwrap()
     }
 
@@ -138,7 +150,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
     pub fn update(
         &mut self,
         r: &'arn Rule<'grm, RuleAction<'arn, 'grm>>,
-        ctx: &Arc<HashMap<&'grm str, RuleId>>,
+        ctx: VarMap<'arn, 'grm>,
     ) -> Result<(), UpdateError> {
         self.order.update(r);
 
@@ -184,27 +196,24 @@ pub struct BlockState<'arn, 'grm> {
 
 pub type Constructor<'arn, 'grm> = (
     &'arn AnnotatedRuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    Arc<HashMap<&'grm str, RuleId>>,
+    VarMap<'arn, 'grm>,
 );
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
-    pub fn new(
-        block: &'arn Block<'grm, RuleAction<'arn, 'grm>>,
-        ctx: &Arc<HashMap<&'grm str, RuleId>>,
-    ) -> Self {
+    pub fn new(block: &'arn Block<'grm, RuleAction<'arn, 'grm>>, ctx: VarMap<'arn, 'grm>) -> Self {
         Self {
             name: block.0,
-            constructors: block.1.iter().map(|r| (r, ctx.clone())).collect(),
+            constructors: block.1.iter().map(|r| (r, ctx)).collect(),
         }
     }
 
     pub fn update(
         &mut self,
         b: &'arn Block<'grm, RuleAction<'arn, 'grm>>,
-        ctx: &Arc<HashMap<&'grm str, RuleId>>,
+        ctx: VarMap<'arn, 'grm>,
     ) {
         assert_eq!(self.name, b.0);
         self.constructors
-            .extend(b.1.iter().map(|r| (r, ctx.clone())));
+            .extend(b.1.iter().map(|r| (r, ctx)));
     }
 }

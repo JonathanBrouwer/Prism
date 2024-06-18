@@ -1,5 +1,5 @@
 use crate::core::context::ParserContext;
-use crate::core::parser::{map_parser, Parser};
+use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
@@ -239,7 +239,7 @@ impl<O, E: ParseError> PResult<O, E> {
     {
         match self {
             POk(o, _, end_pos, _, _) => other(o).parse(end_pos, state, context),
-            PErr(_, _) => return self.map(|_| unreachable!()),
+            PErr(_, _) => self.map(|_| unreachable!()),
         }
     }
 
