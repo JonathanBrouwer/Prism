@@ -139,7 +139,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                             l.extend(r.free);
                             l
                         });
-                    match &res.ok() {
+                    match &res.ok_ref() {
                         None => break,
                         Some(o) => {
                             res_vars = res_vars.extend(

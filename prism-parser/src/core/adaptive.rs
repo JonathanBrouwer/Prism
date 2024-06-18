@@ -188,7 +188,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct BlockState<'arn, 'grm> {
     pub name: &'grm str,
     pub constructors: Vec<Constructor<'arn, 'grm>>,

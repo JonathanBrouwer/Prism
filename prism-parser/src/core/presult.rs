@@ -244,7 +244,15 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn ok(&self) -> Option<&O> {
+    pub fn ok(self) -> Option<O> {
+        match self {
+            POk(o, _, _, _, _) => Some(o),
+            PErr(_, _) => None,
+        }
+    }
+
+    #[inline(always)]
+    pub fn ok_ref(&self) -> Option<&O> {
         match self {
             POk(o, _, _, _, _) => Some(o),
             PErr(_, _) => None,
