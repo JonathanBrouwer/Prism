@@ -3,12 +3,12 @@ rule toplevel = grammar(prule_action);
 rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
-    Rule(name, args, blocks) <- "rule" name:identifier args:prule_args "{" blocks:prule_blocks(action) "}";
-    Rule(name, args, Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier args:prule_args "=" expr:prule_expr(action) ";";
+    Rule(name, params, blocks) <- "rule" name:identifier params:prule_params "{" blocks:prule_blocks(action) "}";
+    Rule(name, params, Block("", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
-rule prule_args {
-    args <- "(" args:#repeat(identifier, ",", *) ")";
+rule prule_params {
+    params <- "(" params:#repeat(identifier, ",", *) ")";
     [] <- "";
 }
 
@@ -57,13 +57,18 @@ rule prule_expr(action) {
         AtNext() <- "#next";
         Guid() <- "#guid";
         AtAdapt(a, n) <- "#adapt" "(" a:action "," n:identifier ")";
-        RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
+        RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_arg(action), ",", *) ")";
         RunVar(n, []) <- n:identifier;
         Repeat(e, "0", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
         Repeat(e, "1", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
         Repeat(e, min, None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
         Repeat(e, min, Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
     }
+}
+
+rule prule_arg(action) {
+    ByValue(e) <- "$" e:prule_expr(action);
+    ByRule(e) <- e:prule_expr(action);
 }
 
 rule charclass {

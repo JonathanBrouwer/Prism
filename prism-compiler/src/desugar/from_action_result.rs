@@ -46,6 +46,12 @@ impl ParseEnv {
                     self.insert_from_action_result(&args[1], program),
                 )
             }
+            "ScopeStart" => {
+                return self.insert_from_action_result(&args[0], program)
+            }
+            "ScopeJump" => {
+                return self.insert_from_action_result(&args[0], program)
+            }
             _ => unreachable!(),
         };
         self.store(inner, *span)

@@ -74,14 +74,13 @@ failing tests:
     "z"
 }
 
-//TODO $v converts it to a rule so id can run it
 parse_test! {
 name: run_value_as_rule
 syntax: r##"
     rule start = Letters(v1, v2) <- v1:letter v2:id($v1);
 
     rule letter = ['a'-'z'];
-    rule id(v) = v;
+    rule id(v) = v <- "";
     "##
 passing tests:
     "x" => "Letters('x', 'x')"

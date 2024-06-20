@@ -41,4 +41,6 @@ pub enum SourceExpr {
     FnType(String, ParseIndex, ParseIndex),
     FnConstruct(String, ParseIndex, ParseIndex),
     FnDestruct(ParseIndex, ParseIndex),
+    // ScopeStart(ParseIndex),
+    // ScopeJump(ParseIndex),
 }

@@ -12,7 +12,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
-use crate::grammar::{GrammarFile, RuleExpr};
+use crate::grammar::{GrammarFile, RuleArg, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
@@ -41,21 +41,35 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-                let args = args
-                    .iter()
-                    .map(|arg| {
-                        VarMapValue::Expr(CapturedExpr {
-                            expr: arg,
-                            blocks: ByAddress(blocks),
-                            rule_args,
-                            vars,
-                        })
-                    })
-                    .collect::<Vec<_>>();
+
+                let mut presult = PResult::new_ok((), pos, pos);
+                let mut result_args: Vec<VarMapValue> = vec![];
+                for arg in args {
+                    let arg = match arg {
+                        RuleArg::ByValue(arg) => {
+                            let arg_result = presult.merge_seq_parser(&parser_expr(rules, blocks, arg, rule_args, vars), state, context);
+                            let PResult::POk(arg, _, _, _,_) = arg_result.clone() else {
+                                return arg_result.map(|(_, arg)| arg)
+                            };
+                            presult = arg_result.map(|_| ());
+                            VarMapValue::Value(arg.1.rtrn)
+                        },
+                        RuleArg::ByRule(arg) => {
+                            VarMapValue::Expr(CapturedExpr {
+                                expr: arg,
+                                blocks: ByAddress(blocks),
+                                rule_args,
+                                vars,
+                            })
+                        }
+                    };
+                    result_args.push(arg);
+                }
+
                 match rule {
                     VarMapValue::Expr(captured) => {
                         assert_eq!(
-                            args.len(),
+                            result_args.len(),
                             0,
                             "Applying arguments to captured expressions is currently unsupported"
                         );
@@ -68,10 +82,12 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         )
                         .parse(pos, state, context)
                     }
-                    VarMapValue::RuleId(rule) => parser_rule(rules, *rule, &args)
-                        .parse(pos, state, context)
-                        .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
-                    VarMapValue::Value(_) => panic!("Value cannot be a parser"),
+                    VarMapValue::RuleId(rule) => presult.merge_seq_parser(&parser_rule(rules, *rule, &result_args), state, context)
+                        .map(|(_, v)| PR::with_cow_rtrn(Cow::Borrowed(v))),
+                    VarMapValue::Value(value) => {
+                        let end_pos = presult.end_pos();
+                        presult.merge_seq(PResult::new_ok(PR::with_cow_rtrn(value.clone()), end_pos, end_pos)).map(|(_, v)| v)
+                    },
                 }
             }
             RuleExpr::CharClass(cc) => {

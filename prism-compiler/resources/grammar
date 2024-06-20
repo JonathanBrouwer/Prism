@@ -1,5 +1,5 @@
 rule block {
-    ScopeStart(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" ";" b:#adapt(g, block);
+    ScopeStart(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr($guid)) "}" ";" b:#adapt(g, block);
     Let(n, v, b) <- "let" n:identifier "=" v:expr ";" b:block;
     expr;
 }

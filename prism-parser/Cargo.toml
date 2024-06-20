@@ -14,3 +14,4 @@ ariadne.workspace = true
 by_address.workspace = true
 lazy_static.workspace = true
 typed-arena.workspace = true
+stacker.workspace = true
