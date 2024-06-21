@@ -218,15 +218,15 @@ name: slice_layout_4
 syntax: r#"
     rule layout = " ";
 
-    rule start = #str(#pos(" ") "x"*);
+    rule start = s <- #pos(" ") s:#str("x"*);
 
     "#
 passing tests:
 
-    " xxx" => "' xxx'"
-    " x  x x" => "' x  x x'"
-    " xx  x " => "' xx  x'"
-    " x" => "' x'"
+    " xxx" => "'xxx'"
+    " x  x x" => "'x  x x'"
+    " xx  x " => "'xx  x'"
+    " x" => "'x'"
 
 failing tests:
     "xxx"

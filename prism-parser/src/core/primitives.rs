@@ -125,7 +125,7 @@ pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
 ) -> impl Parser<'arn, 'grm, O, E> + '_ {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
         match p.parse(pos, state, context) {
-            POk(o, _, _, _, err) => POk(o, pos, pos, false, err),
+            POk(o, _, _, err) => POk(o, pos, pos, err),
             PErr(e, s) => PErr(e, s),
         }
     }
@@ -137,7 +137,7 @@ pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
 ) -> impl Parser<'arn, 'grm, (), E> + '_ {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<(), E> {
         match p.parse(pos, state, context) {
-            POk(_, _, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
+            POk(_, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
             PErr(_, _) => PResult::new_ok((), pos, pos),
         }
     }

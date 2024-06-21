@@ -30,7 +30,7 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
         };
 
         match sub.parse(pos, state, &context) {
-            POk(o, _, _, _, _) => {
+            POk(o, _, _, _) => {
                 return if result_errors.is_empty() {
                     Ok(o)
                 } else {
@@ -94,14 +94,13 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
                 ..context.clone()
             },
         ) {
-            r @ POk(_, _, _, _, _) => r,
+            r @ POk(_, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = context.recovery_points.get(&s) {
                     POk(
                         Cow::Owned(ActionResult::void()),
                         pos,
                         *to,
-                        true,
                         Some((e, s)),
                     )
                 } else {

@@ -36,10 +36,8 @@
 
 
 PARSER REFACTOR TODO:
-- Check if empty flag is needed
 - Prevent it from being recursive
 - bincode -> postcard?
-- Refactor `variables` to be O(1) clone
 - Recovery points from context to state?
 
 

@@ -48,7 +48,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     let arg = match arg {
                         RuleArg::ByValue(arg) => {
                             let arg_result = presult.merge_seq_parser(&parser_expr(rules, blocks, arg, rule_args, vars), state, context);
-                            let PResult::POk(arg, _, _, _,_) = arg_result.clone() else {
+                            let PResult::POk(arg, _, _, _) = arg_result.clone() else {
                                 return arg_result.map(|(_, arg)| arg)
                             };
                             presult = arg_result.map(|_| ());
