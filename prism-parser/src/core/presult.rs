@@ -20,7 +20,7 @@ impl<O, E: ParseError> PResult<O, E> {
 
     #[inline(always)]
     pub fn new_ok(o: O, start: Pos, end: Pos) -> Self {
-        POk(o, start, end, false, None)
+        POk(o, start, end, start == end, None)
     }
 
     #[inline(always)]
