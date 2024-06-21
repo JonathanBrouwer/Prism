@@ -1,4 +1,4 @@
-use crate::desugar::{ParseEnv, ParseIndex, SourceExpr};
+use crate::desugar::{Guid, ParseEnv, ParseIndex, SourceExpr};
 use prism_parser::rule_action::action_result::ActionResult;
 
 impl ParseEnv {
@@ -47,13 +47,20 @@ impl ParseEnv {
                 )
             }
             "ScopeStart" => {
-                return self.insert_from_action_result(&args[0], program)
+                SourceExpr::ScopeStart(self.insert_from_action_result(&args[0], program), Self::parse_guid(&args[1]))
             }
             "ScopeJump" => {
-                return self.insert_from_action_result(&args[0], program)
+                SourceExpr::ScopeJump(self.insert_from_action_result(&args[0], program), Self::parse_guid(&args[1]))
             }
             _ => unreachable!(),
         };
         self.store(inner, *span)
+    }
+
+    fn parse_guid(ar: &ActionResult) -> Guid {
+        let ActionResult::Guid(v) = ar else {
+            unreachable!()
+        };
+        Guid(*v)
     }
 }

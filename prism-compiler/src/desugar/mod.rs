@@ -41,6 +41,9 @@ pub enum SourceExpr {
     FnType(String, ParseIndex, ParseIndex),
     FnConstruct(String, ParseIndex, ParseIndex),
     FnDestruct(ParseIndex, ParseIndex),
-    // ScopeStart(ParseIndex),
-    // ScopeJump(ParseIndex),
+    ScopeStart(ParseIndex, Guid),
+    ScopeJump(ParseIndex, Guid),
 }
+
+#[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Guid(usize);
