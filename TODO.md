@@ -38,7 +38,6 @@
 PARSER REFACTOR TODO:
 - Prevent it from being recursive
 - bincode -> postcard?
-- Recovery points from context to state?
 
 
 

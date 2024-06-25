@@ -1,6 +1,7 @@
 use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
 use crate::error::ParseError;
 use std::collections::HashMap;
+use crate::core::pos::Pos;
 
 pub struct ParserState<'grm, 'arn, E: ParseError> {
     // Cache for parser_cache_recurse
@@ -11,6 +12,8 @@ pub struct ParserState<'grm, 'arn, E: ParseError> {
     pub input: &'grm str,
     // For generating guids
     pub guid_counter: usize,
+    // For recovery
+    pub recovery_points: HashMap<Pos, Pos>,
 }
 
 pub type PState<'arn, 'grm, E> = ParserState<'grm, 'arn, E>;
@@ -23,6 +26,7 @@ impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
             alloc,
             input,
             guid_counter: 0,
+            recovery_points: HashMap::new(),
         }
     }
 

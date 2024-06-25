@@ -166,7 +166,7 @@ impl<O, E: ParseError> PResult<O, E> {
         other: &P,
         pos: Pos,
         state: &mut PState<'arn, 'grm, E>,
-        context: &ParserContext,
+        context: ParserContext,
     ) -> Self
     where
         'grm: 'arn,
@@ -184,7 +184,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P2,
         state: &mut PState<'arn, 'grm, E>,
-        context: &ParserContext,
+        context: ParserContext,
     ) -> PResult<(O, O2), E>
     where
         'grm: 'arn,
@@ -204,7 +204,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P2,
         state: &mut PState<'arn, 'grm, E>,
-        context: &ParserContext,
+        context: ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where
         'grm: 'arn,
@@ -225,7 +225,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: impl FnOnce(O) -> P2,
         state: &mut PState<'arn, 'grm, E>,
-        context: &ParserContext,
+        context: ParserContext,
     ) -> PResult<O2, E>
     where
         'grm: 'arn,

@@ -33,7 +33,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
-          context: &ParserContext|
+          context: ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar(rule, args) => {
@@ -100,7 +100,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let p =
-                    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+                    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
                         let mut res = PResult::new_empty((), pos);
                         for char in literal.chars() {
                             res = res

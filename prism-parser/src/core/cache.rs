@@ -58,7 +58,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
     grammar_state: GrammarStateId,
     params: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,

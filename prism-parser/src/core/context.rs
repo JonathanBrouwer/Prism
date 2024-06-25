@@ -28,11 +28,10 @@ impl<'arn, 'grm> PR<'arn, 'grm> {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Copy)]
 pub struct ParserContext {
     pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
-    pub(crate) recovery_points: Ignore<Arc<HashMap<Pos, Pos>>>,
 }
 
 impl Default for ParserContext {
@@ -46,7 +45,6 @@ impl ParserContext {
         Self {
             recovery_disabled: false,
             layout_disabled: false,
-            recovery_points: Ignore(Arc::new(HashMap::new())),
         }
     }
 }

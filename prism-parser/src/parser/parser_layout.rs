@@ -23,7 +23,7 @@ pub fn parser_with_layout<
     vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         if context.layout_disabled || vars.get("layout").is_none() {
             return sub.parse(pos, state, context);
         }
@@ -46,7 +46,7 @@ pub fn parser_with_layout<
             let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
                 &parser_rule(rules, layout, &[]),
                 state,
-                &ParserContext {
+                ParserContext {
                     layout_disabled: true,
                     ..context.clone()
                 },
@@ -80,7 +80,7 @@ pub fn full_input_layout<
     vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         let res = sub.parse(pos, state, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
             .map(|(o, _)| o)

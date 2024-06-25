@@ -92,7 +92,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
             ),
             Pos::start(),
             &mut self.state,
-            &self.context,
+            self.context,
         );
         result.map_err(|errors| AggregatedParseError {
             input: self.state.input,
