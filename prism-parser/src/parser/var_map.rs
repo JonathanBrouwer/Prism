@@ -21,7 +21,7 @@ pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
-    key: &'grm str,
+    key: &'arn str,
     value: VarMapValue<'arn, 'grm>,
 }
 
@@ -30,7 +30,7 @@ pub struct VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
-    type Item = (&'grm str, &'arn VarMapValue<'arn, 'grm>);
+    type Item = (&'arn str, &'arn VarMapValue<'arn, 'grm>);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.current {
@@ -54,14 +54,14 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&'grm str, &'arn VarMapValue<'arn, 'grm>)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&'arn str, &'arn VarMapValue<'arn, 'grm>)> {
         VarMapIterator {
             current: self.0.map(|v| *v),
         }
     }
 
     #[must_use]
-    pub fn extend<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(
+    pub fn extend<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         mut self,
         iter: T,
         alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
@@ -76,7 +76,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self
     }
 
-    pub fn from_iter<T: IntoIterator<Item = (&'grm str, VarMapValue<'arn, 'grm>)>>(
+    pub fn from_iter<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         iter: T,
         alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
     ) -> Self {

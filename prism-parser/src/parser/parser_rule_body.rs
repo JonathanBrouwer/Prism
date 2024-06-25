@@ -88,9 +88,9 @@ fn parser_body_sub_constructors<
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match es {
         [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
-            let rule_ctx = rule_ctx.iter().map(|(k, v)| (k, v.clone()));
+            let rule_ctx = rule_ctx.iter().map(|(k, v): (&'arn str, _)| (k, v.clone()));
 
-            let rule_args_iter = rule_args.iter().map(|(k, v)| (k, v.clone()));
+            let rule_args_iter = rule_args.iter().map(|(k, v): (&'arn str, _)| (k, v.clone()));
             let vars: VarMap<'arn, 'grm> =
                 VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc.alo_varmap);
 
