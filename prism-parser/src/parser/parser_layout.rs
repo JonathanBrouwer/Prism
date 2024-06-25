@@ -11,7 +11,6 @@ use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::var_map::VarMap;
 
-
 pub fn parser_with_layout<
     'a,
     'arn: 'a,

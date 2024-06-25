@@ -1,4 +1,4 @@
-use crate::core::context::{Ignore, ParserContext};
+use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -8,8 +8,6 @@ use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::rule_action::action_result::ActionResult;
-use std::collections::HashMap;
-use std::sync::Arc;
 
 const MAX_RECOVERIES: usize = 5;
 
@@ -67,8 +65,12 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
                 } else {
                     unreachable!()
                 }
-                state.recovery_points.insert(err_state.unwrap().0, err_state.unwrap().1);
-                state.recovery_points.insert(err_state.unwrap().1, err_state.unwrap().1);
+                state
+                    .recovery_points
+                    .insert(err_state.unwrap().0, err_state.unwrap().1);
+                state
+                    .recovery_points
+                    .insert(err_state.unwrap().1, err_state.unwrap().1);
                 state.clear();
             }
         }
@@ -91,12 +93,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
             r @ POk(_, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = state.recovery_points.get(&s) {
-                    POk(
-                        Cow::Owned(ActionResult::void()),
-                        pos,
-                        *to,
-                        Some((e, s)),
-                    )
+                    POk(Cow::Owned(ActionResult::void()), pos, *to, Some((e, s)))
                 } else {
                     PErr(e, s)
                 }

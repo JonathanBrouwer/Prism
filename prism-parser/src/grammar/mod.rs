@@ -78,6 +78,8 @@ pub enum RuleExpr<'grm, Action> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleArg<'grm, Action> {
-    #[serde(borrow)] ByValue(RuleExpr<'grm, Action>),
-    #[serde(borrow)] ByRule(RuleExpr<'grm, Action>),
+    #[serde(borrow)]
+    ByValue(RuleExpr<'grm, Action>),
+    #[serde(borrow)]
+    ByRule(RuleExpr<'grm, Action>),
 }

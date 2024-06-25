@@ -1,3 +1,4 @@
+use crate::core::adaptive::RuleId;
 use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,7 @@ pub enum ActionResult<'arn, 'grm> {
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     Guid(usize),
+    RuleId(RuleId),
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
@@ -35,6 +37,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
+            ActionResult::RuleId(rule) => format!("Rule({rule})"),
         }
     }
 

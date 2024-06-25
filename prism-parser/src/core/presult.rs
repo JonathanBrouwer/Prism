@@ -31,7 +31,7 @@ impl<O, E: ParseError> PResult<O, E> {
     #[inline(always)]
     pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E> {
         match self {
-            POk(o, start, end, e) => POk(f(o), start, end,  e),
+            POk(o, start, end, e) => POk(f(o), start, end, e),
             PErr(err, s) => PErr(err, s),
         }
     }
@@ -128,13 +128,8 @@ impl<O, E: ParseError> PResult<O, E> {
         match (self, other) {
             (POk(o1, start1, end1, e1), POk(o2, start2, end2, e2)) => {
                 // If the first result is empty and the second is not, we skip the first
-                let start = if start1 == end1 { start2 } else {start1 };
-                POk(
-                    (o1, o2),
-                    start,
-                    end2,
-                    err_combine_opt(e1, e2),
-                )
+                let start = if start1 == end1 { start2 } else { start1 };
+                POk((o1, o2), start, end2, err_combine_opt(e1, e2))
             }
             (POk(_, _, _, e1), PErr(e2, s2)) => {
                 let (e, s) = err_combine_opt(e1, Some((e2, s2))).unwrap();
@@ -150,12 +145,9 @@ impl<O, E: ParseError> PResult<O, E> {
             (r1 @ POk(_, _, _, _), r2 @ POk(_, _, _, _)) => {
                 r1.merge_seq(r2).map(|(o1, o2)| (o1, Some(o2)))
             }
-            (POk(o1, start, end, e1), PErr(e2, s2)) => POk(
-                (o1, None),
-                start,
-                end,
-                err_combine_opt(e1, Some((e2, s2))),
-            ),
+            (POk(o1, start, end, e1), PErr(e2, s2)) => {
+                POk((o1, None), start, end, err_combine_opt(e1, Some((e2, s2))))
+            }
             (err @ PErr(_, _), _) => err.map(|_| unreachable!()),
         }
     }

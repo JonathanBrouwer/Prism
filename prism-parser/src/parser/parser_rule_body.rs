@@ -39,7 +39,7 @@ pub fn parser_body_cache_recurse<
                 rules.unique_id(),
                 rule_args,
             )
-                .parse(pos, state, context)
+            .parse(pos, state, context)
         })
     }
 }
@@ -90,7 +90,9 @@ fn parser_body_sub_constructors<
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx.iter().map(|(k, v): (&'arn str, _)| (k, v.clone()));
 
-            let rule_args_iter = rule_args.iter().map(|(k, v): (&'arn str, _)| (k, v.clone()));
+            let rule_args_iter = rule_args
+                .iter()
+                .map(|(k, v): (&'arn str, _)| (k, v.clone()));
             let vars: VarMap<'arn, 'grm> =
                 VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc.alo_varmap);
 

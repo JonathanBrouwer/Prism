@@ -46,12 +46,14 @@ impl ParseEnv {
                     self.insert_from_action_result(&args[1], program),
                 )
             }
-            "ScopeStart" => {
-                SourceExpr::ScopeStart(self.insert_from_action_result(&args[0], program), Self::parse_guid(&args[1]))
-            }
-            "ScopeJump" => {
-                SourceExpr::ScopeJump(self.insert_from_action_result(&args[0], program), Self::parse_guid(&args[1]))
-            }
+            "ScopeStart" => SourceExpr::ScopeStart(
+                self.insert_from_action_result(&args[0], program),
+                Self::parse_guid(&args[1]),
+            ),
+            "ScopeJump" => SourceExpr::ScopeJump(
+                self.insert_from_action_result(&args[0], program),
+                Self::parse_guid(&args[1]),
+            ),
             _ => unreachable!(),
         };
         self.store(inner, *span)

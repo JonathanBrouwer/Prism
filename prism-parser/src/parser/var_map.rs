@@ -1,19 +1,19 @@
-use std::fmt::{Display, Formatter};
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
-use crate::core::cow::Cow;
-use crate::grammar::RuleExpr;
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::RuleAction;
-use by_address::ByAddress;
-use std::hash::Hash;
-use typed_arena::Arena;
 use crate::core::context::ParserContext;
+use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::RuleExpr;
 use crate::parser::parser_rule_expr::parser_expr;
+use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
+use by_address::ByAddress;
+use std::fmt::{Display, Formatter};
+use std::hash::Hash;
+use typed_arena::Arena;
 
 #[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
@@ -96,11 +96,14 @@ pub struct CapturedExpr<'arn, 'grm> {
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
-    RuleId(RuleId),
     Value(Cow<'arn, ActionResult<'arn, 'grm>>),
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
+    pub fn new_rule(rule: RuleId) -> Self {
+        Self::Value(Cow::Owned(ActionResult::RuleId(rule)))
+    }
+
     pub fn as_value(&self) -> Option<&Cow<'arn, ActionResult<'arn, 'grm>>> {
         if let VarMapValue::Value(value) = self {
             Some(value)
@@ -108,25 +111,38 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             None
         }
     }
-    
-    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(&'a self, rules: &'arn GrammarState<'arn, 'grm>, state: &mut PState<'arn, 'grm, E>, context: ParserContext) -> Option<Cow<'a, ActionResult<'arn, 'grm>>> {
+
+    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+        &'a self,
+        rules: &'arn GrammarState<'arn, 'grm>,
+        state: &mut PState<'arn, 'grm, E>,
+        context: ParserContext,
+    ) -> Option<Cow<'a, ActionResult<'arn, 'grm>>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
-                parser_expr(rules, &captured_expr.blocks, &captured_expr.expr, captured_expr.rule_args, captured_expr.vars).parse(Pos::invalid(), state, context).ok()?.rtrn
+                parser_expr(
+                    rules,
+                    &captured_expr.blocks,
+                    &captured_expr.expr,
+                    captured_expr.rule_args,
+                    captured_expr.vars,
+                )
+                .parse(Pos::invalid(), state, context)
+                .ok()?
+                .rtrn
             }
-            VarMapValue::RuleId(_) => panic!("Not an ar"),
-            VarMapValue::Value(v) => {
-                v.clone()
-            },
+            VarMapValue::Value(v) => v.clone(),
         })
     }
 
     pub fn as_rule_id(&self) -> Option<RuleId> {
-        if let VarMapValue::RuleId(rule) = self {
-            Some(*rule)
-        } else {
-            None
-        }
+        let VarMapValue::Value(ar) = self else {
+            return None;
+        };
+        let ActionResult::RuleId(rule) = ar.as_ref() else {
+            return None;
+        };
+        Some(*rule)
     }
 }
 
@@ -144,7 +160,6 @@ impl<'arn, 'grm> Display for VarMapValue<'arn, 'grm> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VarMapValue::Expr(_) => write!(f, "Unevaluted expression"),
-            VarMapValue::RuleId(i) => write!(f, "Rule with id {i}"),
             VarMapValue::Value(v) => write!(f, "{v:?}"),
         }
     }

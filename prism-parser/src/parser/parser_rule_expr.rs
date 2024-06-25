@@ -47,21 +47,23 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 for arg in args {
                     let arg = match arg {
                         RuleArg::ByValue(arg) => {
-                            let arg_result = presult.merge_seq_parser(&parser_expr(rules, blocks, arg, rule_args, vars), state, context);
+                            let arg_result = presult.merge_seq_parser(
+                                &parser_expr(rules, blocks, arg, rule_args, vars),
+                                state,
+                                context,
+                            );
                             let PResult::POk(arg, _, _, _) = arg_result.clone() else {
-                                return arg_result.map(|(_, arg)| arg)
+                                return arg_result.map(|(_, arg)| arg);
                             };
                             presult = arg_result.map(|_| ());
                             VarMapValue::Value(arg.1.rtrn)
-                        },
-                        RuleArg::ByRule(arg) => {
-                            VarMapValue::Expr(CapturedExpr {
-                                expr: arg,
-                                blocks: ByAddress(blocks),
-                                rule_args,
-                                vars,
-                            })
                         }
+                        RuleArg::ByRule(arg) => VarMapValue::Expr(CapturedExpr {
+                            expr: arg,
+                            blocks: ByAddress(blocks),
+                            rule_args,
+                            vars,
+                        }),
                     };
                     result_args.push(arg);
                 }
@@ -82,12 +84,26 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         )
                         .parse(pos, state, context)
                     }
-                    VarMapValue::RuleId(rule) => presult.merge_seq_parser(&parser_rule(rules, *rule, &result_args), state, context)
-                        .map(|(_, v)| PR::with_cow_rtrn(Cow::Borrowed(v))),
                     VarMapValue::Value(value) => {
-                        let end_pos = presult.end_pos();
-                        presult.merge_seq(PResult::new_ok(PR::with_cow_rtrn(value.clone()), end_pos, end_pos)).map(|(_, v)| v)
-                    },
+                        if let ActionResult::RuleId(rule) = value.as_ref() {
+                            presult
+                                .merge_seq_parser(
+                                    &parser_rule(rules, *rule, &result_args),
+                                    state,
+                                    context,
+                                )
+                                .map(|(_, v)| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                        } else {
+                            let end_pos = presult.end_pos();
+                            presult
+                                .merge_seq(PResult::new_ok(
+                                    PR::with_cow_rtrn(value.clone()),
+                                    end_pos,
+                                    end_pos,
+                                ))
+                                .map(|(_, v)| v)
+                        }
+                    }
                 }
             }
             RuleExpr::CharClass(cc) => {
