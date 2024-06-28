@@ -16,7 +16,7 @@ use crate::grammar::{GrammarFile, RuleArg, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
-use crate::parser::var_map::{CapturedExpr, VarMap, VarMapValue};
+use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_action;
 use crate::rule_action::RuleAction;
@@ -119,7 +119,7 @@ use by_address::ByAddress;
 
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
-    block_state: (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>),
+    block_ctx: BlockCtx<'arn, 'grm>,
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
@@ -138,21 +138,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let mut result_args: Vec<VarMapValue> = vec![];
                 for arg in args {
                     let arg = match arg {
-                        RuleArg::ByValue(arg) => {
-                            let arg_result = presult.merge_seq_parser(
-                                &parser_expr(rules, block_state, arg, vars),
-                                state,
-                                context,
-                            );
-                            let PResult::POk(arg, _, _, _) = arg_result.clone() else {
-                                return arg_result.map(|(_, arg)| arg);
-                            };
-                            presult = arg_result.map(|_| ());
-                            VarMapValue::Value(arg.1.rtrn)
-                        }
+                        RuleArg::ByValue(arg) => VarMapValue::Expr(CapturedExpr {
+                            expr: arg,
+                            block_ctx: block_ctx,
+                            vars,
+                        }),
                         RuleArg::ByRule(arg) => VarMapValue::Expr(CapturedExpr {
                             expr: arg,
-                            blocks: (ByAddress(block_state.0), block_state.1),
+                            block_ctx: block_ctx,
                             vars,
                         }),
                     };
@@ -168,7 +161,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         );
                         parser_expr(
                             rules,
-                            (captured.blocks.0.as_ref(), captured.blocks.1),
+                            captured.block_ctx,
                             captured.expr,
                             captured.vars,
                         )
@@ -232,8 +225,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 delim,
             } => {
                 let res: PResult<Vec<PR>, _> = repeat_delim(
-                    parser_expr(rules, block_state, expr, vars),
-                    parser_expr(rules, block_state, delim, vars),
+                    parser_expr(rules, block_ctx, expr, vars),
+                    parser_expr(rules, block_ctx, delim, vars),
                     *min as usize,
                     max.map(|max| max as usize),
                 )
@@ -253,7 +246,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 for sub in subs {
                     res = res
                         .merge_seq_parser(
-                            &parser_expr(rules, block_state, sub, res_vars),
+                            &parser_expr(rules, block_ctx, sub, res_vars),
                             state,
                             context,
                         )
@@ -279,7 +272,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
                 for sub in subs {
                     res = res.merge_choice_parser(
-                        &parser_expr(rules, block_state, sub, vars),
+                        &parser_expr(rules, block_ctx, sub, vars),
                         pos,
                         state,
                         context,
@@ -292,7 +285,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::NameBind(name, sub) => {
                 let res =
-                    parser_expr(rules, block_state, sub, vars).parse(pos, state, context);
+                    parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
                 res.map(|mut res| {
                     res.free = res.free.insert(name, VarMapValue::Value(res.rtrn.clone()), state.alloc.alo_varmap);
                     res
@@ -300,16 +293,22 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Action(sub, action) => {
                 let res =
-                    parser_expr(rules, block_state, sub, vars).parse(pos, state, context);
+                    parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
                         &|k| {
-                            res.free
+                            match res.free
                                 .get(k)
-                                .or_else(|| vars.get(k))
-                                .map(|v| v.as_value().expect("Is value"))
-                                .cloned()
+                                .or_else(|| vars.get(k)) {
+                                None => None,
+                                Some(VarMapValue::Value(ar)) => Some(ar.clone()),
+                                Some(VarMapValue::Expr(expr)) => {
+                                    // parser_expr(rules, expr.blocks, expr.expr, expr.vars);
+
+                                    todo!()
+                                },
+                            }
                         },
                         span,
                     );
@@ -322,26 +321,27 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::SliceInput(sub) => {
                 let res =
-                    parser_expr(rules, block_state, sub, vars).parse(pos, state, context);
+                    parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
                 res.map_with_span(|_, span| PR::with_rtrn(ActionResult::Value(span)))
             }
-            RuleExpr::This => parser_body_cache_recurse(rules, block_state)
+            RuleExpr::This => parser_body_cache_recurse(rules, block_ctx)
                 .parse(pos, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
-            RuleExpr::Next => parser_body_cache_recurse(rules, (&block_state.0[1..], block_state.1))
+            RuleExpr::Next => parser_body_cache_recurse(rules, (ByAddress(&block_ctx.0[1..]), block_ctx.1))
                 .parse(pos, state, context)
                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v))),
             RuleExpr::PosLookahead(sub) => {
-                positive_lookahead(&parser_expr(rules, block_state, sub, vars))
+                positive_lookahead(&parser_expr(rules, block_ctx, sub, vars))
                     .parse(pos, state, context)
             }
             RuleExpr::NegLookahead(sub) => {
-                negative_lookahead(&parser_expr(rules, block_state, sub, vars))
+                negative_lookahead(&parser_expr(rules, block_ctx, sub, vars))
                     .parse(pos, state, context)
                     .map(|_| PR::with_rtrn(ActionResult::void()))
             }
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 // First, get the grammar actionresult
+                //TODO match this logic with RuleExpr::Action
                 let gr = apply_action(
                     ga,
                     &|k| vars.get(k).and_then(|v| v.as_value()).cloned(),

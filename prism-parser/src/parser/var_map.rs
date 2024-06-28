@@ -94,10 +94,12 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 }
 
+pub type BlockCtx<'arn, 'grm> = (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>);
+
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct CapturedExpr<'arn, 'grm> {
     pub expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
-    pub blocks: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>),
+    pub block_ctx: BlockCtx<'arn, 'grm>,
     pub vars: VarMap<'arn, 'grm>,
 }
 
@@ -130,7 +132,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             VarMapValue::Expr(captured_expr) => {
                 parser_expr(
                     rules,
-                    (captured_expr.blocks.0.as_ref(), captured_expr.blocks.1),
+                    captured_expr.block_ctx,
                     &captured_expr.expr,
                     captured_expr.vars,
                 )

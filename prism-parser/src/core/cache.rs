@@ -10,7 +10,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
-use crate::parser::var_map::{VarMap, VarMapNode};
+use crate::parser::var_map::{BlockCtx, VarMap, VarMapNode};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
@@ -19,7 +19,7 @@ use typed_arena::Arena;
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
     pos: Pos,
-    block_state: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>),
+    block_state: BlockCtx<'arn, 'grm>,
     ctx: ParserContext,
     state: GrammarStateId,
 }
@@ -53,7 +53,7 @@ pub struct ParserCacheEntry<PR> {
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    block_state: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>),
+    block_state: BlockCtx<'arn, 'grm>,
     grammar_state: GrammarStateId,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {

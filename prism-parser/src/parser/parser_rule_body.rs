@@ -17,7 +17,7 @@ use crate::core::state::PState;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
-use crate::parser::var_map::VarMap;
+use crate::parser::var_map::{BlockCtx, VarMap};
 use crate::rule_action::action_result::ActionResult;
 
 pub fn parser_body_cache_recurse<
@@ -27,14 +27,14 @@ pub fn parser_body_cache_recurse<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    (block_state, rule_args): (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>),
+    block_ctx: BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
         const RED_ZONE: usize = 1024 * 1024;
         stacker::maybe_grow(RED_ZONE, RED_ZONE * 64, || {
             parser_cache_recurse(
-                &parser_body_sub_blocks(rules, (block_state, rule_args)),
-                (ByAddress(block_state), rule_args),
+                &parser_body_sub_blocks(rules, block_ctx),
+                block_ctx,
                 rules.unique_id(),
             )
             .parse(pos, state, context)
@@ -44,13 +44,13 @@ pub fn parser_body_cache_recurse<
 
 fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
-    (block_state, rule_args): (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>),
+    (block_state, rule_args): BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
           state: &mut PState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
-        match block_state {
+        match block_state.as_ref() {
             [] => unreachable!(),
             [b] => parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])
                 .parse(pos, state, context),
@@ -61,7 +61,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body_cache_recurse(rules, (brest, rule_args)),
+                    &parser_body_cache_recurse(rules, (ByAddress(brest), rule_args)),
                     pos,
                     state,
                     context,
@@ -78,7 +78,7 @@ fn parser_body_sub_constructors<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    (block_state, rule_args): (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>),
+    (block_state, rule_args): BlockCtx<'arn, 'grm>,
     es: &'arn [Constructor<'arn, 'grm>],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match es {
@@ -110,7 +110,7 @@ fn parser_body_sub_annotations<
     E: ParseError<L = ErrorLabel<'grm>> + 'grm,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
-    block_state: (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>),
+    block_state: BlockCtx<'arn, 'grm>,
     annots: &'arn [RuleAnnotation<'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: VarMap<'arn, 'grm>,

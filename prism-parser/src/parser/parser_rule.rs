@@ -1,3 +1,4 @@
+use by_address::ByAddress;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
@@ -29,7 +30,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             state.alloc.alo_varmap,
         );
 
-        let mut res = parser_body_cache_recurse(rules, (&rule_state.blocks, rule_args))
+        let mut res = parser_body_cache_recurse(rules, (ByAddress(&rule_state.blocks), rule_args))
             .parse(pos, state, context);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),

@@ -48,6 +48,6 @@ PARSER REFACTOR TODO:
       - If we want to take a shortcut, make ActionResult::VarMap and make rust code do the reduction
       - If not, implement functions that match on ActionResult
     - The meta grammar then needs to call with `#free`
-
+- Fix inconsistency: <'arn, 'grm> everywhere
  
 
