@@ -70,10 +70,11 @@ pub enum RuleExpr<'grm, Action> {
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
-    AtThis,
-    AtNext,
+    This,
+    Next,
     AtAdapt(Action, &'grm str),
     Guid,
+    Env,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]

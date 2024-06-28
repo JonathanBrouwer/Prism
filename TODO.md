@@ -40,6 +40,7 @@ PARSER REFACTOR TODO:
 - Make a macro for from_action_result
 - Can we move apply_action.rs to metacode?
 - For adapt_vars:
+  - Should we use prule_expr($action)?
   - Adapt currently uses RuleAction::VarMap, this is not acceptable
   - Make grammar take a rule `varmap -> action_result`
     - There needs to be a VarMapValue::VarMap then
@@ -48,5 +49,5 @@ PARSER REFACTOR TODO:
       - If not, implement functions that match on ActionResult
     - The meta grammar then needs to call with `#free`
 
-
+ 
 

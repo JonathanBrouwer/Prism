@@ -13,6 +13,7 @@ mod parser_tests;
 mod recovery;
 mod repeat;
 mod span_merging;
+mod env;
 
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {

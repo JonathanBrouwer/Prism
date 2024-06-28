@@ -4,7 +4,7 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
 pub fn apply_action<'arn, 'grm>(
-    rule: &'arn RuleAction<'arn, 'grm>,
+    rule: &RuleAction<'arn, 'grm>,
     eval_name: &impl Fn(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
     span: Span,
 ) -> Cow<'arn, ActionResult<'arn, 'grm>> {
@@ -25,11 +25,12 @@ pub fn apply_action<'arn, 'grm>(
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::Cons(h, t) => {
-            //TODO this is ineffecient
-            let mut res = match apply_action(t, eval_name, span).as_ref() {
-                ActionResult::Construct(_, "List", v) => v.clone(),
-                x => unreachable!("{:?} is not a list", x),
+            let ar = apply_action(t, eval_name, span);
+            let ActionResult::Construct(_, "List", ar) = ar.as_ref() else {
+                unreachable!("Action result is not a list")
             };
+            //TODO this is inefficient
+            let mut res = ar.clone();
             res.insert(0, apply_action(h, eval_name, span));
 
             ActionResult::Construct(span, "List", res)

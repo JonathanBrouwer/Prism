@@ -19,10 +19,9 @@ use typed_arena::Arena;
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'grm, 'arn> {
     pos: Pos,
-    block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    block_state: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>),
     ctx: ParserContext,
     state: GrammarStateId,
-    params: VarMap<'arn, 'grm>,
 }
 
 pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -54,18 +53,16 @@ pub struct ParserCacheEntry<PR> {
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    block_state: (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>),
     grammar_state: GrammarStateId,
-    params: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,
-            block,
+            block_state,
             ctx: context.clone(),
             state: grammar_state,
-            params,
         };
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();

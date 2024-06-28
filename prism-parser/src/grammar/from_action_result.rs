@@ -141,8 +141,8 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "NegLookahead", b) => {
             RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src, parse_a)?))
         }
-        Construct(_, "AtThis", _) => RuleExpr::AtThis,
-        Construct(_, "AtNext", _) => RuleExpr::AtNext,
+        Construct(_, "This", _) => RuleExpr::This,
+        Construct(_, "Next", _) => RuleExpr::Next,
         Construct(_, "Guid", _) => RuleExpr::Guid,
         Construct(_, "RunVar", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
@@ -160,6 +160,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "AtAdapt", b) => {
             RuleExpr::AtAdapt(parse_a(&b[0], src)?, parse_identifier(&b[1], src)?)
         }
+        Construct(_, "Env", _) => RuleExpr::Env,
         _ => return None,
     })
 }

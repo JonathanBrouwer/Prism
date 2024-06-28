@@ -5,14 +5,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::parser::var_map::VarMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     Guid(usize),
     RuleId(RuleId),
+    #[serde(skip)]
+    Env(VarMap<'arn, 'grm>)
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
@@ -38,6 +41,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
             ActionResult::RuleId(rule) => format!("Rule({rule})"),
+            ActionResult::Env(_) => "Env(...)".to_string(),
         }
     }
 

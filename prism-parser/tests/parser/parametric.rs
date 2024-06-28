@@ -135,3 +135,16 @@ failing tests:
     ""
     "heyy"
 }
+
+parse_test! {
+name: parametric_ignore
+syntax: r##"
+    rule start = id("hey");
+    rule id(_) = "hai";
+    "##
+passing tests:
+    "hai" => "'hai'"
+
+failing tests:
+    "hey"
+}
