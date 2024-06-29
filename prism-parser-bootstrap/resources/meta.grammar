@@ -30,7 +30,7 @@ rule prule_annotation {
 
 rule prule_expr(action) {
     group action {
-        Action(r, a) <- a:action "<-" r:#this;
+        Action(r, a) <- a:action(#env) "<-" r:#this;
     }
     group choice {
         Choice(es) <- es:#repeat(#next, "/", 2, inf);
@@ -56,7 +56,7 @@ rule prule_expr(action) {
         This() <- "#this";
         Next() <- "#next";
         Guid() <- "#guid";
-        AtAdapt(a, n) <- "#adapt" "(" a:action "," n:identifier ")";
+        AtAdapt(a, n) <- "#adapt" "(" a:action(#env) "," n:identifier ")";
         RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
         RunVar(n, []) <- n:identifier;
         Repeat(e, "0", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
@@ -127,15 +127,15 @@ rule reserved {
     "group";
 }
 
-rule prule_action {
+rule prule_action(env) {
     group cons {
         Cons(h, t) <- h:#next "::" t:#this;
     }
     group base {
         Nil() <- "[]";
-        Construct(n, as) <- n:identifier "(" as:#repeat(prule_action, ",", *) ")";
+        Construct(n, as) <- n:identifier "(" as:#repeat(prule_action(env), ",", *) ")";
         InputLiteral(s) <- s:pstring;
         Name(n) <- n:identifier;
-        a <- "(" a:prule_action ")";
+        a <- "(" a:prule_action(env) ")";
     }
 }

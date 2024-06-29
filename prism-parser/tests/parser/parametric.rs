@@ -162,3 +162,20 @@ passing tests:
 failing tests:
     "y"
 }
+
+parse_test! {
+name: curried
+syntax: r##"
+    rule start = do(test("x"));
+    rule do(f) = f("y");
+    rule test(x, y) = Vals(a, b) <- a:x b:y;
+    "##
+passing tests:
+    "xy" => "Vals('x', 'y')"
+
+failing tests:
+    "y"
+    "x"
+    ""
+    "yx"
+}

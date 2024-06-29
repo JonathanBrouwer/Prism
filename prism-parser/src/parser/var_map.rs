@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
@@ -17,6 +18,16 @@ use typed_arena::Arena;
 
 #[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
+
+impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Printing varmap:")?;
+        for (name, value) in self.iter_cloned() {
+            writeln!(f, "- {name}: {value:?}")?;
+        }
+        Ok(())
+    }
+}
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct VarMapNode<'arn, 'grm> {
@@ -111,6 +122,15 @@ pub struct CapturedExpr<'arn, 'grm> {
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
     Value(Cow<'arn, ActionResult<'arn, 'grm>>),
+}
+
+impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VarMapValue::Expr(_) => write!(f, "{{expr}}"),
+            VarMapValue::Value(ar) => write!(f, "{ar:?}"),
+        }
+    }
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {

@@ -813,7 +813,9 @@
                           {
                             "RunVar": [
                               "action",
-                              []
+                              [
+                                "Env"
+                              ]
                             ]
                           }
                         ]
@@ -1446,7 +1448,9 @@
                           {
                             "RunVar": [
                               "action",
-                              []
+                              [
+                                "Env"
+                              ]
                             ]
                           }
                         ]
@@ -2665,7 +2669,9 @@
     },
     {
       "name": "prule_action",
-      "args": [],
+      "args": [
+        "env"
+      ],
       "blocks": [
         [
           "cons",
@@ -2758,7 +2764,14 @@
                               "expr": {
                                 "RunVar": [
                                   "prule_action",
-                                  []
+                                  [
+                                    {
+                                      "RunVar": [
+                                        "env",
+                                        []
+                                      ]
+                                    }
+                                  ]
                                 ]
                               },
                               "min": 0,
@@ -2862,7 +2875,14 @@
                           {
                             "RunVar": [
                               "prule_action",
-                              []
+                              [
+                                {
+                                  "RunVar": [
+                                    "env",
+                                    []
+                                  ]
+                                }
+                              ]
                             ]
                           }
                         ]

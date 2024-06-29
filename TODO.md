@@ -49,5 +49,5 @@ PARSER REFACTOR TODO:
       - If not, implement functions that match on ActionResult
     - The meta grammar then needs to call with `#free`
 - Fix inconsistency: <'arn, 'grm> everywhere
- 
 
+- Scope jumping to a different adapt does not correct scope

@@ -1,8 +1,10 @@
+use std::env::var;
+use prism_parser::parser::var_map::VarMap;
 use crate::desugar::{Guid, ParseEnv, ParseIndex, SourceExpr};
 use prism_parser::rule_action::action_result::ActionResult;
 
 impl ParseEnv {
-    pub fn insert_from_action_result(&mut self, value: &ActionResult, program: &str) -> ParseIndex {
+    pub fn insert_from_action_result(&mut self, value: &ActionResult, program: &str, vars: VarMap) -> ParseIndex {
         let ActionResult::Construct(span, constructor, args) = value else {
             unreachable!("Parsing an expression always returns a Construct");
         };
@@ -15,45 +17,60 @@ impl ParseEnv {
                 assert_eq!(args.len(), 3);
                 SourceExpr::Let(
                     args[0].get_value(program).to_string(),
-                    self.insert_from_action_result(&args[1], program),
-                    self.insert_from_action_result(&args[2], program),
+                    self.insert_from_action_result(&args[1], program, vars),
+                    self.insert_from_action_result(&args[2], program, vars),
                 )
             }
             "Variable" => {
                 assert_eq!(args.len(), 1);
-                SourceExpr::Variable(args[0].get_value(program).to_string())
+                let name = args[0].get_value(program).to_string();
+                if let Some(value) = vars.get(&name) {
+                    todo!()
+                } else {
+                    SourceExpr::Variable(name)
+                }
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
                 SourceExpr::FnType(
                     args[0].get_value(program).to_string(),
-                    self.insert_from_action_result(&args[1], program),
-                    self.insert_from_action_result(&args[2], program),
+                    self.insert_from_action_result(&args[1], program, vars),
+                    self.insert_from_action_result(&args[2], program, vars),
                 )
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 3);
                 SourceExpr::FnConstruct(
                     args[0].get_value(program).to_string(),
-                    self.insert_from_action_result(&args[1], program),
-                    self.insert_from_action_result(&args[2], program),
+                    self.insert_from_action_result(&args[1], program, vars),
+                    self.insert_from_action_result(&args[2], program, vars),
                 )
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
                 SourceExpr::FnDestruct(
-                    self.insert_from_action_result(&args[0], program),
-                    self.insert_from_action_result(&args[1], program),
+                    self.insert_from_action_result(&args[0], program, vars),
+                    self.insert_from_action_result(&args[1], program, vars),
                 )
             }
-            "ScopeStart" => SourceExpr::ScopeStart(
-                self.insert_from_action_result(&args[0], program),
-                Self::parse_guid(&args[1]),
-            ),
-            "ScopeJump" => SourceExpr::ScopeJump(
-                self.insert_from_action_result(&args[0], program),
-                Self::parse_guid(&args[1]),
-            ),
+            "ScopeStart" => {
+                assert_eq!(args.len(), 2);
+                SourceExpr::ScopeStart(
+                    self.insert_from_action_result(&args[0], program, vars),
+                    Self::parse_guid(&args[1]),
+                )
+            },
+            "ScopeJump" => {
+                assert_eq!(args.len(), 3);
+                let ActionResult::Env(env) = args[2].as_ref() else {
+                    unreachable!()
+                };
+                println!("{env:?}");
+                SourceExpr::ScopeJump(
+                    self.insert_from_action_result(&args[0], program, *env),
+                    Self::parse_guid(&args[1]),
+                )
+            },
             _ => unreachable!(),
         };
         self.store(inner, *span)

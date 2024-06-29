@@ -4,7 +4,7 @@ rule block {
     expr;
 }
 
-rule wrapped_expr(guid2) = ScopeJump(e, guid3) <- guid3:guid2 e:expr;
+rule wrapped_expr(guid2, env) = ScopeJump(e, guid3, env2) <- guid3:guid2 env2:env e:expr;
 
 rule expr {
     group fnconstruct {

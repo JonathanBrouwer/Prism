@@ -6,9 +6,9 @@ syntax: r#"
 rule start = block;
 rule block {
     b <- "grammar" "{" g:grammar(expr) "}" ";" b:#adapt(g, block);
-    expr;
+    expr(#env);
 }
-rule expr {
+rule expr(_) {
     group additive {
         Add(x, y) <- x:#next "+" y:#this;
     }

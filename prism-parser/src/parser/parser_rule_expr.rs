@@ -54,7 +54,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 vars,
                             })
                         }));
-                    
+
                     return match rule {
                         VarMapValue::Expr(captured) => {
                             // If the `Expr` we call is a rule, we might be using it as a higher-order rule
