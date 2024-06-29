@@ -39,15 +39,7 @@ PARSER REFACTOR TODO:
 - Prevent it from being recursive
 - Make a macro for from_action_result
 - Can we move apply_action.rs to metacode?
-- For adapt_vars:
-  - Should we use prule_expr($action)?
-  - Adapt currently uses RuleAction::VarMap, this is not acceptable
-  - Make grammar take a rule `varmap -> action_result`
-    - There needs to be a VarMapValue::VarMap then
-    - To use the varmap to transform the expr
-      - If we want to take a shortcut, make ActionResult::VarMap and make rust code do the reduction
-      - If not, implement functions that match on ActionResult
-    - The meta grammar then needs to call with `#free`
 - Fix inconsistency: <'arn, 'grm> everywhere
+- Check adapting multiple times, if it captures the right variables
 
-- Scope jumping to a different adapt does not correct scope
+- Current bug: not the right #env is passed, what's up with that?
