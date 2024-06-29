@@ -1,9 +1,9 @@
 use crate::core::cow::Cow;
+use crate::parser::var_map::VarMap;
 use crate::rule_action::action_result::ActionResult;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
-use crate::parser::var_map::VarMap;
 
 #[derive(Clone)]
 pub struct PR<'arn, 'grm> {

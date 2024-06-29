@@ -138,7 +138,7 @@ pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<(), E> {
         match p.parse(pos, state, context) {
             POk(_, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
-            PErr(_, _) => PResult::new_ok((), pos, pos),
+            PErr(_, _) => PResult::new_empty((), pos),
         }
     }
 }

@@ -5,7 +5,7 @@ use crate::rule_action::RuleAction;
 
 pub fn apply_action<'arn, 'grm>(
     rule: &RuleAction<'arn, 'grm>,
-    eval_name: &impl Fn(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
+    eval_name: &mut impl FnMut(&str) -> Option<Cow<'arn, ActionResult<'arn, 'grm>>>,
     span: Span,
 ) -> Cow<'arn, ActionResult<'arn, 'grm>> {
     Cow::Owned(match rule {

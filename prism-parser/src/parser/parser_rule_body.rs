@@ -52,12 +52,18 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         match block_state.as_ref() {
             [] => unreachable!(),
-            [b] => parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])
-                .parse(pos, state, context),
+            [b] => {
+                parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])
+                    .parse(pos, state, context)
+            }
             [b, brest @ ..] => {
                 // Parse current
-                let res = parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])
-                    .parse(pos, state, context);
+                let res = parser_body_sub_constructors(
+                    rules,
+                    (block_state, rule_args),
+                    &b.constructors[..],
+                )
+                .parse(pos, state, context);
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
@@ -89,15 +95,16 @@ fn parser_body_sub_constructors<
             let vars: VarMap<'arn, 'grm> =
                 VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc.alo_varmap);
 
-            let res = parser_body_sub_annotations(rules, (block_state, rule_args), annots, expr, vars)
-                .parse(pos, state, context)
-                .map(|v| state.alloc.uncow(v))
-                .merge_choice_parser(
-                    &parser_body_sub_constructors(rules, (block_state, rule_args), rest),
-                    pos,
-                    state,
-                    context,
-                );
+            let res =
+                parser_body_sub_annotations(rules, (block_state, rule_args), annots, expr, vars)
+                    .parse(pos, state, context)
+                    .map(|v| state.alloc.uncow(v))
+                    .merge_choice_parser(
+                        &parser_body_sub_constructors(rules, (block_state, rule_args), rest),
+                        pos,
+                        state,
+                        context,
+                    );
             res
         }
     }

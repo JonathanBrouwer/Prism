@@ -62,11 +62,13 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 
     #[must_use]
-    pub fn insert(self, key: &'arn str, value: VarMapValue<'arn, 'grm>, alloc: &'arn Arena<VarMapNode<'arn, 'grm>>) -> Self {
-        self.extend(
-            iter::once((key, value)),
-            alloc,
-        )
+    pub fn insert(
+        self,
+        key: &'arn str,
+        value: VarMapValue<'arn, 'grm>,
+        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    ) -> Self {
+        self.extend(iter::once((key, value)), alloc)
     }
 
     #[must_use]
@@ -94,7 +96,10 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 }
 
-pub type BlockCtx<'arn, 'grm> = (ByAddress<&'arn [BlockState<'arn, 'grm>]>, VarMap<'arn, 'grm>);
+pub type BlockCtx<'arn, 'grm> = (
+    ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    VarMap<'arn, 'grm>,
+);
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub struct CapturedExpr<'arn, 'grm> {

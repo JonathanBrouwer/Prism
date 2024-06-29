@@ -2057,50 +2057,6 @@
               {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "$"
-                      },
-                      {
-                        "NameBind": [
-                          "e",
-                          {
-                            "RunVar": [
-                              "prule_expr",
-                              [
-                                {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
-                                }
-                              ]
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "ByValue",
-                      [
-                        {
-                          "Name": "e"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
                     "NameBind": [
                       "e",
                       {

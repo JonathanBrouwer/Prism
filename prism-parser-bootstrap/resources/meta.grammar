@@ -68,7 +68,6 @@ rule prule_expr(action) {
 }
 
 rule prule_arg(action) {
-    ByValue(e) <- "$" e:prule_expr(action);
     ByRule(e) <- e:prule_expr(action);
 }
 
