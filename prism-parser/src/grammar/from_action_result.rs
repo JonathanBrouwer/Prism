@@ -149,7 +149,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
                 create args.iter().map(|sub| {
-                    parse_rule_expr(&sub, src, parse_a)
+                    parse_rule_expr(sub, src, parse_a)
                 }).collect::<Option<Vec<_>>>()?
             }?,
         ),

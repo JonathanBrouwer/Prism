@@ -6,7 +6,7 @@ use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-use crate::core::adaptive::{BlockState, Constructor, GrammarState};
+use crate::core::adaptive::{Constructor, GrammarState};
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 
@@ -142,7 +142,7 @@ fn parser_body_sub_annotations<
                     state,
                     ParserContext {
                         layout_disabled: true,
-                        ..context.clone()
+                        ..context
                     },
                 )
             })
@@ -158,7 +158,7 @@ fn parser_body_sub_annotations<
                     state,
                     ParserContext {
                         layout_disabled: false,
-                        ..context.clone()
+                        ..context
                     },
                 )
             })
@@ -171,7 +171,7 @@ fn parser_body_sub_annotations<
                     state,
                     ParserContext {
                         recovery_disabled: true,
-                        ..context.clone()
+                        ..context
                     },
                 )
             },
@@ -183,7 +183,7 @@ fn parser_body_sub_annotations<
                 state,
                 ParserContext {
                     recovery_disabled: false,
-                    ..context.clone()
+                    ..context
                 },
             )
         }

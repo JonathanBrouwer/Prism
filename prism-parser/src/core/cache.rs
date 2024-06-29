@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
+use crate::core::adaptive::{GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -10,10 +10,9 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
-use crate::parser::var_map::{BlockCtx, VarMap, VarMapNode};
+use crate::parser::var_map::{BlockCtx, VarMapNode};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
-use by_address::ByAddress;
 use typed_arena::Arena;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
@@ -61,7 +60,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         let key = CacheKey {
             pos: pos_start,
             block_state,
-            ctx: context.clone(),
+            ctx: context,
             state: grammar_state,
         };
         if let Some(cached) = state.cache_get(&key) {

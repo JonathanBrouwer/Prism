@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState};
+use crate::core::adaptive::GrammarState;
 use crate::core::context::{ParserContext, PR};
 use crate::core::cow::Cow;
 use crate::core::parser::{map_parser, Parser};
@@ -132,8 +132,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                             state,
                             context,
                         )
-                        .map(|(mut l, r)| {
-                            l.extend(r.free.iter_cloned(), &mut state.alloc.alo_varmap)
+                        .map(|(l, r)| {
+                            l.extend(r.free.iter_cloned(), state.alloc.alo_varmap)
                         });
                     match &res.ok_ref() {
                         None => break,

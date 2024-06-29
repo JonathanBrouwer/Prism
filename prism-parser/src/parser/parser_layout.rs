@@ -47,7 +47,7 @@ pub fn parser_with_layout<
                 state,
                 ParserContext {
                     layout_disabled: true,
-                    ..context.clone()
+                    ..context
                 },
             );
             match new_res {

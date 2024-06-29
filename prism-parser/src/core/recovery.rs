@@ -87,7 +87,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
             state,
             ParserContext {
                 recovery_disabled: true,
-                ..context.clone()
+                ..context
             },
         ) {
             r @ POk(_, _, _, _) => r,

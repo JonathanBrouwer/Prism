@@ -11,7 +11,6 @@ use crate::parser::parser_rule_expr::parser_expr;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
-use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use std::iter;
 use typed_arena::Arena;
@@ -138,7 +137,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
                 parser_expr(
                     rules,
                     captured_expr.block_ctx,
-                    &captured_expr.expr,
+                    captured_expr.expr,
                     captured_expr.vars,
                 )
                 .parse(Pos::invalid(), state, context)
