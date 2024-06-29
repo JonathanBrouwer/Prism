@@ -33,41 +33,57 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
           context: ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::RunVar(rule, args) => {
-                // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get(rule) else {
-                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
-                };
+            RuleExpr::RunVar(mut rule_str, args) => {
+                let mut result_args = vec![];
+                let mut args = args;
+                let mut block_ctx = block_ctx;
+                let mut vars = vars;
 
-                let result_args: Vec<VarMapValue> = args
-                    .iter()
-                    .map(|arg| {
-                        VarMapValue::Expr(CapturedExpr {
-                            expr: arg,
-                            block_ctx,
-                            vars,
-                        })
-                    })
-                    .collect();
+                loop {
+                    // Figure out which rule the variable `rule` refers to
+                    let Some(rule) = vars.get(rule_str) else {
+                        panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
+                    };
 
-                match rule {
-                    VarMapValue::Expr(captured) => {
-                        assert_eq!(
-                            result_args.len(),
-                            0,
-                            "Applying arguments to captured expressions is currently unsupported"
-                        );
-                        parser_expr(rules, captured.block_ctx, captured.expr, captured.vars)
-                            .parse(pos, state, context)
-                    }
-                    VarMapValue::Value(value) => {
-                        if let ActionResult::RuleId(rule) = value.as_ref() {
-                            parser_rule(rules, *rule, &result_args)
-                                .parse(pos, state, context)
-                                .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
-                        } else {
-                            //TODO remove this code and replace with $value expressions
-                            PResult::new_empty(PR::with_cow_rtrn(value.clone()), pos)
+                    result_args.splice(0..0, args
+                        .iter()
+                        .map(|arg| {
+                            VarMapValue::Expr(CapturedExpr {
+                                expr: arg,
+                                block_ctx,
+                                vars,
+                            })
+                        }));
+                    
+                    return match rule {
+                        VarMapValue::Expr(captured) => {
+                            // If the `Expr` we call is a rule, we might be using it as a higher-order rule
+                            // We process this rule in a loop, using the context of the captured expression
+                            if let RuleExpr::RunVar(sub_rule, sub_args) = captured.expr {
+                                rule_str = sub_rule;
+                                args = sub_args;
+                                block_ctx = captured.block_ctx;
+                                vars = captured.vars;
+                                continue
+                            } else {
+                                assert_eq!(
+                                    result_args.len(),
+                                    0,
+                                    "Tried to apply an argument to a non-rule expr"
+                                );
+                                parser_expr(rules, captured.block_ctx, captured.expr, captured.vars)
+                                    .parse(pos, state, context)
+                            }
+                        }
+                        VarMapValue::Value(value) => {
+                            if let ActionResult::RuleId(rule) = value.as_ref() {
+                                parser_rule(rules, *rule, &result_args)
+                                    .parse(pos, state, context)
+                                    .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
+                            } else {
+                                //TODO remove this code and replace with $value expressions
+                                PResult::new_empty(PR::with_cow_rtrn(value.clone()), pos)
+                            }
                         }
                     }
                 }

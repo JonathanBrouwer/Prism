@@ -148,3 +148,17 @@ passing tests:
 failing tests:
     "hey"
 }
+
+parse_test! {
+name: parametric_higher_order
+syntax: r##"
+    rule start = map_x(id);
+    rule map_x(f) = f("x");
+    rule id(v) = v;
+    "##
+passing tests:
+    "x" => "'x'"
+
+failing tests:
+    "y"
+}
