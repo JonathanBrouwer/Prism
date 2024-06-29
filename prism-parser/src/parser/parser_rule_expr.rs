@@ -39,14 +39,16 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
 
-                let mut result_args: Vec<VarMapValue> = vec![];
-                for arg in args {
-                    result_args.push(VarMapValue::Expr(CapturedExpr {
-                        expr: arg,
-                        block_ctx,
-                        vars,
-                    }));
-                }
+                let result_args: Vec<VarMapValue> = args
+                    .iter()
+                    .map(|arg| {
+                        VarMapValue::Expr(CapturedExpr {
+                            expr: arg,
+                            block_ctx,
+                            vars,
+                        })
+                    })
+                    .collect();
 
                 match rule {
                     VarMapValue::Expr(captured) => {
@@ -176,12 +178,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
-                        &mut |k| {
-                            match res.free.get(k).or_else(|| vars.get(k)) {
-                                None => None,
-                                Some(VarMapValue::Value(ar)) => Some(ar.clone()),
-                                Some(VarMapValue::Expr(_)) => panic!("Expected a value in action")
-                            }
+                        &mut |k| match res.free.get(k).or_else(|| vars.get(k)) {
+                            None => None,
+                            Some(VarMapValue::Value(ar)) => Some(ar.clone()),
+                            Some(VarMapValue::Expr(_)) => panic!("Expected a value in action"),
                         },
                         span,
                     );
