@@ -57,7 +57,7 @@ rule prule_expr(action) {
         Next() <- "#next";
         Guid() <- "#guid";
         AtAdapt(a, n) <- "#adapt" "(" a:action "," n:identifier ")";
-        RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_arg(action), ",", *) ")";
+        RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
         RunVar(n, []) <- n:identifier;
         Repeat(e, "0", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
         Repeat(e, "1", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
@@ -65,10 +65,6 @@ rule prule_expr(action) {
         Repeat(e, min, Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
         Env() <- "#env";
     }
-}
-
-rule prule_arg(action) {
-    ByRule(e) <- e:prule_expr(action);
 }
 
 rule charclass {

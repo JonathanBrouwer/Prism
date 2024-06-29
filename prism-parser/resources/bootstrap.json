@@ -1545,7 +1545,7 @@
                             "Repeat": {
                               "expr": {
                                 "RunVar": [
-                                  "prule_arg",
+                                  "prule_expr",
                                   [
                                     {
                                       "ByRule": {
@@ -2034,56 +2034,6 @@
                     "Construct": [
                       "Env",
                       []
-                    ]
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "prule_arg",
-      "args": [
-        "action"
-      ],
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "e",
-                      {
-                        "RunVar": [
-                          "prule_expr",
-                          [
-                            {
-                              "ByRule": {
-                                "RunVar": [
-                                  "action",
-                                  []
-                                ]
-                              }
-                            }
-                          ]
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "ByRule",
-                      [
-                        {
-                          "Name": "e"
-                        }
-                      ]
                     ]
                   }
                 ]
