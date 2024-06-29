@@ -65,7 +65,6 @@ impl ParseEnv {
                 let ActionResult::Env(env) = args[2].as_ref() else {
                     unreachable!()
                 };
-                println!("{env:?}");
                 SourceExpr::ScopeJump(
                     self.insert_from_action_result(&args[0], program, *env),
                     Self::parse_guid(&args[1]),
