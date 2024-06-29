@@ -11,6 +11,8 @@ use crate::parser::var_map::VarMap;
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
+    //TODO replace Vec by arena slice
+    //TODO this can only be done after List representation is changed
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     Guid(usize),
     RuleId(RuleId),

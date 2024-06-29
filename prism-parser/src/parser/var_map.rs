@@ -100,7 +100,7 @@ pub type BlockCtx<'arn, 'grm> = (
     VarMap<'arn, 'grm>,
 );
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct CapturedExpr<'arn, 'grm> {
     pub expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     pub block_ctx: BlockCtx<'arn, 'grm>,

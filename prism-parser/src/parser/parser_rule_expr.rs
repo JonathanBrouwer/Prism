@@ -66,6 +66,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 .parse(pos, state, context)
                                 .map(|v| PR::with_cow_rtrn(Cow::Borrowed(v)))
                         } else {
+                            //TODO remove this code and replace with $value expressions
                             PResult::new_empty(PR::with_cow_rtrn(value.clone()), pos)
                         }
                     }
