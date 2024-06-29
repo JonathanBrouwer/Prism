@@ -12,7 +12,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
-use crate::grammar::{GrammarFile, RuleArg, RuleExpr};
+use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
@@ -41,15 +41,11 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 let mut result_args: Vec<VarMapValue> = vec![];
                 for arg in args {
-                    let arg = match arg {
-                        RuleArg::ByValue(arg) => unreachable!(),
-                        RuleArg::ByRule(arg) => VarMapValue::Expr(CapturedExpr {
-                            expr: arg,
-                            block_ctx,
-                            vars,
-                        }),
-                    };
-                    result_args.push(arg);
+                    result_args.push(VarMapValue::Expr(CapturedExpr {
+                        expr: arg,
+                        block_ctx,
+                        vars,
+                    }));
                 }
 
                 match rule {

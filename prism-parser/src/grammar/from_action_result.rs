@@ -1,5 +1,5 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleArg, RuleExpr};
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
@@ -149,7 +149,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
                 create args.iter().map(|sub| {
-                    parse_rule_expr(&sub, src, parse_a).map(RuleArg::ByRule)
+                    parse_rule_expr(&sub, src, parse_a)
                 }).collect::<Option<Vec<_>>>()?
             }?,
         ),
