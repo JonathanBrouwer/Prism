@@ -156,7 +156,6 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "AtAdapt", b) => {
             RuleExpr::AtAdapt(parse_a(&b[0], src)?, parse_identifier(&b[1], src)?)
         }
-        Construct(_, "Env", _) => RuleExpr::Env,
         _ => return None,
     })
 }

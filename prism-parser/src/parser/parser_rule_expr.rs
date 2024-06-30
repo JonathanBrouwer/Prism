@@ -298,7 +298,6 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 state.guid_counter += 1;
                 PResult::new_empty(PR::with_rtrn(ActionResult::Guid(guid)), pos)
             }
-            RuleExpr::Env => PResult::new_empty(PR::with_rtrn(ActionResult::Env(vars)), pos),
         }
     }
 }

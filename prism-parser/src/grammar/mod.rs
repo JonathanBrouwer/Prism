@@ -74,5 +74,4 @@ pub enum RuleExpr<'grm, Action> {
     Next,
     AtAdapt(Action, &'grm str),
     Guid,
-    Env,
 }

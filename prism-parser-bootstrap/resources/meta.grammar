@@ -63,7 +63,6 @@ rule prule_expr(action) {
         Repeat(e, "1", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
         Repeat(e, min, None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
         Repeat(e, min, Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
-        Env() <- "#env";
     }
 }
 
