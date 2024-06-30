@@ -14,12 +14,10 @@
                   "grammar",
                   [
                     {
-                      "ByRule": {
-                        "RunVar": [
-                          "prule_action",
-                          []
-                        ]
-                      }
+                      "RunVar": [
+                        "prule_action",
+                        []
+                      ]
                     }
                   ]
                 ]
@@ -52,12 +50,10 @@
                               "prule",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -139,12 +135,10 @@
                               "prule_blocks",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -217,12 +211,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -408,12 +400,10 @@
                                   "prule_constructors",
                                   [
                                     {
-                                      "ByRule": {
-                                        "RunVar": [
-                                          "action",
-                                          []
-                                        ]
-                                      }
+                                      "RunVar": [
+                                        "action",
+                                        []
+                                      ]
                                     }
                                   ]
                                 ]
@@ -460,12 +450,10 @@
                           "prule_constructors",
                           [
                             {
-                              "ByRule": {
-                                "RunVar": [
-                                  "action",
-                                  []
-                                ]
-                              }
+                              "RunVar": [
+                                "action",
+                                []
+                              ]
                             }
                           ]
                         ]
@@ -517,12 +505,10 @@
                       "prule_annotated_expr",
                       [
                         {
-                          "ByRule": {
-                            "RunVar": [
-                              "action",
-                              []
-                            ]
-                          }
+                          "RunVar": [
+                            "action",
+                            []
+                          ]
                         }
                       ]
                     ]
@@ -594,12 +580,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -840,7 +824,7 @@
                       {
                         "NameBind": [
                           "r",
-                          "AtThis"
+                          "This"
                         ]
                       }
                     ]
@@ -875,7 +859,7 @@
                       "es",
                       {
                         "Repeat": {
-                          "expr": "AtNext",
+                          "expr": "Next",
                           "min": 2,
                           "max": null,
                           "delim": {
@@ -912,7 +896,7 @@
                       "es",
                       {
                         "Repeat": {
-                          "expr": "AtNext",
+                          "expr": "Next",
                           "min": 2,
                           "max": null,
                           "delim": {
@@ -966,7 +950,7 @@
                       {
                         "NameBind": [
                           "e",
-                          "AtNext"
+                          "Next"
                         ]
                       }
                     ]
@@ -1001,7 +985,7 @@
                       {
                         "NameBind": [
                           "r",
-                          "AtThis"
+                          "This"
                         ]
                       },
                       {
@@ -1050,7 +1034,7 @@
                       {
                         "NameBind": [
                           "r",
-                          "AtThis"
+                          "This"
                         ]
                       },
                       {
@@ -1099,7 +1083,7 @@
                       {
                         "NameBind": [
                           "r",
-                          "AtThis"
+                          "This"
                         ]
                       },
                       {
@@ -1234,12 +1218,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1284,12 +1266,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1334,12 +1314,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1381,12 +1359,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1413,7 +1389,7 @@
                   },
                   {
                     "Construct": [
-                      "AtThis",
+                      "This",
                       []
                     ]
                   }
@@ -1429,7 +1405,7 @@
                   },
                   {
                     "Construct": [
-                      "AtNext",
+                      "Next",
                       []
                     ]
                   }
@@ -1545,15 +1521,13 @@
                             "Repeat": {
                               "expr": {
                                 "RunVar": [
-                                  "prule_arg",
+                                  "prule_expr",
                                   [
                                     {
-                                      "ByRule": {
-                                        "RunVar": [
-                                          "action",
-                                          []
-                                        ]
-                                      }
+                                      "RunVar": [
+                                        "action",
+                                        []
+                                      ]
                                     }
                                   ]
                                 ]
@@ -1639,12 +1613,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1662,12 +1634,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1730,12 +1700,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1753,12 +1721,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1821,12 +1787,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1844,12 +1808,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1926,12 +1888,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -1949,12 +1909,10 @@
                               "prule_expr",
                               [
                                 {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
                                 }
                               ]
                             ]
@@ -2016,100 +1974,6 @@
                         },
                         {
                           "Name": "d"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ]
-          ]
-        ]
-      ]
-    },
-    {
-      "name": "prule_arg",
-      "args": [
-        "action"
-      ],
-      "blocks": [
-        [
-          "",
-          [
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "$"
-                      },
-                      {
-                        "NameBind": [
-                          "e",
-                          {
-                            "RunVar": [
-                              "prule_expr",
-                              [
-                                {
-                                  "ByRule": {
-                                    "RunVar": [
-                                      "action",
-                                      []
-                                    ]
-                                  }
-                                }
-                              ]
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "ByValue",
-                      [
-                        {
-                          "Name": "e"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "NameBind": [
-                      "e",
-                      {
-                        "RunVar": [
-                          "prule_expr",
-                          [
-                            {
-                              "ByRule": {
-                                "RunVar": [
-                                  "action",
-                                  []
-                                ]
-                              }
-                            }
-                          ]
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "ByRule",
-                      [
-                        {
-                          "Name": "e"
                         }
                       ]
                     ]
@@ -2799,7 +2663,7 @@
                       {
                         "NameBind": [
                           "h",
-                          "AtNext"
+                          "Next"
                         ]
                       },
                       {
@@ -2808,7 +2672,7 @@
                       {
                         "NameBind": [
                           "t",
-                          "AtThis"
+                          "This"
                         ]
                       }
                     ]

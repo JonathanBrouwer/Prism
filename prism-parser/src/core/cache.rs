@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
+use crate::core::adaptive::{GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
 use crate::core::parser::Parser;
@@ -10,22 +10,20 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
-use crate::parser::var_map::{VarMap, VarMapNode};
+use crate::parser::var_map::{BlockCtx, VarMapNode};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
-use by_address::ByAddress;
 use typed_arena::Arena;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
-pub struct CacheKey<'grm, 'arn> {
+pub struct CacheKey<'arn, 'grm> {
     pos: Pos,
-    block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    block_state: BlockCtx<'arn, 'grm>,
     ctx: ParserContext,
     state: GrammarStateId,
-    params: VarMap<'arn, 'grm>,
 }
 
-pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 #[derive(Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {
@@ -54,18 +52,16 @@ pub struct ParserCacheEntry<PR> {
 
 pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    block: ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    block_state: BlockCtx<'arn, 'grm>,
     grammar_state: GrammarStateId,
-    params: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,
-            block,
-            ctx: context.clone(),
+            block_state,
+            ctx: context,
             state: grammar_state,
-            params,
         };
         if let Some(cached) = state.cache_get(&key) {
             return cached.clone();

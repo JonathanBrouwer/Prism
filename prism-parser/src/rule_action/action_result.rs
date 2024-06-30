@@ -1,16 +1,23 @@
+use crate::core::adaptive::RuleId;
 use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::parser::var_map::VarMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Debug)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
+    //TODO replace Vec by arena slice
+    //TODO this can only be done after List representation is changed
     Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
     Guid(usize),
+    RuleId(RuleId),
+    #[serde(skip)]
+    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
@@ -35,6 +42,8 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                 es.iter().map(|e| e.to_string(src)).format(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
+            ActionResult::RuleId(rule) => format!("Rule({rule})"),
+            ActionResult::WithEnv(_, ar) => ar.to_string(src),
         }
     }
 

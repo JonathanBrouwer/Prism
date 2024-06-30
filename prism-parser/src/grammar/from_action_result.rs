@@ -1,5 +1,5 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleArg, RuleExpr};
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
@@ -141,19 +141,15 @@ fn parse_rule_expr<'arn, 'grm, Action>(
         Construct(_, "NegLookahead", b) => {
             RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src, parse_a)?))
         }
-        Construct(_, "AtThis", _) => RuleExpr::AtThis,
-        Construct(_, "AtNext", _) => RuleExpr::AtNext,
+        Construct(_, "This", _) => RuleExpr::This,
+        Construct(_, "Next", _) => RuleExpr::Next,
         Construct(_, "Guid", _) => RuleExpr::Guid,
         Construct(_, "RunVar", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
             result_match! {
                 match &b[1].as_ref() => Construct(_, "List", args),
                 create args.iter().map(|sub| {
-                    match sub.as_ref() {
-                        Construct(_, "ByValue", e) => parse_rule_expr(&e[0], src, parse_a).map(RuleArg::ByValue),
-                        Construct(_, "ByRule", e) => parse_rule_expr(&e[0], src, parse_a).map(RuleArg::ByRule),
-                        _ => None,
-                    }
+                    parse_rule_expr(sub, src, parse_a)
                 }).collect::<Option<Vec<_>>>()?
             }?,
         ),

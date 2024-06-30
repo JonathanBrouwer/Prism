@@ -6,6 +6,7 @@ use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::parser::var_map::VarMap;
 use prism_parser::rule_action::RuleAction;
 
 lazy_static! {
@@ -19,7 +20,7 @@ pub fn parse_prism_in_env<'p>(
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
     let mut penv = ParseEnv::default();
     let idx = run_parser_rule::<SetError, _>(&GRAMMAR, "block", program, |r| {
-        penv.insert_from_action_result(r, program)
+        penv.insert_from_action_result(r, program, VarMap::default())
     })?;
     Ok(env.insert_parse_env(&penv, idx))
 }

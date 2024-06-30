@@ -1,0 +1,15 @@
+### Input
+grammar {
+    rule expr {
+        group base {
+            x <- "%" x:#this;
+        }
+    }
+};
+%Type
+
+### Eval
+Type
+
+### Type
+Type

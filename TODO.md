@@ -37,9 +37,6 @@
 
 PARSER REFACTOR TODO:
 - Prevent it from being recursive
-- bincode -> postcard?
-- Recovery points from context to state?
-
-
-
-
+- Make a macro for from_action_result
+- Can we move apply_action.rs to metacode?
+- Check adapting multiple times, if it captures the right variables

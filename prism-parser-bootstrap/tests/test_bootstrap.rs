@@ -12,5 +12,5 @@ pub fn test_bootstrap() {
     let input = include_str!("../resources/meta.grammar");
     let grammar2 = parse_grammar::<SetError>(input).unwrap_or_eprint();
 
-    assert_eq!(grammar, &grammar2); // Check if grammar file needs to be updated
+    assert!(grammar == &grammar2, "Meta grammar is not up-to-date"); // Check if grammar file needs to be updated
 }

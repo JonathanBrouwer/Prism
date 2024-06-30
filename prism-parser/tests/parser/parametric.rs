@@ -77,10 +77,10 @@ failing tests:
 parse_test! {
 name: run_value_as_rule
 syntax: r##"
-    rule start = Letters(v1, v2) <- v1:letter v2:id($v1);
+    rule start = Letters(v1, v2) <- v1:letter v2:id(v1);
 
     rule letter = ['a'-'z'];
-    rule id(v) = v <- "";
+    rule id(v3) = v4 <- v4:v3;
     "##
 passing tests:
     "x" => "Letters('x', 'x')"
@@ -134,4 +134,48 @@ passing tests:
 failing tests:
     ""
     "heyy"
+}
+
+parse_test! {
+name: parametric_ignore
+syntax: r##"
+    rule start = id("hey");
+    rule id(_) = "hai";
+    "##
+passing tests:
+    "hai" => "'hai'"
+
+failing tests:
+    "hey"
+}
+
+parse_test! {
+name: parametric_higher_order
+syntax: r##"
+    rule start = map_x(id);
+    rule map_x(f) = f("x");
+    rule id(v) = v;
+    "##
+passing tests:
+    "x" => "'x'"
+
+failing tests:
+    "y"
+}
+
+parse_test! {
+name: curried
+syntax: r##"
+    rule start = do(test("x"));
+    rule do(f) = f("y");
+    rule test(x, y) = Vals(a, b) <- a:x b:y;
+    "##
+passing tests:
+    "xy" => "Vals('x', 'y')"
+
+failing tests:
+    "y"
+    "x"
+    ""
+    "yx"
 }

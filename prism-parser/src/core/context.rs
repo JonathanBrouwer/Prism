@@ -1,38 +1,35 @@
 use crate::core::cow::Cow;
-use crate::core::pos::Pos;
+use crate::parser::var_map::VarMap;
 use crate::rule_action::action_result::ActionResult;
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PR<'arn, 'grm> {
-    pub free: HashMap<&'grm str, Cow<'arn, ActionResult<'arn, 'grm>>>,
+    pub free: VarMap<'arn, 'grm>,
     pub rtrn: Cow<'arn, ActionResult<'arn, 'grm>>,
 }
 
 impl<'arn, 'grm> PR<'arn, 'grm> {
     pub fn with_cow_rtrn(rtrn: Cow<'arn, ActionResult<'arn, 'grm>>) -> Self {
         Self {
-            free: HashMap::new(),
+            free: VarMap::default(),
             rtrn,
         }
     }
 
     pub fn with_rtrn(rtrn: ActionResult<'arn, 'grm>) -> Self {
         Self {
-            free: HashMap::new(),
+            free: VarMap::default(),
             rtrn: Cow::Owned(rtrn),
         }
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Copy)]
 pub struct ParserContext {
     pub(crate) recovery_disabled: bool,
     pub(crate) layout_disabled: bool,
-    pub(crate) recovery_points: Ignore<Arc<HashMap<Pos, Pos>>>,
 }
 
 impl Default for ParserContext {
@@ -46,7 +43,6 @@ impl ParserContext {
         Self {
             recovery_disabled: false,
             layout_disabled: false,
-            recovery_points: Ignore(Arc::new(HashMap::new())),
         }
     }
 }

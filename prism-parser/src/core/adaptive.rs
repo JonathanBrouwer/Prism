@@ -84,7 +84,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                     RuleId(s.rules.len() - 1)
                 };
                 new_ctx = new_ctx.extend(
-                    iter::once((new_rule.name, VarMapValue::RuleId(rule))),
+                    iter::once((new_rule.name, VarMapValue::new_rule(rule))),
                     alloc,
                 );
                 (new_rule.name, rule)
@@ -213,7 +213,6 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
         ctx: VarMap<'arn, 'grm>,
     ) {
         assert_eq!(self.name, b.0);
-        self.constructors
-            .extend(b.1.iter().map(|r| (r, ctx)));
+        self.constructors.extend(b.1.iter().map(|r| (r, ctx)));
     }
 }

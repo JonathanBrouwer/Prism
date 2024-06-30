@@ -7,7 +7,7 @@ use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
 struct Scope<'a> {
     names: rpds::RedBlackTreeMap<&'a str, usize>,
     scope_jumps: rpds::RedBlackTreeMap<Guid, usize>,
-    depth: usize
+    depth: usize,
 }
 
 impl<'a> Scope<'a> {
@@ -15,7 +15,7 @@ impl<'a> Scope<'a> {
         Scope {
             names: self.names.insert(key, self.depth),
             scope_jumps: self.scope_jumps.clone(),
-            depth: self.depth + 1
+            depth: self.depth + 1,
         }
     }
 
@@ -23,7 +23,7 @@ impl<'a> Scope<'a> {
         Scope {
             names: self.names.clone(),
             scope_jumps: self.scope_jumps.insert(guid, self.depth),
-            depth: self.depth
+            depth: self.depth,
         }
     }
 }
@@ -94,16 +94,13 @@ impl TcEnv {
                 }
                 SourceExpr::ScopeStart(v, guid) => {
                     scopes[v.index()] = scopes[i].insert_jump(*guid);
-                    PartialExpr::Shift(
-                        UnionIndex(v.index() + start),
-                        0
-                    )
+                    PartialExpr::Shift(UnionIndex(v.index() + start), 0)
                 }
                 SourceExpr::ScopeJump(v, guid) => {
                     scopes[v.index()] = scopes[i].clone();
                     PartialExpr::Shift(
                         UnionIndex(v.index() + start),
-                        scopes[i].depth - scopes[i].scope_jumps[guid]
+                        scopes[i].depth - scopes[i].scope_jumps[guid],
                     )
                 }
             };

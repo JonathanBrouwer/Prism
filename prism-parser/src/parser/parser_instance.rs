@@ -37,7 +37,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             [
                 (
                     "grammar",
-                    VarMapValue::RuleId(
+                    VarMapValue::new_rule(
                         META_GRAMMAR_STATE
                             .1
                             .get("grammar")
@@ -47,7 +47,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                 ),
                 (
                     "prule_action",
-                    VarMapValue::RuleId(
+                    VarMapValue::new_rule(
                         META_GRAMMAR_STATE
                             .1
                             .get("prule_action")
@@ -92,7 +92,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
             ),
             Pos::start(),
             &mut self.state,
-            &self.context,
+            self.context,
         );
         result.map_err(|errors| AggregatedParseError {
             input: self.state.input,

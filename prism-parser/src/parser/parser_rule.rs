@@ -8,6 +8,7 @@ use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
+use by_address::ByAddress;
 use itertools::Itertools;
 
 pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
@@ -15,7 +16,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     rule: RuleId,
     args: &'a [VarMapValue<'arn, 'grm>],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: &ParserContext| {
+    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
@@ -29,7 +30,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             state.alloc.alo_varmap,
         );
 
-        let mut res = parser_body_cache_recurse(rules, &rule_state.blocks, rule_args)
+        let mut res = parser_body_cache_recurse(rules, (ByAddress(&rule_state.blocks), rule_args))
             .parse(pos, state, context);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),

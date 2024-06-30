@@ -54,7 +54,7 @@ pub enum RuleAnnotation<'grm> {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub enum RuleExpr<'grm, Action> {
-    RunVar(&'grm str, Vec<RuleArg<'grm, Action>>),
+    RunVar(&'grm str, Vec<Self>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {
@@ -70,14 +70,8 @@ pub enum RuleExpr<'grm, Action> {
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
-    AtThis,
-    AtNext,
+    This,
+    Next,
     AtAdapt(Action, &'grm str),
     Guid,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleArg<'grm, Action> {
-    #[serde(borrow)] ByValue(RuleExpr<'grm, Action>),
-    #[serde(borrow)] ByRule(RuleExpr<'grm, Action>),
 }

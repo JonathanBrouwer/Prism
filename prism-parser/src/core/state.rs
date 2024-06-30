@@ -1,21 +1,24 @@
 use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
+use crate::core::pos::Pos;
 use crate::error::ParseError;
 use std::collections::HashMap;
 
-pub struct ParserState<'grm, 'arn, E: ParseError> {
+pub struct ParserState<'arn, 'grm, E: ParseError> {
     // Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'grm, 'arn>, ParserCacheEntry<CacheVal<'grm, 'arn, E>>>,
-    cache_stack: Vec<CacheKey<'grm, 'arn>>,
+    cache: HashMap<CacheKey<'arn, 'grm>, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
+    cache_stack: Vec<CacheKey<'arn, 'grm>>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn, 'grm>,
     pub input: &'grm str,
     // For generating guids
     pub guid_counter: usize,
+    // For recovery
+    pub recovery_points: HashMap<Pos, Pos>,
 }
 
-pub type PState<'arn, 'grm, E> = ParserState<'grm, 'arn, E>;
+pub type PState<'arn, 'grm, E> = ParserState<'arn, 'grm, E>;
 
-impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
+impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
     pub fn new(input: &'grm str, alloc: Allocs<'arn, 'grm>) -> Self {
         ParserState {
             cache: HashMap::new(),
@@ -23,17 +26,18 @@ impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
             alloc,
             input,
             guid_counter: 0,
+            recovery_points: HashMap::new(),
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: CacheKey<'grm, 'arn>) -> Option<bool> {
+    pub(crate) fn cache_is_read(&self, key: CacheKey<'arn, 'grm>) -> Option<bool> {
         self.cache.get(&key).map(|v| v.read)
     }
 
     pub(crate) fn cache_get(
         &mut self,
-        key: &CacheKey<'grm, 'arn>,
-    ) -> Option<&CacheVal<'grm, 'arn, E>> {
+        key: &CacheKey<'arn, 'grm>,
+    ) -> Option<&CacheVal<'arn, 'grm, E>> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
@@ -44,8 +48,8 @@ impl<'grm, 'arn, E: ParseError> ParserState<'grm, 'arn, E> {
 
     pub(crate) fn cache_insert(
         &mut self,
-        key: CacheKey<'grm, 'arn>,
-        value: CacheVal<'grm, 'arn, E>,
+        key: CacheKey<'arn, 'grm>,
+        value: CacheVal<'arn, 'grm, E>,
     ) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
