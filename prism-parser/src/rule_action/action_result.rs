@@ -18,6 +18,8 @@ pub enum ActionResult<'arn, 'grm> {
     RuleId(RuleId),
     #[serde(skip)]
     Env(VarMap<'arn, 'grm>),
+    #[serde(skip)]
+    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>)
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
@@ -44,6 +46,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::Guid(r) => format!("Guid({r})"),
             ActionResult::RuleId(rule) => format!("Rule({rule})"),
             ActionResult::Env(_) => "Env(...)".to_string(),
+            ActionResult::WithEnv(_, ar) => ar.to_string(src),
         }
     }
 

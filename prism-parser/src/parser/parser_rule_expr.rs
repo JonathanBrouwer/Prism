@@ -195,12 +195,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
-                        &mut |k| match res.free.get(k).or_else(|| vars.get(k)) {
-                            None => None,
-                            Some(VarMapValue::Value(ar)) => Some(ar.clone()),
-                            Some(VarMapValue::Expr(_)) => panic!("Expected a value in action"),
-                        },
                         span,
+                        res.free.extend(vars.iter_cloned(), state.alloc.alo_varmap),
                     );
 
                     PR {
@@ -236,8 +232,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 //TODO maybe refactor AtAdapt to take an identifier instead of RuleAction
                 let gr = apply_action(
                     ga,
-                    &mut |k| vars.get(k).and_then(|v| v.as_value()).cloned(),
                     Span::invalid(),
+                    vars
                 );
                 let gr: &'arn ActionResult = state.alloc.uncow(gr);
 
