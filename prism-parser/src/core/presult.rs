@@ -153,7 +153,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_choice_parser<'grm, 'arn, P: Parser<'arn, 'grm, O, E>>(
+    pub fn merge_choice_parser<'arn, 'grm, P: Parser<'arn, 'grm, O, E>>(
         self,
         other: &P,
         pos: Pos,
@@ -172,7 +172,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
+    pub fn merge_seq_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
         state: &mut PState<'arn, 'grm, E>,
@@ -192,7 +192,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_opt_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
+    pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
         state: &mut PState<'arn, 'grm, E>,
@@ -213,7 +213,7 @@ impl<O, E: ParseError> PResult<O, E> {
     }
 
     #[inline(always)]
-    pub fn merge_seq_chain_parser<'grm, 'arn, O2, P2: Parser<'arn, 'grm, O2, E>>(
+    pub fn merge_seq_chain_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: impl FnOnce(O) -> P2,
         state: &mut PState<'arn, 'grm, E>,

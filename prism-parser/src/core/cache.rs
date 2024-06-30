@@ -16,14 +16,14 @@ use crate::rule_action::RuleAction;
 use typed_arena::Arena;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
-pub struct CacheKey<'grm, 'arn> {
+pub struct CacheKey<'arn, 'grm> {
     pos: Pos,
     block_state: BlockCtx<'arn, 'grm>,
     ctx: ParserContext,
     state: GrammarStateId,
 }
 
-pub type CacheVal<'grm, 'arn, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 #[derive(Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {

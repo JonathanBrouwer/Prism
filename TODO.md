@@ -39,7 +39,4 @@ PARSER REFACTOR TODO:
 - Prevent it from being recursive
 - Make a macro for from_action_result
 - Can we move apply_action.rs to metacode?
-- Fix inconsistency: <'arn, 'grm> everywhere
 - Check adapting multiple times, if it captures the right variables
-
-- Current bug: not the right #env is passed, what's up with that?
