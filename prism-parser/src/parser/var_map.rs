@@ -1,4 +1,3 @@
-use std::fmt::{Debug, Formatter};
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::context::ParserContext;
 use crate::core::cow::Cow;
@@ -12,6 +11,7 @@ use crate::parser::parser_rule_expr::parser_expr;
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
+use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use std::iter;
 use typed_arena::Arena;

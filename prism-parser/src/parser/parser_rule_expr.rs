@@ -42,18 +42,21 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 loop {
                     // Figure out which rule the variable `rule` refers to
                     let Some(rule) = vars.get(rule_str) else {
-                        panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
+                        panic!(
+                            "Tried to run variable `{rule_str}` as a rule, but it was not defined."
+                        );
                     };
 
-                    result_args.splice(0..0, args
-                        .iter()
-                        .map(|arg| {
+                    result_args.splice(
+                        0..0,
+                        args.iter().map(|arg| {
                             VarMapValue::Expr(CapturedExpr {
                                 expr: arg,
                                 block_ctx,
                                 vars,
                             })
-                        }));
+                        }),
+                    );
 
                     return match rule {
                         VarMapValue::Expr(captured) => {
@@ -64,7 +67,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 args = sub_args;
                                 block_ctx = captured.block_ctx;
                                 vars = captured.vars;
-                                continue
+                                continue;
                             } else {
                                 assert_eq!(
                                     result_args.len(),
@@ -85,7 +88,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 PResult::new_empty(PR::with_cow_rtrn(value.clone()), pos)
                             }
                         }
-                    }
+                    };
                 }
             }
             RuleExpr::CharClass(cc) => {
@@ -149,9 +152,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                             state,
                             context,
                         )
-                        .map(|(l, r)| {
-                            l.extend(r.free.iter_cloned(), state.alloc.alo_varmap)
-                        });
+                        .map(|(l, r)| l.extend(r.free.iter_cloned(), state.alloc.alo_varmap));
                     match &res.ok_ref() {
                         None => break,
                         Some(o) => {
@@ -230,11 +231,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // First, get the grammar actionresult
                 //TODO match this logic with RuleExpr::Action
                 //TODO maybe refactor AtAdapt to take an identifier instead of RuleAction
-                let gr = apply_action(
-                    ga,
-                    Span::invalid(),
-                    vars
-                );
+                let gr = apply_action(ga, Span::invalid(), vars);
                 let gr: &'arn ActionResult = state.alloc.uncow(gr);
 
                 // Parse it into a grammar

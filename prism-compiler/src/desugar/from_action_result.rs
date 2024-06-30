@@ -1,9 +1,14 @@
-use prism_parser::parser::var_map::VarMap;
 use crate::desugar::{Guid, ParseEnv, ParseIndex, SourceExpr};
+use prism_parser::parser::var_map::VarMap;
 use prism_parser::rule_action::action_result::ActionResult;
 
 impl ParseEnv {
-    pub fn insert_from_action_result(&mut self, value: &ActionResult, program: &str, vars: VarMap) -> ParseIndex {
+    pub fn insert_from_action_result(
+        &mut self,
+        value: &ActionResult,
+        program: &str,
+        vars: VarMap,
+    ) -> ParseIndex {
         match value {
             ActionResult::Construct(span, constructor, args) => {
                 let inner = match *constructor {
@@ -23,7 +28,11 @@ impl ParseEnv {
                         assert_eq!(args.len(), 1);
                         let name = args[0].get_value(program).to_string();
                         if let Some(value) = vars.get(&name) {
-                            return self.insert_from_action_result(value.as_value().expect("Parsed to value").as_ref(), program, VarMap::default())
+                            return self.insert_from_action_result(
+                                value.as_value().expect("Parsed to value").as_ref(),
+                                program,
+                                VarMap::default(),
+                            );
                         } else {
                             SourceExpr::Variable(name)
                         }
@@ -57,14 +66,14 @@ impl ParseEnv {
                             self.insert_from_action_result(&args[0], program, vars),
                             Self::parse_guid(&args[1]),
                         )
-                    },
+                    }
                     "ScopeJump" => {
                         assert_eq!(args.len(), 2);
                         SourceExpr::ScopeJump(
                             self.insert_from_action_result(&args[0], program, vars),
                             Self::parse_guid(&args[1]),
                         )
-                    },
+                    }
                     _ => unreachable!(),
                 };
                 self.store(inner, *span)

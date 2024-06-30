@@ -17,7 +17,7 @@ pub enum ActionResult<'arn, 'grm> {
     Guid(usize),
     RuleId(RuleId),
     #[serde(skip)]
-    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>)
+    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
