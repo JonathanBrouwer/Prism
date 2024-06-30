@@ -5,7 +5,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
-enum PrecedenceLevel {
+pub enum PrecedenceLevel {
     #[default]
     Let,
     Construct,
@@ -24,7 +24,7 @@ impl PartialExpr {
             PartialExpr::FnConstruct(_, _) => Construct,
             PartialExpr::FnDestruct(_, _) => Destruct,
             PartialExpr::Free => Base,
-            PartialExpr::Shift(_, _) => unreachable!(),
+            PartialExpr::Shift(_, _) => Base
         }
     }
 }
@@ -67,7 +67,11 @@ impl TcEnv {
                 self.display(b, w, Base)?;
             }
             PartialExpr::Free => write!(w, "{{{}}}", i.0)?,
-            PartialExpr::Shift(..) => unreachable!(),
+            PartialExpr::Shift(v, i) => {
+                write!(w, "([SHIFT {i}] ")?;
+                self.display(v, w, PrecedenceLevel::default())?;
+                write!(w, ")")?;
+            },
         }
 
         if e.precendence_level() < max_precedence {

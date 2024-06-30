@@ -1,6 +1,11 @@
+use std::fmt::Write;
 use prism_parser::core::span::Span;
+use crate::lang::{PartialExpr, UnionIndex};
+use crate::lang::display::PrecedenceLevel;
+use crate::lang::display::PrecedenceLevel::{Base, Construct, Destruct, FnType, Let};
 
 pub mod from_action_result;
+mod display;
 
 #[derive(Default)]
 pub struct ParseEnv {
@@ -46,4 +51,4 @@ pub enum SourceExpr {
 }
 
 #[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Guid(usize);
+pub struct Guid(pub usize);

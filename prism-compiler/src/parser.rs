@@ -22,6 +22,7 @@ pub fn parse_prism_in_env<'p>(
     let idx = run_parser_rule::<SetError, _>(&GRAMMAR, "block", program, |r| {
         penv.insert_from_action_result(r, program, VarMap::default())
     })?;
+    
     Ok(env.insert_parse_env(&penv, idx))
 }
 

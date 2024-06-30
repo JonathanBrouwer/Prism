@@ -53,7 +53,7 @@ impl TcEnv {
                 let label = Label::new(span).with_message("This index is out of bounds.");
 
                 report
-                    .with_message("De Bruijn index out of bounds")
+                    .with_message(format!("De Bruijn index `{}` out of bounds", i.0))
                     .with_label(label)
                     .finish()
             }
