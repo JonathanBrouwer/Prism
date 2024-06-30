@@ -1,6 +1,5 @@
 mod adaptive;
 mod arithmetic;
-mod env;
 mod infinite;
 mod lambda;
 mod layout;

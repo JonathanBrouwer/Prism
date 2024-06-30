@@ -1,4 +1,3 @@
-use std::env::var;
 use prism_parser::parser::var_map::VarMap;
 use crate::desugar::{Guid, ParseEnv, ParseIndex, SourceExpr};
 use prism_parser::rule_action::action_result::ActionResult;
@@ -24,7 +23,7 @@ impl ParseEnv {
                         assert_eq!(args.len(), 1);
                         let name = args[0].get_value(program).to_string();
                         if let Some(value) = vars.get(&name) {
-                            todo!()
+                            return self.insert_from_action_result(value.as_value().expect("Parsed to value").as_ref(), program, VarMap::default())
                         } else {
                             SourceExpr::Variable(name)
                         }
@@ -71,8 +70,7 @@ impl ParseEnv {
                 self.store(inner, *span)
             }
             ActionResult::WithEnv(new_vars, ar) => {
-                todo!()
-                // self.insert_from_action_result()
+                self.insert_from_action_result(ar, program, *new_vars)
             }
             _ => unreachable!("Parsing an expression always returns a Construct"),
         }
