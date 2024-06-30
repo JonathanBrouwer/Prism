@@ -63,6 +63,10 @@ impl<T> GenericEnv<T> {
             self.0.get(self.0.len() - 1 - index)
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item=&T> {
+        self.0.iter().rev()
+    }
 }
 
 impl<T> std::ops::Index<usize> for GenericEnv<T> {

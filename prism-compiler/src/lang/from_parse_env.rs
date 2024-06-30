@@ -1,11 +1,12 @@
 use crate::desugar::{Guid, ParseEnv, ParseIndex, SourceExpr};
 use crate::lang::error::TypeError;
 use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
+use crate::lang::env::GenericEnv;
 
 /// Stores the variables in scope + the depth of the scope
 #[derive(Default, Clone)]
 struct Scope<'a> {
-    names: rpds::RedBlackTreeMap<&'a str, usize>,
+    names: GenericEnv<(&'a str, usize)>,
     scope_jumps: rpds::RedBlackTreeMap<Guid, usize>,
     depth: usize,
 }
@@ -13,7 +14,7 @@ struct Scope<'a> {
 impl<'a> Scope<'a> {
     pub fn insert_name(&self, key: &'a str) -> Self {
         Scope {
-            names: self.names.insert(key, self.depth),
+            names: self.names.cons((key, self.depth)),
             scope_jumps: self.scope_jumps.clone(),
             depth: self.depth + 1,
         }
@@ -24,6 +25,14 @@ impl<'a> Scope<'a> {
             names: self.names.clone(),
             scope_jumps: self.scope_jumps.insert(guid, self.depth),
             depth: self.depth,
+        }
+    }
+
+    pub fn shift(&self, i: usize) -> Self {
+        Scope {
+            names: self.names.shift(i),
+            scope_jumps: self.scope_jumps.clone(),
+            depth: self.depth - i
         }
     }
 }
@@ -61,7 +70,7 @@ impl TcEnv {
                 SourceExpr::Variable(name) => {
                     if name == "_" {
                         PartialExpr::Free
-                    } else if let Some(depth) = scopes[i].names.get(name.as_str()) {
+                    } else if let Some((_, depth)) = scopes[i].names.iter().find(|(k, _)| *k == name.as_str()) {
                         PartialExpr::DeBruijnIndex(scopes[i].depth - depth - 1)
                     } else {
                         self.errors.push(TypeError::UnknownName(*span));
@@ -97,10 +106,11 @@ impl TcEnv {
                     PartialExpr::Shift(UnionIndex(v.index() + start), 0)
                 }
                 SourceExpr::ScopeJump(v, guid) => {
-                    scopes[v.index()] = scopes[i].clone();
+                    let shift = scopes[i].depth - scopes[i].scope_jumps[guid];
+                    scopes[v.index()] = scopes[i].clone().shift(shift);
                     PartialExpr::Shift(
                         UnionIndex(v.index() + start),
-                        scopes[i].depth - scopes[i].scope_jumps[guid],
+                        shift,
                     )
                 }
             };
