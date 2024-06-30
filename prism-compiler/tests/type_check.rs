@@ -12,7 +12,7 @@ fn test_ok([test]: [&str; 1]) {
 
     let mut env = TcEnv::default();
     let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
-    let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
+    let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str); 
 
     let expected_typ = parse_prism_in_env(expected_typ, &mut env).unwrap_or_eprint();
 

@@ -31,9 +31,13 @@ rule layout {
     "//" [^'\n']* "\n";
 }
 
+rule keyword {
+    "Type";
+}
+
 rule identifier {
     #[error("Identifier")]
     #[disable_layout]
     #[disable_recovery]
-    n <- n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
+    n <- #neg(keyword #neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
 }

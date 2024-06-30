@@ -2,14 +2,12 @@
 let Bool = (T: Type) -> T -> T -> T;
 let true = (T: Type) => (v1: T) => (v2: T) => v1;
 let false = (T: Type) => (v1: T) => (v2: T) => v2;
-
-// and : Bool -> Bool -> Bool
-let and = (b1: Bool) => (b2: Bool) => (T: Type) => (v1: T) => (v2: T) => b1 T (b2 T v1 v2) v2;
-and true true
+true _ true false
 
 ### Eval
-(T: Type) => (v1: T) => (_: T) => v1
+(T: Type) => (v1: T) => (v2: T) => v1
 
 ### Type
 (T: Type) -> T -> T -> T
+
 

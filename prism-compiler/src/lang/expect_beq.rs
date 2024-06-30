@@ -32,6 +32,7 @@ impl TcEnv {
 
         match self.values[fr.0] {
             PartialExpr::FnType(f_at, f_rt) => {
+                // Check 
                 if !self.expect_beq_internal(
                     (f_at, &sr, &mut HashMap::new()),
                     (at, s, &mut HashMap::new()),
@@ -42,6 +43,7 @@ impl TcEnv {
                         arg_type: at,
                     })
                 }
+                self.toxic_values.clear();
 
                 let mut var_map1 = HashMap::new();
                 let mut var_map2 = HashMap::new();
@@ -74,6 +76,7 @@ impl TcEnv {
                     (f_at, &sr, &mut HashMap::new()),
                 );
                 debug_assert!(is_beq_free);
+                self.toxic_values.clear();
 
                 let mut var_map1 = HashMap::new();
                 let mut var_map2 = HashMap::new();

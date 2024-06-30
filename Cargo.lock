@@ -108,6 +108,7 @@ version = "0.1.0"
 dependencies = [
  "ariadne",
  "exhaustive",
+ "itertools",
  "lazy_static",
  "prism-parser",
  "rpds",
