@@ -28,11 +28,11 @@ impl ParseEnv {
                         assert_eq!(args.len(), 1);
                         let name = args[0].get_value(program).to_string();
                         if let Some(value) = vars.get(&name) {
-                            return self.insert_from_action_result(
+                            SourceExpr::ScopeExit(self.insert_from_action_result(
                                 value.as_value().expect("Parsed to value").as_ref(),
                                 program,
                                 VarMap::default(),
-                            );
+                            ))
                         } else {
                             SourceExpr::Variable(name)
                         }
@@ -60,16 +60,16 @@ impl ParseEnv {
                             self.insert_from_action_result(&args[1], program, vars),
                         )
                     }
-                    "ScopeStart" => {
+                    "ScopeDefine" => {
                         assert_eq!(args.len(), 2);
-                        SourceExpr::ScopeStart(
+                        SourceExpr::ScopeDefine(
                             self.insert_from_action_result(&args[0], program, vars),
                             Self::parse_guid(&args[1]),
                         )
                     }
-                    "ScopeJump" => {
+                    "ScopeEnter" => {
                         assert_eq!(args.len(), 2);
-                        SourceExpr::ScopeJump(
+                        SourceExpr::ScopeEnter(
                             self.insert_from_action_result(&args[0], program, vars),
                             Self::parse_guid(&args[1]),
                         )

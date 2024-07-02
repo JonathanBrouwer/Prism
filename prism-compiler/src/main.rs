@@ -11,7 +11,7 @@ fn main() {
 
 
     let mut penv = ParseEnv::default();
-    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "block", input, |r| {
+    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", input, |r| {
         penv.insert_from_action_result(r, input, VarMap::default())
     }) {
         Ok(idx) => idx,

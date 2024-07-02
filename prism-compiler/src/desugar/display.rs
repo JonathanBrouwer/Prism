@@ -12,8 +12,9 @@ impl SourceExpr {
             SourceExpr::FnType(_, _, _) => FnType,
             SourceExpr::FnConstruct(_, _, _) => Construct,
             SourceExpr::FnDestruct(_, _) => Destruct,
-            SourceExpr::ScopeStart(_, _) => Base,
-            SourceExpr::ScopeJump(_, _) => Base,
+            SourceExpr::ScopeDefine(_, _) => Base,
+            SourceExpr::ScopeEnter(_, _) => Base,
+            SourceExpr::ScopeExit(_) => Base,
         }
     }
 }
@@ -57,16 +58,21 @@ impl ParseEnv {
                 write!(w, " ")?;
                 self.display(*b, w, Base)?;
             }
-            SourceExpr::ScopeStart(v, guid) => {
-                write!(w, "([START {}] ", guid.0)?;
+            SourceExpr::ScopeDefine(v, guid) => {
+                write!(w, "([DEFINE {}] ", guid.0)?;
                 self.display(*v, w, PrecedenceLevel::default())?;
                 write!(w, ")")?;
             },
-            SourceExpr::ScopeJump(v, guid) => {
-                write!(w, "([JUMP {}] ", guid.0)?;
+            SourceExpr::ScopeEnter(v, guid) => {
+                write!(w, "([ENTER {}] ", guid.0)?;
                 self.display(*v, w, PrecedenceLevel::default())?;
                 write!(w, ")")?;
             },
+            SourceExpr::ScopeExit(v) => {
+                write!(w, "([EXIT] ")?;
+                self.display(*v, w, PrecedenceLevel::default())?;
+                write!(w, ")")?;
+            }
         }
 
         if e.precendence_level() < max_precedence {

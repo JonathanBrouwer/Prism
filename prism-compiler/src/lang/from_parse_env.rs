@@ -6,16 +6,16 @@ use crate::lang::env::GenericEnv;
 /// Stores the variables in scope + the depth of the scope
 #[derive(Default, Clone)]
 struct Scope<'a> {
-    names: GenericEnv<(&'a str, usize)>,
-    scope_jumps: rpds::RedBlackTreeMap<Guid, usize>,
+    names: rpds::RedBlackTreeMap<&'a str, usize>,
+    named_scopes: rpds::RedBlackTreeMap<Guid, rpds::RedBlackTreeMap<&'a str, usize>>,
     depth: usize,
 }
 
 impl<'a> Scope<'a> {
     pub fn insert_name(&self, key: &'a str) -> Self {
         Scope {
-            names: self.names.cons((key, self.depth)),
-            scope_jumps: self.scope_jumps.clone(),
+            names: self.names.insert(key, self.depth),
+            named_scopes: self.named_scopes.clone(),
             depth: self.depth + 1,
         }
     }
@@ -23,16 +23,16 @@ impl<'a> Scope<'a> {
     pub fn insert_jump(&self, guid: Guid) -> Self {
         Scope {
             names: self.names.clone(),
-            scope_jumps: self.scope_jumps.insert(guid, self.depth),
+            named_scopes: self.named_scopes.insert(guid, self.names.clone()),
             depth: self.depth,
         }
     }
-
-    pub fn shift(&self, i: usize) -> Self {
+    
+    pub fn jump(&self, guid: Guid) -> Self {
         Scope {
-            names: self.names.shift(i),
-            scope_jumps: self.scope_jumps.clone(),
-            depth: self.depth - i
+            names: self.named_scopes[&guid].clone(),
+            named_scopes: self.named_scopes.clone(),
+            depth: self.depth,
         }
     }
 }
@@ -70,7 +70,7 @@ impl TcEnv {
                 SourceExpr::Variable(name) => {
                     if name == "_" {
                         PartialExpr::Free
-                    } else if let Some((_, depth)) = scopes[i].names.iter().find(|(k, _)| *k == name.as_str()) {
+                    } else if let Some(depth) = scopes[i].names.get(name.as_str()) {
                         PartialExpr::DeBruijnIndex(scopes[i].depth - depth - 1)
                     } else {
                         self.errors.push(TypeError::UnknownName(*span));
@@ -101,17 +101,18 @@ impl TcEnv {
                         UnionIndex(arg.index() + start),
                     )
                 }
-                SourceExpr::ScopeStart(v, guid) => {
+                SourceExpr::ScopeDefine(v, guid) => {
                     scopes[v.index()] = scopes[i].insert_jump(*guid);
                     PartialExpr::Shift(UnionIndex(v.index() + start), 0)
                 }
-                SourceExpr::ScopeJump(v, guid) => {
-                    let shift = scopes[i].depth - scopes[i].scope_jumps[guid];
-                    scopes[v.index()] = scopes[i].clone().shift(shift);
-                    PartialExpr::Shift(
-                        UnionIndex(v.index() + start),
-                        shift,
-                    )
+                SourceExpr::ScopeEnter(v, guid) => {
+                    scopes[v.index()] = scopes[i].jump(*guid);
+                    PartialExpr::Shift(UnionIndex(v.index() + start), 0)
+                }
+                SourceExpr::ScopeExit(v) => {
+                    //TODO make names a stack?
+                    //TODO test for multiple depths of syntax: use custom syntax in definition of new syntax
+                    todo!()
                 }
             };
             scopes.pop();

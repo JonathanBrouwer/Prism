@@ -19,7 +19,7 @@ pub fn parse_prism_in_env<'p>(
     env: &mut TcEnv,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
     let mut penv = ParseEnv::default();
-    let idx = run_parser_rule::<SetError, _>(&GRAMMAR, "block", program, |r| {
+    let idx = run_parser_rule::<SetError, _>(&GRAMMAR, "expr", program, |r| {
         penv.insert_from_action_result(r, program, VarMap::default())
     })?;
     
