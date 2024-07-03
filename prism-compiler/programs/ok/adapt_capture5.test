@@ -1,0 +1,24 @@
+### Input
+grammar {
+    rule expr {
+        group base {
+            x <- "$" x:#this;
+        }
+    }
+};
+let z = Type -> Type;
+grammar {
+    rule expr {
+        group base {
+            $z <- "%" x:#this;
+        }
+    }
+};
+let y = Type;
+%y
+
+### Eval
+Type -> Type
+
+### Type
+Type -> Type
