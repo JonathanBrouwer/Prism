@@ -43,7 +43,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
             ActionResult::RuleId(rule) => format!("Rule({rule})"),
-            ActionResult::WithEnv(_, ar) => ar.to_string(src),
+            ActionResult::WithEnv(_, ar) => format!("Env({})", ar.to_string(src)),
         }
     }
 

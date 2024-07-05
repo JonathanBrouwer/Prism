@@ -6,16 +6,16 @@ grammar {
         }
     }
 };
-let z = Type -> Type;
+let w = Type -> Type;
 grammar {
     rule expr {
         group base {
-            $x <- "%" x:#this;
+            $y <- "%" y:#this;
         }
     }
 };
-let y = Type;
-%y
+let z = Type;
+%z
 
 ### Eval
 Type
