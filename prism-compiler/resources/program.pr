@@ -1,17 +1,30 @@
+let Bool = (T: Type) -> T -> T -> T;
+let true = (T: Type) => (v1: T) => (v2: T) => v1;
+let false = (T: Type) => (v1: T) => (v2: T) => v2;
+
 grammar {
     rule expr {
+        group or {
+            e1 Bool true e2 <- e1:#this "||" e2:#next;
+        }
+        group and {
+            e1 Bool e2 false <- e1:#this "&&" e2:#next;
+        }
         group base {
-            x <- "$" x:#this;
+            b _ e1 e2 <- "if" b:expr "{" e1:expr "}" "else" "{" e2:expr "}";
+            b Bool false true <- "!" b:#this;
         }
     }
-};
-let z = Type -> Type;
-grammar {
-    rule expr {
-        group base {
-            $z <- "%" x:#this;
-        }
+    rule keyword {
+        "if";
     }
+
 };
-let y = Type;
-%y
+
+let x = false;
+
+if true && x || !false {
+    true
+} else {
+    false
+}
