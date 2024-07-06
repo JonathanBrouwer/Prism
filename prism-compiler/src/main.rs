@@ -1,3 +1,5 @@
+use std::io::Read;
+use clap::Parser;
 use prism_compiler::desugar::{ParseEnv, ParseIndex};
 use prism_compiler::lang::TcEnv;
 use prism_compiler::parser::{GRAMMAR, parse_prism};
@@ -6,14 +8,31 @@ use prism_parser::error::set_error::SetError;
 use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::parser::var_map::VarMap;
 
-fn main() {
-    let input = include_str!("../resources/program.pr");
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Specifies the path to an input .pr file. If None, it means stdin is used for input.
+    input: Option<String>,
+}
 
+fn read_from_stdin() -> Result<String, std::io::Error> {
+    let mut program = String::new();
+    std::io::stdin().read_to_string(&mut program)?;
+    Ok(program)
+}
+
+fn main() {
+    let args = Args::parse();
+
+    let (program, _filename) = match args.input.as_ref() {
+        None => (read_from_stdin().unwrap(), "stdin"),
+        Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
+    };
 
     let mut penv = ParseEnv::default();
-    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", input, |r, allocs| {
-        println!("> Action result\n====================\n{}\n\n", r.to_string(input));
-        penv.insert_from_action_result(r, input, VarMap::default(), &allocs.alo_varmap)
+    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
+        println!("> Action result\n====================\n{}\n\n", r.to_string(&program));
+        penv.insert_from_action_result(r, &program, VarMap::default(), &allocs.alo_varmap)
     }) {
         Ok(idx) => idx,
         Err(e) => {
@@ -41,7 +60,7 @@ fn main() {
             tc_env.index_to_br_string(i)
         ),
         Err(e) => {
-            e.eprint(&mut tc_env, input).unwrap();
+            e.eprint(&mut tc_env, &program).unwrap();
             return;
         }
     }
