@@ -81,7 +81,7 @@ impl ParseEnv {
                 self.store(inner, *span)
             }
             ActionResult::WithEnv(new_vars, ar) => {
-                self.insert_from_action_result(ar, program, new_vars.extend(vars.iter_cloned(), arena), arena)
+                self.insert_from_action_result(ar, program, vars.extend(new_vars.iter_cloned(), arena), arena)
             }
             _ => unreachable!("Parsing an expression always returns a Construct"),
         }

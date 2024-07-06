@@ -6,7 +6,7 @@ grammar {
         }
     }
 };
-let z = Type => Type;
+let z = (_: Type) => Type;
 grammar {
     rule expr {
         group base {
