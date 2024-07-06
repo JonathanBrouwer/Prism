@@ -133,7 +133,6 @@ impl TcEnv {
                     PartialExpr::Shift(UnionIndex(v.index() + start), 0)
                 }
                 SourceExpr::ScopeExit(v) => {
-                    //TODO test for multiple depths of syntax: use custom syntax in definition of new syntax  
                     scopes[v.index()] = scopes[i].unjump();
                     PartialExpr::Shift(UnionIndex(v.index() + start), 0)
                 }
