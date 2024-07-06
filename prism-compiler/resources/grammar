@@ -1,12 +1,10 @@
-rule block {
-    ScopeStart(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" ";" b:#adapt(g, block);
-    Let(n, v, b) <- "let" n:identifier "=" v:expr ";" b:block;
-    expr;
-}
-
-rule wrapped_expr(guid2) = ScopeJump(e, guid3) <- guid3:guid2 e:expr;
+rule wrapped_expr(guid2) = ScopeEnter(e, guid3) <- guid3:guid2 e:expr;
 
 rule expr {
+    group statement {
+        ScopeDefine(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" ";" b:#adapt(g, expr);
+        Let(n, v, b) <- "let" n:identifier "=" v:#next ";" b:#this;
+    }
     group fnconstruct {
         FnConstruct(n, t, r) <- "(" n:identifier ":" t:#next ")" "=>" r:#this;
         FnConstruct(n, t, r) <- n:identifier ":" t:#next "=>" r:#this;
@@ -20,7 +18,7 @@ rule expr {
         FnDestruct(f, a) <- f:#this " " a:#next;
     }
     group base {
-        t <- "(" t:block ")";
+        t <- "(" t:expr ")";
         Type() <- "Type";
         Variable(n) <- n:identifier;
     }

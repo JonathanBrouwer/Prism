@@ -1,0 +1,25 @@
+### Input
+let a = Type;
+grammar {
+    rule expr {
+        group base {
+            a <- "$";
+        }
+    }
+};
+let b = Type -> Type;
+grammar {
+    rule expr {
+        group base {
+            $ <- "%";
+        }
+    }
+};
+let c = Type -> Type;
+%
+
+### Eval
+Type
+
+### Type
+Type

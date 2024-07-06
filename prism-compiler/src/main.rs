@@ -11,8 +11,9 @@ fn main() {
 
 
     let mut penv = ParseEnv::default();
-    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "block", input, |r| {
-        penv.insert_from_action_result(r, input, VarMap::default())
+    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", input, |r, allocs| {
+        println!("> Action result\n====================\n{}\n\n", r.to_string(input));
+        penv.insert_from_action_result(r, input, VarMap::default(), &allocs.alo_varmap)
     }) {
         Ok(idx) => idx,
         Err(e) => {

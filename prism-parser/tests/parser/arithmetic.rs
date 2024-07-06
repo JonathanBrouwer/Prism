@@ -30,7 +30,6 @@ passing tests:
     1 * 2 + -3
     "### => "Add(Mul(Num('1'), Num('2')), UnaryMinus(Num('3')))"
     // Add binary minus
-    //TODO when grammar blocks can capture context, make this test nicer
     r###"
     grammar {
         rule expr {

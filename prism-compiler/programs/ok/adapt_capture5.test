@@ -1,3 +1,4 @@
+### Input
 grammar {
     rule expr {
         group base {
@@ -15,3 +16,9 @@ grammar {
 };
 let y = Type;
 %y
+
+### Eval
+Type -> Type
+
+### Type
+Type

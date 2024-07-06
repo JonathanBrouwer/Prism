@@ -1,3 +1,4 @@
+### Input
 grammar {
     rule expr {
         group base {
@@ -5,13 +6,19 @@ grammar {
         }
     }
 };
-let z = Type -> Type;
+let z = (_: Type) => Type;
 grammar {
     rule expr {
         group base {
-            $z <- "%" x:#this;
+            $z x <- "%" x:#this;
         }
     }
 };
 let y = Type;
 %y
+
+### Eval
+Type
+
+### Type
+Type

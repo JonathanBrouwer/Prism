@@ -105,7 +105,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
     rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>) -> T,
+    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, &'c Allocs<'c, 'grm>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
     let allocs: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
@@ -114,7 +114,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
         alo_varmap: &Arena::new(),
     };
     let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
-    instance.run(rule).map(ar_map)
+    instance.run(rule).map(|ar| ar_map(ar, &allocs))
 }
 
 #[macro_export]
