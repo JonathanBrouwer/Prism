@@ -1,9 +1,7 @@
 use std::io::Read;
 use clap::Parser;
-use prism_compiler::desugar::{ParseEnv, ParseIndex};
 use prism_compiler::lang::TcEnv;
-use prism_compiler::parser::{GRAMMAR, parse_prism};
-use prism_parser::error::aggregate_error::AggregatedParseError;
+use prism_compiler::parser::GRAMMAR;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::parser::var_map::VarMap;
@@ -29,10 +27,10 @@ fn main() {
         Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
     };
 
-    let mut penv = ParseEnv::default();
-    let idx = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
+    let mut tc_env = TcEnv::default();
+    let root = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
         println!("> Action result\n====================\n{}\n\n", r.to_string(&program));
-        penv.insert_from_action_result(r, &program, VarMap::default(), &allocs.alo_varmap)
+        tc_env.insert_from_action_result(r, &program, &allocs.alo_varmap)
     }) {
         Ok(idx) => idx,
         Err(e) => {
@@ -40,14 +38,6 @@ fn main() {
             return;
         }
     };
-
-    println!(
-        "> Parsed program\n====================\n{}\n\n",
-        penv.index_to_string(idx)
-    );
-
-    let mut tc_env = TcEnv::default();
-    let root = tc_env.insert_parse_env(&penv, idx);
 
     println!(
         "> Desugared program\n====================\n{}\n\n",

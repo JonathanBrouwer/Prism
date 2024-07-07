@@ -11,10 +11,10 @@ pub mod env;
 pub mod error;
 mod expect_beq;
 mod expect_beq_internal;
-mod from_parse_env;
 pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
+pub mod from_action_result;
 
 type QueuedConstraint = (
     (Env, HashMap<UniqueVariableId, usize>),

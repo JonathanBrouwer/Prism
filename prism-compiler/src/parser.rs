@@ -1,4 +1,3 @@
-use crate::desugar::ParseEnv;
 use crate::lang::{TcEnv, UnionIndex};
 use lazy_static::lazy_static;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
@@ -18,12 +17,9 @@ pub fn parse_prism_in_env<'p>(
     program: &'p str,
     env: &mut TcEnv,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
-    let mut penv = ParseEnv::default();
-    let idx = run_parser_rule::<SetError, _>(&GRAMMAR, "expr", program, |r, allocs| {
-        penv.insert_from_action_result(r, program, VarMap::default(), &allocs.alo_varmap)
-    })?;
-    
-    Ok(env.insert_parse_env(&penv, idx))
+    run_parser_rule::<SetError, _>(&GRAMMAR, "expr", program, |r, allocs| {
+        env.insert_from_action_result(r, program, allocs.alo_varmap)
+    })
 }
 
 pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {

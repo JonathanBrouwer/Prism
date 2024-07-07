@@ -122,6 +122,7 @@ pub struct CapturedExpr<'arn, 'grm> {
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
     Value(Cow<'arn, ActionResult<'arn, 'grm>>),
+    ByIndex(usize),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
@@ -129,6 +130,7 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
         match self {
             VarMapValue::Expr(_) => write!(f, "{{expr}}"),
             VarMapValue::Value(ar) => write!(f, "{ar:?}"),
+            VarMapValue::ByIndex(index) => write!(f, "ByIndex({index})")
         }
     }
 }
@@ -165,6 +167,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
                 .rtrn
             }
             VarMapValue::Value(v) => v.clone(),
+            VarMapValue::ByIndex(_) => unreachable!(),
         })
     }
 
