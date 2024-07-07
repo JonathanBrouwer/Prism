@@ -5,7 +5,7 @@ grammar {
             x <- "%" x:#this;
         }
     }
-};
+}
 let y = Type;
 %y
 

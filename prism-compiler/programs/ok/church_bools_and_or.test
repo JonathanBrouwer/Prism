@@ -20,9 +20,10 @@ grammar {
         "if";
     }
 
-};
+}
 
-if true && false || !false {
+let x = false;
+if true && x || !false {
     true
 } else {
     false

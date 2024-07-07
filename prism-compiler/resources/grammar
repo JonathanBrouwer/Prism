@@ -2,7 +2,7 @@ rule wrapped_expr(guid2) = ScopeEnter(e, guid3) <- guid3:guid2 e:expr;
 
 rule expr {
     group statement {
-        ScopeDefine(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" ";" b:#adapt(g, expr);
+        ScopeDefine(b, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
         Let(n, v, b) <- "let" n:identifier "=" v:#next ";" b:#this;
     }
     group fnconstruct {

@@ -5,7 +5,7 @@ grammar {
             x <- "$" x:#this;
         }
     }
-};
+}
 let z = (_: Type) => Type;
 grammar {
     rule expr {
@@ -13,7 +13,7 @@ grammar {
             $z x <- "%" x:#this;
         }
     }
-};
+}
 let y = Type;
 %y
 

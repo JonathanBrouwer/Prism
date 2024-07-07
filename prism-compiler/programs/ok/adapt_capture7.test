@@ -6,7 +6,7 @@ grammar {
             a <- "$";
         }
     }
-};
+}
 let b = Type -> Type;
 grammar {
     rule expr {
@@ -14,7 +14,7 @@ grammar {
             $ <- "%";
         }
     }
-};
+}
 let c = Type -> Type;
 %
 

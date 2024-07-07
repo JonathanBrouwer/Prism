@@ -6,7 +6,7 @@ grammar {
             x <- "%";
         }
     }
-};
+}
 let x = Type -> Type;
 %
 
