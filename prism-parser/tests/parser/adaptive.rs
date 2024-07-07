@@ -39,7 +39,7 @@ passing tests:
         }
     };
     let z;
-    "### => "[Let(Construct('Z', []))]"
+    "### => "[Let(Env(Construct('Z', [])))]"
     // Add to base redundant specification
     r###"
     grammar {
@@ -53,7 +53,7 @@ passing tests:
         }
     };
     let z;
-    "### => "[Let(Construct('Z', []))]"
+    "### => "[Let(Env(Construct('Z', [])))]"
     // Add minus
     r###"
     grammar {
@@ -64,7 +64,7 @@ passing tests:
         }
     };
     let x + y - x + x + y - x;
-    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
+    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus
     r###"
     grammar {
@@ -79,7 +79,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
+    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus seperately (1)
     r###"
     grammar {
@@ -99,7 +99,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
+    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus seperately (2)
     r###"
     grammar {
@@ -119,7 +119,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Construct('Sub', [Name('x'), Name('y')])))]"
+    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
 
 failing tests:
     // Turns order around
@@ -181,7 +181,7 @@ passing tests:
         }
     }
     y
-    "### => "Construct('Y', [])"
+    "### => "Env(Construct('Y', []))"
     r###"
     {
         rule sub {
@@ -217,7 +217,7 @@ passing tests:
     r###"{
     rule sub {
         Y() <- "y";
-    }}y"### => "Construct('Y', [])"
+    }}y"### => "Env(Construct('Y', []))"
 
 failing tests:
 

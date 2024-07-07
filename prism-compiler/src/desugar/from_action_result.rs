@@ -21,28 +21,15 @@ impl ParseEnv {
                     "Let" => {
                         assert_eq!(args.len(), 3);
                         SourceExpr::Let(
-                            args[0].get_value(program).to_string(),
+                            self.parse_name(&args[0], program, vars, arena),
                             self.insert_from_action_result(&args[1], program, vars, arena),
                             self.insert_from_action_result(&args[2], program, vars, arena),
                         )
                     }
-                    "Variable" => {
-                        assert_eq!(args.len(), 1);
-                        let name = args[0].get_value(program).to_string();
-                        if let Some(value) = vars.get(&name) {
-                            SourceExpr::ScopeExit(self.insert_from_action_result(
-                                value.as_value().expect("Parsed to value").as_ref(),
-                                program,
-                                vars, arena
-                            ))
-                        } else {
-                            SourceExpr::Variable(name)
-                        }
-                    }
                     "FnType" => {
                         assert_eq!(args.len(), 3);
                         SourceExpr::FnType(
-                            args[0].get_value(program).to_string(),
+                            self.parse_name(&args[0], program, vars, arena),
                             self.insert_from_action_result(&args[1], program, vars, arena),
                             self.insert_from_action_result(&args[2], program, vars, arena),
                         )
@@ -50,7 +37,7 @@ impl ParseEnv {
                     "FnConstruct" => {
                         assert_eq!(args.len(), 3);
                         SourceExpr::FnConstruct(
-                            args[0].get_value(program).to_string(),
+                            self.parse_name(&args[0], program, vars, arena),
                             self.insert_from_action_result(&args[1], program, vars, arena),
                             self.insert_from_action_result(&args[2], program, vars, arena),
                         )
@@ -83,7 +70,34 @@ impl ParseEnv {
             ActionResult::WithEnv(new_vars, ar) => {
                 self.insert_from_action_result(ar, program, vars.extend(new_vars.iter_cloned(), arena), arena)
             }
+            sub@ActionResult::Value(span) => {
+                let name = sub.get_value(program).to_string();
+                let v = if let Some(value) = vars.get(&name) {
+                    SourceExpr::ScopeExit(self.insert_from_action_result(
+                        value.as_value().expect("Parsed to value").as_ref(),
+                        program,
+                        vars, arena
+                    ))
+                } else {
+                    SourceExpr::Variable(name)
+                };
+                self.store(v, *span)
+            }
             _ => unreachable!("Parsing an expression always returns a Construct"),
+        }
+    }
+
+    fn parse_name<'arn, 'grm>(&mut self, value: &ActionResult<'arn, 'grm>, program: &str, vars: VarMap<'arn, 'grm>, arena: &'arn Arena<VarMapNode<'arn, 'grm>>) -> String {
+        let name = value.get_value(program).to_string();
+        if let Some(value) = vars.get(&name) {
+            ///TODO exit scope here?
+            self.parse_name(
+                value.as_value().expect("Parsed to value").as_ref(),
+                program,
+                vars, arena
+            )
+        } else {
+            name
         }
     }
 

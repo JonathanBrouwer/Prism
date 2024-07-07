@@ -20,7 +20,7 @@ rule expr {
     group base {
         t <- "(" t:expr ")";
         Type() <- "Type";
-        Variable(n) <- n:identifier;
+        identifier;
     }
 }
 

@@ -39,7 +39,7 @@ passing tests:
         }
     };
     1 - 2
-    "### => "Add(Num('1'), Block(UnaryMinus(Num('2'))))"
+    "### => "Env(Add(Num('1'), Block(UnaryMinus(Num('2')))))"
 
 failing tests:
 }

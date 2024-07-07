@@ -1,7 +1,9 @@
+### Input
+let x = Type -> Type;
 grammar {
     rule expr {
         group statement {
-            let n = Type; n <- "tel" n:identifier;
+            let n = Type; x <- "tel" n:identifier;
         }
     }
     rule keyword {
@@ -12,7 +14,8 @@ grammar {
 tel x
 
 
+### Eval
+Type -> Type
 
-
-
-
+### Type
+Type
