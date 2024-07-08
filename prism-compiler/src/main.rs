@@ -1,10 +1,10 @@
-use std::io::Read;
 use clap::Parser;
 use prism_compiler::lang::TcEnv;
 use prism_compiler::parser::GRAMMAR;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::parser::var_map::VarMap;
+use std::io::Read;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -29,7 +29,10 @@ fn main() {
 
     let mut tc_env = TcEnv::default();
     let root = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
-        println!("> Action result\n====================\n{}\n\n", r.to_string(&program));
+        println!(
+            "> Action result\n====================\n{}\n\n",
+            r.to_string(&program)
+        );
         tc_env.insert_from_action_result(r, &program, &allocs.alo_varmap)
     }) {
         Ok(idx) => idx,

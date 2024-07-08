@@ -24,7 +24,7 @@ impl PartialExpr {
             PartialExpr::FnConstruct(_, _) => Construct,
             PartialExpr::FnDestruct(_, _) => Destruct,
             PartialExpr::Free => Base,
-            PartialExpr::Shift(_, _) => Base
+            PartialExpr::Shift(_, _) => Base,
         }
     }
 }
@@ -71,7 +71,7 @@ impl TcEnv {
                 write!(w, "([SHIFT {i}] ")?;
                 self.display(v, w, PrecedenceLevel::default())?;
                 write!(w, ")")?;
-            },
+            }
         }
 
         if e.precendence_level() < max_precedence {

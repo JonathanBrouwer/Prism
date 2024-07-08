@@ -1,9 +1,9 @@
 use crate::lang::UnionIndex;
 use crate::lang::{TcEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
+use itertools::Itertools;
 use prism_parser::core::span::Span;
 use std::io;
-use itertools::Itertools;
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
@@ -113,7 +113,11 @@ impl TcEnv {
                 let (left_span, left_description) = self.label_value(*left)?;
                 let (right_span, right_description) = self.label_value(*left)?;
 
-                let constraints = self.queued_beq_free.iter().flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1.0))).join(",");
+                let constraints = self
+                    .queued_beq_free
+                    .iter()
+                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1 .0)))
+                    .join(",");
 
                 report.with_message("Constraint creates an infinite type")
                     .with_label(Label::new(left_span).with_message(format!("Left side of constraint from {left_description}: {}", self.index_to_sm_string(*left))))

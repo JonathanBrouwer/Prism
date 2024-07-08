@@ -32,7 +32,7 @@ impl TcEnv {
 
         match self.values[fr.0] {
             PartialExpr::FnType(f_at, f_rt) => {
-                // Check 
+                // Check
                 if !self.expect_beq_internal(
                     (f_at, &sr, &mut HashMap::new()),
                     (at, s, &mut HashMap::new()),

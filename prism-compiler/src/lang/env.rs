@@ -64,7 +64,7 @@ impl<T> GenericEnv<T> {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter().rev()
     }
 }
