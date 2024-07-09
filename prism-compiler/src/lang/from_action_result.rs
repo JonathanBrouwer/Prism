@@ -8,7 +8,7 @@ use crate::lang::error::TypeError;
 
 #[derive(Clone)]
 struct Scope<'arn, 'grm> {
-    names_stack: rpds::List<VarMap<'arn, 'grm>>,
+    names_stack: List<VarMap<'arn, 'grm>>,
     named_scopes: RedBlackTreeMap<Guid, VarMap<'arn, 'grm>>,
     depth: usize,
 }
