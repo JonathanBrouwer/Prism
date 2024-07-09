@@ -191,6 +191,7 @@ impl TcEnv {
                     unreachable!()
                 };
                 let guid = Self::parse_guid(&args[1]);
+                //TODO I think we lose scope here
                 let vars = vars.jump(guid).extend_without_depth(new_vars, arena);
                 
                 return self.insert_from_action_result_rec(&args[0], program, &vars, arena);
