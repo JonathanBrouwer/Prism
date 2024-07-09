@@ -4,6 +4,7 @@ use prism_parser::parser::parser_instance::Arena;
 use prism_parser::parser::var_map::{VarMap, VarMapNode, VarMapValue};
 use prism_parser::rule_action::action_result::ActionResult;
 use rpds::{List, RedBlackTreeMap};
+use crate::lang::error::TypeError;
 
 #[derive(Clone)]
 struct Scope<'arn, 'grm> {
@@ -30,8 +31,15 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
         }
     }
 
-    pub fn get(&self, key: &'arn str) -> Option<&VarMapValue> {
+    pub fn get(&self, key: &'arn str) -> Option<&VarMapValue<'arn, 'grm>> {
         self.vars.get(key)
+    }
+
+    pub fn extend_without_depth(&self, new_vars: &VarMap<'arn, 'grm>, arena: &'arn Arena<VarMapNode<'arn, 'grm>>) -> Self {
+        Self {
+            vars: self.vars.extend(new_vars.iter_cloned(), arena),
+            depth: self.depth,
+        }
     }
 }
 
@@ -112,6 +120,18 @@ impl TcEnv {
 
                         PartialExpr::FnDestruct(f, v)
                     }
+                    "ScopeDefine" => {
+                        //TODO
+                        let guid = Self::parse_guid(&args[1]);
+                        let b = self.insert_from_action_result_rec(&args[0], program, vars, arena);
+                        return b;
+                    },
+                    "ScopeEnter" => {
+                        //TODO
+                        let guid = Self::parse_guid(&args[1]);
+                        let b = self.insert_from_action_result_rec(&args[0], program, vars, arena);
+                        return b;
+                    }
                     _ => unreachable!(),
                 },
                 *span,
@@ -123,13 +143,25 @@ impl TcEnv {
                     PartialExpr::Free
                 } else {
                     match vars.get(name) {
-                        None => todo!(),
+                        None => {
+                            self.errors.push(TypeError::UnknownName(*span));
+                            PartialExpr::Free
+                        },
                         Some(VarMapValue::Expr(_)) => unreachable!(),
-                        Some(VarMapValue::Value(ar)) => todo!(),
+                        Some(VarMapValue::Value(ar)) => {
+                            return self.insert_from_action_result_rec(
+                                ar,
+                                program,
+                                vars, arena
+                            )
+                        },
                         Some(VarMapValue::ByIndex(ix)) => PartialExpr::DeBruijnIndex(vars.depth - ix - 1),
                     }
                 };
                 (e, *span)
+            }
+            ActionResult::WithEnv(new_vars, ar) => {
+                return self.insert_from_action_result_rec(ar, program, &vars.extend_without_depth(new_vars, arena), arena);
             }
             _ => unreachable!(),
         };
