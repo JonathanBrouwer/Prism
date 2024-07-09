@@ -1,18 +1,8 @@
 grammar {
     rule expr {
-        group statement {
-            let n = Type; n <- "tel" n:identifier;
+        group base {
+            x <- "%" x:#this;
         }
     }
-    rule keyword {
-        "tel";
-    }
 }
-
-tel x
-
-
-
-
-
-
+%Type
