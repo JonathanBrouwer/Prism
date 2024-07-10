@@ -1,0 +1,20 @@
+### Input
+grammar {
+    rule expr {
+        group statement {
+            let x = Type; x <- "tel" x:identifier;
+        }
+    }
+    rule keyword {
+        "tel";
+    }
+}
+
+tel y
+
+
+### Eval
+Type
+
+### Type
+Type
