@@ -37,14 +37,5 @@
 
 PARSER REFACTOR TODO:
 - Prevent it from being recursive
-- Make a macro for from_action_result
-- Can we move apply_action.rs to metacode?
-- Check adapting multiple times, if it captures the right variables
-
-
-- Counterexample for simplify
-  ```
-  let Type;
-  ([SHIFT 0] let Type;
-  ([SHIFT 1] #1))
-  ```
+- Remove RuleAction from the parser, instead returning ActionResults with environments
+- Always write ActionResults to arena. Optimization: Pass flag around in context whether result of value is needed

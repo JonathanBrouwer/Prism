@@ -43,7 +43,7 @@ fn main() {
     };
 
     println!(
-        "> Desugared program\n====================\n{}\n\n",
+        "> Program\n====================\n{}\n\n",
         tc_env.index_to_string(root),
     );
 

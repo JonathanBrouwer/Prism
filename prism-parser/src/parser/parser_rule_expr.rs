@@ -88,7 +88,6 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 PResult::new_empty(PR::with_cow_rtrn(value.clone()), pos)
                             }
                         }
-                        VarMapValue::ByIndex(_) => unreachable!(),
                     };
                 }
             }

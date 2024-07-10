@@ -1,8 +1,10 @@
+let x = Type;
 grammar {
     rule expr {
         group base {
-            x <- "%" x:#this;
+            x <- "%";
         }
     }
 }
-%Type
+let x = Type -> Type;
+%

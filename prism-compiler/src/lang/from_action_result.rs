@@ -1,22 +1,32 @@
-use std::borrow::Cow;
+use crate::lang::error::TypeError;
 use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
 use prism_parser::parser::parser_instance::Arena;
 use prism_parser::parser::var_map::{VarMap, VarMapNode, VarMapValue};
 use prism_parser::rule_action::action_result::ActionResult;
-use rpds::{List, RedBlackTreeMap};
-use crate::lang::error::TypeError;
+use rpds::RedBlackTreeMap;
+use std::borrow::Cow;
+
+enum ScopeValue<'arn, 'grm> {
+    ByIndex(usize),
+    Expr(
+        (
+            prism_parser::core::cow::Cow<'arn, ActionResult<'arn, 'grm>>,
+            Scope<'arn, 'grm>,
+        ),
+    ),
+}
 
 #[derive(Clone)]
 struct Scope<'arn, 'grm> {
-    names_stack: List<VarMap<'arn, 'grm>>,
-    named_scopes: RedBlackTreeMap<Guid, VarMap<'arn, 'grm>>,
+    names: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
+    named_scopes: RedBlackTreeMap<Guid, RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>>,
     depth: usize,
 }
 
 impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
     fn default() -> Self {
         Scope {
-            names_stack: List::new().push_front(VarMap::default()),
+            names: Default::default(),
             named_scopes: RedBlackTreeMap::default(),
             depth: 0,
         }
@@ -24,27 +34,33 @@ impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> Scope<'arn, 'grm> {
-    pub fn insert_name(&self, key: &'arn str, arena: &'arn Arena<VarMapNode<'arn, 'grm>>) -> Self {
-        let names = self.names_stack.first().expect("Scopes not empty").insert(key, VarMapValue::ByIndex(self.depth), arena);
-        let names_stack = self.names_stack.drop_first().expect("Scopes not empty").push_front(names);
+    pub fn insert_name(&self, key: &'arn str) -> Self {
+        let names = self.names.insert(key, ScopeValue::ByIndex(self.depth));
 
         Self {
-            names_stack,
+            names,
             named_scopes: self.named_scopes.clone(),
             depth: self.depth + 1,
         }
     }
 
-    pub fn get(&self, key: &'arn str) -> Option<&VarMapValue<'arn, 'grm>> {
-        self.names_stack.last().expect("Scopes not empty").get(key)
+    pub fn get(&self, key: &'arn str) -> Option<&ScopeValue<'arn, 'grm>> {
+        self.names.get(key)
     }
 
-    pub fn extend_without_depth(&self, new_vars: &VarMap<'arn, 'grm>, arena: &'arn Arena<VarMapNode<'arn, 'grm>>) -> Self {
-        let names = self.names_stack.first().expect("Scopes not empty").extend(new_vars.iter_cloned(), arena);
-        let names_stack = self.names_stack.drop_first().expect("Scopes not empty").push_front(names);
+    pub fn extend_without_depth(&self, new_vars: &VarMap<'arn, 'grm>, vars: &Self) -> Self {
+        let mut names = self.names.clone();
+        for (name, value) in new_vars.iter_cloned() {
+            match value {
+                VarMapValue::Expr(_) => continue,
+                VarMapValue::Value(ar) => {
+                    names.insert_mut(name, ScopeValue::Expr((ar.clone(), vars.clone())));
+                }
+            }
+        }
 
         Self {
-            names_stack,
+            names,
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
         }
@@ -52,27 +68,25 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
 
     pub fn insert_jump(&self, guid: Guid) -> Self {
         Scope {
-            names_stack: self.names_stack.clone(),
-            named_scopes: self.named_scopes.insert(guid, self.names_stack.first().expect("Scopes not empty").clone()),
+            names: self.names.clone(),
+            named_scopes: self.named_scopes.insert(guid, self.names.clone()),
             depth: self.depth,
         }
     }
 
     pub fn jump(&self, guid: Guid) -> Self {
-        let names_stack = self.names_stack.push_front(self.named_scopes[&guid].clone());
-
         Scope {
-            names_stack,
+            names: self.named_scopes[&guid].clone(),
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
         }
     }
 
-    pub fn unjump(&self) -> Self {
-        Scope {
-            names_stack: self.names_stack.drop_first().expect("Scopes not empty"),
+    pub fn with_depth(&self, depth_from: &Self) -> Self {
+        Self {
+            names: self.names.clone(),
             named_scopes: self.named_scopes.clone(),
-            depth: self.depth,
+            depth: depth_from.depth,
         }
     }
 }
@@ -85,9 +99,9 @@ impl TcEnv {
         &mut self,
         value: &ActionResult<'arn, 'grm>,
         program: &'arn str,
-        arena: &'arn Arena<VarMapNode<'arn, 'grm>>,
+        _arena: &'arn Arena<VarMapNode<'arn, 'grm>>,
     ) -> UnionIndex {
-        self.insert_from_action_result_rec(value, program, &Scope::default(), arena)
+        self.insert_from_action_result_rec(value, program, &Scope::default())
     }
 
     fn insert_from_action_result_rec<'arn, 'grm>(
@@ -95,7 +109,6 @@ impl TcEnv {
         value: &ActionResult<'arn, 'grm>,
         program: &'arn str,
         vars: &Scope<'arn, 'grm>,
-        arena: &'arn Arena<VarMapNode<'arn, 'grm>>,
     ) -> UnionIndex {
         let (inner, inner_span) = match value {
             ActionResult::Construct(span, constructor, args) => (
@@ -108,12 +121,11 @@ impl TcEnv {
                         assert_eq!(args.len(), 3);
                         let name = Self::parse_name(&args[0], program);
 
-                        let v = self.insert_from_action_result_rec(&args[1], program, vars, arena);
+                        let v = self.insert_from_action_result_rec(&args[1], program, vars);
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name, arena),
-                            arena,
+                            &vars.insert_name(name),
                         );
 
                         PartialExpr::Let(v, b)
@@ -122,12 +134,11 @@ impl TcEnv {
                         assert_eq!(args.len(), 3);
                         let name = Self::parse_name(&args[0], program);
 
-                        let v = self.insert_from_action_result_rec(&args[1], program, vars, arena);
+                        let v = self.insert_from_action_result_rec(&args[1], program, vars);
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name, arena),
-                            arena,
+                            &vars.insert_name(name),
                         );
 
                         PartialExpr::FnType(v, b)
@@ -136,12 +147,11 @@ impl TcEnv {
                         assert_eq!(args.len(), 3);
                         let name = Self::parse_name(&args[0], program);
 
-                        let v = self.insert_from_action_result_rec(&args[1], program, vars, arena);
+                        let v = self.insert_from_action_result_rec(&args[1], program, vars);
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name, arena),
-                            arena,
+                            &vars.insert_name(name),
                         );
 
                         PartialExpr::FnConstruct(v, b)
@@ -149,15 +159,19 @@ impl TcEnv {
                     "FnDestruct" => {
                         assert_eq!(args.len(), 2);
 
-                        let f = self.insert_from_action_result_rec(&args[0], program, vars, arena);
-                        let v = self.insert_from_action_result_rec(&args[1], program, vars, arena);
+                        let f = self.insert_from_action_result_rec(&args[0], program, vars);
+                        let v = self.insert_from_action_result_rec(&args[1], program, vars);
 
                         PartialExpr::FnDestruct(f, v)
                     }
                     "ScopeDefine" => {
                         let guid = Self::parse_guid(&args[1]);
-                        return self.insert_from_action_result_rec(&args[0], program, &vars.insert_jump(guid), arena);
-                    },
+                        return self.insert_from_action_result_rec(
+                            &args[0],
+                            program,
+                            &vars.insert_jump(guid),
+                        );
+                    }
                     _ => unreachable!(),
                 },
                 *span,
@@ -172,16 +186,17 @@ impl TcEnv {
                         None => {
                             self.errors.push(TypeError::UnknownName(*span));
                             PartialExpr::Free
-                        },
-                        Some(VarMapValue::Expr(_)) => unreachable!(),
-                        Some(VarMapValue::Value(ar)) => {
+                        }
+                        Some(ScopeValue::Expr((ar, scope_vars))) => {
                             return self.insert_from_action_result_rec(
                                 ar,
                                 program,
-                                &vars.unjump(), arena
+                                &scope_vars.with_depth(vars),
                             )
-                        },
-                        Some(VarMapValue::ByIndex(ix)) => PartialExpr::DeBruijnIndex(vars.depth - ix - 1),
+                        }
+                        Some(ScopeValue::ByIndex(ix)) => {
+                            PartialExpr::DeBruijnIndex(vars.depth - ix - 1)
+                        }
                     }
                 };
                 (e, *span)
@@ -191,10 +206,9 @@ impl TcEnv {
                     unreachable!()
                 };
                 let guid = Self::parse_guid(&args[1]);
-                //TODO I think we lose scope here
-                let vars = vars.jump(guid).extend_without_depth(new_vars, arena);
-                
-                return self.insert_from_action_result_rec(&args[0], program, &vars, arena);
+                let vars = vars.jump(guid).extend_without_depth(new_vars, vars);
+
+                return self.insert_from_action_result_rec(&args[0], program, &vars);
             }
             _ => unreachable!(),
         };
@@ -204,12 +218,10 @@ impl TcEnv {
     fn parse_name<'arn, 'grm>(ar: &ActionResult<'arn, 'grm>, program: &'arn str) -> &'arn str {
         match ar {
             ActionResult::Value(span) => &program[*span],
-            ActionResult::Literal(l) => {
-                match l.to_cow() {
-                    Cow::Borrowed(s) => s,
-                    Cow::Owned(_) => unreachable!(),
-                }
-            }
+            ActionResult::Literal(l) => match l.to_cow() {
+                Cow::Borrowed(s) => s,
+                Cow::Owned(_) => unreachable!(),
+            },
             _ => unreachable!(),
         }
     }
