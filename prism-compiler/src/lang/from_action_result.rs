@@ -44,7 +44,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
         }
     }
 
-    pub fn get(&self, key: &'arn str) -> Option<&ScopeValue<'arn, 'grm>> {
+    pub fn get(&self, key: &str) -> Option<&ScopeValue<'arn, 'grm>> {
         self.names.get(key)
     }
 
