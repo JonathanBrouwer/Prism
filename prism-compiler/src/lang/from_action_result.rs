@@ -7,12 +7,10 @@ use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
 
 enum ScopeValue<'arn, 'grm> {
-    ByIndex(usize),
-    Expr(
-        (
-            prism_parser::core::cow::Cow<'arn, ActionResult<'arn, 'grm>>,
-            Scope<'arn, 'grm>,
-        ),
+    FromEnv(usize),
+    FromGrammar(
+        prism_parser::core::cow::Cow<'arn, ActionResult<'arn, 'grm>>,
+        Scope<'arn, 'grm>,
     ),
 }
 
@@ -21,6 +19,7 @@ struct Scope<'arn, 'grm> {
     names: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
     named_scopes: RedBlackTreeMap<Guid, RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>>,
     depth: usize,
+    hygienic_declarations: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
 }
 
 impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
@@ -29,18 +28,27 @@ impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
             names: Default::default(),
             named_scopes: RedBlackTreeMap::default(),
             depth: 0,
+            hygienic_declarations: Default::default(),
         }
     }
 }
 
 impl<'arn, 'grm> Scope<'arn, 'grm> {
-    pub fn insert_name(&self, key: &'arn str) -> Self {
-        let names = self.names.insert(key, ScopeValue::ByIndex(self.depth));
+    pub fn insert_name(&self, key: &'arn str, program: &'arn str) -> Self {
+        let names = self.names.insert(key, ScopeValue::FromEnv(self.depth));
+        let hygienic_declarations = if let Some(ScopeValue::FromGrammar(ar, ar_scope)) = self.names.get(key) {
+            //TODO use ar_scope
+            let new_name = TcEnv::parse_name(ar, program);
+            self.hygienic_declarations.insert(new_name, ScopeValue::FromEnv(self.depth))
+        } else {
+            self.hygienic_declarations.clone()
+        };
 
         Self {
             names,
             named_scopes: self.named_scopes.clone(),
             depth: self.depth + 1,
+            hygienic_declarations,
         }
     }
 
@@ -54,7 +62,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             match value {
                 VarMapValue::Expr(_) => continue,
                 VarMapValue::Value(ar) => {
-                    names.insert_mut(name, ScopeValue::Expr((ar.clone(), vars.clone())));
+                    names.insert_mut(name, ScopeValue::FromGrammar(ar.clone(), vars.clone()));
                 }
             }
         }
@@ -63,6 +71,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names,
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
+            hygienic_declarations: self.hygienic_declarations.clone()
         }
     }
 
@@ -71,6 +80,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.names.clone(),
             named_scopes: self.named_scopes.insert(guid, self.names.clone()),
             depth: self.depth,
+            hygienic_declarations: self.hygienic_declarations.clone()
         }
     }
 
@@ -79,6 +89,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.named_scopes[&guid].clone(),
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
+            hygienic_declarations: self.hygienic_declarations.clone()
         }
     }
 
@@ -87,6 +98,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.names.clone(),
             named_scopes: self.named_scopes.clone(),
             depth: depth_from.depth,
+            hygienic_declarations: self.hygienic_declarations.clone()
         }
     }
 }
@@ -125,7 +137,7 @@ impl TcEnv {
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name),
+                            &vars.insert_name(name, program),
                         );
 
                         PartialExpr::Let(v, b)
@@ -138,7 +150,7 @@ impl TcEnv {
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name),
+                            &vars.insert_name(name, program),
                         );
 
                         PartialExpr::FnType(v, b)
@@ -151,7 +163,7 @@ impl TcEnv {
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
-                            &vars.insert_name(name),
+                            &vars.insert_name(name, program),
                         );
 
                         PartialExpr::FnConstruct(v, b)
@@ -187,14 +199,14 @@ impl TcEnv {
                             self.errors.push(TypeError::UnknownName(*span));
                             PartialExpr::Free
                         }
-                        Some(ScopeValue::Expr((ar, scope_vars))) => {
+                        Some(ScopeValue::FromGrammar(ar, scope_vars)) => {
                             return self.insert_from_action_result_rec(
                                 ar,
                                 program,
                                 &scope_vars.with_depth(vars),
                             )
                         }
-                        Some(ScopeValue::ByIndex(ix)) => {
+                        Some(ScopeValue::FromEnv(ix)) => {
                             PartialExpr::DeBruijnIndex(vars.depth - ix - 1)
                         }
                     }

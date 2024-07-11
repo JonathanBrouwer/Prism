@@ -1,0 +1,32 @@
+### Input
+grammar {
+    rule expr {
+        group statement {
+            let x = Type; e <- "tle" x:identifier "in" e:expr;
+        }
+    }
+    rule keyword {
+        "tle"
+    }
+}
+
+grammar {
+    rule expr {
+        group statement {
+            tle x = Type; e <- "tel" x:identifier "in" e:expr;
+        }
+    }
+    rule keyword {
+        "tel";
+        "in";
+    }
+}
+
+tel y in y
+
+
+### Eval
+Type
+
+### Type
+Type
