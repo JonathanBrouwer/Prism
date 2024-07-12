@@ -41,3 +41,6 @@ PARSER REFACTOR TODO:
 - Always write ActionResults to arena. Optimization: Pass flag around in context whether result of value is needed
 
 TODO keep track of declared_variables, only declare variable if name is passed in by user (Hygenic)
+- Jumping should lose hygenic env (unless passed as arg)
+- In ActionResult::Value logic, pass declared variables
+- In hygeneric vars, can either be FromEnv/FromGrammar, not sure if we can reuse ScopeValue
