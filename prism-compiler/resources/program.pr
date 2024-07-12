@@ -1,12 +1,13 @@
 grammar {
     rule expr {
         group statement {
-            let n = Type; n <- "tel" n:identifier;
+            let x = Type; e <- "tel" x:identifier "in" e:expr;
         }
     }
     rule keyword {
         "tel";
+        "in";
     }
 }
 
-tel x
+tel y in y

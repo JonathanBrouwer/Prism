@@ -6,14 +6,14 @@ grammar {
         }
     }
     rule keyword {
-        "tle"
+        "tle";
     }
 }
 
 grammar {
     rule expr {
         group statement {
-            tle x = Type; e <- "tel" x:identifier "in" e:expr;
+            tle x in e <- "tel" x:identifier "in" e:expr;
         }
     }
     rule keyword {

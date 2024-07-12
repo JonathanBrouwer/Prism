@@ -6,6 +6,7 @@ use prism_parser::rule_action::action_result::ActionResult;
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
 
+#[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {
     FromEnv(usize),
     FromGrammar(
@@ -14,12 +15,12 @@ enum ScopeValue<'arn, 'grm> {
     ),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Scope<'arn, 'grm> {
     names: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
     named_scopes: RedBlackTreeMap<Guid, RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>>,
     depth: usize,
-    hygienic_declarations: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
+    hygienic_decls: RedBlackTreeMap<&'arn str, usize>,
 }
 
 impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
@@ -28,27 +29,32 @@ impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
             names: Default::default(),
             named_scopes: RedBlackTreeMap::default(),
             depth: 0,
-            hygienic_declarations: Default::default(),
+            hygienic_decls: Default::default(),
         }
     }
 }
 
 impl<'arn, 'grm> Scope<'arn, 'grm> {
     pub fn insert_name(&self, key: &'arn str, program: &'arn str) -> Self {
-        let names = self.names.insert(key, ScopeValue::FromEnv(self.depth));
-        let hygienic_declarations = if let Some(ScopeValue::FromGrammar(ar, ar_scope)) = self.names.get(key) {
-            //TODO use ar_scope
+        Self {
+            depth: self.depth + 1,
+            ..self.clone()
+        }.insert_name_at(key, self.depth, program)
+    }
+
+    pub fn insert_name_at(&self, key: &'arn str, depth: usize, program: &'arn str) -> Self {
+        let names = self.names.insert(key, ScopeValue::FromEnv(depth));
+        let hygienic_decls = if let Some(ScopeValue::FromGrammar(ar, _)) = self.names.get(key) {
             let new_name = TcEnv::parse_name(ar, program);
-            self.hygienic_declarations.insert(new_name, ScopeValue::FromEnv(self.depth))
+            self.hygienic_decls.insert(new_name, depth)
         } else {
-            self.hygienic_declarations.clone()
+            self.hygienic_decls.clone()
         };
 
         Self {
             names,
-            named_scopes: self.named_scopes.clone(),
-            depth: self.depth + 1,
-            hygienic_declarations,
+            hygienic_decls,
+            ..self.clone()
         }
     }
 
@@ -56,7 +62,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
         self.names.get(key)
     }
 
-    pub fn extend_without_depth(&self, new_vars: &VarMap<'arn, 'grm>, vars: &Self) -> Self {
+    pub fn extend_with_ars(&self, new_vars: &VarMap<'arn, 'grm>, vars: &Self) -> Self {
         let mut names = self.names.clone();
         for (name, value) in new_vars.iter_cloned() {
             match value {
@@ -69,9 +75,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
 
         Self {
             names,
-            named_scopes: self.named_scopes.clone(),
-            depth: self.depth,
-            hygienic_declarations: self.hygienic_declarations.clone()
+            ..self.clone()
         }
     }
 
@@ -80,7 +84,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.names.clone(),
             named_scopes: self.named_scopes.insert(guid, self.names.clone()),
             depth: self.depth,
-            hygienic_declarations: self.hygienic_declarations.clone()
+            hygienic_decls: self.hygienic_decls.clone()
         }
     }
 
@@ -89,21 +93,12 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.named_scopes[&guid].clone(),
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
-            hygienic_declarations: self.hygienic_declarations.clone()
-        }
-    }
-
-    pub fn with_depth(&self, depth_from: &Self) -> Self {
-        Self {
-            names: self.names.clone(),
-            named_scopes: self.named_scopes.clone(),
-            depth: depth_from.depth,
-            hygienic_declarations: self.hygienic_declarations.clone()
+            hygienic_decls: self.hygienic_decls.clone()
         }
     }
 }
 
-#[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct Guid(pub usize);
 
 impl TcEnv {
@@ -200,10 +195,22 @@ impl TcEnv {
                             PartialExpr::Free
                         }
                         Some(ScopeValue::FromGrammar(ar, scope_vars)) => {
+                            // Create a new scope based on the current depth and `scope_vars`
+                            let mut scope_vars_with_hygienic_decls = Scope {
+                                depth: vars.depth,
+                                ..scope_vars.clone()
+                            };
+
+                            // Insert hygienically declared variables into the scope
+                            for (k, v) in &vars.hygienic_decls {
+                                scope_vars_with_hygienic_decls = scope_vars_with_hygienic_decls.insert_name_at(k, *v, program);
+                            }
+
+                            // Parse the value in the new scope
                             return self.insert_from_action_result_rec(
                                 ar,
                                 program,
-                                &scope_vars.with_depth(vars),
+                                &scope_vars_with_hygienic_decls,
                             )
                         }
                         Some(ScopeValue::FromEnv(ix)) => {
@@ -218,7 +225,7 @@ impl TcEnv {
                     unreachable!()
                 };
                 let guid = Self::parse_guid(&args[1]);
-                let vars = vars.jump(guid).extend_without_depth(new_vars, vars);
+                let vars = vars.jump(guid).extend_with_ars(new_vars, vars);
 
                 return self.insert_from_action_result_rec(&args[0], program, &vars);
             }

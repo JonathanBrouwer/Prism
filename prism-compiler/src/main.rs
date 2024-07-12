@@ -3,7 +3,6 @@ use prism_compiler::lang::TcEnv;
 use prism_compiler::parser::GRAMMAR;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parser::parser_instance::run_parser_rule;
-use prism_parser::parser::var_map::VarMap;
 use std::io::Read;
 
 #[derive(Parser, Debug)]
