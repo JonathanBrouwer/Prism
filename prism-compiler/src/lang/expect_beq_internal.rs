@@ -10,6 +10,8 @@ impl TcEnv {
     #[must_use]
     pub fn expect_beq_internal(
         &mut self,
+        // io is the UnionIndex that lives in a certain `s`
+        // The var_map is a map for each `UniqueVariableId`, its depth in the scope
         (i1o, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
         (i2o, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
@@ -18,27 +20,33 @@ impl TcEnv {
         let (i2, s2) = self.beta_reduce_head(i2o, s2.clone());
 
         match (self.values[i1.0], self.values[i2.0]) {
+            // Type is always equal to Type
             (PartialExpr::Type, PartialExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
+            // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
+            // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
             (PartialExpr::DeBruijnIndex(index1), PartialExpr::DeBruijnIndex(index2)) => {
+                // Get the UniqueVariableId that `index1` refers to
                 let id1 = match s1[index1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
+                // Get the UniqueVariableId that `index2` refers to
                 let id2 = match s2[index2] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
-                if id1 == id2 {
-                    true
-                } else {
-                    false
-                }
+                // Check if the unique variable indices (not the de bruijn indices) are equal
+                id1 == id2
             }
+            // Two function types are equal if their argument types and body types are equal
             (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
+                // Check that the argument types are equal
                 let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
+                
+                // Insert the new variable into the scopes, and check if `b` is equal
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -46,8 +54,11 @@ impl TcEnv {
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
                 );
+                
+                // Function types are equal if the arguments and body are equal
                 a_equal && b_equal
             }
+            // Function construct works the same as above
             (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
                 let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
                 let id = self.new_tc_id();
@@ -59,6 +70,8 @@ impl TcEnv {
                 );
                 a_equal && b_equal
             }
+            // Function destruct (application) is only equal if the functions and the argument are equal
+            // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
             (PartialExpr::FnDestruct(f1, a1), PartialExpr::FnDestruct(f2, a2)) => {
                 let f_equal = self.expect_beq_internal((f1, &s1, var_map1), (f2, &s2, var_map2));
                 let b_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
@@ -69,6 +82,9 @@ impl TcEnv {
             }
             (PartialExpr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
+            }
+            (PartialExpr::FnDestruct(f1, a1), PartialExpr::Type) | (PartialExpr::Type, PartialExpr::FnDestruct(f1, a1)) => {
+                todo!()
             }
             _ => false,
         }
