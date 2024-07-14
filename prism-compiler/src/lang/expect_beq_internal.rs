@@ -109,7 +109,7 @@ impl TcEnv {
         let a = self.store(PartialExpr::Free, FreeSub(i2));
         let b = self.store(PartialExpr::Shift(i2, 1), FreeSub(i2));
         let f = self.store(PartialExpr::FnConstruct(a, b), FreeSub(i2));
-        self.expect_beq_internal((f1, s1, var_map1), (f, s2, var_map2))
+        self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2))
     }
 
     /// Precondition: i2 should be free
