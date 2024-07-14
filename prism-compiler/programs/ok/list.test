@@ -1,0 +1,36 @@
+### Input
+let List = (T: Type) => (Out: Type) -> (destruct_nil: Out) -> (destruct_cons: T -> Out -> Out) -> Out;
+let nil = (T : Type) => (Out: Type) => (destruct_nil: Out) => (_destruct_cons: T -> Out -> Out) => destruct_nil;
+let cons = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (destruct_nil: Out) => (destruct_cons: T -> Out -> Out) => destruct_cons head (tail Out destruct_nil destruct_cons);
+
+grammar {
+    rule expr {
+        group base {
+            l <- "list" "!" "[" l:list "]";
+        }
+    }
+
+    rule keyword {
+        "list";
+    }
+
+    rule list {
+        (cons _ e es) <- e:expr "," es:list;
+        (cons _ e (nil _)) <- e:expr;
+        (nil _) <- "";
+    }
+}
+
+list![Type, List Type, Type -> Type]
+
+### Eval
+let List = (T: Type) => (Out: Type) -> (destruct_nil: Out) -> (destruct_cons: T -> Out -> Out) -> Out;
+let nil = (T : Type) => (Out: Type) => (destruct_nil: Out) => (_destruct_cons: T -> Out -> Out) => destruct_nil;
+let cons = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (destruct_nil: Out) => (destruct_cons: T -> Out -> Out) => destruct_cons head (tail Out destruct_nil destruct_cons);
+
+cons _ Type (cons _ (List Type) (cons _ (Type -> Type) (nil _)))
+
+### Type
+let List = (T: Type) => (Out: Type) -> (destruct_nil: Out) -> (destruct_cons: T -> Out -> Out) -> Out;
+List Type
+

@@ -1,13 +1,6 @@
-grammar {
-    rule expr {
-        group statement {
-            let x = Type; e <- "tel" x:identifier "in" e:expr;
-        }
-    }
-    rule keyword {
-        "tel";
-        "in";
-    }
-}
+let Pair = (T1: Type) => (T2 : T1 -> Type) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
 
-tel y in y
+
+let pair = (T1: Type) => (T2 : T1 -> Type) => (v1: T1) => (v2: T2 v1) => (Out: Type) => (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) => destruct v1 v2;
+
+pair

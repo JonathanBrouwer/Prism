@@ -51,7 +51,7 @@ pub enum ValueOrigin {
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct UnionIndex(usize);
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr {
     Type,
     Let(UnionIndex, UnionIndex),

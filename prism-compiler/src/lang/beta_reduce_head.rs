@@ -50,15 +50,15 @@ impl TcEnv {
                     Some((arg, arg_env)) => {
                         e = b;
                         s = s.cons(RSubst(arg, arg_env));
-
-                        // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
-                        if args.is_empty() {
-                            start_expr = e;
-                            start_env = s.clone();
-                        }
                     }
                 },
                 PartialExpr::FnDestruct(f, a) => {
+                    // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
+                    if args.is_empty() {
+                        start_expr = e;
+                        start_env = s.clone();
+                    }
+                    // Push new argument to stack
                     e = f;
                     args.push((a, s.clone()));
                 }

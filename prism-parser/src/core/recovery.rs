@@ -9,7 +9,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::rule_action::action_result::ActionResult;
 
-const MAX_RECOVERIES: usize = 5;
+const MAX_RECOVERIES: usize = 2;
 
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,

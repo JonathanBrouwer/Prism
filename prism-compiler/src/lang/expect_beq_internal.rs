@@ -31,7 +31,11 @@ impl TcEnv {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
-                id1 == id2
+                if id1 == id2 {
+                    true
+                } else {
+                    false
+                }
             }
             (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
                 let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
