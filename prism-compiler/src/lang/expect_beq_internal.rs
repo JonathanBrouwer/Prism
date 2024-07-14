@@ -83,11 +83,11 @@ impl TcEnv {
             (PartialExpr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
             }
-            (PartialExpr::FnDestruct(f, a), _) => {
-                self.expect_beq_in_destruct(f, a, &s1, var_map1, (i2, &s2, var_map2))
+            (PartialExpr::FnDestruct(f, _), _) => {
+                self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2))
             },
-            (_, PartialExpr::FnDestruct(f, a)) => {
-                self.expect_beq_in_destruct(f, a, &s2, var_map2, (i1, &s1, var_map1))
+            (_, PartialExpr::FnDestruct(f, _)) => {
+                self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1))
             }
             _ => false,
         }
@@ -96,7 +96,6 @@ impl TcEnv {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: UnionIndex,
-        a1: UnionIndex,
         s1: &Env,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
@@ -104,12 +103,13 @@ impl TcEnv {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         debug_assert!(matches!(self.values[i2.0], PartialExpr::Type | PartialExpr::FnType(_, _) | PartialExpr::FnConstruct(_, _) | PartialExpr::DeBruijnIndex(_)));
 
-        match self.values[f1.0] {
-            PartialExpr::DeBruijnIndex(_) => false,
-            PartialExpr::FnDestruct(_, _) => false,
-            PartialExpr::Free => false,
-            _ => unreachable!(),
-        }
+        // We are in the case `f1 a1 = i2`
+        // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
+        // We construct a value in scope 2 and set them equal
+        let a = self.store(PartialExpr::Free, FreeSub(i2));
+        let b = self.store(PartialExpr::Shift(i2, 1), FreeSub(i2));
+        let f = self.store(PartialExpr::FnConstruct(a, b), FreeSub(i2));
+        self.expect_beq_internal((f1, s1, var_map1), (f, s2, var_map2))
     }
 
     /// Precondition: i2 should be free

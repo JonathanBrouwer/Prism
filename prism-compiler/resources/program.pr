@@ -3,4 +3,4 @@ let pair = (T1: Type) => (T2 : T1 -> Type) => (v1: T1) => (v2: T2 v1) => (Out: T
 //let fst = (T1: Type) => (T2 : T1 -> Type) => (pair: Pair T1 T2) =>
 
 
-pair Type _ Type Type
+pair _ _ Type Type
