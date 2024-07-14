@@ -40,3 +40,4 @@ PARSER REFACTOR TODO:
 - Remove RuleAction from the parser, instead returning ActionResults with environments
 - Always write ActionResults to arena. Optimization: Pass flag around in context whether result of value is needed
 - queued_tc
+- Eta reduction

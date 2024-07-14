@@ -45,7 +45,7 @@ impl TcEnv {
             (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
                 // Check that the argument types are equal
                 let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
-                
+
                 // Insert the new variable into the scopes, and check if `b` is equal
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
@@ -54,7 +54,7 @@ impl TcEnv {
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
                 );
-                
+
                 // Function types are equal if the arguments and body are equal
                 a_equal && b_equal
             }
@@ -83,10 +83,32 @@ impl TcEnv {
             (PartialExpr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
             }
-            (PartialExpr::FnDestruct(f1, a1), PartialExpr::Type) | (PartialExpr::Type, PartialExpr::FnDestruct(f1, a1)) => {
-                todo!()
+            (PartialExpr::FnDestruct(f, a), _) => {
+                self.expect_beq_in_destruct(f, a, &s1, var_map1, (i2, &s2, var_map2))
+            },
+            (_, PartialExpr::FnDestruct(f, a)) => {
+                self.expect_beq_in_destruct(f, a, &s2, var_map2, (i1, &s1, var_map1))
             }
             _ => false,
+        }
+    }
+
+    pub fn expect_beq_in_destruct(
+        &mut self,
+        f1: UnionIndex,
+        a1: UnionIndex,
+        s1: &Env,
+        var_map1: &mut HashMap<UniqueVariableId, usize>,
+        (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+    ) -> bool {
+        let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
+        debug_assert!(matches!(self.values[i2.0], PartialExpr::Type | PartialExpr::FnType(_, _) | PartialExpr::FnConstruct(_, _) | PartialExpr::DeBruijnIndex(_)));
+
+        match self.values[f1.0] {
+            PartialExpr::DeBruijnIndex(_) => false,
+            PartialExpr::FnDestruct(_, _) => false,
+            PartialExpr::Free => false,
+            _ => unreachable!(),
         }
     }
 
@@ -104,15 +126,32 @@ impl TcEnv {
             return true;
         }
 
+        // We deliberately don't beta-reduce i1 here since we want to keep the inferred value small
         return match self.values[i1.0] {
             PartialExpr::Type => {
                 self.values[i2.0] = PartialExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            PartialExpr::Let(v1, b1) => self.expect_beq_free(
-                (b1, &s1.cons(RSubst(v1, s1.clone())), var_map1),
-                (i2, s2, var_map2),
-            ),
+            PartialExpr::Let(v1, b1) => {
+                let v2 = self.store(PartialExpr::Free, FreeSub(i2));
+                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
+                self.values[i2.0] = PartialExpr::Let(v2, b2);
+
+                let constraints_eq = self.handle_constraints(i2, s2);
+
+                self.toxic_values.insert(i2);
+                let a_eq = self.expect_beq_free((v1, s1, var_map1), (v2, s2, var_map2));
+
+                let id = self.new_tc_id();
+                var_map1.insert(id, s1.len());
+                var_map2.insert(id, s2.len());
+                let b_eq = self.expect_beq_free(
+                    (b1, &s1.cons(RType(id)), var_map1),
+                    (b2, &s2.cons(RType(id)), var_map2),
+                );
+
+                constraints_eq && a_eq && b_eq
+            },
             PartialExpr::DeBruijnIndex(v1) => {
                 let subst_equal = match &s1[v1] {
                     &CType(id, _) => {
