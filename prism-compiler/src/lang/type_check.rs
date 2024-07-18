@@ -120,7 +120,7 @@ impl TcEnv {
                 }
                 
                 if self.errors.len() == err_count1 {
-                    self.expect_beq_assert(e, et, typt, s);
+                    self.expect_beq_assert(e, et, typ, s);
                 }
                 
                 return et

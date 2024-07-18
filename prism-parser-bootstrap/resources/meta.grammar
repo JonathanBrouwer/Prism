@@ -100,7 +100,10 @@ rule char_escapes {
     "\'" <- "\\\'";
 }
 
-rule layout = [' ' | '\r' | '\n'];
+rule layout {
+    [' ' | '\r' | '\n'];
+    "//" [^'\n']* "\n";
+}
 
 rule integer {
     #[error("Integer")]

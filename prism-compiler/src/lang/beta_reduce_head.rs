@@ -73,6 +73,9 @@ impl TcEnv {
                     e = b;
                     s = s.shift(i);
                 }
+                PartialExpr::TypeAssert(new_e, _) => {
+                    e = new_e;
+                }
             }
         }
     }

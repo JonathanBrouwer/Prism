@@ -48,6 +48,7 @@ impl TcEnv {
             }
             PartialExpr::Free => PartialExpr::Free,
             PartialExpr::Shift(_, _) => unreachable!(),
+            PartialExpr::TypeAssert(_, _) => unreachable!(),
         };
         self.store(e_new, self.value_origins[i.0])
     }

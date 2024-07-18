@@ -2417,6 +2417,39 @@
                   ]
                 }
               }
+            ],
+            [
+              [],
+              {
+                "Sequence": [
+                  {
+                    "Literal": "//"
+                  },
+                  {
+                    "Repeat": {
+                      "expr": {
+                        "CharClass": {
+                          "neg": true,
+                          "ranges": [
+                            [
+                              "\n",
+                              "\n"
+                            ]
+                          ]
+                        }
+                      },
+                      "min": 0,
+                      "max": null,
+                      "delim": {
+                        "Sequence": []
+                      }
+                    }
+                  },
+                  {
+                    "Literal": "\\n"
+                  }
+                ]
+              }
             ]
           ]
         ]

@@ -51,17 +51,20 @@ impl TcEnv {
                     .finish()
             }
             TypeError::ExpectTypeAssert { expr, expr_type, expected_type } => {
-                let ValueOrigin::SourceCode(span) = self.value_origins[expr.0] else {
+                let ValueOrigin::SourceCode(span_expr) = self.value_origins[expr.0] else {
+                    unreachable!()
+                };
+                let ValueOrigin::SourceCode(span_expected) = self.value_origins[expected_type.0] else {
                     unreachable!()
                 };
 
                 report
                     .with_message("Type assertion failed")
-                    .with_label(Label::new(span).with_message(format!(
+                    .with_label(Label::new(span_expr).with_message(format!(
                         "This value has type: {}",
                         self.index_to_sm_string(*expr_type)
                     )))
-                    .with_label(Label::new(span).with_message(format!(
+                    .with_label(Label::new(span_expected).with_message(format!(
                         "Expected value to have this type: {}",
                         self.index_to_sm_string(*expected_type)
                     )))
