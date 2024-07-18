@@ -61,6 +61,7 @@ pub enum PartialExpr {
     FnDestruct(UnionIndex, UnionIndex),
     Free,
     Shift(UnionIndex, usize),
+    TypeAssert(UnionIndex, UnionIndex),
 }
 
 impl TcEnv {

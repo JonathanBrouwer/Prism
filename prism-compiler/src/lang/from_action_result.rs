@@ -172,12 +172,21 @@ impl TcEnv {
                         PartialExpr::FnDestruct(f, v)
                     }
                     "ScopeDefine" => {
+                        assert_eq!(args.len(), 2);
                         let guid = Self::parse_guid(&args[1]);
                         return self.insert_from_action_result_rec(
                             &args[0],
                             program,
                             &vars.insert_jump(guid),
                         );
+                    }
+                    "TypeAssert" => {
+                        assert_eq!(args.len(), 2);
+                        
+                        let e = self.insert_from_action_result_rec(&args[0], program, vars);
+                        let typ = self.insert_from_action_result_rec(&args[1], program, vars);
+                        
+                        PartialExpr::TypeAssert(e, typ)
                     }
                     _ => unreachable!(),
                 },

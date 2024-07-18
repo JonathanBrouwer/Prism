@@ -16,6 +16,11 @@ pub enum TypeError {
         function_arg_type: UnionIndex,
         arg_type: UnionIndex,
     },
+    ExpectTypeAssert {
+        expr: UnionIndex,
+        expr_type: UnionIndex,
+        expected_type: UnionIndex,
+    },
     IndexOutOfBound(UnionIndex),
     InfiniteType(UnionIndex, UnionIndex),
     BadInfer {
@@ -36,25 +41,40 @@ impl TcEnv {
                 let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
                     unreachable!()
                 };
-                let label = Label::new(span).with_message(format!(
-                    "Expected a type, found value of type: {}",
-                    self.index_to_sm_string(self.value_types[&j])
-                ));
 
                 report
                     .with_message("Expected type")
-                    .with_label(label)
+                    .with_label(Label::new(span).with_message(format!(
+                        "Expected a type, found value of type: {}",
+                        self.index_to_sm_string(self.value_types[&j])
+                    )))
+                    .finish()
+            }
+            TypeError::ExpectTypeAssert { expr, expr_type, expected_type } => {
+                let ValueOrigin::SourceCode(span) = self.value_origins[expr.0] else {
+                    unreachable!()
+                };
+
+                report
+                    .with_message("Type assertion failed")
+                    .with_label(Label::new(span).with_message(format!(
+                        "This value has type: {}",
+                        self.index_to_sm_string(*expr_type)
+                    )))
+                    .with_label(Label::new(span).with_message(format!(
+                        "Expected value to have this type: {}",
+                        self.index_to_sm_string(*expected_type)
+                    )))
                     .finish()
             }
             TypeError::IndexOutOfBound(i) => {
                 let ValueOrigin::SourceCode(span) = self.value_origins[i.0] else {
                     unreachable!()
                 };
-                let label = Label::new(span).with_message("This index is out of bounds.");
 
                 report
                     .with_message(format!("De Bruijn index `{}` out of bounds", i.0))
-                    .with_label(label)
+                    .with_label(Label::new(span).with_message("This index is out of bounds."))
                     .finish()
             }
             TypeError::ExpectFn(i) => {
@@ -64,13 +84,12 @@ impl TcEnv {
                 let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
                     unreachable!()
                 };
-                let label = Label::new(span).with_message(format!(
-                    "Expected a function, found value of type: {}",
-                    self.index_to_sm_string(self.value_types[&j])
-                ));
                 report
                     .with_message("Expected function")
-                    .with_label(label)
+                    .with_label(Label::new(span).with_message(format!(
+                        "Expected a function, found value of type: {}",
+                        self.index_to_sm_string(self.value_types[&j])
+                    )))
                     .finish()
             }
             TypeError::ExpectFnArg {

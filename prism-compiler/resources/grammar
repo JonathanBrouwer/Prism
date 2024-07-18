@@ -14,6 +14,9 @@ rule expr {
         FnType(n, at, bt) <- n:identifier ":" at:#next "->" bt:#this;
         FnType("_", at, bt) <- at:#next "->" bt:#this;
     }
+    group assert {
+        TypeAssert(e, typ) <- e:#next ":" typ:#next;
+    }
     group fndestruct {
         FnDestruct(f, a) <- f:#this " " a:#next;
     }

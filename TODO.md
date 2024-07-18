@@ -41,3 +41,5 @@ PARSER REFACTOR TODO:
 - Always write ActionResults to arena. Optimization: Pass flag around in context whether result of value is needed
 - queued_tc
 - Eta reduction
+- Fix `snd` in pair example
+- Make `program` part of self in TcEnv

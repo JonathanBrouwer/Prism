@@ -18,8 +18,9 @@ impl TcEnv {
         }
     }
 
-    ///Invariant: Returned UnionIndex is valid in Env `s`
-    pub(crate) fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
+    /// Type checkes `i` in scope `s`. Returns the type.
+    /// Invariant: Returned UnionIndex is valid in Env `s`
+    fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
         // We should only type check values from the source code
         debug_assert!(matches!(
             self.value_origins[i.0],
@@ -62,6 +63,8 @@ impl TcEnv {
                 let err_count = self.errors.len();
                 let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
+
+                // Check if `b` typechecked without errors.
                 if self.errors.len() == err_count {
                     self.expect_beq_type(bt, &bs);
                 }
@@ -105,6 +108,22 @@ impl TcEnv {
             }
             PartialExpr::Shift(v, shift) => {
                 PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
+            }
+            PartialExpr::TypeAssert(e, typ) => {
+                let err_count1 = self.errors.len();
+                let et = self._type_check(e, s);
+
+                let err_count2 = self.errors.len();
+                let typt = self._type_check(typ, s);
+                if self.errors.len() == err_count2 {
+                    self.expect_beq_type(typt, s);
+                }
+                
+                if self.errors.len() == err_count1 {
+                    self.expect_beq_assert(e, et, typt, s);
+                }
+                
+                return et
             }
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));

@@ -7,6 +7,17 @@ use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
 impl TcEnv {
+    /// Expect `i1` to be equal to `i2` in `s`
+    pub fn expect_beq_assert(&mut self, expr: UnionIndex, expr_type: UnionIndex, expected_type: UnionIndex, s: &Env) {
+        if !self.expect_beq_internal((expr_type, s, &mut HashMap::new()), (expected_type, s, &mut HashMap::new())) {
+            self.errors.push(TypeError::ExpectTypeAssert {
+                expr,
+                expr_type,
+                expected_type,
+            })
+        }
+    }
+
     /// Expect `io` to be equal to `Type`.
     pub fn expect_beq_type(&mut self, io: UnionIndex, s: &Env) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
