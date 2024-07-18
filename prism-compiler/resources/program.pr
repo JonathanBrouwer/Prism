@@ -1,4 +1,4 @@
-let Bool = (T: Type) -> T -> T -> T;
+let Bool: Type = (T: Type) -> T -> T -> T;
 let true: Bool = (T: Type) => (v1: T) => (v2: T) => v1;
 let false: Bool = (T: Type) => (v1: T) => (v2: T) => v2;
 
