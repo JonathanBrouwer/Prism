@@ -1,8 +1,8 @@
 ### Input
-T: Type -> T -> T
+(T: Type) -> T -> T
 
 ### Eval
-T: Type -> T -> T
+(T: Type) -> T -> T
 
 ### Type
 Type

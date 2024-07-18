@@ -1,5 +1,1 @@
-let Bool: Type = (T: Type) -> T -> T -> T;
-let true: Bool = (T: Type) => (v1: T) => (v2: T) => v1;
-let false: Bool = (T: Type) => (v1: T) => (v2: T) => v2;
-
-true: Bool
+(a: ((b: Type) -> b -> (b -> b) -> b)) -> (c: Type) -> c -> (c -> c) -> (c -> c) -> c
