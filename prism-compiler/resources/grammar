@@ -35,6 +35,7 @@ rule layout {
 
 rule keyword {
     "Type";
+    "grammar";
 }
 
 rule identifier {

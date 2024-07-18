@@ -43,3 +43,4 @@ PARSER REFACTOR TODO:
 - Eta reduction
 - Fix `snd` in pair example
 - Make `program` part of self in TcEnv
+- `#[lsp("comment")]`
