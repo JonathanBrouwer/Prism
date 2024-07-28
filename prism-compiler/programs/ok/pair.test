@@ -1,0 +1,13 @@
+### Input
+let Pair = (T1: Type) => (T2: Type) => (Out: Type) -> (T1 -> T2 -> Out) -> Out;
+let pair = (T1: Type) => (T2: Type) => (v1: T1) => (v2: T2) => (Out: Type) => (destruct: (T1 -> T2 -> Out)) => destruct v1 v2;
+let fst = (T1: Type) => (T2: Type) => (p: Pair T1 T2) => p T1 (v1: T1 => v2: T2 => v1);
+let snd = (T1: Type) => (T2: Type) => (p: Pair T1 T2) => p T2 (v1: T1 => v2: T2 => v2);
+
+snd _ _ (pair _ _ Type ((v: Type) => v))
+
+### Eval
+(v: Type) => v
+
+### Type
+(Type -> Type)
