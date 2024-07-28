@@ -284,6 +284,8 @@ impl TcEnv {
                 constraints_eq && f_eq && a_eq
             }
             PartialExpr::Free => {
+                
+                
                 self.queued_beq_free.entry(i1).or_default().push((
                     (s1.clone(), var_map1.clone()),
                     (i2, s2.clone(), var_map2.clone()),
