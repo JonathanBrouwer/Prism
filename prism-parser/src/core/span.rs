@@ -13,7 +13,7 @@ impl Span {
         Span { start, end }
     }
 
-    pub fn invalid() -> Self {
+    pub const fn invalid() -> Self {
         Span {
             start: Pos::invalid(),
             end: Pos::invalid(),

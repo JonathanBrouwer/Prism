@@ -1,6 +1,5 @@
 use crate::core::adaptive::{GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
-use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -31,18 +30,6 @@ pub struct Allocs<'arn, 'grm: 'arn> {
     pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
     pub alo_ar: &'arn Arena<ActionResult<'arn, 'grm>>,
     pub alo_varmap: &'arn Arena<VarMapNode<'arn, 'grm>>,
-}
-
-impl<'arn, 'grm> Allocs<'arn, 'grm> {
-    pub fn uncow(
-        &self,
-        cow: Cow<'arn, ActionResult<'arn, 'grm>>,
-    ) -> &'arn ActionResult<'arn, 'grm> {
-        match cow {
-            Cow::Borrowed(v) => v,
-            Cow::Owned(v) => self.alo_ar.alloc(v),
-        }
-    }
 }
 
 pub struct ParserCacheEntry<PR> {

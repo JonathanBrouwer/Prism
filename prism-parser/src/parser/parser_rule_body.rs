@@ -1,5 +1,3 @@
-use crate::core::cow::Cow;
-
 use crate::core::cache::parser_cache_recurse;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
@@ -98,7 +96,6 @@ fn parser_body_sub_constructors<
             let res =
                 parser_body_sub_annotations(rules, (block_state, rule_args), annots, expr, vars)
                     .parse(pos, state, context)
-                    .map(|v| state.alloc.uncow(v))
                     .merge_choice_parser(
                         &parser_body_sub_constructors(rules, (block_state, rule_args), rest),
                         pos,
@@ -121,7 +118,7 @@ fn parser_body_sub_annotations<
     annots: &'arn [RuleAnnotation<'grm>],
     expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: VarMap<'arn, 'grm>,
-) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res = parser_body_sub_annotations(rules, block_state, rest, expr, vars)

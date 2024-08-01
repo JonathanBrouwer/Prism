@@ -1,6 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::context::ParserContext;
-use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::state::PState;
@@ -121,7 +120,7 @@ pub struct CapturedExpr<'arn, 'grm> {
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
-    Value(Cow<'arn, ActionResult<'arn, 'grm>>),
+    Value(&'arn ActionResult<'arn, 'grm>),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
@@ -134,11 +133,11 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn new_rule(rule: RuleId) -> Self {
-        Self::Value(Cow::Owned(ActionResult::RuleId(rule)))
+    pub fn new_rule(rule: RuleId, alloc: &'arn Arena<ActionResult<'arn, 'grm>>) -> Self {
+        Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
     }
 
-    pub fn as_value(&self) -> Option<&Cow<'arn, ActionResult<'arn, 'grm>>> {
+    pub fn as_value(&self) -> Option<&ActionResult<'arn, 'grm>> {
         if let VarMapValue::Value(value) = self {
             Some(value)
         } else {
@@ -151,7 +150,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         rules: &'arn GrammarState<'arn, 'grm>,
         state: &mut PState<'arn, 'grm, E>,
         context: ParserContext,
-    ) -> Option<Cow<'a, ActionResult<'arn, 'grm>>> {
+    ) -> Option<&'arn ActionResult<'arn, 'grm>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
                 parser_expr(
@@ -172,7 +171,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         let VarMapValue::Value(ar) = self else {
             return None;
         };
-        let ActionResult::RuleId(rule) = ar.as_ref() else {
+        let ActionResult::RuleId(rule) = ar else {
             return None;
         };
         Some(*rule)

@@ -1,4 +1,3 @@
-use crate::core::cow::Cow;
 use crate::parser::var_map::VarMap;
 use crate::rule_action::action_result::ActionResult;
 use std::hash::{Hash, Hasher};
@@ -7,21 +6,14 @@ use std::ops::{Deref, DerefMut};
 #[derive(Clone)]
 pub struct PR<'arn, 'grm> {
     pub free: VarMap<'arn, 'grm>,
-    pub rtrn: Cow<'arn, ActionResult<'arn, 'grm>>,
+    pub rtrn: &'arn ActionResult<'arn, 'grm>,
 }
 
 impl<'arn, 'grm> PR<'arn, 'grm> {
-    pub fn with_cow_rtrn(rtrn: Cow<'arn, ActionResult<'arn, 'grm>>) -> Self {
+    pub fn with_rtrn(rtrn: &'arn ActionResult<'arn, 'grm>) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,
-        }
-    }
-
-    pub fn with_rtrn(rtrn: ActionResult<'arn, 'grm>) -> Self {
-        Self {
-            free: VarMap::default(),
-            rtrn: Cow::Owned(rtrn),
         }
     }
 }

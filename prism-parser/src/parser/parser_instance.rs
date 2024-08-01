@@ -43,6 +43,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                             .get("grammar")
                             .and_then(|v| v.as_rule_id())
                             .expect("grammar is a rule in meta grammar"),
+                        &state.alloc.alo_ar,
                     ),
                 ),
                 (
@@ -53,6 +54,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                             .get("prule_action")
                             .and_then(|v| v.as_rule_id())
                             .expect("prule_action is a rule in meta grammar"),
+                        &state.alloc.alo_ar,
                     ),
                 ),
             ],
@@ -62,7 +64,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         let (grammar_state, rules) =
             META_GRAMMAR_STATE
                 .0
-                .adapt_with(from, visible_rules, None, state.alloc.alo_varmap)?;
+                .adapt_with(from, visible_rules, None, &state.alloc)?;
 
         Ok(Self {
             context,

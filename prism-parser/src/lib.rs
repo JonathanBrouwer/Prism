@@ -4,6 +4,7 @@ use typed_arena::Arena;
 use grammar::from_action_result::parse_grammarfile;
 
 use crate::core::adaptive::GrammarState;
+use crate::core::cache::Allocs;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
@@ -24,7 +25,12 @@ pub static META_GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'stat
     bincode::deserialize(meta_grammar).unwrap()
 });
 pub static META_GRAMMAR_STATE: LazyLock<(GrammarState<'static, 'static>, VarMap<'static, 'static>)> = LazyLock::new(|| {
-    let alloc: &'static Arena<_> = Box::leak(Box::new(Arena::new()));
+    let alloc: &'static Allocs = Box::leak(Box::new(Allocs {
+        alo_grammarfile: Box::leak(Box::new(Arena::new())),
+        alo_grammarstate: Box::leak(Box::new(Arena::new())),
+        alo_ar: Box::leak(Box::new(Arena::new())),
+        alo_varmap: Box::leak(Box::new(Arena::new())),
+    }));
     let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
     (g, i)
 });

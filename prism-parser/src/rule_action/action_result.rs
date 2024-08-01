@@ -1,5 +1,4 @@
 use crate::core::adaptive::RuleId;
-use crate::core::cow::Cow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +12,7 @@ pub enum ActionResult<'arn, 'grm> {
     Literal(EscapedString<'grm>),
     //TODO replace Vec by arena slice
     //TODO this can only be done after List representation is changed
-    Construct(Span, &'grm str, Vec<Cow<'arn, ActionResult<'arn, 'grm>>>),
+    Construct(Span, &'grm str, Vec<&'arn ActionResult<'arn, 'grm>>),
     Guid(usize),
     RuleId(RuleId),
     #[serde(skip)]
@@ -47,7 +46,5 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub fn void() -> Self {
-        ActionResult::Construct(Span::invalid(), "#VOID#", vec![])
-    }
+    pub const VOID: &'static ActionResult<'static, 'static> = &ActionResult::Construct(Span::invalid(), "#VOID#", vec![]);
 }

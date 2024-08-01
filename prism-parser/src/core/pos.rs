@@ -29,7 +29,7 @@ impl Pos {
         }
     }
 
-    pub fn invalid() -> Self {
+    pub const fn invalid() -> Self {
         Self(usize::MAX)
     }
 }

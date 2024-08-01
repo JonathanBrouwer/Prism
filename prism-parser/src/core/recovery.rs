@@ -1,5 +1,4 @@
 use crate::core::context::ParserContext;
-use crate::core::cow::Cow;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -78,8 +77,8 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 }
 
 pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
-    item: impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a,
-) -> impl Parser<'arn, 'grm, Cow<'arn, ActionResult<'arn, 'grm>>, E> + 'a {
+    item: impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a,
+) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<_, E> {
         // First try original parse
         match item.parse(
@@ -93,7 +92,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
             r @ POk(_, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = state.recovery_points.get(&s) {
-                    POk(Cow::Owned(ActionResult::void()), pos, *to, Some((e, s)))
+                    POk(&ActionResult::VOID, pos, *to, Some((e, s)))
                 } else {
                     PErr(e, s)
                 }
