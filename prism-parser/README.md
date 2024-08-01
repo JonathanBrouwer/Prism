@@ -1,6 +1,6 @@
 <div align="center">
   <h1><code>Prism Parser</code></h1>
-  <p><strong>A PEG parsing library build for the Prism programming language</strong></p>
+  <p><strong>A PEG parsing library built for the Prism programming language</strong></p>
 </div>
 
 ## About

@@ -10,7 +10,6 @@ license.workspace = true
 clap.workspace = true
 prism-parser.workspace = true
 rpds.workspace = true
-lazy_static.workspace = true
 ariadne.workspace = true
 itertools.workspace = true
 
