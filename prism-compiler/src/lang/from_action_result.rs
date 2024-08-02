@@ -10,7 +10,7 @@ use std::borrow::Cow;
 enum ScopeValue<'arn, 'grm> {
     FromEnv(usize),
     FromGrammar(
-        prism_parser::core::cow::&'arn ActionResult<'arn, 'grm>,
+        &'arn ActionResult<'arn, 'grm>,
         Scope<'arn, 'grm>,
     ),
 }
@@ -68,7 +68,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             match value {
                 VarMapValue::Expr(_) => continue,
                 VarMapValue::Value(ar) => {
-                    names.insert_mut(name, ScopeValue::FromGrammar(ar.clone(), vars.clone()));
+                    names.insert_mut(name, ScopeValue::FromGrammar(ar, vars.clone()));
                 }
             }
         }
@@ -106,7 +106,7 @@ impl TcEnv {
         &mut self,
         value: &ActionResult<'arn, 'grm>,
         program: &'arn str,
-        _arena: &'arn ActionResult<'arn, 'grm><VarMapNode<'arn, 'grm>>,
+        _arena: &'arn Arena<VarMapNode<'arn, 'grm>>,
     ) -> UnionIndex {
         self.insert_from_action_result_rec(value, program, &Scope::default())
     }

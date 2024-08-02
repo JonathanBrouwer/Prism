@@ -29,31 +29,31 @@ fn normal() {
     bincode::serialize_into(&mut file, &grammar2).unwrap();
 }
 
-fn part1() {
-    let input = include_str!("../resources/meta.grammar");
-
-    run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
-    let result = result.unwrap_or_eprint();
-
-    let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
-    bincode::serialize_into(&mut file, &result).unwrap();
-}
-
-fn part2() {
-    let input = include_str!("../resources/meta.grammar");
-
-    // Leak because ownership was being annoying
-    let temp: &'static [u8] = Box::leak(
-        read("prism-parser-bootstrap/resources/temp.bincode")
-            .unwrap()
-            .into_boxed_slice(),
-    );
-    let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
-
-    let grammar2: GrammarFile<'_, RuleAction<'_, '_>> =
-        parse_grammarfile(&result, input, parse_rule_action).unwrap();
-    let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
-    serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
-    let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();
-    bincode::serialize_into(&mut file, &grammar2).unwrap();
-}
+// fn part1() {
+//     let input = include_str!("../resources/meta.grammar");
+//
+//     run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
+//     let result = result.unwrap_or_eprint();
+//
+//     let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
+//     bincode::serialize_into(&mut file, &result).unwrap();
+// }
+//
+// fn part2() {
+//     let input = include_str!("../resources/meta.grammar");
+//
+//     // Leak because ownership was being annoying
+//     let temp: &'static [u8] = Box::leak(
+//         read("prism-parser-bootstrap/resources/temp.bincode")
+//             .unwrap()
+//             .into_boxed_slice(),
+//     );
+//     let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
+//
+//     let grammar2: GrammarFile<'_, RuleAction<'_, '_>> =
+//         parse_grammarfile(&result, input, parse_rule_action).unwrap();
+//     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
+//     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
+//     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();
+//     bincode::serialize_into(&mut file, &grammar2).unwrap();
+// }
