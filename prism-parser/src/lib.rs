@@ -1,6 +1,4 @@
-#[macro_use]
-extern crate lazy_static;
-
+use std::sync::LazyLock;
 use typed_arena::Arena;
 
 use grammar::from_action_result::parse_grammarfile;
@@ -21,17 +19,15 @@ pub mod grammar;
 pub mod parser;
 pub mod rule_action;
 
-lazy_static! {
-    pub static ref META_GRAMMAR: GrammarFile<'static, RuleAction<'static, 'static>> = {
-        let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
-        bincode::deserialize(meta_grammar).unwrap()
-    };
-    pub static ref META_GRAMMAR_STATE: (GrammarState<'static, 'static>, VarMap<'static, 'static>) = {
-        let alloc: &'static Arena<_> = Box::leak(Box::new(Arena::new()));
-        let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
-        (g, i)
-    };
-}
+pub static META_GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'static>>> = LazyLock::new(|| {
+    let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
+    bincode::deserialize(meta_grammar).unwrap()
+});
+pub static META_GRAMMAR_STATE: LazyLock<(GrammarState<'static, 'static>, VarMap<'static, 'static>)> = LazyLock::new(|| {
+    let alloc: &'static Arena<_> = Box::leak(Box::new(Arena::new()));
+    let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
+    (g, i)
+});
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     grammar: &'grm str,

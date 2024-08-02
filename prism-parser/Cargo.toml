@@ -1,6 +1,6 @@
 [package]
 name = "prism-parser"
-description = "A PEG parsing library build for the Prism programming language"
+description = "A PEG parsing library built for the Prism programming language"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -12,6 +12,5 @@ serde.workspace = true
 bincode.workspace = true
 ariadne.workspace = true
 by_address.workspace = true
-lazy_static.workspace = true
 typed-arena.workspace = true
 stacker.workspace = true
