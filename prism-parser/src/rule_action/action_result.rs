@@ -6,13 +6,11 @@ use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::parser::var_map::VarMap;
 
-#[derive(Clone, Serialize, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Serialize, Eq, PartialEq, Hash, Debug)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    //TODO replace Vec by arena slice
-    //TODO this can only be done after List representation is changed
-    Construct(Span, &'grm str, Vec<&'arn ActionResult<'arn, 'grm>>),
+    Construct(Span, &'grm str, &'arn [ActionResult<'arn, 'grm>]),
     Guid(usize),
     RuleId(RuleId),
     #[serde(skip)]
@@ -46,5 +44,30 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub const VOID: &'static ActionResult<'static, 'static> = &ActionResult::Construct(Span::invalid(), "#VOID#", vec![]);
+    pub fn iter_list(&self) -> impl Iterator<Item=Self> + 'arn {
+        ARListIterator(*self)
+    }
+
+    pub const VOID: &'static ActionResult<'static, 'static> = &ActionResult::Construct(Span::invalid(), "#VOID#", &[]);
+}
+
+pub struct ARListIterator<'arn, 'grm: 'arn>(ActionResult<'arn, 'grm>);
+
+impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
+    type Item = ActionResult<'arn, 'grm>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.0 {
+            ActionResult::Construct(_, "Cons", els) => {
+                assert_eq!(els.len(), 2);
+                self.0 = els[1];
+                Some(els[0])
+            }
+            ActionResult::Construct(_, "Nil", els) => {
+                assert_eq!(els.len(), 0);
+                None
+            }
+            _ => panic!("Invalid list"),
+        }
+    }
 }

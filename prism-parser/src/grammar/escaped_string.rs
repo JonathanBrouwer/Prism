@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
 pub struct EscapedString<'grm>(&'grm str);
 
 impl<'grm> EscapedString<'grm> {

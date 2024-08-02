@@ -1,6 +1,6 @@
+use itertools::Itertools;
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
-use crate::core::state::PState;
 use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
@@ -10,12 +10,12 @@ pub fn apply_action<'arn, 'grm>(
     span: Span,
     vars: VarMap<'arn, 'grm>,
     allocs: &Allocs<'arn, 'grm>,
-) -> &'arn ActionResult<'arn, 'grm> {
-    allocs.alo_ar.alloc(match rule {
+) -> ActionResult<'arn, 'grm> {
+    match rule {
         RuleAction::Name(name) => {
             if let Some(ar) = vars.get(name) {
                 if let VarMapValue::Value(v) = ar {
-                    return v.clone();
+                    return **v;
                 } else {
                     panic!("")
                 }
@@ -25,21 +25,17 @@ pub fn apply_action<'arn, 'grm>(
         }
         RuleAction::InputLiteral(lit) => ActionResult::Literal(lit.clone()),
         RuleAction::Construct(name, args) => {
-            let args_vals = args.iter().map(|a| apply_action(a, span, vars, allocs)).collect();
+            //TODO sucks that we have to make a vec here
+            let buffer = args.iter().map(|a| apply_action(a, span, vars, allocs)).collect_vec();
+            let args_vals = allocs.alo_ar.alloc_extend(buffer);
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::Cons(h, t) => {
-            let ar = apply_action(t, span, vars, allocs);
-            let ActionResult::Construct(_, "List", ar) = ar else {
-                unreachable!("Action result is not a list")
-            };
-            //TODO this is inefficient
-            let mut res = ar.clone();
-            res.insert(0, apply_action(h, span, vars, allocs));
-
-            ActionResult::Construct(span, "List", res)
+            let head = apply_action(h, span, vars, allocs);
+            let tail = apply_action(t, span, vars, allocs);
+            ActionResult::Construct(span, "Cons", allocs.alo_ar.alloc_extend([head, tail]))
         }
-        RuleAction::Nil() => ActionResult::Construct(span, "List", Vec::new()),
+        RuleAction::Nil() => ActionResult::Construct(span, "Nil", &[]),
         RuleAction::ActionResult(ar) => ActionResult::WithEnv(vars, ar),
-    })
+    }
 }

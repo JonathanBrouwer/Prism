@@ -138,7 +138,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     PR::with_rtrn(state.alloc.alo_ar.alloc(ActionResult::Construct(
                         span,
                         "List",
-                        list.into_iter().map(|pr| pr.rtrn).collect(),
+                        state.alloc.alo_ar.alloc_extend(list.into_iter().map(|pr| *pr.rtrn))
                     )))
                 })
             }
@@ -204,7 +204,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                     PR {
                         free: res.free,
-                        rtrn,
+                        rtrn: state.alloc.alo_ar.alloc(rtrn),
                     }
                 })
             }
@@ -233,7 +233,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // First, get the grammar actionresult
                 //TODO match this logic with RuleExpr::Action
                 //TODO maybe refactor AtAdapt to take an identifier instead of RuleAction
-                let gr = apply_action(ga, Span::invalid(), vars, &state.alloc);
+                let gr = state.alloc.alo_ar.alloc(apply_action(ga, Span::invalid(), vars, &state.alloc));
 
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
