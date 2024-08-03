@@ -2,20 +2,28 @@ use prism_compiler::lang::{PartialExpr, TcEnv, UnionIndex};
 
 #[test]
 fn test_exhaustive() {
-    iter_exhaustive(6, false, |env, root| {
-        env.type_check(root).is_ok()
-    })
+    iter_exhaustive(8, false, |env, root| env.type_check(root).is_ok())
 }
 
-fn iter_exhaustive(max_depth: usize, continue_when_fail: bool, mut f: impl FnMut(&mut TcEnv, UnionIndex) -> bool) {
+fn iter_exhaustive(
+    max_depth: usize,
+    continue_when_fail: bool,
+    mut f: impl FnMut(&mut TcEnv, UnionIndex) -> bool,
+) {
     let mut env = TcEnv::default();
     let root = env.store_test(PartialExpr::Free);
     let mut env_size = vec![0];
 
     // Invariant: env.values[i+1..] is free
     let mut i = 0;
-    loop {
+    for _count in 0.. {
         let len = env.values.len();
+
+        // println!("{count}");
+
+        // if count == 1073864 {
+        //     println!("{}", env.index_to_string(root));
+        // }
 
         // Check if type checks
         let is_ok = f(&mut env, root);
@@ -23,7 +31,7 @@ fn iter_exhaustive(max_depth: usize, continue_when_fail: bool, mut f: impl FnMut
         // Reset free variables
         env.values.truncate(len);
         env.value_origins.truncate(len);
-        env.values[i+1..].fill(PartialExpr::Free);
+        env.values[i + 1..].fill(PartialExpr::Free);
         env.reset();
 
         // Keep this partial expr if the result is ok
@@ -33,7 +41,7 @@ fn iter_exhaustive(max_depth: usize, continue_when_fail: bool, mut f: impl FnMut
 
         // Go to the next value
         if !next(&mut i, &mut env, &mut env_size) {
-            break
+            break;
         }
     }
 }
@@ -45,11 +53,14 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
             PartialExpr::Type => PartialExpr::DeBruijnIndex(0),
             PartialExpr::DeBruijnIndex(idx) => {
                 if idx + 1 < env_size[*i] {
-                    PartialExpr::DeBruijnIndex(idx+1)
+                    PartialExpr::DeBruijnIndex(idx + 1)
                 } else {
                     env_size.push(env_size[*i]);
                     env_size.push(env_size[*i] + 1);
-                    PartialExpr::Let(env.store_test(PartialExpr::Free), env.store_test(PartialExpr::Free))
+                    PartialExpr::Let(
+                        env.store_test(PartialExpr::Free),
+                        env.store_test(PartialExpr::Free),
+                    )
                 }
             }
             PartialExpr::Let(e1, e2) => PartialExpr::FnType(e1, e2),
@@ -57,7 +68,7 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
             PartialExpr::FnConstruct(e1, e2) => {
                 env_size[*e2] -= 1;
                 PartialExpr::FnDestruct(e1, e2)
-            },
+            }
             PartialExpr::FnDestruct(e1, e2) => PartialExpr::TypeAssert(e1, e2),
             PartialExpr::TypeAssert(_, _) => {
                 env.values[*i] = PartialExpr::Free;
@@ -69,11 +80,10 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
                     return false;
                 }
                 *i -= 1;
-                continue
+                continue;
             }
             PartialExpr::Shift(_, _) => unreachable!(),
         };
-        return true
+        return true;
     }
 }
-

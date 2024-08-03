@@ -1,11 +1,11 @@
-use crate::lang::env::{Env, EnvEntry};
 use crate::lang::env::EnvEntry::*;
+use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
 use crate::lang::{PartialExpr, TcEnv};
-use std::mem;
 use itertools::Itertools;
+use std::mem;
 
 impl TcEnv {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
@@ -23,10 +23,7 @@ impl TcEnv {
     /// Invariant: Returned UnionIndex is valid in Env `s`
     fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
         // We should only type check values from the source code
-        debug_assert!(matches!(
-            self.value_origins[*i],
-            ValueOrigin::SourceCode(_)
-        ));
+        assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
 
         let t = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
@@ -46,9 +43,9 @@ impl TcEnv {
                 Some(_) => unreachable!(),
                 None => {
                     self.errors.push(TypeError::IndexOutOfBound(i));
-                    return self.store(PartialExpr::Free, ValueOrigin::Failure)
+                    return self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
-            }
+            },
             PartialExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);

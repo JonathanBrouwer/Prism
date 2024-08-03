@@ -55,7 +55,7 @@ pub struct UnionIndex(usize);
 
 impl Display for UnionIndex {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self)
+        write!(f, "[{}]", self.0)
     }
 }
 
@@ -97,7 +97,7 @@ impl TcEnv {
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)
     }
-    
+
     pub fn reset(&mut self) {
         self.queued_beq_free.clear();
         self.errors.clear();

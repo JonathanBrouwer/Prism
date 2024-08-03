@@ -60,7 +60,7 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 
                     //Increase offset by one char and repeat
                     *err_state_end = err_state_end.next(state.input).0;
-                    debug_assert!(*err_state_end <= Pos::end(state.input));
+                    assert!(*err_state_end <= Pos::end(state.input));
                 } else {
                     unreachable!()
                 }

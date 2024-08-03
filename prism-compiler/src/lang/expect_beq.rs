@@ -74,7 +74,7 @@ impl TcEnv {
                     (f_rt, &sr.cons(RType(id)), &mut var_map1),
                     (rt, &s.cons(RType(id)), &mut var_map2),
                 );
-                debug_assert!(is_beq_free);
+                assert!(is_beq_free);
             }
             PartialExpr::Free => {
                 let f_at = self.store(PartialExpr::Free, FreeSub(fr));
@@ -95,7 +95,7 @@ impl TcEnv {
                     (at, s, &mut HashMap::new()),
                     (f_at, &sr, &mut HashMap::new()),
                 );
-                debug_assert!(is_beq_free);
+                assert!(is_beq_free);
                 self.toxic_values.clear();
 
                 let mut var_map1 = HashMap::new();
@@ -107,7 +107,7 @@ impl TcEnv {
                     (f_rt, &sr.cons(RType(id)), &mut var_map1),
                     (rt, &s.cons(RType(id)), &mut var_map2),
                 );
-                debug_assert!(is_beq_free);
+                assert!(is_beq_free);
             }
             _ => self.errors.push(TypeError::ExpectFn(ft)),
         }

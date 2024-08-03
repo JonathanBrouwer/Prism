@@ -101,7 +101,7 @@ impl TcEnv {
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
-        debug_assert!(matches!(
+        assert!(matches!(
             self.values[*i2],
             PartialExpr::Type
                 | PartialExpr::FnType(_, _)
@@ -125,7 +125,7 @@ impl TcEnv {
         (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
-        debug_assert!(matches!(self.values[*i2], PartialExpr::Free));
+        assert!(matches!(self.values[*i2], PartialExpr::Free));
 
         if self.toxic_values.contains(&i1) {
             self.errors.push(TypeError::InfiniteType(i1, i2));
@@ -177,7 +177,7 @@ impl TcEnv {
                             return true;
                         };
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
-                        debug_assert_eq!(id, id2);
+                        assert_eq!(id, id2);
 
                         self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
                         true
@@ -305,7 +305,7 @@ impl TcEnv {
             }
             PartialExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
-            },
+            }
         };
     }
 
@@ -317,7 +317,7 @@ impl TcEnv {
         if let Some(queued) = self.queued_beq_free.remove(&i2) {
             for ((s2n, mut var_map2n), (i3, s3, mut var_map3)) in queued {
                 // Sanity checks
-                debug_assert_eq!(s2.len(), s2n.len());
+                assert_eq!(s2.len(), s2n.len());
 
                 //TODO performance: this causes expect_beq(i3, i2) to be executed
                 eq &=

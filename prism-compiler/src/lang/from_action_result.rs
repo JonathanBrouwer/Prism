@@ -12,15 +12,13 @@ enum ScopeValue<'arn, 'grm> {
     FromGrammar(&'arn ActionResult<'arn, 'grm>, Scope<'arn, 'grm>),
 }
 
-#[derive(Clone, Debug)]
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 struct Scope<'arn, 'grm> {
     names: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
     named_scopes: RedBlackTreeMap<Guid, RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>>,
     depth: usize,
     hygienic_decls: RedBlackTreeMap<&'arn str, usize>,
 }
-
 
 impl<'arn, 'grm> Scope<'arn, 'grm> {
     pub fn insert_name(&self, key: &'arn str, program: &'arn str) -> Self {
