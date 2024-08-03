@@ -163,7 +163,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
                 .ok()?
                 .rtrn
             }
-            VarMapValue::Value(v) => v.clone(),
+            VarMapValue::Value(v) => v,
         })
     }
 

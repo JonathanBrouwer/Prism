@@ -17,8 +17,7 @@ pub fn parse_rule_action<'arn, 'grm>(
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src)?,
             result_match! {
-                match &b[1] => Construct(_, "List", subs),
-                create subs.iter().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
+                create b[1].iter_list().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
             }?,
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),

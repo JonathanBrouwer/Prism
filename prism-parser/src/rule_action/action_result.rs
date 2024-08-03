@@ -1,6 +1,6 @@
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
@@ -30,8 +30,8 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         match self {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit),
-            ActionResult::Construct(_, "List", es) => {
-                format!("[{}]", es.iter().map(|e| e.to_string(src)).format(", "))
+            ActionResult::Construct(_, "Cons" | "Nil", _) => {
+                format!("[{}]", self.iter_list().map(|e| e.to_string(src)).format(", "))
             }
             ActionResult::Construct(_, c, es) => format!(
                 "{}({})",
@@ -44,7 +44,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub fn iter_list(&self) -> impl Iterator<Item=Self> + 'arn {
+    pub fn iter_list(&self) -> impl Iterator<Item=&'arn Self> + 'arn {
         ARListIterator(*self)
     }
 
@@ -54,20 +54,20 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
 pub struct ARListIterator<'arn, 'grm: 'arn>(ActionResult<'arn, 'grm>);
 
 impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
-    type Item = ActionResult<'arn, 'grm>;
+    type Item = &'arn ActionResult<'arn, 'grm>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.0 {
             ActionResult::Construct(_, "Cons", els) => {
                 assert_eq!(els.len(), 2);
                 self.0 = els[1];
-                Some(els[0])
+                Some(&els[0])
             }
             ActionResult::Construct(_, "Nil", els) => {
                 assert_eq!(els.len(), 0);
                 None
             }
-            _ => panic!("Invalid list"),
+            _ => panic!("Invalid list: {:?}", &self.0),
         }
     }
 }

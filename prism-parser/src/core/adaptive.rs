@@ -1,14 +1,13 @@
 use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
-use crate::parser::var_map::{VarMap, VarMapNode, VarMapValue};
+use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::{iter, mem};
-use typed_arena::Arena;
 use crate::core::cache::Allocs;
 
 pub struct GrammarState<'arn, 'grm> {

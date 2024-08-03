@@ -20,7 +20,6 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_action;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
-use crate::core::state;
 
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
@@ -127,19 +126,20 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 max,
                 delim,
             } => {
-                let res: PResult<Vec<PR>, _> = repeat_delim(
+                //TODO this allocates :c
+                let res = repeat_delim(
                     parser_expr(rules, block_ctx, expr, vars),
                     parser_expr(rules, block_ctx, delim, vars),
                     *min as usize,
                     max.map(|max| max as usize),
                 )
                 .parse(pos, state, context);
-                res.map_with_span(|list, span| {
-                    PR::with_rtrn(state.alloc.alo_ar.alloc(ActionResult::Construct(
-                        span,
-                        "List",
-                        state.alloc.alo_ar.alloc_extend(list.into_iter().map(|pr| *pr.rtrn))
-                    )))
+                
+                res.map_with_span(|rtrn, span| {
+                    PR::with_rtrn(rtrn.iter().rfold(
+                        &*state.alloc.alo_ar.alloc(ActionResult::Construct(span, "Nil", &[])),
+                        |rest, next| &*state.alloc.alo_ar.alloc(ActionResult::Construct(span, "Cons", state.alloc.alo_ar.alloc_extend([*next.rtrn, *rest]))),
+                    ))
                 })
             }
             RuleExpr::Sequence(subs) => {
