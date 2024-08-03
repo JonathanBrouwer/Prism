@@ -1,19 +1,17 @@
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
-use serde::Serialize;
 
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::parser::var_map::VarMap;
 
-#[derive(Copy, Clone, Serialize, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, &'arn [ActionResult<'arn, 'grm>]),
     Guid(usize),
     RuleId(RuleId),
-    #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
 
