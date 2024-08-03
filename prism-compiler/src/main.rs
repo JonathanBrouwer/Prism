@@ -32,7 +32,7 @@ fn main() {
             "> Action result\n====================\n{}\n\n",
             r.to_string(&program)
         );
-        tc_env.insert_from_action_result(r, &program, &allocs.alo_varmap)
+        tc_env.insert_from_action_result(r, &program, allocs.alo_varmap)
     }) {
         Ok(idx) => idx,
         Err(e) => {

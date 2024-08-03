@@ -125,7 +125,7 @@ fn parser_body_sub_annotations<
                 .parse(pos, state, context);
             res.add_label_explicit(ErrorLabel::Explicit(
                 pos.span_to(res.end_pos().next(state.input).0),
-                err_label.clone(),
+                *err_label,
             ));
             res
         }

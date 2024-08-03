@@ -28,7 +28,7 @@ pub fn parse_grammarfile<'arn, 'grm, Action>(
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         create GrammarFile {
-            rules: rules.iter_list().map(|rule| parse_rule(&rule, src, parse_a)).collect::<Option<Vec<_>>>()?,
+            rules: rules.iter_list().map(|rule| parse_rule(rule, src, parse_a)).collect::<Option<Vec<_>>>()?,
         }
     }
 }
@@ -43,8 +43,8 @@ fn parse_rule<'arn, 'grm, Action>(
         match &rule_body[..] => [name, args, blocks],
         create Rule {
             name: parse_identifier(name, src)?,
-            args: args.iter_list().map(|n| parse_identifier(&n, src)).collect::<Option<Vec<_>>>()?,
-            blocks: blocks.iter_list().map(|block| parse_block(&block, src, parse_a)).collect::<Option<Vec<_>>>()?,
+            args: args.iter_list().map(|n| parse_identifier(n, src)).collect::<Option<Vec<_>>>()?,
+            blocks: blocks.iter_list().map(|block| parse_block(block, src, parse_a)).collect::<Option<Vec<_>>>()?,
         }
     }
 }
@@ -67,7 +67,7 @@ fn parse_constructors<'arn, 'grm, Action>(
     parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
 ) -> Option<Vec<AnnotatedRuleExpr<'grm, Action>>> {
     result_match! {
-        create r.iter_list().map(|c| parse_annotated_rule_expr(&c, src, parse_a)).collect::<Option<Vec<_>>>()?
+        create r.iter_list().map(|c| parse_annotated_rule_expr(c, src, parse_a)).collect::<Option<Vec<_>>>()?
     }
 }
 
@@ -79,7 +79,7 @@ fn parse_annotated_rule_expr<'arn, 'grm, Action>(
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
-        create AnnotatedRuleExpr(annots.iter_list().map(|annot| parse_rule_annotation(&annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src, parse_a)?)
+        create AnnotatedRuleExpr(annots.iter_list().map(|annot| parse_rule_annotation(annot, src)).collect::<Option<Vec<_>>>()?, parse_rule_expr(e, src, parse_a)?)
     }
 }
 
@@ -108,10 +108,10 @@ fn parse_rule_expr<'arn, 'grm, Action>(
             parse_a(&b[1], src)?,
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
-            create b[0].iter_list().map(|sub| parse_rule_expr(&sub, src, parse_a)).collect::<Option<Vec<_>>>()?
+            create b[0].iter_list().map(|sub| parse_rule_expr(sub, src, parse_a)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "Sequence", b) => RuleExpr::Sequence(result_match! {
-            create b[0].iter_list().map(|sub| parse_rule_expr(&sub, src, parse_a)).collect::<Option<Vec<_>>>()?
+            create b[0].iter_list().map(|sub| parse_rule_expr(sub, src, parse_a)).collect::<Option<Vec<_>>>()?
         }?),
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
             parse_identifier(&b[0], src)?,
@@ -141,7 +141,7 @@ fn parse_rule_expr<'arn, 'grm, Action>(
             parse_identifier(&b[0], src)?,
             result_match! {
                 create b[1].iter_list().map(|sub| {
-                    parse_rule_expr(&sub, src, parse_a)
+                    parse_rule_expr(sub, src, parse_a)
                 }).collect::<Option<Vec<_>>>()?
             }?,
         ),
@@ -201,7 +201,7 @@ fn parse_option<'arn, 'grm, T>(
     sub: impl Fn(&ActionResult<'arn, 'grm>, &str) -> Option<T>,
 ) -> Option<Option<T>> {
     match r {
-        Construct(_, "None", b) if b.is_empty() => Some(None),
+        Construct(_, "None", []) => Some(None),
         Construct(_, "Some", b) => Some(Some(sub(&b[0], src)?)),
         _ => None,
     }

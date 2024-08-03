@@ -13,6 +13,7 @@ enum ScopeValue<'arn, 'grm> {
 }
 
 #[derive(Clone, Debug)]
+#[derive(Default)]
 struct Scope<'arn, 'grm> {
     names: RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>,
     named_scopes: RedBlackTreeMap<Guid, RedBlackTreeMap<&'arn str, ScopeValue<'arn, 'grm>>>,
@@ -20,16 +21,6 @@ struct Scope<'arn, 'grm> {
     hygienic_decls: RedBlackTreeMap<&'arn str, usize>,
 }
 
-impl<'arn, 'grm> Default for Scope<'arn, 'grm> {
-    fn default() -> Self {
-        Scope {
-            names: Default::default(),
-            named_scopes: RedBlackTreeMap::default(),
-            depth: 0,
-            hygienic_decls: Default::default(),
-        }
-    }
-}
 
 impl<'arn, 'grm> Scope<'arn, 'grm> {
     pub fn insert_name(&self, key: &'arn str, program: &'arn str) -> Self {
@@ -242,7 +233,7 @@ impl TcEnv {
         self.store(inner, ValueOrigin::SourceCode(inner_span))
     }
 
-    fn parse_name<'arn, 'grm>(ar: &ActionResult<'arn, 'grm>, program: &'arn str) -> &'arn str {
+    fn parse_name<'arn>(ar: &ActionResult<'arn, '_>, program: &'arn str) -> &'arn str {
         match ar {
             ActionResult::Value(span) => &program[*span],
             ActionResult::Literal(l) => match l.to_cow() {

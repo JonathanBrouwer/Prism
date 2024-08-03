@@ -113,7 +113,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         });
                         res.add_label_implicit(ErrorLabel::Literal(
                             pos.span_to(res.end_pos().next(state.input).0),
-                            literal.clone(),
+                            *literal,
                         ));
                         res
                     };

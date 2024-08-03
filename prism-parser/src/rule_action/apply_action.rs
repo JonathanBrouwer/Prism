@@ -15,7 +15,7 @@ pub fn apply_action<'arn, 'grm>(
         RuleAction::Name(name) => {
             if let Some(ar) = vars.get(name) {
                 if let VarMapValue::Value(v) = ar {
-                    return **v;
+                    **v
                 } else {
                     panic!("")
                 }
@@ -23,7 +23,7 @@ pub fn apply_action<'arn, 'grm>(
                 panic!("Name '{name}' not in context")
             }
         }
-        RuleAction::InputLiteral(lit) => ActionResult::Literal(lit.clone()),
+        RuleAction::InputLiteral(lit) => ActionResult::Literal(*lit),
         RuleAction::Construct(name, args) => {
             //TODO sucks that we have to make a vec here
             let buffer = args

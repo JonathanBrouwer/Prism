@@ -92,7 +92,7 @@ pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'gr
             r @ POk(_, _, _, _) => r,
             PErr(e, s) => {
                 if let Some(to) = state.recovery_points.get(&s) {
-                    POk(&ActionResult::VOID, pos, *to, Some((e, s)))
+                    POk(ActionResult::VOID, pos, *to, Some((e, s)))
                 } else {
                     PErr(e, s)
                 }
