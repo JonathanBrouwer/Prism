@@ -85,7 +85,7 @@ impl TcEnv {
             }
             (PartialExpr::FnDestruct(f, _), _) => {
                 self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2))
-            },
+            }
             (_, PartialExpr::FnDestruct(f, _)) => {
                 self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1))
             }
@@ -101,7 +101,13 @@ impl TcEnv {
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
-        debug_assert!(matches!(self.values[i2.0], PartialExpr::Type | PartialExpr::FnType(_, _) | PartialExpr::FnConstruct(_, _) | PartialExpr::DeBruijnIndex(_)));
+        debug_assert!(matches!(
+            self.values[i2.0],
+            PartialExpr::Type
+                | PartialExpr::FnType(_, _)
+                | PartialExpr::FnConstruct(_, _)
+                | PartialExpr::DeBruijnIndex(_)
+        ));
 
         // We are in the case `f1 a1 = i2`
         // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
@@ -151,7 +157,7 @@ impl TcEnv {
                 );
 
                 constraints_eq && a_eq && b_eq
-            },
+            }
             PartialExpr::DeBruijnIndex(v1) => {
                 let subst_equal = match &s1[v1] {
                     &CType(id, _) => {
@@ -297,7 +303,7 @@ impl TcEnv {
             PartialExpr::Shift(v1, i) => {
                 self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, s2, var_map2))
             }
-            PartialExpr::TypeAssert(_, _) => todo!()
+            PartialExpr::TypeAssert(_, _) => todo!(),
         };
     }
 

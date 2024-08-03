@@ -29,7 +29,10 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
             ActionResult::Literal(lit) => format!("\'{}\'", lit),
             ActionResult::Construct(_, "Cons" | "Nil", _) => {
-                format!("[{}]", self.iter_list().map(|e| e.to_string(src)).format(", "))
+                format!(
+                    "[{}]",
+                    self.iter_list().map(|e| e.to_string(src)).format(", ")
+                )
             }
             ActionResult::Construct(_, c, es) => format!(
                 "{}({})",
@@ -42,11 +45,12 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub fn iter_list(&self) -> impl Iterator<Item=&'arn Self> + 'arn {
+    pub fn iter_list(&self) -> impl Iterator<Item = &'arn Self> + 'arn {
         ARListIterator(*self)
     }
 
-    pub const VOID: &'static ActionResult<'static, 'static> = &ActionResult::Construct(Span::invalid(), "#VOID#", &[]);
+    pub const VOID: &'static ActionResult<'static, 'static> =
+        &ActionResult::Construct(Span::invalid(), "#VOID#", &[]);
 }
 
 pub struct ARListIterator<'arn, 'grm: 'arn>(ActionResult<'arn, 'grm>);

@@ -59,9 +59,7 @@ impl TcEnv {
             PartialExpr::Shift(b, i) => {
                 return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map)
             }
-            PartialExpr::TypeAssert(e, _typ) => {
-                return self.simplify_inner(e, s, var_map)
-            }
+            PartialExpr::TypeAssert(e, _typ) => return self.simplify_inner(e, s, var_map),
         };
         self.store(e_new, self.value_origins[i.0])
     }

@@ -1,3 +1,4 @@
+use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
@@ -8,7 +9,6 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::{iter, mem};
-use crate::core::cache::Allocs;
 
 pub struct GrammarState<'arn, 'grm> {
     rules: Vec<Arc<RuleState<'arn, 'grm>>>,

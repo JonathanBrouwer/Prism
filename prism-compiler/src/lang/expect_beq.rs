@@ -8,8 +8,17 @@ use std::collections::HashMap;
 
 impl TcEnv {
     /// Expect `i1` to be equal to `i2` in `s`
-    pub fn expect_beq_assert(&mut self, expr: UnionIndex, expr_type: UnionIndex, expected_type: UnionIndex, s: &Env) {
-        if !self.expect_beq_internal((expr_type, s, &mut HashMap::new()), (expected_type, s, &mut HashMap::new())) {
+    pub fn expect_beq_assert(
+        &mut self,
+        expr: UnionIndex,
+        expr_type: UnionIndex,
+        expected_type: UnionIndex,
+        s: &Env,
+    ) {
+        if !self.expect_beq_internal(
+            (expr_type, s, &mut HashMap::new()),
+            (expected_type, s, &mut HashMap::new()),
+        ) {
             self.errors.push(TypeError::ExpectTypeAssert {
                 expr,
                 expr_type,

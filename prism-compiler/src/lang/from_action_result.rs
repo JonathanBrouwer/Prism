@@ -9,10 +9,7 @@ use std::borrow::Cow;
 #[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {
     FromEnv(usize),
-    FromGrammar(
-        &'arn ActionResult<'arn, 'grm>,
-        Scope<'arn, 'grm>,
-    ),
+    FromGrammar(&'arn ActionResult<'arn, 'grm>, Scope<'arn, 'grm>),
 }
 
 #[derive(Clone, Debug)]
@@ -39,7 +36,8 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
         Self {
             depth: self.depth + 1,
             ..self.clone()
-        }.insert_name_at(key, self.depth, program)
+        }
+        .insert_name_at(key, self.depth, program)
     }
 
     pub fn insert_name_at(&self, key: &'arn str, depth: usize, program: &'arn str) -> Self {
@@ -84,7 +82,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.names.clone(),
             named_scopes: self.named_scopes.insert(guid, self.names.clone()),
             depth: self.depth,
-            hygienic_decls: self.hygienic_decls.clone()
+            hygienic_decls: self.hygienic_decls.clone(),
         }
     }
 
@@ -93,7 +91,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             names: self.named_scopes[&guid].clone(),
             named_scopes: self.named_scopes.clone(),
             depth: self.depth,
-            hygienic_decls: self.hygienic_decls.clone()
+            hygienic_decls: self.hygienic_decls.clone(),
         }
     }
 }
@@ -182,10 +180,10 @@ impl TcEnv {
                     }
                     "TypeAssert" => {
                         assert_eq!(args.len(), 2);
-                        
+
                         let e = self.insert_from_action_result_rec(&args[0], program, vars);
                         let typ = self.insert_from_action_result_rec(&args[1], program, vars);
-                        
+
                         PartialExpr::TypeAssert(e, typ)
                     }
                     _ => unreachable!(),
@@ -212,7 +210,8 @@ impl TcEnv {
 
                             // Insert hygienically declared variables into the scope
                             for (k, v) in &vars.hygienic_decls {
-                                scope_vars_with_hygienic_decls = scope_vars_with_hygienic_decls.insert_name_at(k, *v, program);
+                                scope_vars_with_hygienic_decls =
+                                    scope_vars_with_hygienic_decls.insert_name_at(k, *v, program);
                             }
 
                             // Parse the value in the new scope
@@ -220,7 +219,7 @@ impl TcEnv {
                                 ar,
                                 program,
                                 &scope_vars_with_hygienic_decls,
-                            )
+                            );
                         }
                         Some(ScopeValue::FromEnv(ix)) => {
                             PartialExpr::DeBruijnIndex(vars.depth - ix - 1)

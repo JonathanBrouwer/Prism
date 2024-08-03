@@ -20,11 +20,15 @@ pub mod grammar;
 pub mod parser;
 pub mod rule_action;
 
-pub static META_GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'static>>> = LazyLock::new(|| {
-    let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
-    bincode::deserialize(meta_grammar).unwrap()
-});
-pub static META_GRAMMAR_STATE: LazyLock<(GrammarState<'static, 'static>, VarMap<'static, 'static>)> = LazyLock::new(|| {
+pub static META_GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'static>>> =
+    LazyLock::new(|| {
+        let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
+        bincode::deserialize(meta_grammar).unwrap()
+    });
+pub static META_GRAMMAR_STATE: LazyLock<(
+    GrammarState<'static, 'static>,
+    VarMap<'static, 'static>,
+)> = LazyLock::new(|| {
     let alloc: &'static Allocs = Box::leak(Box::new(Allocs {
         alo_grammarfile: Box::leak(Box::new(Arena::new())),
         alo_grammarstate: Box::leak(Box::new(Arena::new())),

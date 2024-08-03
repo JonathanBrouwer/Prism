@@ -8,10 +8,9 @@ pub struct UniqueVariableId(usize);
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum EnvEntry {
     // Definitions used during type checking
-    
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
     CType(UniqueVariableId, UnionIndex),
-    
+
     CSubst(UnionIndex, UnionIndex),
 
     // Definitions used during beta reduction

@@ -118,12 +118,12 @@ impl TcEnv {
                 if self.errors.len() == err_count2 {
                     self.expect_beq_type(typt, s);
                 }
-                
+
                 if self.errors.len() == err_count1 {
                     self.expect_beq_assert(e, et, typ, s);
                 }
-                
-                return et
+
+                return et;
             }
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));

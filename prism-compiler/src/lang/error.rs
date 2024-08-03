@@ -50,11 +50,16 @@ impl TcEnv {
                     )))
                     .finish()
             }
-            TypeError::ExpectTypeAssert { expr, expr_type, expected_type } => {
+            TypeError::ExpectTypeAssert {
+                expr,
+                expr_type,
+                expected_type,
+            } => {
                 let ValueOrigin::SourceCode(span_expr) = self.value_origins[expr.0] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span_expected) = self.value_origins[expected_type.0] else {
+                let ValueOrigin::SourceCode(span_expected) = self.value_origins[expected_type.0]
+                else {
                     unreachable!()
                 };
 
