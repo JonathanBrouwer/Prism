@@ -15,7 +15,7 @@ impl TcEnv {
         let mut s: Env = start_env.clone();
 
         loop {
-            match self.values[e.0] {
+            match self.values[*e] {
                 PartialExpr::Type => {
                     debug_assert!(args.is_empty());
                     return (e, s);

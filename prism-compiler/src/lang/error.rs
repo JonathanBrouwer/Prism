@@ -35,10 +35,10 @@ impl TcEnv {
         let report = Report::build(ReportKind::Error, (), 0);
         Some(match error {
             TypeError::ExpectType(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[i.0] else {
+                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
                     unreachable!()
                 };
 
@@ -55,10 +55,10 @@ impl TcEnv {
                 expr_type,
                 expected_type,
             } => {
-                let ValueOrigin::SourceCode(span_expr) = self.value_origins[expr.0] else {
+                let ValueOrigin::SourceCode(span_expr) = self.value_origins[**expr] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span_expected) = self.value_origins[expected_type.0]
+                let ValueOrigin::SourceCode(span_expected) = self.value_origins[**expected_type]
                 else {
                     unreachable!()
                 };
@@ -76,20 +76,20 @@ impl TcEnv {
                     .finish()
             }
             TypeError::IndexOutOfBound(i) => {
-                let ValueOrigin::SourceCode(span) = self.value_origins[i.0] else {
+                let ValueOrigin::SourceCode(span) = self.value_origins[**i] else {
                     unreachable!()
                 };
 
                 report
-                    .with_message(format!("De Bruijn index `{}` out of bounds", i.0))
+                    .with_message(format!("De Bruijn index `{}` out of bounds", *i))
                     .with_label(Label::new(span).with_message("This index is out of bounds."))
                     .finish()
             }
             TypeError::ExpectFn(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[i.0] else {
+                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
                     unreachable!()
                 };
                 report
@@ -105,10 +105,10 @@ impl TcEnv {
                 function_arg_type,
                 arg_type,
             } => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[arg_type.0] else {
+                let ValueOrigin::TypeOf(j) = self.value_origins[**arg_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
                     unreachable!()
                 };
                 let label_arg = Label::new(span).with_message(format!(
@@ -116,10 +116,10 @@ impl TcEnv {
                     self.index_to_sm_string(*arg_type)
                 ));
 
-                let ValueOrigin::TypeOf(j) = self.value_origins[function_type.0] else {
+                let ValueOrigin::TypeOf(j) = self.value_origins[**function_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[j.0] else {
+                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
                     unreachable!()
                 };
                 let label_fn = Label::new(span)
@@ -163,7 +163,7 @@ impl TcEnv {
     fn label_value(&self, mut value: UnionIndex) -> Option<(Span, &'static str)> {
         let mut origin_description = "this value";
         let span = loop {
-            match self.value_origins[value.0] {
+            match self.value_origins[*value] {
                 ValueOrigin::SourceCode(span) => break span,
                 ValueOrigin::TypeOf(sub_value) => {
                     debug_assert_eq!(origin_description, "this value");

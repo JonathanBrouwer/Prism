@@ -23,11 +23,11 @@ impl TcEnv {
     fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
         // We should only type check values from the source code
         debug_assert!(matches!(
-            self.value_origins[i.0],
+            self.value_origins[*i],
             ValueOrigin::SourceCode(_)
         ));
 
-        let t = match self.values[i.0] {
+        let t = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(mut v, b) => {
                 // Check `v`

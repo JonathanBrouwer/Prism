@@ -3,6 +3,8 @@ use crate::lang::error::TypeError;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -51,6 +53,20 @@ pub enum ValueOrigin {
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct UnionIndex(usize);
 
+impl Display for UnionIndex {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}]", self)
+    }
+}
+
+impl Deref for UnionIndex {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr {
     Type,
@@ -69,16 +85,16 @@ impl TcEnv {
         self.store(e, ValueOrigin::SourceCode(span))
     }
 
-    fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
-        self.values.push(e);
-        self.value_origins.push(origin);
-        UnionIndex(self.values.len() - 1)
-    }
-
     pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
         self.store(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
+    }
+
+    fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
+        self.values.push(e);
+        self.value_origins.push(origin);
+        UnionIndex(self.values.len() - 1)
     }
 }

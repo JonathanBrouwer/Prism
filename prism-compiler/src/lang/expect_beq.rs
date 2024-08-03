@@ -30,10 +30,10 @@ impl TcEnv {
     /// Expect `io` to be equal to `Type`.
     pub fn expect_beq_type(&mut self, io: UnionIndex, s: &Env) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
-        match self.values[i.0] {
+        match self.values[*i] {
             PartialExpr::Type => {}
             PartialExpr::Free => {
-                self.values[i.0] = PartialExpr::Type;
+                self.values[*i] = PartialExpr::Type;
                 if !self.handle_constraints(i, &s) {
                     self.errors.push(TypeError::ExpectType(io));
                 }
@@ -50,7 +50,7 @@ impl TcEnv {
     pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 
-        match self.values[fr.0] {
+        match self.values[*fr] {
             PartialExpr::FnType(f_at, f_rt) => {
                 // Check
                 if !self.expect_beq_internal(
@@ -79,7 +79,7 @@ impl TcEnv {
             PartialExpr::Free => {
                 let f_at = self.store(PartialExpr::Free, FreeSub(fr));
                 let f_rt = self.store(PartialExpr::Free, FreeSub(fr));
-                self.values[fr.0] = PartialExpr::FnType(f_at, f_rt);
+                self.values[*fr] = PartialExpr::FnType(f_at, f_rt);
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?

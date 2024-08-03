@@ -19,7 +19,7 @@ impl TcEnv {
         let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2o, s2.clone());
 
-        match (self.values[i1.0], self.values[i2.0]) {
+        match (self.values[*i1], self.values[*i2]) {
             // Type is always equal to Type
             (PartialExpr::Type, PartialExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
@@ -102,7 +102,7 @@ impl TcEnv {
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         debug_assert!(matches!(
-            self.values[i2.0],
+            self.values[*i2],
             PartialExpr::Type
                 | PartialExpr::FnType(_, _)
                 | PartialExpr::FnConstruct(_, _)
@@ -125,7 +125,7 @@ impl TcEnv {
         (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
         (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
-        debug_assert!(matches!(self.values[i2.0], PartialExpr::Free));
+        debug_assert!(matches!(self.values[*i2], PartialExpr::Free));
 
         if self.toxic_values.contains(&i1) {
             self.errors.push(TypeError::InfiniteType(i1, i2));
@@ -133,15 +133,15 @@ impl TcEnv {
         }
 
         // We deliberately don't beta-reduce i1 here since we want to keep the inferred value small
-        return match self.values[i1.0] {
+        return match self.values[*i1] {
             PartialExpr::Type => {
-                self.values[i2.0] = PartialExpr::Type;
+                self.values[*i2] = PartialExpr::Type;
                 self.handle_constraints(i2, s2)
             }
             PartialExpr::Let(v1, b1) => {
                 let v2 = self.store(PartialExpr::Free, FreeSub(i2));
                 let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[i2.0] = PartialExpr::Let(v2, b2);
+                self.values[*i2] = PartialExpr::Let(v2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -179,7 +179,7 @@ impl TcEnv {
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
                         debug_assert_eq!(id, id2);
 
-                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     &CSubst(_, _) => {
@@ -200,7 +200,7 @@ impl TcEnv {
                             return true;
                         };
 
-                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     &RType(id) => {
@@ -230,7 +230,7 @@ impl TcEnv {
                             // TODO return true;
                         }
 
-                        self.values[i2.0] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
                     RSubst(i1, s1) => self.expect_beq_free((*i1, s1, var_map1), (i2, s2, var_map2)),
@@ -241,7 +241,7 @@ impl TcEnv {
             PartialExpr::FnType(a1, b1) => {
                 let a2 = self.store(PartialExpr::Free, FreeSub(i2));
                 let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[i2.0] = PartialExpr::FnType(a2, b2);
+                self.values[*i2] = PartialExpr::FnType(a2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -260,7 +260,7 @@ impl TcEnv {
             PartialExpr::FnConstruct(a1, b1) => {
                 let a2 = self.store(PartialExpr::Free, FreeSub(i2));
                 let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[i2.0] = PartialExpr::FnConstruct(a2, b2);
+                self.values[*i2] = PartialExpr::FnConstruct(a2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -280,7 +280,7 @@ impl TcEnv {
             PartialExpr::FnDestruct(f1, a1) => {
                 let f2 = self.store(PartialExpr::Free, FreeSub(i2));
                 let a2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[i2.0] = PartialExpr::FnDestruct(f2, a2);
+                self.values[*i2] = PartialExpr::FnDestruct(f2, a2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 

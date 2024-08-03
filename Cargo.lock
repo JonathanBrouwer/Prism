@@ -100,26 +100,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
-name = "exhaustive"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c17d918b02c5e21eca6c159d2af826465c29c327677e724abe734d85eac36bb4"
-dependencies = [
- "exhaustive_macros",
-]
-
-[[package]]
-name = "exhaustive_macros"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ac620061b89f3ec8650a31c990f2129797a2f89e0ce8b947901df54a9987a47"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -158,7 +138,6 @@ version = "0.1.0"
 dependencies = [
  "ariadne",
  "clap",
- "exhaustive",
  "itertools",
  "prism-parser",
  "rpds",

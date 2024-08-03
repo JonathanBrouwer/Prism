@@ -9,7 +9,7 @@ impl TcEnv {
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
 
-        match (self.values[i1.0], self.values[i2.0]) {
+        match (self.values[*i1], self.values[*i2]) {
             (PartialExpr::Type, PartialExpr::Type) => {}
             (PartialExpr::DeBruijnIndex(i1), PartialExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {

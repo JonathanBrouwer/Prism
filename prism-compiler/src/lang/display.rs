@@ -38,7 +38,7 @@ impl TcEnv {
         w: &mut impl Write,
         max_precedence: PrecedenceLevel,
     ) -> std::fmt::Result {
-        let e = self.values[i.0];
+        let e = self.values[*i];
 
         if e.precedence_level() < max_precedence {
             write!(w, "(")?;

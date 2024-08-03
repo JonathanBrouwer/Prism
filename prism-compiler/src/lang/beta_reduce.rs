@@ -16,7 +16,7 @@ impl TcEnv {
     ) -> UnionIndex {
         let (i, s) = self.beta_reduce_head(i, s.clone());
 
-        let e_new = match self.values[i.0] {
+        let e_new = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(_, _) => unreachable!(),
             PartialExpr::DeBruijnIndex(v) => {
@@ -50,6 +50,6 @@ impl TcEnv {
             PartialExpr::Shift(_, _) => unreachable!(),
             PartialExpr::TypeAssert(_, _) => unreachable!(),
         };
-        self.store(e_new, self.value_origins[i.0])
+        self.store(e_new, self.value_origins[*i])
     }
 }

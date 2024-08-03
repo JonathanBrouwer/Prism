@@ -14,7 +14,7 @@ impl TcEnv {
         s: &Env,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> UnionIndex {
-        let e_new = match self.values[i.0] {
+        let e_new = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
             PartialExpr::Let(v, b) => {
                 let v = self.simplify_inner(v, s, var_map);
@@ -61,6 +61,6 @@ impl TcEnv {
             }
             PartialExpr::TypeAssert(e, _typ) => return self.simplify_inner(e, s, var_map),
         };
-        self.store(e_new, self.value_origins[i.0])
+        self.store(e_new, self.value_origins[*i])
     }
 }
