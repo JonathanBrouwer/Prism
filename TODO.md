@@ -12,6 +12,8 @@ THE BIG TODO LIST:
   - (T1: Type) (T2: Type) (:T3) -> ...
 - Add a timeout to the exhaustive tests
 - Remove RuleAction, instead returning ActionResults with environments
-- Always write ActionResults to arena. Optimization: Pass flag around in context whether result of value is needed
+- Pass flag around in context whether result of parse is needed
 - queued_tc
-- Make `program` part of self in TcEnv
+- Multi-file support
+  - Make `program` part of self in TcEnv
+- Add type checking to grammar adaptation
