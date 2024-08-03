@@ -1,0 +1,9 @@
+### Input
+let v = Type -> Type;
+(w: v) -> _ _ w
+
+### Eval
+(Type -> Type) -> _ _ #0
+
+### Type
+Type

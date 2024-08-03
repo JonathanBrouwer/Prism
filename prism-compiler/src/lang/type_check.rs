@@ -1,10 +1,9 @@
+use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
 use crate::lang::{PartialExpr, TcEnv};
-use itertools::Itertools;
 use std::mem;
 
 impl TcEnv {
