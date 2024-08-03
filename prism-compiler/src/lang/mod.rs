@@ -69,13 +69,13 @@ impl Deref for UnionIndex {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr {
+    Free,
     Type,
     Let(UnionIndex, UnionIndex),
     DeBruijnIndex(usize),
     FnType(UnionIndex, UnionIndex),
     FnConstruct(UnionIndex, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
-    Free,
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),
 }
@@ -96,5 +96,12 @@ impl TcEnv {
         self.values.push(e);
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)
+    }
+    
+    pub fn reset(&mut self) {
+        self.queued_beq_free.clear();
+        self.errors.clear();
+        self.toxic_values.clear();
+        self.tc_id = 0;
     }
 }

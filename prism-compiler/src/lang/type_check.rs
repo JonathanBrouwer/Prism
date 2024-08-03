@@ -1,10 +1,11 @@
-use crate::lang::env::Env;
+use crate::lang::env::{Env, EnvEntry};
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
+use itertools::Itertools;
 
 impl TcEnv {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
@@ -40,18 +41,14 @@ impl TcEnv {
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
                 PartialExpr::Let(v, bt)
             }
-            PartialExpr::DeBruijnIndex(index) => PartialExpr::Shift(
-                match s.get(index) {
-                    Some(&CType(_, t)) => t,
-                    Some(&CSubst(_, t)) => t,
-                    None => {
-                        self.errors.push(TypeError::IndexOutOfBound(i));
-                        self.store(PartialExpr::Free, ValueOrigin::Failure)
-                    }
-                    _ => unreachable!(),
-                },
-                index + 1,
-            ),
+            PartialExpr::DeBruijnIndex(index) => match s.get(index) {
+                Some(&CType(_, t) | &CSubst(_, t)) => PartialExpr::Shift(t, index + 1),
+                Some(_) => unreachable!(),
+                None => {
+                    self.errors.push(TypeError::IndexOutOfBound(i));
+                    return self.store(PartialExpr::Free, ValueOrigin::Failure)
+                }
+            }
             PartialExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
@@ -101,10 +98,8 @@ impl TcEnv {
                 PartialExpr::Let(a, rt)
             }
             PartialExpr::Free => {
-                let tid = self.store(PartialExpr::Free, ValueOrigin::TypeOf(i));
                 // TODO self.queued_tc.insert(i, (s.clone(), t));
-                self.value_types.insert(i, tid);
-                return tid;
+                PartialExpr::Free
             }
             PartialExpr::Shift(v, shift) => {
                 PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
