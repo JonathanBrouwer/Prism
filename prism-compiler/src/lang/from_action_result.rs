@@ -138,11 +138,11 @@ impl TcEnv {
                         PartialExpr::FnType(v, b)
                     }
                     "FnConstruct" => {
-                        assert_eq!(args.len(), 3);
+                        assert_eq!(args.len(), 2);
                         let name = Self::parse_name(&args[0], program);
 
                         let b = self.insert_from_action_result_rec(
-                            &args[2],
+                            &args[1],
                             program,
                             &vars.insert_name(name, program),
                         );

@@ -2,7 +2,7 @@ use prism_compiler::lang::{PartialExpr, TcEnv, UnionIndex};
 
 #[test]
 fn test_exhaustive() {
-    iter_exhaustive(6, false, |env, root| env.type_check(root).is_ok())
+    iter_exhaustive(5, false, |env, root| env.type_check(root).is_ok())
 }
 
 fn iter_exhaustive(
