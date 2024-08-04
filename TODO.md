@@ -6,14 +6,9 @@ THE BIG TODO LIST:
 - Paramatricity
   - New keyword `paramatricity x`, generates inductor
   - Formalize generating inductor from paramatricity
-- Allow leaving out the type in FnConstruct, so you can do `x => x`
-- Allow binder chains
-  - (v1: T1) (v2: T2) v3 => ...
-  - (T1: Type) (T2: Type) (:T3) -> ...
-- Add a timeout to the exhaustive tests
 - Remove RuleAction, instead returning ActionResults with environments
 - Pass flag around in context whether result of parse is needed
-- queued_tc
+- queued_tc?
 - Multi-file support
   - Make `program` part of self in TcEnv
 - Add type checking to grammar adaptation
