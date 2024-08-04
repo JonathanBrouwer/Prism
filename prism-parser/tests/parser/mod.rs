@@ -39,7 +39,7 @@ macro_rules! parse_test {
             use prism_parser::error::aggregate_error::ParseResultExt;
 
             let syntax: &'static str = $syntax;
-            let grammar: GrammarFile = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
+            let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
 
             $({
             let input: &'static str = $input_pass;

@@ -24,7 +24,7 @@ use by_address::ByAddress;
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_ctx: BlockCtx<'arn, 'grm>,
-    expr: &'arn RuleExpr<'arn, 'grm>,
+    expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
@@ -269,7 +269,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let g: &'arn GrammarFile<'arn, 'grm> = state.alloc.alo_grammarfile.alloc(g);
+                let g: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>> =
+                    state.alloc.alo_grammarfile.alloc(g);
 
                 // Create new grammarstate
                 let (rules, rule_vars) = match rules.adapt_with(g, vars, Some(pos), &state.alloc) {

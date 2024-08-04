@@ -1,34 +1,33 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
 
 pub mod escaped_string;
 pub mod from_action_result;
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'arn, 'grm> {
+pub struct GrammarFile<'grm, Action> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'arn, 'grm>>,
+    pub rules: Vec<Rule<'grm, Action>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'arn, 'grm> {
+pub struct Rule<'grm, Action> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
     #[serde(borrow)]
-    pub blocks: Vec<Block<'arn, 'grm>>,
+    pub blocks: Vec<Block<'grm, Action>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'arn, 'grm>(
+pub struct Block<'grm, Action>(
     pub &'grm str,
-    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'arn, 'grm>>,
+    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, Action>>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'arn, 'grm>(
+pub struct AnnotatedRuleExpr<'grm, Action>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
+    #[serde(borrow)] pub RuleExpr<'grm, Action>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -54,7 +53,7 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleExpr<'arn, 'grm> {
+pub enum RuleExpr<'grm, Action> {
     RunVar(&'grm str, Vec<Self>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
@@ -67,12 +66,12 @@ pub enum RuleExpr<'arn, 'grm> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, RuleAction<'arn, 'grm>),
+    Action(Box<Self>, Action),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
     This,
     Next,
-    AtAdapt(RuleAction<'arn, 'grm>, &'grm str),
+    AtAdapt(Action, &'grm str),
     Guid,
 }

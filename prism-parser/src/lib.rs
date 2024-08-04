@@ -20,10 +20,11 @@ pub mod grammar;
 pub mod parser;
 pub mod rule_action;
 
-pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
-    let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
-    bincode::deserialize(meta_grammar).unwrap()
-});
+pub static META_GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'static>>> =
+    LazyLock::new(|| {
+        let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
+        bincode::deserialize(meta_grammar).unwrap()
+    });
 pub static META_GRAMMAR_STATE: LazyLock<(
     GrammarState<'static, 'static>,
     VarMap<'static, 'static>,
@@ -40,14 +41,9 @@ pub static META_GRAMMAR_STATE: LazyLock<(
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     grammar: &'grm str,
-) -> Result<GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
-    run_parser_rule(
-        &META_GRAMMAR,
-        "toplevel",
-        grammar,
-        |ar, _| -> GrammarFile<'grm, 'grm> {
-            parse_grammarfile(ar, grammar, parse_rule_action)
-                .expect("Grammars parsed by the meta grammar should have a legal AST.")
-        },
-    )
+) -> Result<GrammarFile<'grm, RuleAction<'grm, 'grm>>, AggregatedParseError<'grm, E>> {
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar, _| {
+        parse_grammarfile(ar, grammar, parse_rule_action)
+            .expect("Grammars parsed by the meta grammar should have a legal AST.")
+    })
 }

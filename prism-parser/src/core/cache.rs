@@ -26,7 +26,7 @@ pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 #[derive(Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {
-    pub alo_grammarfile: &'arn Arena<GrammarFile<'arn, 'grm>>,
+    pub alo_grammarfile: &'arn Arena<GrammarFile<'grm, RuleAction<'arn, 'grm>>>,
     pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
     pub alo_ar: &'arn Arena<ActionResult<'arn, 'grm>>,
     pub alo_varmap: &'arn Arena<VarMapNode<'arn, 'grm>>,

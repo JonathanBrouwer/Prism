@@ -23,7 +23,7 @@ impl<'grm> TopoSet<'grm> {
         }
     }
 
-    pub fn update<'arn>(&mut self, grm: &Rule<'arn, 'grm>) {
+    pub fn update<T>(&mut self, grm: &Rule<'grm, T>) {
         for b in grm.blocks.windows(2) {
             let b1 = b[0].0;
             let b2 = b[1].0;
