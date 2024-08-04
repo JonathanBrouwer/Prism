@@ -7,10 +7,9 @@ use prism_parser::parser::parser_instance::run_parser_rule;
 use prism_parser::rule_action::RuleAction;
 use std::sync::LazyLock;
 
-pub static GRAMMAR: LazyLock<GrammarFile<'static, RuleAction<'static, 'static>>> =
-    LazyLock::new(|| {
-        parse_grammar::<SetError>(include_str!("../resources/grammar")).unwrap_or_eprint()
-    });
+pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
+    parse_grammar::<SetError>(include_str!("../resources/grammar")).unwrap_or_eprint()
+});
 
 pub fn parse_prism_in_env<'p>(
     program: &'p str,

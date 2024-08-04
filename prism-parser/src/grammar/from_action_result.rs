@@ -3,6 +3,7 @@ use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
+use crate::rule_action::RuleAction;
 
 #[macro_export]
 macro_rules! result_match {
@@ -19,11 +20,14 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<GrammarFile<'grm, Action>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<GrammarFile<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
@@ -33,11 +37,14 @@ pub fn parse_grammarfile<'arn, 'grm, Action>(
     }
 }
 
-fn parse_rule<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_rule<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<Rule<'grm, Action>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, args, blocks],
@@ -49,11 +56,14 @@ fn parse_rule<'arn, 'grm, Action>(
     }
 }
 
-fn parse_block<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_block<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<Block<'grm, Action>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<Block<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, cs],
@@ -61,21 +71,27 @@ fn parse_block<'arn, 'grm, Action>(
     }
 }
 
-fn parse_constructors<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_constructors<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<Vec<AnnotatedRuleExpr<'grm, Action>>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<Vec<AnnotatedRuleExpr<'arn_out, 'grm>>> {
     result_match! {
         create r.iter_list().map(|c| parse_annotated_rule_expr(c, src, parse_a)).collect::<Option<Vec<_>>>()?
     }
 }
 
-fn parse_annotated_rule_expr<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<AnnotatedRuleExpr<'grm, Action>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<AnnotatedRuleExpr<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
@@ -83,8 +99,8 @@ fn parse_annotated_rule_expr<'arn, 'grm, Action>(
     }
 }
 
-fn parse_rule_annotation<'arn, 'grm>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_rule_annotation<'arn_in, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
 ) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
@@ -97,11 +113,14 @@ fn parse_rule_annotation<'arn, 'grm>(
     })
 }
 
-fn parse_rule_expr<'arn, 'grm, Action>(
-    r: &'arn ActionResult<'arn, 'grm>,
+fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
+    r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
-    parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
-) -> Option<RuleExpr<'grm, Action>> {
+    parse_a: fn(
+        &'arn_in ActionResult<'arn_in, 'grm>,
+        src: &'grm str,
+    ) -> Option<RuleAction<'arn_out, 'grm>>,
+) -> Option<RuleExpr<'arn_out, 'grm>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             Box::new(parse_rule_expr(&b[0], src, parse_a)?),

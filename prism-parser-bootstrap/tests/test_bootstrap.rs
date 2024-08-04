@@ -7,10 +7,10 @@ use prism_parser::META_GRAMMAR;
 
 #[cfg_attr(not(debug_assertions), test)]
 pub fn test_bootstrap() {
-    let grammar: &'static GrammarFile<RuleAction> = &META_GRAMMAR;
+    let grammar: &'static GrammarFile = &META_GRAMMAR;
 
     let input = include_str!("../resources/meta.grammar");
     let grammar2 = parse_grammar::<SetError>(input).unwrap_or_eprint();
 
-    assert!(grammar == &grammar2, "Meta grammar is not up-to-date"); // Check if grammar file needs to be updated
+    assert_eq!(grammar, &grammar2, "Meta grammar is not up-to-date"); // Check if grammar file needs to be updated
 }
