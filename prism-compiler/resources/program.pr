@@ -1,2 +1,1 @@
-let v = Type -> Type;
-(w: v) -> _ _ w
+(t: Type) => t

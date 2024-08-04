@@ -1,13 +1,13 @@
 ### Input
 let Nat = (T: Type) -> T -> (T -> T) -> T;
-let zero = T: Type => z: T => s: (T -> T) => z;
+let zero = (T: Type) => (z: T) => (s: T -> T) => z;
 // add1 : Nat -> Nat
-let add1 = n: Nat => T: Type => z: T => s: (T -> T) => s (n T z s);
+let add1 = (n: Nat) => (T: Type) => (z: T) => (s: T -> T) => s (n T z s);
 
 add1 zero
 
 ### Eval
-T: Type => z: T => s: (T -> T) => s z
+(T: Type) => (z: T) => (s: T -> T) => s z
 
 ### Type
 (T: Type) -> T -> (T -> T) -> T

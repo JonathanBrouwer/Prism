@@ -1,8 +1,8 @@
 ### Input
-f: (Type -> Type) => f Type
+(f: Type -> Type) => f Type
 
 ### Eval
-f: (Type -> Type) => f Type
+(f: Type -> Type) => f Type
 
 ### Type
 (Type -> Type) -> Type

@@ -1,5 +1,5 @@
 ### Input
-let v = w: Type => w;
+let v = (w: Type) => w;
 v Type
 
 ### Eval

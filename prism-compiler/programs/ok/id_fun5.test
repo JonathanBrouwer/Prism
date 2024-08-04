@@ -1,5 +1,5 @@
 ### Input
-(T: Type => v: T => v) Type Type
+((T: Type) => (v: T) => v) Type Type
 
 ### Eval
 Type

@@ -1,10 +1,10 @@
 ### Input
 let v = Type -> Type;
-let w = x: v => x;
+let w = (x: v) => x;
 w
 
 ### Eval
-v: (Type -> Type) => v
+(v: Type -> Type) => v
 
 ### Type
 (Type -> Type) -> (Type -> Type)

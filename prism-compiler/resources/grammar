@@ -9,7 +9,7 @@ rule expr {
     }
     group fnconstruct {
         FnConstruct(n, Let("_", TypeAssert(n, t), r)) <- "(" n:identifier ":" t:#next ")" "=>" r:#this;
-        FnConstruct(n, Let("_", TypeAssert(n, t), r)) <- n:identifier ":" t:#next "=>" r:#this;
+        FnConstruct(n, r) <- n:identifier "=>" r:#this;
     }
     group fntype {
         FnType(n, at, bt) <- "(" n:identifier ":" at:#this ")" "->" bt:#this;

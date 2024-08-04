@@ -1,5 +1,5 @@
 ### Input
-(_: Type => _) Type
+((_: Type) => _) Type
 
 ### Eval
 _

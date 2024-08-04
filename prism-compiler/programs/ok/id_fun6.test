@@ -1,8 +1,8 @@
 ### Input
-(T: Type => v: T => v) (Type -> Type)
+((T: Type) => (v: T) => v) (Type -> Type)
 
 ### Eval
-f: (Type -> Type) => f
+(f: Type -> Type) => f
 
 ### Type
 (Type -> Type) -> (Type -> Type)
