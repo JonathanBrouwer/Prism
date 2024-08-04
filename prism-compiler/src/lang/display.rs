@@ -19,7 +19,7 @@ impl PartialExpr {
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
             PartialExpr::Let(_, _) => PrecedenceLevel::Let,
-            PartialExpr::FnConstruct(_, _) => PrecedenceLevel::Construct,
+            PartialExpr::FnConstruct(_) => PrecedenceLevel::Construct,
             PartialExpr::FnType(_, _) => PrecedenceLevel::FnType,
             PartialExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
             PartialExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
@@ -58,9 +58,8 @@ impl TcEnv {
                 write!(w, " -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            PartialExpr::FnConstruct(a, b) => {
-                self.display(a, w, PrecedenceLevel::FnType)?;
-                write!(w, " => ")?;
+            PartialExpr::FnConstruct(b) => {
+                write!(w, "=> ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
             PartialExpr::FnDestruct(a, b) => {

@@ -141,14 +141,13 @@ impl TcEnv {
                         assert_eq!(args.len(), 3);
                         let name = Self::parse_name(&args[0], program);
 
-                        let v = self.insert_from_action_result_rec(&args[1], program, vars);
                         let b = self.insert_from_action_result_rec(
                             &args[2],
                             program,
                             &vars.insert_name(name, program),
                         );
 
-                        PartialExpr::FnConstruct(v, b)
+                        PartialExpr::FnConstruct(b)
                     }
                     "FnDestruct" => {
                         assert_eq!(args.len(), 2);

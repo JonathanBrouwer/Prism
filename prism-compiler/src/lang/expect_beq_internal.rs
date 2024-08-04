@@ -59,8 +59,7 @@ impl TcEnv {
                 a_equal && b_equal
             }
             // Function construct works the same as above
-            (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
-                let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
+            (PartialExpr::FnConstruct(b1), PartialExpr::FnConstruct(b2)) => {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -68,7 +67,7 @@ impl TcEnv {
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
                 );
-                a_equal && b_equal
+                b_equal
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
@@ -105,16 +104,15 @@ impl TcEnv {
             self.values[*i2],
             PartialExpr::Type
                 | PartialExpr::FnType(_, _)
-                | PartialExpr::FnConstruct(_, _)
+                | PartialExpr::FnConstruct(_)
                 | PartialExpr::DeBruijnIndex(_)
         ));
 
         // We are in the case `f1 a1 = i2`
         // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
         // We construct a value in scope 2 and set them equal
-        let a = self.store(PartialExpr::Free, FreeSub(i2));
         let b = self.store(PartialExpr::Shift(i2, 1), FreeSub(i2));
-        let f = self.store(PartialExpr::FnConstruct(a, b), FreeSub(i2));
+        let f = self.store(PartialExpr::FnConstruct(b), FreeSub(i2));
         self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2))
     }
 
@@ -257,15 +255,13 @@ impl TcEnv {
 
                 constraints_eq && a_eq && b_eq
             }
-            PartialExpr::FnConstruct(a1, b1) => {
-                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
+            PartialExpr::FnConstruct(b1) => {
                 let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[*i2] = PartialExpr::FnConstruct(a2, b2);
+                self.values[*i2] = PartialExpr::FnConstruct(b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
                 self.toxic_values.insert(i2);
-                let a_eq = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
 
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
@@ -275,7 +271,7 @@ impl TcEnv {
                     (b2, &s2.cons(RType(id)), var_map2),
                 );
 
-                constraints_eq && a_eq && b_eq
+                constraints_eq && b_eq
             }
             PartialExpr::FnDestruct(f1, a1) => {
                 let f2 = self.store(PartialExpr::Free, FreeSub(i2));

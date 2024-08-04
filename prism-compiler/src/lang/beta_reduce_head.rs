@@ -45,7 +45,7 @@ impl TcEnv {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PartialExpr::FnConstruct(_, b) => match args.pop() {
+                PartialExpr::FnConstruct(b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;

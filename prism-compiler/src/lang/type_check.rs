@@ -64,14 +64,8 @@ impl TcEnv {
 
                 PartialExpr::Type
             }
-            PartialExpr::FnConstruct(mut a, b) => {
-                let err_count = self.errors.len();
-                let at = self._type_check(a, s);
-                self.expect_beq_type(at, s);
-                if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
-                }
-
+            PartialExpr::FnConstruct(b) => {
+                let a = self.store(PartialExpr::Free, ValueOrigin::FreeSub(i));
                 let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
                 PartialExpr::FnType(a, bt)

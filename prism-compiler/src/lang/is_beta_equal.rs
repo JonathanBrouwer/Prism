@@ -33,10 +33,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (PartialExpr::FnConstruct(a1, b1), PartialExpr::FnConstruct(a2, b2)) => {
-                if !self.is_beta_equal(a1, &s1, a2, &s2) {
-                    return false;
-                }
+            (PartialExpr::FnConstruct(b1), PartialExpr::FnConstruct(b2)) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;

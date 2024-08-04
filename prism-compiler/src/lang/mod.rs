@@ -74,7 +74,7 @@ pub enum PartialExpr {
     Let(UnionIndex, UnionIndex),
     DeBruijnIndex(usize),
     FnType(UnionIndex, UnionIndex),
-    FnConstruct(UnionIndex, UnionIndex),
+    FnConstruct(UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),

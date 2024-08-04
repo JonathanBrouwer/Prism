@@ -33,13 +33,12 @@ impl TcEnv {
                 var_map.remove(&id);
                 PartialExpr::FnType(a, b)
             }
-            PartialExpr::FnConstruct(a, b) => {
-                let a = self.beta_reduce_inner(a, &s, var_map);
+            PartialExpr::FnConstruct(b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnConstruct(a, b)
+                PartialExpr::FnConstruct(b)
             }
             PartialExpr::FnDestruct(a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
