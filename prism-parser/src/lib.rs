@@ -12,6 +12,7 @@ use crate::grammar::GrammarFile;
 use crate::parser::parser_instance::run_parser_rule;
 use crate::parser::var_map::VarMap;
 use crate::rule_action::from_action_result::parse_rule_action;
+use crate::rule_action::RuleAction;
 
 pub mod core;
 pub mod error;

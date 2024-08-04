@@ -63,11 +63,11 @@ impl TcEnv {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
-
-                self.expect_beq_internal(
+                let b_equal = self.expect_beq_internal(
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
-                )
+                );
+                b_equal
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope

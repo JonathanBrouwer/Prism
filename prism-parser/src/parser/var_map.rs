@@ -8,6 +8,7 @@ use crate::error::ParseError;
 use crate::grammar::RuleExpr;
 use crate::parser::parser_rule_expr::parser_expr;
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;

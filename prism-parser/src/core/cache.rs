@@ -11,6 +11,7 @@ use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
 use crate::parser::var_map::{BlockCtx, VarMapNode};
 use crate::rule_action::action_result::ActionResult;
+use crate::rule_action::RuleAction;
 use typed_arena::Arena;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
