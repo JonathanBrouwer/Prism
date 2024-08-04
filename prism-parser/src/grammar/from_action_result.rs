@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
@@ -158,8 +159,11 @@ pub(crate) fn parse_identifier<'grm>(
 ) -> Option<&'grm str> {
     match r {
         Value(span) => Some(&src[*span]),
-        // If the identifier of a block is a literal, its always empty
-        Literal(s) if s.chars().next().is_none() => Some(""),
+        // If the identifier of a block is a literal, it does not contain escaped chars
+        Literal(s) => match s.to_cow() {
+            Cow::Borrowed(s) => Some(s),
+            Cow::Owned(_) => None
+        }
         _ => None,
     }
 }

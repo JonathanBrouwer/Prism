@@ -237,40 +237,55 @@
                           "Name": "params"
                         },
                         {
-                          "Cons": [
-                            {
-                              "Construct": [
-                                "Block",
-                                [
-                                  {
-                                    "InputLiteral": ""
-                                  },
-                                  {
-                                    "Cons": [
-                                      {
-                                        "Construct": [
-                                          "AnnotatedExpr",
-                                          [
-                                            {
-                                              "Nil": []
-                                            },
-                                            {
-                                              "Name": "expr"
-                                            }
-                                          ]
+                          "Construct": [
+                            "Cons",
+                            [
+                              {
+                                "Construct": [
+                                  "Block",
+                                  [
+                                    {
+                                      "InputLiteral": ""
+                                    },
+                                    {
+                                      "Construct": [
+                                        "Cons",
+                                        [
+                                          {
+                                            "Construct": [
+                                              "AnnotatedExpr",
+                                              [
+                                                {
+                                                  "Construct": [
+                                                    "Nil",
+                                                    []
+                                                  ]
+                                                },
+                                                {
+                                                  "Name": "expr"
+                                                }
+                                              ]
+                                            ]
+                                          },
+                                          {
+                                            "Construct": [
+                                              "Nil",
+                                              []
+                                            ]
+                                          }
                                         ]
-                                      },
-                                      {
-                                        "Nil": []
-                                      }
-                                    ]
-                                  }
+                                      ]
+                                    }
+                                  ]
                                 ]
-                              ]
-                            },
-                            {
-                              "Nil": []
-                            }
+                              },
+                              {
+                                "Construct": [
+                                  "Nil",
+                                  []
+                                ]
+                              }
+                            ]
                           ]
                         }
                       ]
@@ -338,7 +353,10 @@
                     "Literal": ""
                   },
                   {
-                    "Nil": []
+                    "Construct": [
+                      "Nil",
+                      []
+                    ]
                   }
                 ]
               }
@@ -461,23 +479,29 @@
                     ]
                   },
                   {
-                    "Cons": [
-                      {
-                        "Construct": [
-                          "Block",
-                          [
-                            {
-                              "InputLiteral": ""
-                            },
-                            {
-                              "Name": "c"
-                            }
+                    "Construct": [
+                      "Cons",
+                      [
+                        {
+                          "Construct": [
+                            "Block",
+                            [
+                              {
+                                "InputLiteral": ""
+                              },
+                              {
+                                "Name": "c"
+                              }
+                            ]
                           ]
-                        ]
-                      },
-                      {
-                        "Nil": []
-                      }
+                        },
+                        {
+                          "Construct": [
+                            "Nil",
+                            []
+                          ]
+                        }
+                      ]
                     ]
                   }
                 ]
@@ -1014,7 +1038,10 @@
                             "Sequence",
                             [
                               {
-                                "Nil": []
+                                "Construct": [
+                                  "Nil",
+                                  []
+                                ]
                               }
                             ]
                           ]
@@ -1063,7 +1090,10 @@
                             "Sequence",
                             [
                               {
-                                "Nil": []
+                                "Construct": [
+                                  "Nil",
+                                  []
+                                ]
                               }
                             ]
                           ]
@@ -1116,7 +1146,10 @@
                             "Sequence",
                             [
                               {
-                                "Nil": []
+                                "Construct": [
+                                  "Nil",
+                                  []
+                                ]
                               }
                             ]
                           ]
@@ -1585,7 +1618,10 @@
                           "Name": "n"
                         },
                         {
-                          "Nil": []
+                          "Construct": [
+                            "Nil",
+                            []
+                          ]
                         }
                       ]
                     ]
@@ -2712,13 +2748,36 @@
                   },
                   {
                     "Construct": [
-                      "Cons",
+                      "Construct",
                       [
                         {
-                          "Name": "h"
+                          "InputLiteral": "Cons"
                         },
                         {
-                          "Name": "t"
+                          "Construct": [
+                            "Cons",
+                            [
+                              {
+                                "Name": "h"
+                              },
+                              {
+                                "Construct": [
+                                  "Cons",
+                                  [
+                                    {
+                                      "Name": "t"
+                                    },
+                                    {
+                                      "Construct": [
+                                        "Nil",
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
                         }
                       ]
                     ]
@@ -2740,8 +2799,18 @@
                   },
                   {
                     "Construct": [
-                      "Nil",
-                      []
+                      "Construct",
+                      [
+                        {
+                          "InputLiteral": "Nil"
+                        },
+                        {
+                          "Construct": [
+                            "Nil",
+                            []
+                          ]
+                        }
+                      ]
                     ]
                   }
                 ]

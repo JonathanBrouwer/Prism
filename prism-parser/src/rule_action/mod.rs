@@ -13,8 +13,6 @@ pub enum RuleAction<'arn, 'grm> {
     InputLiteral(EscapedString<'grm>),
     // TODO use more efficient structure than Vec for this
     Construct(&'grm str, Vec<Self>),
-    Cons(Box<Self>, Box<Self>),
-    Nil(),
     #[serde(skip)]
     ActionResult(&'arn ActionResult<'arn, 'grm>),
 }

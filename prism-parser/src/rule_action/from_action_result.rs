@@ -9,13 +9,8 @@ pub fn parse_rule_action<'arn, 'grm>(
     src: &'grm str,
 ) -> Option<RuleAction<'arn, 'grm>> {
     Some(match r {
-        Construct(_, "Cons", b) => RuleAction::Cons(
-            Box::new(parse_rule_action(&b[0], src)?),
-            Box::new(parse_rule_action(&b[1], src)?),
-        ),
-        Construct(_, "Nil", _) => RuleAction::Nil(),
         Construct(_, "Construct", b) => RuleAction::Construct(
-            parse_identifier(&b[0], src)?,
+            parse_identifier(&b[0], src).unwrap(),
             result_match! {
                 create b[1].iter_list().map(|sub| parse_rule_action(sub, src)).collect::<Option<Vec<_>>>()?
             }?,

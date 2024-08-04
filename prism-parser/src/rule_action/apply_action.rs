@@ -33,12 +33,6 @@ pub fn apply_action<'arn, 'grm>(
             let args_vals = allocs.alo_ar.alloc_extend(buffer);
             ActionResult::Construct(span, name, args_vals)
         }
-        RuleAction::Cons(h, t) => {
-            let head = apply_action(h, span, vars, allocs);
-            let tail = apply_action(t, span, vars, allocs);
-            ActionResult::Construct(span, "Cons", allocs.alo_ar.alloc_extend([head, tail]))
-        }
-        RuleAction::Nil() => ActionResult::Construct(span, "Nil", &[]),
         RuleAction::ActionResult(ar) => ActionResult::WithEnv(vars, ar),
     }
 }
