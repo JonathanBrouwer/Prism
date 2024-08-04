@@ -5,7 +5,6 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
 use crate::core::adaptive::{Constructor, GrammarState};
-use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 
 use crate::core::context::ParserContext;

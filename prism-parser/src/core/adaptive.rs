@@ -3,7 +3,6 @@ use crate::core::pos::Pos;
 use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
-use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
