@@ -14,7 +14,7 @@ license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
 # Internal
-prism-parser = { path = "./prism-parser", version = "0.1" }
+prism-parser = { path = "./prism-parser", version = "0.1", features = ["serde_leaking_action_result"] }
 
 # External
 clap = { version = "4.5.8", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }

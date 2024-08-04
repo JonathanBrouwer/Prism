@@ -14,3 +14,6 @@ ariadne.workspace = true
 by_address.workspace = true
 typed-arena.workspace = true
 stacker.workspace = true
+
+[features]
+serde_leaking_action_result = []
