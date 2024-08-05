@@ -34,10 +34,7 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
         self.cache.get(&key).map(|v| v.read)
     }
 
-    pub(crate) fn cache_get(
-        &mut self,
-        key: &CacheKey,
-    ) -> Option<&CacheVal<'arn, 'grm, E>> {
+    pub(crate) fn cache_get(&mut self, key: &CacheKey) -> Option<&CacheVal<'arn, 'grm, E>> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
             Some(&v.value)
@@ -46,11 +43,7 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
         }
     }
 
-    pub(crate) fn cache_insert(
-        &mut self,
-        key: CacheKey,
-        value: CacheVal<'arn, 'grm, E>,
-    ) {
+    pub(crate) fn cache_insert(&mut self, key: CacheKey, value: CacheVal<'arn, 'grm, E>) {
         self.cache
             .insert(key.clone(), ParserCacheEntry { read: false, value });
         self.cache_stack.push(key);

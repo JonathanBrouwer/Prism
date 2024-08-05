@@ -24,9 +24,8 @@ pub fn apply_action<'arn, 'grm>(
         }
         RuleAction::InputLiteral(lit) => ActionResult::Literal(*lit),
         RuleAction::Construct(name, args) => {
-            let args_vals = allocs.alloc_extend(args
-                .iter()
-                .map(|a| apply_action(a, span, vars, allocs)));
+            let args_vals =
+                allocs.alloc_extend(args.iter().map(|a| apply_action(a, span, vars, allocs)));
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::ActionResult(ar) => ActionResult::WithEnv(vars, ar),

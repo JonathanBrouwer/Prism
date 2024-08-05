@@ -1,22 +1,25 @@
 use crate::core::adaptive::RuleId;
-use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::parser::var_map::VarMap;
 use crate::grammar::serde_leak::*;
+use crate::parser::var_map::VarMap;
+use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, #[serde(with="leak_slice")] &'arn [ActionResult<'arn, 'grm>]),
+    Construct(
+        Span,
+        &'grm str,
+        #[serde(with = "leak_slice")] &'arn [ActionResult<'arn, 'grm>],
+    ),
     Guid(usize),
     RuleId(RuleId),
     #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
-
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
     pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {

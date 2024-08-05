@@ -1,5 +1,3 @@
-use bumpalo::Bump;
-use by_address::ByAddress;
 use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
@@ -14,6 +12,8 @@ use crate::grammar::GrammarFile;
 use crate::parser::var_map::{BlockCtx, VarMap};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
+use bumpalo::Bump;
+use by_address::ByAddress;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
@@ -46,7 +46,7 @@ impl<'arn> Allocs<'arn> {
 
     pub fn new_leaking() -> Self {
         Self {
-            bump: Box::leak(Box::new(Bump::new()))
+            bump: Box::leak(Box::new(Bump::new())),
         }
     }
 
@@ -54,7 +54,10 @@ impl<'arn> Allocs<'arn> {
         self.bump.alloc(t)
     }
 
-    pub fn alloc_extend<T: Copy, I: IntoIterator<Item=T, IntoIter: ExactSizeIterator>>(&self, iter: I) -> &'arn [T] {
+    pub fn alloc_extend<T: Copy, I: IntoIterator<Item = T, IntoIter: ExactSizeIterator>>(
+        &self,
+        iter: I,
+    ) -> &'arn [T] {
         self.bump.alloc_slice_fill_iter(iter)
     }
 

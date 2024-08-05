@@ -1,4 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -13,7 +14,6 @@ use by_address::ByAddress;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
-use crate::core::cache::Allocs;
 
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
@@ -65,9 +65,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 
     pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)> {
-        VarMapIterator {
-            current: self.0,
-        }
+        VarMapIterator { current: self.0 }
     }
 
     #[must_use]
@@ -103,16 +101,13 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         let s = Self::default();
         s.extend(iter, alloc)
     }
-    
+
     pub fn as_ptr(&self) -> *const VarMapNode {
         self.0.map(|r| r as *const VarMapNode).unwrap_or(null())
     }
 }
 
-pub type BlockCtx<'arn, 'grm> = (
-    &'arn [BlockState<'arn, 'grm>],
-    VarMap<'arn, 'grm>,
-);
+pub type BlockCtx<'arn, 'grm> = (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>);
 
 #[derive(Copy, Clone)]
 pub struct CapturedExpr<'arn, 'grm> {

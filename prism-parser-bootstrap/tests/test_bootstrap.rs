@@ -15,6 +15,10 @@ pub fn test_bootstrap() {
     let bump = Bump::new();
     let alloc = Allocs::new(&bump);
     let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
-    
-    assert_eq!(bincode::serialize(&grammar).unwrap(), bincode::serialize(&grammar2).unwrap(), "Meta grammar is not up-to-date"); // Check if grammar file needs to be updated
+
+    assert_eq!(
+        bincode::serialize(&grammar).unwrap(),
+        bincode::serialize(&grammar2).unwrap(),
+        "Meta grammar is not up-to-date"
+    ); // Check if grammar file needs to be updated
 }

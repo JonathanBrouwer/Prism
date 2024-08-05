@@ -194,10 +194,7 @@ pub struct BlockState<'arn, 'grm> {
     pub constructors: Vec<Constructor<'arn, 'grm>>,
 }
 
-pub type Constructor<'arn, 'grm> = (
-    &'arn AnnotatedRuleExpr<'arn, 'grm>,
-    VarMap<'arn, 'grm>,
-);
+pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<'arn, 'grm>);
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
     pub fn new(block: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>) -> Self {
@@ -207,11 +204,7 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
         }
     }
 
-    pub fn update(
-        &mut self,
-        b: &'arn Block<'arn, 'grm>,
-        ctx: VarMap<'arn, 'grm>,
-    ) {
+    pub fn update(&mut self, b: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>) {
         assert_eq!(self.name, b.0);
         self.constructors.extend(b.1.iter().map(|r| (r, ctx)));
     }

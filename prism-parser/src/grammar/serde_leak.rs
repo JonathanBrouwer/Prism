@@ -1,9 +1,9 @@
+use serde::de::{SeqAccess, Visitor};
+use serde::ser::SerializeSeq;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::{SeqAccess, Visitor};
-use serde::ser::SerializeSeq;
 
 pub mod leak_slice {
     use super::*;
@@ -16,7 +16,9 @@ pub mod leak_slice {
         seq.end()
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(deserializer: D) -> Result<&'de [T], D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+        deserializer: D,
+    ) -> Result<&'de [T], D::Error> {
         struct VecVisitor<T> {
             marker: PhantomData<T>,
         }
@@ -53,12 +55,14 @@ pub mod leak_slice {
 
 pub mod leak {
     use super::*;
-    
+
     pub fn serialize<S: Serializer, T: Serialize>(x: &T, s: S) -> Result<S::Ok, S::Error> {
         x.serialize(s)
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(deserializer: D) -> Result<&'de T, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+        deserializer: D,
+    ) -> Result<&'de T, D::Error> {
         Ok(Box::leak(Box::new(T::deserialize(deserializer)?)))
     }
 }

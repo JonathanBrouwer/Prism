@@ -1,10 +1,10 @@
 use crate::lang::error::TypeError;
 use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
+use prism_parser::core::cache::Allocs;
 use prism_parser::parser::var_map::{VarMap, VarMapValue};
 use prism_parser::rule_action::action_result::ActionResult;
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
-use prism_parser::core::cache::Allocs;
 
 #[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {

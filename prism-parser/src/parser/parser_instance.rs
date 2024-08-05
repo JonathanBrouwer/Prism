@@ -1,4 +1,3 @@
-use bumpalo::Bump;
 use crate::core::adaptive::{AdaptError, GrammarState};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
@@ -15,6 +14,7 @@ use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
+use bumpalo::Bump;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,

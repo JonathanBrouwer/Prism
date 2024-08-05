@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use bumpalo::Bump;
+use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::from_action_result::parse_grammarfile;
@@ -9,8 +11,6 @@ use prism_parser::rule_action::from_action_result::parse_rule_action;
 use prism_parser::rule_action::RuleAction;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
-use bumpalo::Bump;
-use prism_parser::core::cache::Allocs;
 
 fn main() {
     normal();
@@ -54,8 +54,7 @@ fn part2() {
     );
     let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
 
-    let grammar2: GrammarFile =
-        parse_grammarfile(&result, input, parse_rule_action).unwrap();
+    let grammar2: GrammarFile = parse_grammarfile(&result, input, parse_rule_action).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();

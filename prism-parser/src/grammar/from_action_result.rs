@@ -1,10 +1,10 @@
-use std::borrow::Cow;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;
+use std::borrow::Cow;
 
 #[macro_export]
 macro_rules! result_match {
@@ -181,8 +181,8 @@ pub(crate) fn parse_identifier<'grm>(
         // If the identifier of a block is a literal, it does not contain escaped chars
         Literal(s) => match s.to_cow() {
             Cow::Borrowed(s) => Some(s),
-            Cow::Owned(_) => None
-        }
+            Cow::Owned(_) => None,
+        },
         _ => None,
     }
 }

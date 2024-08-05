@@ -101,23 +101,23 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p =
-                    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
-                        let mut res = PResult::new_empty((), pos);
-                        for char in literal.chars() {
-                            res = res
-                                .merge_seq_parser(&single(|c| *c == char), state, context)
-                                .map(|_| ());
-                        }
-                        let mut res = res.map_with_span(|_, span| {
-                            &*state.alloc.alloc(ActionResult::Value(span))
-                        });
-                        res.add_label_implicit(ErrorLabel::Literal(
-                            pos.span_to(res.end_pos().next(state.input).0),
-                            *literal,
-                        ));
-                        res
-                    };
+                let p = move |pos: Pos,
+                              state: &mut PState<'arn, 'grm, E>,
+                              context: ParserContext| {
+                    let mut res = PResult::new_empty((), pos);
+                    for char in literal.chars() {
+                        res = res
+                            .merge_seq_parser(&single(|c| *c == char), state, context)
+                            .map(|_| ());
+                    }
+                    let mut res =
+                        res.map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
+                    res.add_label_implicit(ErrorLabel::Literal(
+                        pos.span_to(res.end_pos().next(state.input).0),
+                        *literal,
+                    ));
+                    res
+                };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
                 p.parse(pos, state, context).map(PR::with_rtrn)
@@ -138,20 +138,16 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 .parse(pos, state, context);
 
                 res.map_with_span(|rtrn, span| {
-                    PR::with_rtrn(
-                        rtrn.iter().rfold(
-                            &*state
-                                .alloc
-                                .alloc(ActionResult::Construct(span, "Nil", &[])),
-                            |rest, next| {
-                                &*state.alloc.alloc(ActionResult::Construct(
-                                    span,
-                                    "Cons",
-                                    state.alloc.alloc_extend([*next.rtrn, *rest]),
-                                ))
-                            },
-                        ),
-                    )
+                    PR::with_rtrn(rtrn.iter().rfold(
+                        &*state.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
+                        |rest, next| {
+                            &*state.alloc.alloc(ActionResult::Construct(
+                                span,
+                                "Cons",
+                                state.alloc.alloc_extend([*next.rtrn, *rest]),
+                            ))
+                        },
+                    ))
                 })
             }
             RuleExpr::Sequence(subs) => {
@@ -196,9 +192,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
                 res.map(|mut res| {
-                    res.free =
-                        res.free
-                            .insert(name, VarMapValue::Value(res.rtrn), state.alloc);
+                    res.free = res
+                        .free
+                        .insert(name, VarMapValue::Value(res.rtrn), state.alloc);
                     res
                 })
             }
@@ -227,11 +223,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::This => parser_body_cache_recurse(rules, block_ctx)
                 .parse(pos, state, context)
                 .map(PR::with_rtrn),
-            RuleExpr::Next => {
-                parser_body_cache_recurse(rules, (&block_ctx.0[1..], block_ctx.1))
-                    .parse(pos, state, context)
-                    .map(PR::with_rtrn)
-            }
+            RuleExpr::Next => parser_body_cache_recurse(rules, (&block_ctx.0[1..], block_ctx.1))
+                .parse(pos, state, context)
+                .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => {
                 positive_lookahead(&parser_expr(rules, block_ctx, sub, vars))
                     .parse(pos, state, context)
@@ -245,10 +239,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // First, get the grammar actionresult
                 //TODO match this logic with RuleExpr::Action
                 //TODO maybe refactor AtAdapt to take an identifier instead of RuleAction
-                let gr =
-                    state
-                        .alloc
-                        .alloc(apply_action(ga, Span::invalid(), vars, &state.alloc));
+                let gr = state
+                    .alloc
+                    .alloc(apply_action(ga, Span::invalid(), vars, &state.alloc));
 
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
@@ -268,8 +261,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let g: &'arn GrammarFile<'arn, 'grm> =
-                    state.alloc.alloc_leak(g);
+                let g: &'arn GrammarFile<'arn, 'grm> = state.alloc.alloc_leak(g);
 
                 // Create new grammarstate
                 let (rules, rule_vars) = match rules.adapt_with(g, vars, Some(pos), state.alloc) {

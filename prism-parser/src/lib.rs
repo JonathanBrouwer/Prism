@@ -1,6 +1,6 @@
+use bumpalo::Bump;
 use std::collections::HashMap;
 use std::sync::LazyLock;
-use bumpalo::Bump;
 
 use grammar::from_action_result::parse_grammarfile;
 
@@ -21,11 +21,10 @@ pub mod grammar;
 pub mod parser;
 pub mod rule_action;
 
-pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> =
-    LazyLock::new(|| {
-        let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
-        bincode::deserialize(meta_grammar).unwrap()
-    });
+pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
+    let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
+    bincode::deserialize(meta_grammar).unwrap()
+});
 pub static META_GRAMMAR_STATE: LazyLock<(
     GrammarState<'static, 'static>,
     VarMap<'static, 'static>,
