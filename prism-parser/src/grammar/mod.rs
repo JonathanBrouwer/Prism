@@ -6,6 +6,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::PState;
 use crate::error::ParseError;
+use crate::grammar::test::RuleAction;
 
 pub mod escaped_string;
 pub mod from_action_result;
@@ -61,7 +62,7 @@ pub enum RuleAnnotation<'grm> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub enum RuleExpr<'grm, Action> {
+pub enum RuleExpr<'arn, 'grm> {
     RunVar(&'grm str, Vec<Self>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
@@ -74,13 +75,13 @@ pub enum RuleExpr<'grm, Action> {
     Sequence(Vec<Self>),
     Choice(Vec<Self>),
     NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, Action),
+    Action(Box<Self>, RuleAction<'arn, 'grm>),
     SliceInput(Box<Self>),
     PosLookahead(Box<Self>),
     NegLookahead(Box<Self>),
     This,
     Next,
-    AtAdapt(Action, &'grm str),
+    AtAdapt(RuleAction<'arn, 'grm>, &'grm str),
     Guid,
     // Test(#[serde(with= "leak")] &'grm RuleExpr<'grm, Action>)
 }
