@@ -43,7 +43,7 @@ macro_rules! parse_test {
             let syntax: &'static str = $syntax;
             let bump = Bump::new();
             let alloc = Allocs::new(&bump);
-            let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
+            let grammar: GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
 
             $({
             let input: &'static str = $input_pass;

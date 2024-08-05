@@ -54,7 +54,7 @@ fn part2() {
     );
     let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
 
-    let grammar2: GrammarFile<'_, RuleAction<'_, '_>> =
+    let grammar2: GrammarFile =
         parse_grammarfile(&result, input, parse_rule_action).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();

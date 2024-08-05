@@ -7,7 +7,7 @@ pub mod action_result;
 pub mod apply_action;
 pub mod from_action_result;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),

@@ -116,7 +116,7 @@ fn parser_body_sub_annotations<
     rules: &'arn GrammarState<'arn, 'grm>,
     block_state: BlockCtx<'arn, 'grm>,
     annots: &'arn [RuleAnnotation<'grm>],
-    expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
+    expr: &'arn RuleExpr<'arn, 'grm>,
     vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match annots {

@@ -6,37 +6,36 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::PState;
 use crate::error::ParseError;
-use crate::grammar::test::RuleAction;
+use crate::rule_action::RuleAction;
 
 pub mod escaped_string;
 pub mod from_action_result;
 pub mod serde_leak;
-mod test;
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct GrammarFile<'grm, Action> {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrammarFile<'arn, 'grm> {
     #[serde(borrow)]
-    pub rules: Vec<Rule<'grm, Action>>,
+    pub rules: Vec<Rule<'arn, 'grm>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Rule<'grm, Action> {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub args: Vec<&'grm str>,
     #[serde(borrow)]
-    pub blocks: Vec<Block<'grm, Action>>,
+    pub blocks: Vec<Block<'arn, 'grm>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct Block<'grm, Action>(
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Block<'arn, 'grm>(
     pub &'grm str,
-    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'grm, Action>>,
+    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'arn, 'grm>>,
 );
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub struct AnnotatedRuleExpr<'grm, Action>(
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnnotatedRuleExpr<'arn, 'grm>(
     pub Vec<RuleAnnotation<'grm>>,
-    #[serde(borrow)] pub RuleExpr<'grm, Action>,
+    #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -61,7 +60,7 @@ pub enum RuleAnnotation<'grm> {
     EnableRecovery,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {
     RunVar(&'grm str, Vec<Self>),
     CharClass(CharClass),
@@ -83,5 +82,5 @@ pub enum RuleExpr<'arn, 'grm> {
     Next,
     AtAdapt(RuleAction<'arn, 'grm>, &'grm str),
     Guid,
-    // Test(#[serde(with= "leak")] &'grm RuleExpr<'grm, Action>)
+    // Test(#[serde(with= "leak")] &'grm RuleExpr<'arn, 'grm>)
 }

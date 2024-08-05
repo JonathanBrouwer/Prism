@@ -48,7 +48,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     /// To unify rules, use the names of the rules in `ctx`
     pub fn adapt_with(
         &self,
-        grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
         pos: Option<Pos>,
         alloc: Allocs<'arn>,
@@ -103,7 +103,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     }
 
     pub fn new_with(
-        grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
         alloc: Allocs<'arn>,
     ) -> (Self, VarMap<'arn, 'grm>) {
         // We create a new grammar by adapting an empty one
@@ -149,7 +149,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
 
     pub fn update(
         &mut self,
-        r: &'arn Rule<'grm, RuleAction<'arn, 'grm>>,
+        r: &'arn Rule<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
     ) -> Result<(), UpdateError> {
         self.order.update(r);
@@ -195,12 +195,12 @@ pub struct BlockState<'arn, 'grm> {
 }
 
 pub type Constructor<'arn, 'grm> = (
-    &'arn AnnotatedRuleExpr<'grm, RuleAction<'arn, 'grm>>,
+    &'arn AnnotatedRuleExpr<'arn, 'grm>,
     VarMap<'arn, 'grm>,
 );
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
-    pub fn new(block: &'arn Block<'grm, RuleAction<'arn, 'grm>>, ctx: VarMap<'arn, 'grm>) -> Self {
+    pub fn new(block: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>) -> Self {
         Self {
             name: block.0,
             constructors: block.1.iter().map(|r| (r, ctx)).collect(),
@@ -209,7 +209,7 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
 
     pub fn update(
         &mut self,
-        b: &'arn Block<'grm, RuleAction<'arn, 'grm>>,
+        b: &'arn Block<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
     ) {
         assert_eq!(self.name, b.0);

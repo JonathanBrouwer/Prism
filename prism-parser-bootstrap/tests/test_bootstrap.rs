@@ -9,7 +9,7 @@ use prism_parser::META_GRAMMAR;
 
 #[cfg_attr(not(debug_assertions), test)]
 pub fn test_bootstrap() {
-    let grammar: &'static GrammarFile<RuleAction> = &META_GRAMMAR;
+    let grammar: &'static GrammarFile = &META_GRAMMAR;
 
     let input = include_str!("../resources/meta.grammar");
     let bump = Bump::new();

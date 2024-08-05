@@ -28,7 +28,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
     pub fn new(
         input: &'grm str,
         bump: Allocs<'arn>,
-        from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
+        from: &'arn GrammarFile<'arn, 'grm>,
     ) -> Result<Self, AdaptError<'grm>> {
         let context = ParserContext::new();
         let state = ParserState::new(input, bump);
@@ -104,7 +104,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm> ParserInstanc
 }
 
 pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T>(
-    rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
+    rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
     input: &'grm str,
     ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c>) -> T,
