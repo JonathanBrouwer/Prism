@@ -4,7 +4,7 @@ use crate::core::presult::PResult;
 use crate::core::state::PState;
 use crate::error::ParseError;
 
-pub trait Parser<'arn, 'grm, O, E: ParseError> {
+pub trait Parser<'arn, 'grm: 'arn, O, E: ParseError> {
     fn parse(
         &self,
         pos: Pos,
@@ -24,7 +24,7 @@ pub fn map_parser<'a, 'arn: 'a, 'grm: 'arn, O, P, E: ParseError>(
 
 impl<
         'arn,
-        'grm,
+        'grm: 'arn,
         O,
         E: ParseError,
         T: Fn(Pos, &mut PState<'arn, 'grm, E>, ParserContext) -> PResult<O, E>,
