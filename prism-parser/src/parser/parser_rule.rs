@@ -22,7 +22,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
         let rule_args = VarMap::from_iter(
             rule_state
-                .arg_names
+                .args
                 .iter()
                 .cloned()
                 .zip_eq(args.iter().cloned()),

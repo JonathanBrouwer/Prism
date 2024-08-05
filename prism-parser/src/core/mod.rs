@@ -8,4 +8,3 @@ pub mod primitives;
 pub mod recovery;
 pub mod span;
 pub mod state;
-pub mod toposet;

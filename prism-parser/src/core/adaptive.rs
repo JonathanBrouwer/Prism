@@ -1,13 +1,13 @@
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
-use crate::core::toposet::TopoSet;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use std::{iter, mem};
+use std::alloc::alloc;
 
 pub struct GrammarState<'arn, 'grm> {
     rules: Vec<Arc<RuleState<'arn, 'grm>>>,
@@ -92,10 +92,8 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 
         // Update each rule that is to be adopted, stored in `result`
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
-            let mut r = (*s.rules[id.0]).clone();
-            r.update(rule, new_ctx)
-                .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?;
-            s.rules[id.0] = Arc::new(r);
+            s.rules[id.0] = Arc::new(s.rules[id.0].update(rule, new_ctx, alloc)
+                .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?);
         }
 
         Ok((s, new_ctx))
@@ -124,12 +122,11 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct RuleState<'arn, 'grm> {
     pub name: &'grm str,
-    pub blocks: Vec<BlockState<'arn, 'grm>>,
-    order: TopoSet<'grm>,
-    pub arg_names: &'arn [&'grm str],
+    pub args: &'arn [&'grm str],
+    pub blocks: &'arn [BlockState<'arn, 'grm>],
 }
 
 pub enum UpdateError {
@@ -137,74 +134,87 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, arg_names: &'arn [&'grm str]) -> Self {
+    pub fn new_empty(name: &'grm str, args: &'arn [&'grm str]) -> Self {
         Self {
             name,
-            blocks: Vec::new(),
-            order: TopoSet::new(),
-            arg_names,
+            blocks: &[],
+            args,
         }
     }
 
     pub fn update(
-        &mut self,
+        &self,
         r: &'arn Rule<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
-    ) -> Result<(), UpdateError> {
-        self.order.update(r);
+        allocs: Allocs<'arn>
+    ) -> Result<Self, UpdateError> {
+        assert_eq!(self.name, r.name);
+        assert_eq!(self.args, r.args);
 
-        let order: HashMap<&'grm str, usize> = self
-            .order
-            .toposort()?
-            .into_iter()
-            .enumerate()
-            .map(|(k, v)| (v, k))
-            .collect();
+        //TODO remove this allocation?
+        let new_nodes: HashSet<&'grm str> = r.blocks.iter().map(|n| n.0).collect();
+        let mut result = Vec::with_capacity(self.blocks.len() + r.blocks.len());
+        let mut new_iter = r.blocks.iter();
 
-        let mut res = vec![None; order.len()];
-        let old_blocks = mem::take(&mut self.blocks);
+        for old_block in self.blocks {
+            // If this block is only present in the old rule, take it first
+            if !new_nodes.contains(old_block.name) {
+                result.push(*old_block);
+                continue
+            }
 
-        for block in old_blocks {
-            let i = order[block.name];
-            res[i] = Some(block);
-        }
-
-        for block in r.blocks {
-            let i = order[block.0];
-            match &mut res[i] {
-                None => {
-                    res[i] = Some(BlockState::new(block, ctx));
+            // Take all rules from the new rule until we found the matching block
+            loop {
+                // Add all blocks that don't match
+                let Some(new_block) = new_iter.next() else {
+                    return Err(UpdateError::ToposortCycle)
+                };
+                if new_block.0 != old_block.name {
+                    result.push(BlockState::new(new_block, ctx, allocs));
+                    continue;
                 }
-                Some(bs) => {
-                    bs.update(block, ctx);
-                }
+
+                // Merge blocks
+                result.push(old_block.update(new_block, ctx, allocs));
+                break
             }
         }
 
-        self.blocks = res.into_iter().map(|m| m.unwrap()).collect();
+        // Add remaining blocks from new iter
+        for new_block in new_iter {
+            result.push(BlockState::new(new_block, ctx, allocs));
+        }
 
-        Ok(())
+        Ok(Self {
+            name: self.name,
+            args: self.args,
+            blocks: allocs.alloc_extend(result),
+        })
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct BlockState<'arn, 'grm> {
     pub name: &'grm str,
-    pub constructors: Vec<Constructor<'arn, 'grm>>,
+    pub constructors: &'arn [Constructor<'arn, 'grm>],
 }
 
 pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<'arn, 'grm>);
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
-    pub fn new(block: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>) -> Self {
+    pub fn new(block: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>, allocs: Allocs<'arn>) -> Self {
         Self {
             name: block.0,
-            constructors: block.1.iter().map(|r| (r, ctx)).collect(),
+            constructors: allocs.alloc_extend(block.1.iter().map(|r| (r, ctx))),
         }
     }
 
-    pub fn update(&mut self, b: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>) {
+    #[must_use]
+    pub fn update(&self, b: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>, allocs: Allocs<'arn>) -> Self {
         assert_eq!(self.name, b.0);
-        self.constructors.extend(b.1.iter().map(|r| (r, ctx)));
+        Self {
+            name: self.name,
+            constructors: allocs.alloc_extend_len(self.constructors.len() + b.1.len(), self.constructors.iter().cloned().chain(b.1.iter().map(|r| (r, ctx)))),
+        }
     }
 }
