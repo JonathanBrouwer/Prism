@@ -82,11 +82,9 @@ impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let count = self.1.unwrap_or_else(|| {
-            self.clone().count()
-        });
+        let count = self.1.unwrap_or_else(|| self.clone().count());
         (count, Some(count))
     }
 }
 
-impl ExactSizeIterator for ARListIterator<'_, '_> { }
+impl ExactSizeIterator for ARListIterator<'_, '_> {}

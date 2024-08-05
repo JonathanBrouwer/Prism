@@ -1,3 +1,4 @@
+use crate::core::cache::Allocs;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
@@ -5,7 +6,6 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::action_result::ActionResult::*;
 use crate::rule_action::RuleAction;
 use std::borrow::Cow;
-use crate::core::cache::Allocs;
 
 #[macro_export]
 macro_rules! result_match {
@@ -212,7 +212,11 @@ fn parse_string_char(r: &ActionResult<'_, '_>, src: &str) -> Option<char> {
     })
 }
 
-fn parse_charclass<'arn_in, 'arn_out>(r: &ActionResult<'arn_in, '_>, src: &str, allocs: Allocs<'arn_out>) -> Option<CharClass<'arn_out>> {
+fn parse_charclass<'arn_out>(
+    r: &ActionResult<'_, '_>,
+    src: &str,
+    allocs: Allocs<'arn_out>,
+) -> Option<CharClass<'arn_out>> {
     result_match! {
         match r => Construct(_, "CharClass", b),
         create CharClass {

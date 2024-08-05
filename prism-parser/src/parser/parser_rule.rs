@@ -21,15 +21,11 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
         let rule_args = VarMap::from_iter(
-            rule_state
-                .args
-                .iter()
-                .cloned()
-                .zip_eq(args.iter().cloned()),
+            rule_state.args.iter().cloned().zip_eq(args.iter().cloned()),
             state.alloc,
         );
 
-        let mut res = parser_body_cache_recurse(rules, (&rule_state.blocks, rule_args))
+        let mut res = parser_body_cache_recurse(rules, (rule_state.blocks, rule_args))
             .parse(pos, state, context);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),

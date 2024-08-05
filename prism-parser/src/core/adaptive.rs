@@ -3,11 +3,10 @@ use crate::core::pos::Pos;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
-use std::{iter, mem};
-use std::alloc::alloc;
+use std::iter;
 
 pub struct GrammarState<'arn, 'grm> {
     rules: Vec<Arc<RuleState<'arn, 'grm>>>,
@@ -78,7 +77,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                 } else {
                     s.rules.push(Arc::new(RuleState::new_empty(
                         new_rule.name,
-                        &new_rule.args,
+                        new_rule.args,
                     )));
                     RuleId(s.rules.len() - 1)
                 };
@@ -92,8 +91,11 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 
         // Update each rule that is to be adopted, stored in `result`
         for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
-            s.rules[id.0] = Arc::new(s.rules[id.0].update(rule, new_ctx, alloc)
-                .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?);
+            s.rules[id.0] = Arc::new(
+                s.rules[id.0]
+                    .update(rule, new_ctx, alloc)
+                    .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?,
+            );
         }
 
         Ok((s, new_ctx))
@@ -146,7 +148,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
         &self,
         r: &'arn Rule<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
-        allocs: Allocs<'arn>
+        allocs: Allocs<'arn>,
     ) -> Result<Self, UpdateError> {
         assert_eq!(self.name, r.name);
         assert_eq!(self.args, r.args);
@@ -160,14 +162,14 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
             // If this block is only present in the old rule, take it first
             if !new_nodes.contains(old_block.name) {
                 result.push(*old_block);
-                continue
+                continue;
             }
 
             // Take all rules from the new rule until we found the matching block
             loop {
                 // Add all blocks that don't match
                 let Some(new_block) = new_iter.next() else {
-                    return Err(UpdateError::ToposortCycle)
+                    return Err(UpdateError::ToposortCycle);
                 };
                 if new_block.0 != old_block.name {
                     result.push(BlockState::new(new_block, ctx, allocs));
@@ -176,7 +178,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
 
                 // Merge blocks
                 result.push(old_block.update(new_block, ctx, allocs));
-                break
+                break;
             }
         }
 
@@ -202,7 +204,11 @@ pub struct BlockState<'arn, 'grm> {
 pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<'arn, 'grm>);
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
-    pub fn new(block: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>, allocs: Allocs<'arn>) -> Self {
+    pub fn new(
+        block: &'arn Block<'arn, 'grm>,
+        ctx: VarMap<'arn, 'grm>,
+        allocs: Allocs<'arn>,
+    ) -> Self {
         Self {
             name: block.0,
             constructors: allocs.alloc_extend(block.1.iter().map(|r| (r, ctx))),
@@ -210,11 +216,22 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
     }
 
     #[must_use]
-    pub fn update(&self, b: &'arn Block<'arn, 'grm>, ctx: VarMap<'arn, 'grm>, allocs: Allocs<'arn>) -> Self {
+    pub fn update(
+        &self,
+        b: &'arn Block<'arn, 'grm>,
+        ctx: VarMap<'arn, 'grm>,
+        allocs: Allocs<'arn>,
+    ) -> Self {
         assert_eq!(self.name, b.0);
         Self {
             name: self.name,
-            constructors: allocs.alloc_extend_len(self.constructors.len() + b.1.len(), self.constructors.iter().cloned().chain(b.1.iter().map(|r| (r, ctx)))),
+            constructors: allocs.alloc_extend_len(
+                self.constructors.len() + b.1.len(),
+                self.constructors
+                    .iter()
+                    .cloned()
+                    .chain(b.1.iter().map(|r| (r, ctx))),
+            ),
         }
     }
 }

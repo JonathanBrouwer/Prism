@@ -49,7 +49,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
         match block_state {
             [] => unreachable!(),
             [b] => {
-                parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])
+                parser_body_sub_constructors(rules, (block_state, rule_args), b.constructors)
                     .parse(pos, state, context)
             }
             [b, brest @ ..] => {
@@ -57,7 +57,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
                 let res = parser_body_sub_constructors(
                     rules,
                     (block_state, rule_args),
-                    &b.constructors[..],
+                    b.constructors,
                 )
                 .parse(pos, state, context);
 
