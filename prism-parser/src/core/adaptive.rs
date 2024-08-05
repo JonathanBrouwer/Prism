@@ -129,7 +129,7 @@ pub struct RuleState<'arn, 'grm> {
     pub name: &'grm str,
     pub blocks: Vec<BlockState<'arn, 'grm>>,
     order: TopoSet<'grm>,
-    pub arg_names: &'arn Vec<&'grm str>,
+    pub arg_names: &'arn [&'grm str],
 }
 
 pub enum UpdateError {
@@ -137,7 +137,7 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, arg_names: &'arn Vec<&'grm str>) -> Self {
+    pub fn new_empty(name: &'grm str, arg_names: &'arn [&'grm str]) -> Self {
         Self {
             name,
             blocks: Vec::new(),
@@ -169,7 +169,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
             res[i] = Some(block);
         }
 
-        for block in &r.blocks {
+        for block in r.blocks {
             let i = order[block.0];
             match &mut res[i] {
                 None => {

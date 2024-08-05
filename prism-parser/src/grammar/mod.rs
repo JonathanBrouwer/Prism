@@ -7,29 +7,31 @@ pub mod escaped_string;
 pub mod from_action_result;
 pub mod serde_leak;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct GrammarFile<'arn, 'grm> {
-    #[serde(borrow)]
-    pub rules: Vec<Rule<'arn, 'grm>>,
+    #[serde(borrow, with="leak_slice")]
+    pub rules: &'arn [Rule<'arn, 'grm>],
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
-    pub args: Vec<&'grm str>,
-    #[serde(borrow)]
-    pub blocks: Vec<Block<'arn, 'grm>>,
+    #[serde(with="leak_slice")]
+    pub args: &'arn [&'grm str],
+    #[serde(borrow, with="leak_slice")]
+    pub blocks: &'arn [Block<'arn, 'grm>],
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Block<'arn, 'grm>(
     pub &'grm str,
-    #[serde(borrow)] pub Vec<AnnotatedRuleExpr<'arn, 'grm>>,
+    #[serde(borrow, with="leak_slice")]
+    pub &'arn [AnnotatedRuleExpr<'arn, 'grm>],
 );
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct AnnotatedRuleExpr<'arn, 'grm>(
-    pub Vec<RuleAnnotation<'grm>>,
+    #[serde(borrow, with="leak_slice")] pub &'arn [RuleAnnotation<'grm>],
     #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
 );
 
@@ -45,7 +47,7 @@ impl CharClass<'_> {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation<'grm> {
     #[serde(borrow)]
     Error(EscapedString<'grm>),

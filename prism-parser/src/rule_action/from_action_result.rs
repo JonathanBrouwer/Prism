@@ -14,7 +14,7 @@ pub fn parse_rule_action<'arn, 'grm>(
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src).unwrap(),
             result_match! {
-                create allocs.try_alloc_extend_leak(b[1].iter_list().map(|sub| parse_rule_action(sub, src, allocs)))?
+                create allocs.try_alloc_extend(b[1].iter_list().map(|sub| parse_rule_action(sub, src, allocs)))?
             }?,
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),
