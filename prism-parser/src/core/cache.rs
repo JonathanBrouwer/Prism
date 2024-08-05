@@ -1,4 +1,4 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
+use crate::core::adaptive::GrammarStateId;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -8,12 +8,9 @@ use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
-use crate::grammar::GrammarFile;
-use crate::parser::var_map::{BlockCtx, VarMap};
+use crate::parser::var_map::BlockCtx;
 use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::RuleAction;
 use bumpalo::Bump;
-use by_address::ByAddress;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {

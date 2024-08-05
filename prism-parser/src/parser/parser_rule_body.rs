@@ -5,8 +5,6 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
 use crate::core::adaptive::{Constructor, GrammarState};
-use crate::rule_action::RuleAction;
-use by_address::ByAddress;
 
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
@@ -48,7 +46,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
           state: &mut PState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
-        match block_state.as_ref() {
+        match block_state {
             [] => unreachable!(),
             [b] => {
                 parser_body_sub_constructors(rules, (block_state, rule_args), &b.constructors[..])

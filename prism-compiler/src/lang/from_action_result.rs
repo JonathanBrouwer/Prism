@@ -89,9 +89,9 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
 pub struct Guid(pub usize);
 
 impl TcEnv {
-    pub fn insert_from_action_result<'arn, 'grm>(
+    pub fn insert_from_action_result<'arn>(
         &mut self,
-        value: &ActionResult<'arn, 'grm>,
+        value: &ActionResult<'arn, '_>,
         program: &'arn str,
         _arena: Allocs,
     ) -> UnionIndex {

@@ -19,7 +19,6 @@ use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::apply_action::apply_action;
 use crate::rule_action::RuleAction;
-use by_address::ByAddress;
 
 pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     rules: &'arn GrammarState<'arn, 'grm>,
@@ -111,7 +110,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                             .map(|_| ());
                     }
                     let mut res =
-                        res.map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
+                        res.map_with_span(|_, span| state.alloc.alloc(ActionResult::Value(span)));
                     res.add_label_implicit(ErrorLabel::Literal(
                         pos.span_to(res.end_pos().next(state.input).0),
                         *literal,
@@ -139,9 +138,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 res.map_with_span(|rtrn, span| {
                     PR::with_rtrn(rtrn.iter().rfold(
-                        &*state.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
+                        state.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
                         |rest, next| {
-                            &*state.alloc.alloc(ActionResult::Construct(
+                            state.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
                                 state.alloc.alloc_extend([*next.rtrn, *rest]),
