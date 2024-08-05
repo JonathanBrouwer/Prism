@@ -7,7 +7,7 @@ THE BIG TODO LIST:
   - New keyword `paramatricity x`, generates inductor
   - Formalize generating inductor from paramatricity
 - Remove RuleAction, instead returning ActionResults with environments
-- Pass flag around in context whether result of parse is needed
+- Pass flag around in context whether result of parse is needed (const bool?)
 - queued_tc?
 - Multi-file support
   - Make `program` part of self in TcEnv
