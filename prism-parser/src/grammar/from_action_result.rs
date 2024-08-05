@@ -26,16 +26,16 @@ pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<GrammarFile<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         create GrammarFile {
-            rules: rules.iter_list().map(|rule| parse_rule(rule, src, allocs, parse_a)).collect::<Option<Vec<_>>>()?,
+            rules: rules.iter_list().map(|rule| parse_rule(rule, src, allocs, &parse_a)).collect::<Option<Vec<_>>>()?,
         }
     }
 }
@@ -44,9 +44,9 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: &impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
@@ -64,9 +64,9 @@ fn parse_block<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: &impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<Block<'arn_out, 'grm>> {
     result_match! {
@@ -80,9 +80,9 @@ fn parse_constructors<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: &impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<Vec<AnnotatedRuleExpr<'arn_out, 'grm>>> {
     result_match! {
@@ -94,9 +94,9 @@ fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: &impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<AnnotatedRuleExpr<'arn_out, 'grm>> {
     result_match! {
@@ -124,42 +124,42 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: fn(
+    parse_a: &impl Fn(
         &'arn_in ActionResult<'arn_in, 'grm>,
-        src: &'grm str,
+        &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<RuleExpr<'arn_out, 'grm>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
-            Box::new(parse_rule_expr(&b[0], src, allocs, parse_a)?),
+            allocs.alloc_leak(parse_rule_expr(&b[0], src, allocs, parse_a)?),
             parse_a(&b[1], src)?,
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
-            create b[0].iter_list().map(|sub| parse_rule_expr(sub, src, allocs, parse_a)).collect::<Option<Vec<_>>>()?
+            create allocs.try_alloc_extend_leak(b[0].iter_list().map(|sub| parse_rule_expr(sub, src, allocs, parse_a)))?
         }?),
         Construct(_, "Sequence", b) => RuleExpr::Sequence(result_match! {
-            create b[0].iter_list().map(|sub| parse_rule_expr(sub, src, allocs, parse_a)).collect::<Option<Vec<_>>>()?
+            create allocs.try_alloc_extend_leak(b[0].iter_list().map(|sub| parse_rule_expr(sub, src, allocs, parse_a)))?
         }?),
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
             parse_identifier(&b[0], src)?,
-            Box::new(parse_rule_expr(&b[1], src, allocs, parse_a)?),
+            allocs.alloc_leak(parse_rule_expr(&b[1], src, allocs, parse_a)?),
         ),
         Construct(_, "Repeat", b) => RuleExpr::Repeat {
-            expr: Box::new(parse_rule_expr(&b[0], src, allocs, parse_a)?),
+            expr: allocs.alloc_leak(parse_rule_expr(&b[0], src, allocs, parse_a)?),
             min: parse_u64(&b[1], src)?,
             max: parse_option(&b[2], src, parse_u64)?,
-            delim: Box::new(parse_rule_expr(&b[3], src, allocs, parse_a)?),
+            delim: allocs.alloc_leak(parse_rule_expr(&b[3], src, allocs, parse_a)?),
         },
         Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(&b[0], src)?),
-        Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(&b[0], src)?),
+        Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(&b[0], src, allocs)?),
         Construct(_, "SliceInput", b) => {
-            RuleExpr::SliceInput(Box::new(parse_rule_expr(&b[0], src, allocs, parse_a)?))
+            RuleExpr::SliceInput(allocs.alloc_leak(parse_rule_expr(&b[0], src, allocs, parse_a)?))
         }
         Construct(_, "PosLookahead", b) => {
             RuleExpr::PosLookahead(allocs.alloc_leak(parse_rule_expr(&b[0], src, allocs, parse_a)?))
         }
         Construct(_, "NegLookahead", b) => {
-            RuleExpr::NegLookahead(Box::new(parse_rule_expr(&b[0], src, allocs, parse_a)?))
+            RuleExpr::NegLookahead(allocs.alloc_leak(parse_rule_expr(&b[0], src, allocs, parse_a)?))
         }
         Construct(_, "This", _) => RuleExpr::This,
         Construct(_, "Next", _) => RuleExpr::Next,
@@ -167,9 +167,9 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         Construct(_, "RunVar", b) => RuleExpr::RunVar(
             parse_identifier(&b[0], src)?,
             result_match! {
-                create b[1].iter_list().map(|sub| {
+                create allocs.try_alloc_extend_leak(b[1].iter_list().map(|sub| {
                     parse_rule_expr(sub, src, allocs, parse_a)
-                }).collect::<Option<Vec<_>>>()?
+                }))?
             }?,
         ),
         Construct(_, "AtAdapt", b) => {
@@ -212,15 +212,15 @@ fn parse_string_char(r: &ActionResult<'_, '_>, src: &str) -> Option<char> {
     })
 }
 
-fn parse_charclass(r: &ActionResult<'_, '_>, src: &str) -> Option<CharClass> {
+fn parse_charclass<'arn_in, 'arn_out>(r: &ActionResult<'arn_in, '_>, src: &str, allocs: Allocs<'arn_out>) -> Option<CharClass<'arn_out>> {
     result_match! {
         match r => Construct(_, "CharClass", b),
         create CharClass {
             neg: b[0].iter_list().next().is_some(),
-            ranges: b[1].iter_list().map(|p| result_match! {
+            ranges: allocs.try_alloc_extend_leak(b[1].iter_list().map(|p| result_match! {
                 match p => Construct(_, "Range", pb),
                 create (parse_string_char(&pb[0], src)?, parse_string_char(&pb[1], src)?)
-            }).collect::<Option<Vec<_>>>()?
+            }))?
         }
     }
 }

@@ -55,7 +55,7 @@ fn part2() {
 
     let bump = Bump::new();
     let alloc = Allocs::new(&bump);
-    let grammar2: GrammarFile = parse_grammarfile(&result, input, alloc, parse_rule_action).unwrap();
+    let grammar2: GrammarFile = parse_grammarfile(&result, input, alloc, |ar, src| parse_rule_action(ar, src, alloc)).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
     let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();

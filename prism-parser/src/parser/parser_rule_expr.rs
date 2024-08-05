@@ -153,7 +153,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let mut res = PResult::new_empty(VarMap::default(), pos);
                 //TODO can we do better than tracking res_vars by cloning?
                 let mut res_vars: VarMap = vars;
-                for sub in subs {
+                for sub in *subs {
                     res = res
                         .merge_seq_parser(
                             &parser_expr(rules, block_ctx, sub, res_vars),
@@ -175,7 +175,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
-                for sub in subs {
+                for sub in *subs {
                     res = res.merge_choice_parser(
                         &parser_expr(rules, block_ctx, sub, vars),
                         pos,

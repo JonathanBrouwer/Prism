@@ -1,4 +1,4 @@
-use crate::grammar::serde_leak::leak;
+use crate::grammar::serde_leak::*;
 use crate::grammar::escaped_string::EscapedString;
 use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
@@ -33,13 +33,13 @@ pub struct AnnotatedRuleExpr<'arn, 'grm>(
     #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
 );
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub struct CharClass {
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub struct CharClass<'arn> {
     pub neg: bool,
-    pub ranges: Vec<(char, char)>,
+    #[serde(borrow, with="leak_slice")] pub ranges: &'arn [(char, char)],
 }
 
-impl CharClass {
+impl CharClass<'_> {
     pub fn contains(&self, c: char) -> bool {
         self.ranges.iter().any(|range| range.0 <= c && c <= range.1) ^ self.neg
     }
@@ -55,24 +55,24 @@ pub enum RuleAnnotation<'grm> {
     EnableRecovery,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {
-    RunVar(&'grm str, Vec<RuleExpr<'arn, 'grm>>),
-    CharClass(CharClass),
+    RunVar(&'grm str, #[serde(with="leak_slice")] &'arn [RuleExpr<'arn, 'grm>]),
+    CharClass(CharClass<'arn>),
     Literal(EscapedString<'grm>),
     Repeat {
-        expr: Box<RuleExpr<'arn, 'grm>>,
+        #[serde(with="leak")] expr: &'arn Self,
         min: u64,
         max: Option<u64>,
-        delim: Box<RuleExpr<'arn, 'grm>>,
+        #[serde(with="leak")] delim: &'arn Self,
     },
-    Sequence(Vec<RuleExpr<'arn, 'grm>>),
-    Choice(Vec<RuleExpr<'arn, 'grm>>),
-    NameBind(&'grm str, Box<RuleExpr<'arn, 'grm>>),
-    Action(Box<RuleExpr<'arn, 'grm>>, RuleAction<'arn, 'grm>),
-    SliceInput(Box<RuleExpr<'arn, 'grm>>),
-    PosLookahead(#[serde(with="leak")] &'arn RuleExpr<'arn, 'grm>),
-    NegLookahead(Box<RuleExpr<'arn, 'grm>>),
+    Sequence(#[serde(with="leak_slice")] &'arn [RuleExpr<'arn, 'grm>]),
+    Choice(#[serde(with="leak_slice")] &'arn [RuleExpr<'arn, 'grm>]),
+    NameBind(&'grm str, #[serde(with="leak")] &'arn Self),
+    Action(#[serde(with="leak")] &'arn Self, RuleAction<'arn, 'grm>),
+    SliceInput(#[serde(with="leak")] &'arn Self),
+    PosLookahead(#[serde(with="leak")] &'arn Self),
+    NegLookahead(#[serde(with="leak")] &'arn Self),
     This,
     Next,
     AtAdapt(RuleAction<'arn, 'grm>, &'grm str),

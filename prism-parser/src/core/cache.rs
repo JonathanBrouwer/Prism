@@ -61,6 +61,31 @@ impl<'arn> Allocs<'arn> {
     pub fn alloc_leak<T>(&self, t: T) -> &'arn T {
         self.bump.alloc(t)
     }
+
+    pub fn alloc_extend_leak<T, I: IntoIterator<Item = T, IntoIter: ExactSizeIterator>>(
+        &self,
+        iter: I,
+    ) -> &'arn [T] {
+        self.bump.alloc_slice_fill_iter(iter)
+    }
+
+    pub fn try_alloc_extend_leak<T, I: IntoIterator<Item = Option<T>, IntoIter: ExactSizeIterator>>(
+        &self,
+        iter: I,
+    ) -> Option<&'arn [T]> {
+        let mut iter = iter.into_iter();
+        let mut all_ok = true;
+        let slice = self.bump.alloc_slice_fill_with(iter.len(), |_| {
+            let v = iter.next().expect("Exact size iter has enough elements");
+            if let Some(v) = v {
+                v
+            } else {
+                all_ok = false;
+                todo!()
+            }
+        });
+        all_ok.then_some(slice)
+    }
 }
 
 pub struct ParserCacheEntry<PR> {

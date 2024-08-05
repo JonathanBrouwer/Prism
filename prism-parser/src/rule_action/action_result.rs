@@ -51,15 +51,16 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
         }
     }
 
-    pub fn iter_list(&self) -> impl Iterator<Item = &'arn Self> + 'arn {
-        ARListIterator(*self)
+    pub fn iter_list(&self) -> ARListIterator<'arn, 'grm> {
+        ARListIterator(*self, None)
     }
 
     pub const VOID: &'static ActionResult<'static, 'static> =
         &ActionResult::Construct(Span::invalid(), "#VOID#", &[]);
 }
 
-pub struct ARListIterator<'arn, 'grm: 'arn>(ActionResult<'arn, 'grm>);
+#[derive(Clone)]
+pub struct ARListIterator<'arn, 'grm: 'arn>(ActionResult<'arn, 'grm>, Option<usize>);
 
 impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
     type Item = &'arn ActionResult<'arn, 'grm>;
@@ -69,6 +70,7 @@ impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
             ActionResult::Construct(_, "Cons", els) => {
                 assert_eq!(els.len(), 2);
                 self.0 = els[1];
+                self.1 = self.1.map(|v| v - 1);
                 Some(&els[0])
             }
             ActionResult::Construct(_, "Nil", els) => {
@@ -78,4 +80,13 @@ impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
             _ => panic!("Invalid list: {:?}", &self.0),
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let count = self.1.unwrap_or_else(|| {
+            self.clone().count()
+        });
+        (count, Some(count))
+    }
 }
+
+impl ExactSizeIterator for ARListIterator<'_, '_> { }
