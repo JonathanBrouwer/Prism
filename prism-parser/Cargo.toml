@@ -15,6 +15,3 @@ by_address.workspace = true
 typed-arena.workspace = true
 stacker.workspace = true
 bumpalo.workspace = true
-
-[features]
-serde_leaking_action_result = []

@@ -1,74 +1,22 @@
 use crate::core::adaptive::RuleId;
 use itertools::Itertools;
-#[cfg(feature = "serde_leaking_action_result")]
 use serde::{Deserialize, Serialize};
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::parser::var_map::VarMap;
+use crate::grammar::serde_leak::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-#[cfg_attr(feature = "serde_leaking_action_result", derive(Serialize, Deserialize))]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
-    Construct(Span, &'grm str, #[cfg_attr(feature = "serde_leaking_action_result", serde(with="leak_slice"))] &'arn [ActionResult<'arn, 'grm>]),
+    Construct(Span, &'grm str, #[serde(with="leak_slice")] &'arn [ActionResult<'arn, 'grm>]),
     Guid(usize),
     RuleId(RuleId),
-    #[cfg_attr(feature = "serde_leaking_action_result", serde(skip))]
+    #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
 
-#[cfg(feature = "serde_leaking_action_result")]
-pub mod leak_slice {
-    use std::fmt;
-    use std::fmt::Formatter;
-    use std::marker::PhantomData;
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
-    use serde::de::{SeqAccess, Visitor};
-    use serde::ser::SerializeSeq;
-
-    pub fn serialize<S: Serializer, T: Serialize>(xs: &[T], s: S) -> Result<S::Ok, S::Error> {
-        let mut seq = s.serialize_seq(Some(xs.len()))?;
-        for x in xs {
-            seq.serialize_element(x)?;
-        }
-        seq.end()
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(deserializer: D) -> Result<&'de [T], D::Error> {
-        struct VecVisitor<T> {
-            marker: PhantomData<T>,
-        }
-
-        impl<'de, T> Visitor<'de> for VecVisitor<T>
-        where
-            T: Deserialize<'de>,
-        {
-            type Value = Vec<T>;
-
-            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-                formatter.write_str("a sequence")
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: SeqAccess<'de>,
-            {
-                let mut values = Vec::<T>::with_capacity(seq.size_hint().unwrap_or(0));
-                while let Some(value) = seq.next_element()? {
-                    values.push(value);
-                }
-                Ok(values)
-            }
-        }
-
-        let visitor = VecVisitor {
-            marker: PhantomData,
-        };
-        let vec: Vec<T> = deserializer.deserialize_seq(visitor)?;
-        Ok(vec.leak())
-    }
-}
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
     pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
