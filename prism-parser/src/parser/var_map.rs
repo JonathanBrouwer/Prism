@@ -11,12 +11,12 @@ use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use by_address::ByAddress;
 use std::fmt::{Debug, Formatter};
-use std::hash::Hash;
 use std::iter;
+use std::ptr::null;
 use crate::core::cache::Allocs;
 
-#[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
+#[derive(Default, Copy, Clone)]
+pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
 
 impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -28,7 +28,7 @@ impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone)]
 pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
     key: &'arn str,
@@ -55,7 +55,7 @@ impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
 
 impl<'arn, 'grm> VarMap<'arn, 'grm> {
     pub fn get<'a>(&'a self, k: &str) -> Option<&'a VarMapValue<'arn, 'grm>> {
-        let mut node = *self.0?;
+        let mut node = self.0?;
         loop {
             if node.key == k {
                 return Some(&node.value);
@@ -66,7 +66,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
 
     pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)> {
         VarMapIterator {
-            current: self.0.map(|v| *v),
+            current: self.0,
         }
     }
 
@@ -87,11 +87,11 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         alloc: Allocs<'arn>,
     ) -> Self {
         for (key, value) in iter {
-            self.0 = Some(ByAddress(alloc.alloc(VarMapNode {
-                next: self.0.map(|v| *v),
+            self.0 = Some(alloc.alloc(VarMapNode {
+                next: self.0,
                 key,
                 value,
-            })))
+            }))
         }
         self
     }
@@ -103,21 +103,25 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         let s = Self::default();
         s.extend(iter, alloc)
     }
+    
+    pub fn as_ptr(&self) -> *const VarMapNode {
+        self.0.map(|r| r as *const VarMapNode).unwrap_or(null())
+    }
 }
 
 pub type BlockCtx<'arn, 'grm> = (
-    ByAddress<&'arn [BlockState<'arn, 'grm>]>,
+    &'arn [BlockState<'arn, 'grm>],
     VarMap<'arn, 'grm>,
 );
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone)]
 pub struct CapturedExpr<'arn, 'grm> {
     pub expr: &'arn RuleExpr<'grm, RuleAction<'arn, 'grm>>,
     pub block_ctx: BlockCtx<'arn, 'grm>,
     pub vars: VarMap<'arn, 'grm>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
     Value(&'arn ActionResult<'arn, 'grm>),

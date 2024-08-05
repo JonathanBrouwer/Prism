@@ -228,7 +228,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 .parse(pos, state, context)
                 .map(PR::with_rtrn),
             RuleExpr::Next => {
-                parser_body_cache_recurse(rules, (ByAddress(&block_ctx.0[1..]), block_ctx.1))
+                parser_body_cache_recurse(rules, (&block_ctx.0[1..], block_ctx.1))
                     .parse(pos, state, context)
                     .map(PR::with_rtrn)
             }

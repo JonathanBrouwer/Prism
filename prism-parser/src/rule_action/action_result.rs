@@ -6,7 +6,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::parser::var_map::VarMap;
 use crate::grammar::serde_leak::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),

@@ -1,3 +1,4 @@
+use crate::grammar::serde_leak::leak;
 use crate::grammar::escaped_string::EscapedString;
 use serde::{Deserialize, Serialize};
 
@@ -75,4 +76,5 @@ pub enum RuleExpr<'grm, Action> {
     Next,
     AtAdapt(Action, &'grm str),
     Guid,
+    // Test(#[serde(with= "leak")] &'grm RuleExpr<'grm, Action>)
 }

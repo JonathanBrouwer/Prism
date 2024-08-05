@@ -5,8 +5,8 @@ use std::collections::HashMap;
 
 pub struct ParserState<'arn, 'grm, E: ParseError> {
     // Cache for parser_cache_recurse
-    cache: HashMap<CacheKey<'arn, 'grm>, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
-    cache_stack: Vec<CacheKey<'arn, 'grm>>,
+    cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
+    cache_stack: Vec<CacheKey>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn>,
     pub input: &'grm str,
@@ -30,13 +30,13 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
         }
     }
 
-    pub(crate) fn cache_is_read(&self, key: CacheKey<'arn, 'grm>) -> Option<bool> {
+    pub(crate) fn cache_is_read(&self, key: CacheKey) -> Option<bool> {
         self.cache.get(&key).map(|v| v.read)
     }
 
     pub(crate) fn cache_get(
         &mut self,
-        key: &CacheKey<'arn, 'grm>,
+        key: &CacheKey,
     ) -> Option<&CacheVal<'arn, 'grm, E>> {
         if let Some(v) = self.cache.get_mut(key) {
             v.read = true;
@@ -48,7 +48,7 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
 
     pub(crate) fn cache_insert(
         &mut self,
-        key: CacheKey<'arn, 'grm>,
+        key: CacheKey,
         value: CacheVal<'arn, 'grm, E>,
     ) {
         self.cache

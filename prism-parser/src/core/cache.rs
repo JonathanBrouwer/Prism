@@ -1,5 +1,6 @@
 use bumpalo::Bump;
-use crate::core::adaptive::{GrammarState, GrammarStateId};
+use by_address::ByAddress;
+use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -10,16 +11,25 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
-use crate::parser::var_map::{BlockCtx};
+use crate::parser::var_map::{BlockCtx, VarMap};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
-pub struct CacheKey<'arn, 'grm> {
+pub struct CacheKey {
     pos: Pos,
-    block_state: BlockCtx<'arn, 'grm>,
+    block_state: BlockKey,
     ctx: ParserContext,
     state: GrammarStateId,
+}
+
+#[derive(Eq, PartialEq, Hash, Clone)]
+pub struct BlockKey(usize, usize);
+
+impl From<BlockCtx<'_, '_>> for BlockKey {
+    fn from(value: BlockCtx) -> Self {
+        BlockKey(value.0.as_ptr() as usize, value.1.as_ptr() as usize)
+    }
 }
 
 pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
@@ -33,21 +43,21 @@ impl<'arn> Allocs<'arn> {
     pub fn new(bump: &'arn Bump) -> Self {
         Self { bump }
     }
-    
+
     pub fn new_leaking() -> Self {
         Self {
             bump: Box::leak(Box::new(Bump::new()))
         }
     }
-    
+
     pub fn alloc<T: Copy>(&self, t: T) -> &'arn T {
         self.bump.alloc(t)
     }
-    
+
     pub fn alloc_extend<T: Copy, I: IntoIterator<Item=T, IntoIter: ExactSizeIterator>>(&self, iter: I) -> &'arn [T] {
         self.bump.alloc_slice_fill_iter(iter)
     }
-    
+
     pub fn alloc_leak<T>(&self, t: T) -> &'arn T {
         self.bump.alloc(t)
     }
@@ -67,7 +77,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,
-            block_state,
+            block_state: block_state.into(),
             ctx: context,
             state: grammar_state,
         };

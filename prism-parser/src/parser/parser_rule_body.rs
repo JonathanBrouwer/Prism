@@ -65,7 +65,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
 
                 // Parse next with recursion check
                 res.merge_choice_parser(
-                    &parser_body_cache_recurse(rules, (ByAddress(brest), rule_args)),
+                    &parser_body_cache_recurse(rules, (brest, rule_args)),
                     pos,
                     state,
                     context,
