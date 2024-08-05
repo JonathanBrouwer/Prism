@@ -37,9 +37,13 @@ macro_rules! parse_test {
             use prism_parser::rule_action::RuleAction;
             use itertools::Itertools;
             use prism_parser::error::aggregate_error::ParseResultExt;
+            use bumpalo::Bump;
+            use prism_parser::core::cache::Allocs;
 
             let syntax: &'static str = $syntax;
-            let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
+            let bump = Bump::new();
+            let alloc = Allocs::new(&bump);
+            let grammar: GrammarFile<_> = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
 
             $({
             let input: &'static str = $input_pass;

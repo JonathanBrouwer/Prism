@@ -9,6 +9,8 @@ use prism_parser::rule_action::from_action_result::parse_rule_action;
 use prism_parser::rule_action::RuleAction;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
+use bumpalo::Bump;
+use prism_parser::core::cache::Allocs;
 
 fn main() {
     normal();
@@ -18,7 +20,9 @@ fn main() {
 
 fn normal() {
     let input = include_str!("../resources/meta.grammar");
-    let grammar2 = parse_grammar::<SetError>(input).unwrap_or_eprint();
+    let bump = Bump::new();
+    let alloc = Allocs::new(&bump);
+    let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
 
     // let grammar: &'static GrammarFile = &META_GRAMMAR;
     // assert_eq!(grammar, &grammar2); // Safety check

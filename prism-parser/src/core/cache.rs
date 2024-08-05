@@ -26,10 +26,20 @@ pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 #[derive(Copy, Clone)]
 pub struct Allocs<'arn> {
-    pub bump: &'arn Bump,
+    bump: &'arn Bump,
 }
 
 impl<'arn> Allocs<'arn> {
+    pub fn new(bump: &'arn Bump) -> Self {
+        Self { bump }
+    }
+    
+    pub fn new_leaking() -> Self {
+        Self {
+            bump: Box::leak(Box::new(Bump::new()))
+        }
+    }
+    
     pub fn alloc<T: Copy>(&self, t: T) -> &'arn T {
         self.bump.alloc(t)
     }

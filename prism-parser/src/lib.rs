@@ -30,16 +30,13 @@ pub static META_GRAMMAR_STATE: LazyLock<(
     GrammarState<'static, 'static>,
     VarMap<'static, 'static>,
 )> = LazyLock::new(|| {
-    let alloc: Allocs = Allocs {
-        bump: Box::leak(Box::new(Bump::new())),
-    };
-    let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
+    let (g, i) = GrammarState::new_with(&META_GRAMMAR, Allocs::new_leaking());
     (g, i)
 });
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     grammar: &'grm str,
-    // allocs: Allocs<'grm, 'grm>,
+    allocs: Allocs<'grm>,
 ) -> Result<GrammarFile<'grm, RuleAction<'grm, 'grm>>, AggregatedParseError<'grm, E>> {
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar, _| {
         parse_grammarfile(ar, grammar, parse_rule_action)

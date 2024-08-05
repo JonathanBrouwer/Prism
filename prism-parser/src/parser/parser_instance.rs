@@ -109,9 +109,8 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
     input: &'grm str,
     ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
-    let allocs: Allocs<'_> = Allocs {
-        bump: &Bump::new()
-    };
+    let bump = Bump::new();
+    let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
     instance.run(rule).map(|ar| ar_map(ar, allocs))
 }
@@ -119,11 +118,10 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
 #[macro_export]
 macro_rules! run_parser_rule_here {
     ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
-        let bump = $crate::core::cache::Allocs {
-            bump: &::bumpalo::Bump::new(),
-        };
+        let bump = ::bumpalo::Bump::new();
+        let alloc = $crate::core::cache::Allocs::new(&bump);
         let mut instance =
-            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules)
+            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, alloc, $rules)
                 .unwrap();
         let $id = instance.run($rule);
     };
