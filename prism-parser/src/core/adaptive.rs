@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
         ctx: VarMap<'arn, 'grm>,
         pos: Option<Pos>,
-        alloc: Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn>,
     ) -> Result<(Self, VarMap<'arn, 'grm>), AdaptError<'grm>> {
         // Create a clone of self as a starting point
         let mut s = Self {
@@ -104,7 +104,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 
     pub fn new_with(
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
-        alloc: Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn>,
     ) -> (Self, VarMap<'arn, 'grm>) {
         // We create a new grammar by adapting an empty one
         GrammarState::new()

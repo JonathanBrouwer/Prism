@@ -15,7 +15,6 @@ use crate::parser::var_map::{VarMap, VarMapValue};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use crate::META_GRAMMAR_STATE;
-pub use typed_arena::Arena;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -28,7 +27,7 @@ pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn new(
         input: &'grm str,
-        bump: Allocs<'arn, 'grm>,
+        bump: Allocs<'arn>,
         from: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     ) -> Result<Self, AdaptError<'grm>> {
         let context = ParserContext::new();
@@ -108,11 +107,9 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
     rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c, 'grm>) -> T,
+    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
-    let allocs: Allocs<'_, 'grm> = Allocs {
-        alo_grammarfile: &Arena::new(),
-        alo_grammarstate: &Arena::new(),
+    let allocs: Allocs<'_> = Allocs {
         bump: &Bump::new()
     };
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
@@ -123,8 +120,6 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
 macro_rules! run_parser_rule_here {
     ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
         let bump = $crate::core::cache::Allocs {
-            alo_grammarfile: &$crate::parser::parser_instance::Arena::new(),
-            alo_grammarstate: &$crate::parser::parser_instance::Arena::new(),
             bump: &::bumpalo::Bump::new(),
         };
         let mut instance =

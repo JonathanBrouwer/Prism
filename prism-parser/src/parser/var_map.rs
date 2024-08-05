@@ -75,7 +75,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self,
         key: &'arn str,
         value: VarMapValue<'arn, 'grm>,
-        alloc: Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn>,
     ) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
@@ -84,7 +84,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     pub fn extend<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         mut self,
         iter: T,
-        alloc: Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn>,
     ) -> Self {
         for (key, value) in iter {
             self.0 = Some(ByAddress(alloc.alloc(VarMapNode {
@@ -98,7 +98,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
 
     pub fn from_iter<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         iter: T,
-        alloc: Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn>,
     ) -> Self {
         let s = Self::default();
         s.extend(iter, alloc)
@@ -133,7 +133,7 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn new_rule(rule: RuleId, alloc: Allocs<'arn, 'grm>) -> Self {
+    pub fn new_rule(rule: RuleId, alloc: Allocs<'arn>) -> Self {
         Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
     }
 

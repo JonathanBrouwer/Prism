@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use crate::core::cache::Allocs;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
@@ -23,6 +24,7 @@ macro_rules! result_match {
 pub fn parse_grammarfile<'arn, 'grm, Action>(
     r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
+    // arena: Allocs<'arn>,
     parse_a: fn(&'arn ActionResult<'arn, 'grm>, src: &'grm str) -> Option<Action>,
 ) -> Option<GrammarFile<'grm, Action>> {
     result_match! {

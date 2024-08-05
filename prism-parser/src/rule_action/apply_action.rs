@@ -8,7 +8,7 @@ pub fn apply_action<'arn, 'grm>(
     rule: &RuleAction<'arn, 'grm>,
     span: Span,
     vars: VarMap<'arn, 'grm>,
-    allocs: &Allocs<'arn, 'grm>,
+    allocs: &Allocs<'arn>,
 ) -> ActionResult<'arn, 'grm> {
     match rule {
         RuleAction::Name(name) => {

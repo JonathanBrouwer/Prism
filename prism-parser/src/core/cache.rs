@@ -13,7 +13,6 @@ use crate::grammar::GrammarFile;
 use crate::parser::var_map::{BlockCtx};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
-use typed_arena::Arena;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'arn, 'grm> {
@@ -26,19 +25,21 @@ pub struct CacheKey<'arn, 'grm> {
 pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
 #[derive(Copy, Clone)]
-pub struct Allocs<'arn, 'grm: 'arn> {
-    pub alo_grammarfile: &'arn Arena<GrammarFile<'grm, RuleAction<'arn, 'grm>>>,
-    pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
+pub struct Allocs<'arn> {
     pub bump: &'arn Bump,
 }
 
-impl<'arn, 'grm> Allocs<'arn, 'grm> {
+impl<'arn> Allocs<'arn> {
     pub fn alloc<T: Copy>(&self, t: T) -> &'arn T {
         self.bump.alloc(t)
     }
     
     pub fn alloc_extend<T: Copy, I: IntoIterator<Item=T, IntoIter: ExactSizeIterator>>(&self, iter: I) -> &'arn [T] {
         self.bump.alloc_slice_fill_iter(iter)
+    }
+    
+    pub fn alloc_leak<T>(&self, t: T) -> &'arn T {
+        self.bump.alloc(t)
     }
 }
 

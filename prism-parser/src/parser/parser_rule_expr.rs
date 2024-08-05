@@ -269,7 +269,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     }
                 };
                 let g: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>> =
-                    state.alloc.alo_grammarfile.alloc(g);
+                    state.alloc.alloc_leak(g);
 
                 // Create new grammarstate
                 let (rules, rule_vars) = match rules.adapt_with(g, vars, Some(pos), state.alloc) {
@@ -285,7 +285,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let rules: &'arn GrammarState = state.alloc.alo_grammarstate.alloc(rules);
+                let rules: &'arn GrammarState = state.alloc.alloc_leak(rules);
 
                 let rule = rule_vars
                     .get(adapt_rule)

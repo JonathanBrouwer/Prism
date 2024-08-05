@@ -8,7 +8,7 @@ pub struct ParserState<'arn, 'grm, E: ParseError> {
     cache: HashMap<CacheKey<'arn, 'grm>, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
     cache_stack: Vec<CacheKey<'arn, 'grm>>,
     // For allocating things that might be in the result
-    pub alloc: Allocs<'arn, 'grm>,
+    pub alloc: Allocs<'arn>,
     pub input: &'grm str,
     // For generating guids
     pub guid_counter: usize,
@@ -19,7 +19,7 @@ pub struct ParserState<'arn, 'grm, E: ParseError> {
 pub type PState<'arn, 'grm, E> = ParserState<'arn, 'grm, E>;
 
 impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
-    pub fn new(input: &'grm str, alloc: Allocs<'arn, 'grm>) -> Self {
+    pub fn new(input: &'grm str, alloc: Allocs<'arn>) -> Self {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),

@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::sync::LazyLock;
 use bumpalo::Bump;
-use typed_arena::Arena;
 
 use grammar::from_action_result::parse_grammarfile;
 
@@ -31,8 +31,6 @@ pub static META_GRAMMAR_STATE: LazyLock<(
     VarMap<'static, 'static>,
 )> = LazyLock::new(|| {
     let alloc: Allocs = Allocs {
-        alo_grammarfile: Box::leak(Box::new(Arena::new())),
-        alo_grammarstate: Box::leak(Box::new(Arena::new())),
         bump: Box::leak(Box::new(Bump::new())),
     };
     let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
@@ -41,6 +39,7 @@ pub static META_GRAMMAR_STATE: LazyLock<(
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
     grammar: &'grm str,
+    // allocs: Allocs<'grm, 'grm>,
 ) -> Result<GrammarFile<'grm, RuleAction<'grm, 'grm>>, AggregatedParseError<'grm, E>> {
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar, _| {
         parse_grammarfile(ar, grammar, parse_rule_action)
