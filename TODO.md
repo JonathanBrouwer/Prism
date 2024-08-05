@@ -12,3 +12,4 @@ THE BIG TODO LIST:
 - Multi-file support
   - Make `program` part of self in TcEnv
 - Add type checking to grammar adaptation
+- Use a smarter data structure than a HashMap for caching
