@@ -48,18 +48,13 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         match block_state {
             [] => unreachable!(),
-            [b] => {
-                parser_body_sub_constructors(rules, (block_state, rule_args), b.constructors)
-                    .parse(pos, state, context)
-            }
+            [b] => parser_body_sub_constructors(rules, (block_state, rule_args), b.constructors)
+                .parse(pos, state, context),
             [b, brest @ ..] => {
                 // Parse current
-                let res = parser_body_sub_constructors(
-                    rules,
-                    (block_state, rule_args),
-                    b.constructors,
-                )
-                .parse(pos, state, context);
+                let res =
+                    parser_body_sub_constructors(rules, (block_state, rule_args), b.constructors)
+                        .parse(pos, state, context);
 
                 // Parse next with recursion check
                 res.merge_choice_parser(

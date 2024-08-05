@@ -70,10 +70,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                 let rule = if let Some(rule) = ctx.get(new_rule.name) {
                     rule.as_rule_id().expect("Can only adapt rule id")
                 } else {
-                    new_rules.push(alloc.alloc(RuleState::new_empty(
-                        new_rule.name,
-                        new_rule.args,
-                    )));
+                    new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
                 };
                 new_ctx = new_ctx.extend(
@@ -93,10 +90,13 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             );
         }
 
-        Ok((Self {
-            last_mut_pos: pos,
-            rules: alloc.alloc_extend(new_rules)
-        }, new_ctx))
+        Ok((
+            Self {
+                last_mut_pos: pos,
+                rules: alloc.alloc_extend(new_rules),
+            },
+            new_ctx,
+        ))
     }
 
     pub fn new_with(
