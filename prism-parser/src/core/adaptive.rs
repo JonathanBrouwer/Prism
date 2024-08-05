@@ -5,11 +5,11 @@ use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
-use std::sync::Arc;
 use std::iter;
 
+#[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
-    rules: Vec<Arc<RuleState<'arn, 'grm>>>,
+    rules: &'arn [&'arn RuleState<'arn, 'grm>],
     last_mut_pos: Option<Pos>,
 }
 
@@ -37,7 +37,7 @@ pub enum AdaptError<'grm> {
 impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     pub fn new() -> Self {
         Self {
-            rules: Vec::new(),
+            rules: &[],
             last_mut_pos: None,
         }
     }
@@ -51,12 +51,6 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         pos: Option<Pos>,
         alloc: Allocs<'arn>,
     ) -> Result<(Self, VarMap<'arn, 'grm>), AdaptError<'grm>> {
-        // Create a clone of self as a starting point
-        let mut s = Self {
-            rules: self.rules.clone(),
-            last_mut_pos: pos,
-        };
-
         // If we already tried to adapt at this position before, crash to prevent infinite loop
         if let Some(pos) = pos {
             if let Some(last_mut_pos) = self.last_mut_pos {
@@ -67,19 +61,20 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         }
 
         // Create a new ruleid or find an existing rule id for each rule that is adopted
+        let mut new_rules = self.rules.to_vec();
         let mut new_ctx = ctx;
-        let result: Vec<_> = grammar
+        let tmp: Vec<_> = grammar
             .rules
             .iter()
             .map(|new_rule| {
                 let rule = if let Some(rule) = ctx.get(new_rule.name) {
                     rule.as_rule_id().expect("Can only adapt rule id")
                 } else {
-                    s.rules.push(Arc::new(RuleState::new_empty(
+                    new_rules.push(alloc.alloc(RuleState::new_empty(
                         new_rule.name,
                         new_rule.args,
                     )));
-                    RuleId(s.rules.len() - 1)
+                    RuleId(new_rules.len() - 1)
                 };
                 new_ctx = new_ctx.extend(
                     iter::once((new_rule.name, VarMapValue::new_rule(rule, alloc))),
@@ -90,15 +85,18 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .collect();
 
         // Update each rule that is to be adopted, stored in `result`
-        for (&(_, id), rule) in result.iter().zip(grammar.rules.iter()) {
-            s.rules[id.0] = Arc::new(
-                s.rules[id.0]
+        for (&(_, id), rule) in tmp.iter().zip(grammar.rules.iter()) {
+            new_rules[id.0] = alloc.alloc(
+                new_rules[id.0]
                     .update(rule, new_ctx, alloc)
                     .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?,
             );
         }
 
-        Ok((s, new_ctx))
+        Ok((Self {
+            last_mut_pos: pos,
+            rules: alloc.alloc_extend(new_rules)
+        }, new_ctx))
     }
 
     pub fn new_with(

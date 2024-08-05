@@ -275,7 +275,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let rules: &'arn GrammarState = state.alloc.alloc_leak(rules);
+                let rules: &'arn GrammarState = state.alloc.alloc(rules);
 
                 let rule = rule_vars
                     .get(adapt_rule)

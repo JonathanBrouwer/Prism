@@ -91,10 +91,6 @@ impl<'arn> Allocs<'arn> {
         });
         all_ok.then_some(slice)
     }
-
-    pub fn alloc_leak<T>(&self, t: T) -> &'arn T {
-        self.bump.alloc(t)
-    }
 }
 
 pub struct ParserCacheEntry<PR> {
