@@ -1,3 +1,4 @@
+use crate::grammar::serde_leak::leak;
 use crate::grammar::escaped_string::EscapedString;
 use crate::rule_action::RuleAction;
 use serde::{Deserialize, Serialize};
@@ -56,25 +57,24 @@ pub enum RuleAnnotation<'grm> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {
-    RunVar(&'grm str, Vec<Self>),
+    RunVar(&'grm str, Vec<RuleExpr<'arn, 'grm>>),
     CharClass(CharClass),
     Literal(EscapedString<'grm>),
     Repeat {
-        expr: Box<Self>,
+        expr: Box<RuleExpr<'arn, 'grm>>,
         min: u64,
         max: Option<u64>,
-        delim: Box<Self>,
+        delim: Box<RuleExpr<'arn, 'grm>>,
     },
-    Sequence(Vec<Self>),
-    Choice(Vec<Self>),
-    NameBind(&'grm str, Box<Self>),
-    Action(Box<Self>, RuleAction<'arn, 'grm>),
-    SliceInput(Box<Self>),
-    PosLookahead(Box<Self>),
-    NegLookahead(Box<Self>),
+    Sequence(Vec<RuleExpr<'arn, 'grm>>),
+    Choice(Vec<RuleExpr<'arn, 'grm>>),
+    NameBind(&'grm str, Box<RuleExpr<'arn, 'grm>>),
+    Action(Box<RuleExpr<'arn, 'grm>>, RuleAction<'arn, 'grm>),
+    SliceInput(Box<RuleExpr<'arn, 'grm>>),
+    PosLookahead(#[serde(with="leak")] &'arn RuleExpr<'arn, 'grm>),
+    NegLookahead(Box<RuleExpr<'arn, 'grm>>),
     This,
     Next,
     AtAdapt(RuleAction<'arn, 'grm>, &'grm str),
     Guid,
-    // Test(#[serde(with= "leak")] &'grm RuleExpr<'arn, 'grm>)
 }

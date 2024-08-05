@@ -245,7 +245,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, state.input, |ar, _| {
+                let g = match parse_grammarfile(gr, state.input, state.alloc, |ar, _| {
                     Some(RuleAction::ActionResult(ar))
                 }) {
                     Some(g) => g,
