@@ -1,10 +1,10 @@
 use crate::lang::error::TypeError;
 use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
-use prism_parser::parser::parser_instance::Arena;
-use prism_parser::parser::var_map::{VarMap, VarMapNode, VarMapValue};
+use prism_parser::parser::var_map::{VarMap, VarMapValue};
 use prism_parser::rule_action::action_result::ActionResult;
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
+use prism_parser::core::cache::Allocs;
 
 #[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {
@@ -93,7 +93,7 @@ impl TcEnv {
         &mut self,
         value: &ActionResult<'arn, 'grm>,
         program: &'arn str,
-        _arena: &'arn Arena<VarMapNode<'arn, 'grm>>,
+        _arena: Allocs,
     ) -> UnionIndex {
         self.insert_from_action_result_rec(value, program, &Scope::default())
     }

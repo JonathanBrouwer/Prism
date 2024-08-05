@@ -1,3 +1,4 @@
+use bumpalo::Bump;
 use crate::core::adaptive::{GrammarState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
@@ -9,7 +10,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::grammar::GrammarFile;
-use crate::parser::var_map::{BlockCtx, VarMapNode};
+use crate::parser::var_map::{BlockCtx};
 use crate::rule_action::action_result::ActionResult;
 use crate::rule_action::RuleAction;
 use typed_arena::Arena;
@@ -24,12 +25,21 @@ pub struct CacheKey<'arn, 'grm> {
 
 pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Allocs<'arn, 'grm: 'arn> {
     pub alo_grammarfile: &'arn Arena<GrammarFile<'grm, RuleAction<'arn, 'grm>>>,
     pub alo_grammarstate: &'arn Arena<GrammarState<'arn, 'grm>>,
-    pub alo_ar: &'arn Arena<ActionResult<'arn, 'grm>>,
-    pub alo_varmap: &'arn Arena<VarMapNode<'arn, 'grm>>,
+    pub bump: &'arn Bump,
+}
+
+impl<'arn, 'grm> Allocs<'arn, 'grm> {
+    pub fn alloc<T: Copy>(&self, t: T) -> &'arn T {
+        self.bump.alloc(t)
+    }
+    
+    pub fn alloc_extend<T: Copy, I: IntoIterator<Item=T, IntoIter: ExactSizeIterator>>(&self, iter: I) -> &'arn [T] {
+        self.bump.alloc_slice_fill_iter(iter)
+    }
 }
 
 pub struct ParserCacheEntry<PR> {

@@ -13,7 +13,7 @@ use by_address::ByAddress;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use std::iter;
-use typed_arena::Arena;
+use crate::core::cache::Allocs;
 
 #[derive(Default, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct VarMap<'arn, 'grm>(Option<ByAddress<&'arn VarMapNode<'arn, 'grm>>>);
@@ -28,7 +28,7 @@ impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
     key: &'arn str,
@@ -75,7 +75,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self,
         key: &'arn str,
         value: VarMapValue<'arn, 'grm>,
-        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+        alloc: Allocs<'arn, 'grm>,
     ) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
@@ -84,7 +84,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     pub fn extend<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         mut self,
         iter: T,
-        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+        alloc: Allocs<'arn, 'grm>,
     ) -> Self {
         for (key, value) in iter {
             self.0 = Some(ByAddress(alloc.alloc(VarMapNode {
@@ -98,7 +98,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
 
     pub fn from_iter<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
         iter: T,
-        alloc: &'arn Arena<VarMapNode<'arn, 'grm>>,
+        alloc: Allocs<'arn, 'grm>,
     ) -> Self {
         let s = Self::default();
         s.extend(iter, alloc)
@@ -117,7 +117,7 @@ pub struct CapturedExpr<'arn, 'grm> {
     pub vars: VarMap<'arn, 'grm>,
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
     Value(&'arn ActionResult<'arn, 'grm>),
@@ -133,7 +133,7 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn new_rule(rule: RuleId, alloc: &'arn Arena<ActionResult<'arn, 'grm>>) -> Self {
+    pub fn new_rule(rule: RuleId, alloc: Allocs<'arn, 'grm>) -> Self {
         Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
     }
 

@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
         ctx: VarMap<'arn, 'grm>,
         pos: Option<Pos>,
-        alloc: &Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn, 'grm>,
     ) -> Result<(Self, VarMap<'arn, 'grm>), AdaptError<'grm>> {
         // Create a clone of self as a starting point
         let mut s = Self {
@@ -84,8 +84,8 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                     RuleId(s.rules.len() - 1)
                 };
                 new_ctx = new_ctx.extend(
-                    iter::once((new_rule.name, VarMapValue::new_rule(rule, alloc.alo_ar))),
-                    alloc.alo_varmap,
+                    iter::once((new_rule.name, VarMapValue::new_rule(rule, alloc))),
+                    alloc,
                 );
                 (new_rule.name, rule)
             })
@@ -104,7 +104,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 
     pub fn new_with(
         grammar: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
-        alloc: &Allocs<'arn, 'grm>,
+        alloc: Allocs<'arn, 'grm>,
     ) -> (Self, VarMap<'arn, 'grm>) {
         // We create a new grammar by adapting an empty one
         GrammarState::new()

@@ -91,7 +91,7 @@ fn parser_body_sub_constructors<
             let rule_ctx = rule_ctx.iter_cloned();
             let rule_args_iter = rule_args.iter_cloned();
             let vars: VarMap<'arn, 'grm> =
-                VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc.alo_varmap);
+                VarMap::from_iter(rule_args_iter.chain(rule_ctx), state.alloc);
 
             let res =
                 parser_body_sub_annotations(rules, (block_state, rule_args), annots, expr, vars)

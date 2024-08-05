@@ -1,3 +1,4 @@
+use bumpalo::Bump;
 use crate::core::adaptive::{AdaptError, GrammarState};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
@@ -43,7 +44,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                             .get("grammar")
                             .and_then(|v| v.as_rule_id())
                             .expect("grammar is a rule in meta grammar"),
-                        state.alloc.alo_ar,
+                        state.alloc,
                     ),
                 ),
                 (
@@ -54,17 +55,17 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                             .get("prule_action")
                             .and_then(|v| v.as_rule_id())
                             .expect("prule_action is a rule in meta grammar"),
-                        state.alloc.alo_ar,
+                        state.alloc,
                     ),
                 ),
             ],
-            state.alloc.alo_varmap,
+            state.alloc,
         );
 
         let (grammar_state, rules) =
             META_GRAMMAR_STATE
                 .0
-                .adapt_with(from, visible_rules, None, &state.alloc)?;
+                .adapt_with(from, visible_rules, None, state.alloc)?;
 
         Ok(Self {
             context,
@@ -107,16 +108,15 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T
     rules: &'arn GrammarFile<'grm, RuleAction<'arn, 'grm>>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, &'c Allocs<'c, 'grm>) -> T,
+    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c, 'grm>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
     let allocs: Allocs<'_, 'grm> = Allocs {
         alo_grammarfile: &Arena::new(),
         alo_grammarstate: &Arena::new(),
-        alo_ar: &Arena::new(),
-        alo_varmap: &Arena::new(),
+        bump: &Bump::new()
     };
-    let mut instance = ParserInstance::new(input, allocs.clone(), rules).unwrap();
-    instance.run(rule).map(|ar| ar_map(ar, &allocs))
+    let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
+    instance.run(rule).map(|ar| ar_map(ar, allocs))
 }
 
 #[macro_export]
@@ -125,8 +125,7 @@ macro_rules! run_parser_rule_here {
         let bump = $crate::core::cache::Allocs {
             alo_grammarfile: &$crate::parser::parser_instance::Arena::new(),
             alo_grammarstate: &$crate::parser::parser_instance::Arena::new(),
-            alo_ar: &$crate::parser::parser_instance::Arena::new(),
-            alo_varmap: &$crate::parser::parser_instance::Arena::new(),
+            bump: &::bumpalo::Bump::new(),
         };
         let mut instance =
             $crate::parser::parser_instance::ParserInstance::<$error>::new($input, bump, $rules)

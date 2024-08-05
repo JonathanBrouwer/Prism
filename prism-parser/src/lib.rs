@@ -1,4 +1,5 @@
 use std::sync::LazyLock;
+use bumpalo::Bump;
 use typed_arena::Arena;
 
 use grammar::from_action_result::parse_grammarfile;
@@ -29,12 +30,11 @@ pub static META_GRAMMAR_STATE: LazyLock<(
     GrammarState<'static, 'static>,
     VarMap<'static, 'static>,
 )> = LazyLock::new(|| {
-    let alloc: &'static Allocs = Box::leak(Box::new(Allocs {
+    let alloc: Allocs = Allocs {
         alo_grammarfile: Box::leak(Box::new(Arena::new())),
         alo_grammarstate: Box::leak(Box::new(Arena::new())),
-        alo_ar: Box::leak(Box::new(Arena::new())),
-        alo_varmap: Box::leak(Box::new(Arena::new())),
-    }));
+        bump: Box::leak(Box::new(Bump::new())),
+    };
     let (g, i) = GrammarState::new_with(&META_GRAMMAR, alloc);
     (g, i)
 });

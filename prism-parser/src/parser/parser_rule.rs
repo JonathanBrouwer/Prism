@@ -27,7 +27,7 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 .iter()
                 .cloned()
                 .zip_eq(args.iter().cloned()),
-            state.alloc.alo_varmap,
+            state.alloc,
         );
 
         let mut res = parser_body_cache_recurse(rules, (ByAddress(&rule_state.blocks), rule_args))

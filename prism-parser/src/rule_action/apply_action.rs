@@ -30,7 +30,7 @@ pub fn apply_action<'arn, 'grm>(
                 .iter()
                 .map(|a| apply_action(a, span, vars, allocs))
                 .collect_vec();
-            let args_vals = allocs.alo_ar.alloc_extend(buffer);
+            let args_vals = allocs.alloc_extend(buffer);
             ActionResult::Construct(span, name, args_vals)
         }
         RuleAction::ActionResult(ar) => ActionResult::WithEnv(vars, ar),

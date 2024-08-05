@@ -17,7 +17,7 @@ pub fn parse_prism_in_env<'p>(
     env: &mut TcEnv,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
     run_parser_rule::<SetError, _>(&GRAMMAR, "expr", program, |r, allocs| {
-        env.insert_from_action_result(r, program, allocs.alo_varmap)
+        env.insert_from_action_result(r, program, allocs)
     })
 }
 
