@@ -6,7 +6,7 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::PState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 
 const MAX_RECOVERIES: usize = 2;
 

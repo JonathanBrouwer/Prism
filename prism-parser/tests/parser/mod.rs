@@ -34,7 +34,7 @@ macro_rules! parse_test {
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
-            use prism_parser::rule_action::RuleAction;
+            use prism_parser::grammar::rule_action::RuleAction;
             use itertools::Itertools;
             use prism_parser::error::aggregate_error::ParseResultExt;
             use bumpalo::Bump;

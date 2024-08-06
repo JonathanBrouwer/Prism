@@ -9,7 +9,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::parser::var_map::BlockCtx;
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 use bumpalo::Bump;
 
 #[derive(Eq, PartialEq, Hash, Clone)]

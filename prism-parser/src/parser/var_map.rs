@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
 use crate::parser::parser_rule_expr::parser_expr;
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;

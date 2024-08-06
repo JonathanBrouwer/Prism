@@ -1,8 +1,8 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parser::var_map::{VarMap, VarMapValue};
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::RuleAction;
+use crate::grammar::action_result::ActionResult;
+use crate::grammar::rule_action::RuleAction;
 
 pub fn apply_action<'arn, 'grm>(
     rule: &RuleAction<'arn, 'grm>,

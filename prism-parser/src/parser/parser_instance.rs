@@ -11,7 +11,7 @@ use crate::grammar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::parser::var_map::{VarMap, VarMapValue};
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 use crate::META_GRAMMAR_STATE;
 use bumpalo::Bump;
 

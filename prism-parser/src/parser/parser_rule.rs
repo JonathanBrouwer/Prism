@@ -7,7 +7,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{VarMap, VarMapValue};
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 use itertools::Itertools;
 
 pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(

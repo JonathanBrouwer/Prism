@@ -14,7 +14,7 @@ use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
 use crate::parser::var_map::{BlockCtx, VarMap};
-use crate::rule_action::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult;
 
 pub fn parser_body_cache_recurse<
     'a,

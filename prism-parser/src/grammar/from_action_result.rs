@@ -2,10 +2,10 @@ use crate::core::cache::Allocs;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
-use crate::rule_action::action_result::ActionResult;
-use crate::rule_action::action_result::ActionResult::*;
-use crate::rule_action::RuleAction;
+use crate::grammar::action_result::ActionResult;
+use crate::grammar::action_result::ActionResult::*;
 use std::borrow::Cow;
+use crate::grammar::rule_action::RuleAction;
 
 #[macro_export]
 macro_rules! result_match {
@@ -247,4 +247,22 @@ fn parse_u64(r: &ActionResult<'_, '_>, src: &str) -> Option<u64> {
         Value(span) => src[*span].parse().ok(),
         _ => None,
     }
+}
+
+pub fn parse_rule_action<'arn, 'grm>(
+    r: &ActionResult<'_, 'grm>,
+    src: &'grm str,
+    allocs: Allocs<'arn>,
+) -> Option<RuleAction<'arn, 'grm>> {
+    Some(match r {
+        Construct(_, "Construct", b) => RuleAction::Construct(
+            parse_identifier(&b[0], src).unwrap(),
+            result_match! {
+                create allocs.try_alloc_extend(b[1].iter_list().map(|sub| parse_rule_action(sub, src, allocs)))?
+            }?,
+        ),
+        Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),
+        Construct(_, "Name", b) => RuleAction::Name(parse_identifier(&b[0], src)?),
+        _ => return None,
+    })
 }
