@@ -1,7 +1,6 @@
 use crate::lang::UnionIndex;
 use crate::lang::{TcEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
-use itertools::Itertools;
 use prism_parser::core::span::Span;
 use std::io;
 
@@ -144,6 +143,7 @@ impl TcEnv {
                     .queued_beq_free
                     .iter()
                     .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1 .0)))
+                    .collect::<Vec<_>>()
                     .join(",");
 
                 report.with_message("Constraint creates an infinite type")

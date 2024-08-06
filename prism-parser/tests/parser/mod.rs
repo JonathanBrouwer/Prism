@@ -35,7 +35,6 @@ macro_rules! parse_test {
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
             use prism_parser::grammar::rule_action::RuleAction;
-            use itertools::Itertools;
             use prism_parser::error::aggregate_error::ParseResultExt;
             use bumpalo::Bump;
             use prism_parser::core::cache::Allocs;
@@ -66,6 +65,7 @@ macro_rules! parse_test {
                     $(
                     let got = es.errors.iter()
                         .map(|e| format!("{}..{}", e.span.start, e.span.end))
+                        .collect::<Vec<_>>()
                         .join(" ");
                     assert_eq!(got, $errors);
                     )?

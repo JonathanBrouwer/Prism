@@ -1,8 +1,7 @@
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use std::str::{Chars, FromStr};
 
 #[derive(Debug, Copy, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
 pub struct EscapedString<'grm>(&'grm str);
@@ -21,20 +20,7 @@ impl<'grm> EscapedString<'grm> {
     }
 
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.0.chars().batching(|it| {
-            let c = it.next()?;
-            if c != '\\' {
-                return Some(c);
-            }
-            Some(match it.next()? {
-                'n' => '\n',
-                'r' => '\r',
-                '\\' => '\\',
-                '"' => '"',
-                '\'' => '\'',
-                _ => panic!("Invalid escape sequence"),
-            })
-        })
+        EscapedStringIter(self.0.chars())
     }
 
     pub fn parse<F: FromStr>(&self) -> Result<F, F::Err> {
@@ -45,5 +31,25 @@ impl<'grm> EscapedString<'grm> {
 impl Display for EscapedString<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+struct EscapedStringIter<'grm>(Chars<'grm>);
+
+impl<'grm> Iterator for EscapedStringIter<'grm> {
+    type Item = char;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(match self.0.next()? {
+            '\\' => match self.0.next()? {
+                'n' => '\n',
+                'r' => '\r',
+                '\\' => '\\',
+                '"' => '"',
+                '\'' => '\'',
+                _ => panic!("Invalid escape sequence"),
+            },
+            c => c,
+        })
     }
 }

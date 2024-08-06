@@ -7,7 +7,6 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-itertools.workspace = true
 serde.workspace = true
 bincode.workspace = true
 ariadne.workspace = true

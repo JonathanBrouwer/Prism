@@ -4,9 +4,9 @@ use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
+use prism_parser::grammar::action_result::ActionResult;
 use prism_parser::grammar::from_action_result::{parse_grammarfile, parse_rule_action};
 use prism_parser::grammar::GrammarFile;
-use prism_parser::grammar::action_result::ActionResult;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
 

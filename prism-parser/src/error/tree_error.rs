@@ -3,7 +3,6 @@ use crate::core::span::Span;
 use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
 use ariadne::{Label, Report, ReportBuilder};
-use itertools::Itertools;
 use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
@@ -30,7 +29,11 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
     }
 
     pub fn into_paths(&self) -> Vec<Vec<&L>> {
-        let mut subs = self.1.iter().map(|t| t.into_paths()).concat();
+        let mut subs = self
+            .1
+            .iter()
+            .flat_map(|t| t.into_paths())
+            .collect::<Vec<_>>();
         if let Some(l) = &self.0 {
             if subs.is_empty() {
                 subs.push(vec![l]);
@@ -99,7 +102,7 @@ impl<'grm> ParseError for TreeError<'grm> {
             let path = path
                 .iter()
                 .filter(|l| enable_debug || !l.is_debug())
-                .collect_vec();
+                .collect::<Vec<_>>();
             if path.is_empty() {
                 continue;
             }
@@ -107,7 +110,10 @@ impl<'grm> ParseError for TreeError<'grm> {
 
             report = report.with_label(
                 Label::new(label.span())
-                    .with_message(format!("{}", path.iter().format(" <- ")))
+                    .with_message(path.iter()
+                            .map(|v| v.to_string())
+                            .collect::<Vec<_>>()
+                            .join(" <- ").to_string())
                     .with_order(-(<Pos as Into<usize>>::into(label.span().start) as i32)),
             );
         }

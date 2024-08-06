@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'arn, 'grm> {

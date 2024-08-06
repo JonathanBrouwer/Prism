@@ -3,9 +3,8 @@ use crate::core::span::Span;
 use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
 use ariadne::{Label, Report};
-use itertools::Itertools;
 use std::cmp::max;
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]
@@ -60,19 +59,22 @@ impl<'grm> ParseError for SetError<'grm> {
     fn report(&self, enable_debug: bool) -> Report<'static, Span> {
         let mut report = base_report(self.span);
 
+        let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
+        for l in self.labels.iter().filter(|l| enable_debug || !l.is_debug()) {
+            labels_map.entry(l.span().start).or_default().push(l);
+        }
+
         //Add labels
-        for (start, labels) in self
-            .labels
-            .iter()
-            .filter(|l| enable_debug || !l.is_debug())
-            .into_group_map_by(|l| l.span().start)
-            .into_iter()
-        {
+        for (start, labels) in labels_map {
             report = report.with_label(
                 Label::new(start.span_to(start))
                     .with_message(format!(
                         "Tried parsing {}",
-                        labels.into_iter().format(" / ")
+                        labels
+                            .iter()
+                            .map(|v| v.to_string())
+                            .collect::<Vec<_>>()
+                            .join(" / ")
                     ))
                     .with_order(-(<Pos as Into<usize>>::into(start) as i32)),
             );

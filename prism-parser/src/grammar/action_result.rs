@@ -3,7 +3,6 @@ use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -37,13 +36,19 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::Construct(_, "Cons" | "Nil", _) => {
                 format!(
                     "[{}]",
-                    self.iter_list().map(|e| e.to_string(src)).format(", ")
+                    self.iter_list()
+                        .map(|e| e.to_string(src))
+                        .collect::<Vec<String>>()
+                        .join(", ")
                 )
             }
             ActionResult::Construct(_, c, es) => format!(
                 "{}({})",
                 c,
-                es.iter().map(|e| e.to_string(src)).format(", ")
+                es.iter()
+                    .map(|e| e.to_string(src))
+                    .collect::<Vec<String>>()
+                    .join(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
             ActionResult::RuleId(rule) => format!("Rule({rule})"),

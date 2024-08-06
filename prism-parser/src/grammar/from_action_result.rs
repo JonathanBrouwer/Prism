@@ -1,11 +1,11 @@
 use crate::core::cache::Allocs;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
-use crate::grammar::{CharClass, RuleAnnotation};
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::action_result::ActionResult::*;
-use std::borrow::Cow;
+use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
+use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
+use crate::grammar::{CharClass, RuleAnnotation};
+use std::borrow::Cow;
 
 #[macro_export]
 macro_rules! result_match {
