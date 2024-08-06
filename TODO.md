@@ -7,6 +7,7 @@ THE BIG TODO LIST:
   - New keyword `paramatricity x`, generates inductor
   - Formalize generating inductor from paramatricity
 - Remove RuleAction, instead returning ActionResults with environments
+  -> Not possible because of where the AR is allocated
 - Pass flag around in context whether result of parse is needed (const bool?)
 - queued_tc?
 - Multi-file support
