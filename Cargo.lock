@@ -44,6 +44,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
+name = "bumpalo_try"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2d42133facdf37898b42edd665842bd2cdfa7fe8c73ac1a88e644de21cf1447"
+dependencies = [
+ "bumpalo",
+]
+
+[[package]]
 name = "by_address"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -157,6 +166,7 @@ dependencies = [
  "ariadne",
  "bincode",
  "bumpalo",
+ "bumpalo_try",
  "by_address",
  "itertools",
  "serde",

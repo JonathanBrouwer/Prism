@@ -11,6 +11,7 @@ use crate::error::{err_combine_opt, ParseError};
 use crate::parser::var_map::BlockCtx;
 use crate::grammar::action_result::ActionResult;
 use bumpalo::Bump;
+use bumpalo_try::BumpaloExtend;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
@@ -78,18 +79,7 @@ impl<'arn> Allocs<'arn> {
         &self,
         iter: I,
     ) -> Option<&'arn [T]> {
-        let mut iter = iter.into_iter();
-        let mut all_ok = true;
-        let slice = self.bump.alloc_slice_fill_with(iter.len(), |_| {
-            let v = iter.next().expect("Exact size iter has enough elements");
-            if let Some(v) = v {
-                v
-            } else {
-                all_ok = false;
-                todo!()
-            }
-        });
-        all_ok.then_some(slice)
+        self.bump.alloc_slice_fill_iter_option(iter).map(|s| &*s)
     }
 }
 
