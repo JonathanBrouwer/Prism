@@ -6,7 +6,7 @@ use prism_parser::grammar::GrammarFile;
 use prism_parser::parse_grammar;
 use prism_parser::META_GRAMMAR;
 
-#[cfg_attr(not(debug_assertions), test)]
+#[test]
 pub fn test_bootstrap() {
     let grammar: &'static GrammarFile = &META_GRAMMAR;
 

@@ -51,7 +51,7 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
 ) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
-        match &rule_body[..] => [name, args, blocks],
+        match &rule_body[..] => [name, extend, args, blocks],
         create Rule {
             name: parse_identifier(name, src)?,
             args: allocs.try_alloc_extend(args.iter_list().map(|n| parse_identifier(n, src)))?,
@@ -71,7 +71,7 @@ fn parse_block<'arn_in, 'arn_out, 'grm>(
 ) -> Option<Block<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Block", b),
-        match &b[..] => [name, cs],
+        match &b[..] => [name, extend, cs],
         create Block(parse_identifier(name, src)?, parse_constructors(cs, src, allocs, parse_a)?)
     }
 }

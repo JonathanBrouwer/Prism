@@ -100,6 +100,23 @@
                   {
                     "Sequence": [
                       {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Literal": "extend"
+                              },
+                              "min": 0,
+                              "max": 1,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
                         "Literal": "rule"
                       },
                       {
@@ -132,7 +149,7 @@
                           "blocks",
                           {
                             "RunVar": [
-                              "prule_blocks",
+                              "prule_body",
                               [
                                 {
                                   "RunVar": [
@@ -156,6 +173,9 @@
                       [
                         {
                           "Name": "name"
+                        },
+                        {
+                          "Name": "e"
                         },
                         {
                           "Name": "params"
@@ -234,6 +254,12 @@
                           "Name": "name"
                         },
                         {
+                          "Construct": [
+                            "Nil",
+                            []
+                          ]
+                        },
+                        {
                           "Name": "params"
                         },
                         {
@@ -244,6 +270,9 @@
                                 "Construct": [
                                   "Block",
                                   [
+                                    {
+                                      "InputLiteral": ""
+                                    },
                                     {
                                       "InputLiteral": ""
                                     },
@@ -366,7 +395,7 @@
       ]
     },
     {
-      "name": "prule_blocks",
+      "name": "prule_body",
       "args": [
         "action"
       ],
@@ -379,73 +408,16 @@
               {
                 "Repeat": {
                   "expr": {
-                    "Action": [
-                      {
-                        "Sequence": [
-                          {
-                            "Literal": "group"
-                          },
-                          {
-                            "NameBind": [
-                              "n",
-                              {
-                                "SliceInput": {
-                                  "Repeat": {
-                                    "expr": {
-                                      "RunVar": [
-                                        "identifier",
-                                        []
-                                      ]
-                                    },
-                                    "min": 0,
-                                    "max": 1,
-                                    "delim": {
-                                      "Sequence": []
-                                    }
-                                  }
-                                }
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": "{"
-                          },
-                          {
-                            "NameBind": [
-                              "c",
-                              {
-                                "RunVar": [
-                                  "prule_constructors",
-                                  [
-                                    {
-                                      "RunVar": [
-                                        "action",
-                                        []
-                                      ]
-                                    }
-                                  ]
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "Literal": "}"
-                          }
-                        ]
-                      },
-                      {
-                        "Construct": [
-                          "Block",
-                          [
-                            {
-                              "Name": "n"
-                            },
-                            {
-                              "Name": "c"
-                            }
+                    "RunVar": [
+                      "prule_block",
+                      [
+                        {
+                          "RunVar": [
+                            "action",
+                            []
                           ]
-                        ]
-                      }
+                        }
+                      ]
                     ]
                   },
                   "min": 1,
@@ -490,10 +462,197 @@
                                 "InputLiteral": ""
                               },
                               {
+                                "Construct": [
+                                  "Nil",
+                                  []
+                                ]
+                              },
+                              {
                                 "Name": "c"
                               }
                             ]
                           ]
+                        },
+                        {
+                          "Construct": [
+                            "Nil",
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "prule_block",
+      "args": [
+        "action"
+      ],
+      "blocks": [
+        [
+          "",
+          [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Literal": "extend"
+                              },
+                              "min": 0,
+                              "max": 1,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "group"
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "SliceInput": {
+                              "Repeat": {
+                                "expr": {
+                                  "RunVar": [
+                                    "identifier",
+                                    []
+                                  ]
+                                },
+                                "min": 0,
+                                "max": 1,
+                                "delim": {
+                                  "Sequence": []
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "{"
+                      },
+                      {
+                        "NameBind": [
+                          "c",
+                          {
+                            "RunVar": [
+                              "prule_constructors",
+                              [
+                                {
+                                  "RunVar": [
+                                    "action",
+                                    []
+                                  ]
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "}"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Block",
+                      [
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Name": "e"
+                        },
+                        {
+                          "Name": "c"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "e",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "Literal": "extend"
+                              },
+                              "min": 0,
+                              "max": 1,
+                              "delim": {
+                                "Sequence": []
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "group"
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "SliceInput": {
+                              "Repeat": {
+                                "expr": {
+                                  "RunVar": [
+                                    "identifier",
+                                    []
+                                  ]
+                                },
+                                "min": 0,
+                                "max": 1,
+                                "delim": {
+                                  "Sequence": []
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ";"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Block",
+                      [
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Name": "e"
                         },
                         {
                           "Construct": [
@@ -2710,6 +2869,12 @@
               [],
               {
                 "Literal": "group"
+              }
+            ],
+            [
+              [],
+              {
+                "Literal": "extend"
               }
             ]
           ]
