@@ -17,7 +17,7 @@ fn main() {
 }
 
 fn normal() {
-    let input = include_str!("../resources/meta.grammar");
+    let input = include_str!("../resources/meta.pg");
     let bump = Bump::new();
     let alloc = Allocs::new(&bump);
     let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
@@ -32,7 +32,7 @@ fn normal() {
 }
 
 fn part1() {
-    let input = include_str!("../resources/meta.grammar");
+    let input = include_str!("../resources/meta.pg");
 
     run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
     let result = result.unwrap_or_eprint();
@@ -42,7 +42,7 @@ fn part1() {
 }
 
 fn part2() {
-    let input = include_str!("../resources/meta.grammar");
+    let input = include_str!("../resources/meta.pg");
 
     // Leak because ownership was being annoying
     let temp: &'static [u8] = Box::leak(
