@@ -19,6 +19,7 @@ pub struct GrammarFile<'arn, 'grm> {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
+    pub extend: bool,
     #[serde(with = "leak_slice")]
     pub args: &'arn [&'grm str],
     #[serde(borrow, with = "leak_slice")]
@@ -26,10 +27,12 @@ pub struct Rule<'arn, 'grm> {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct Block<'arn, 'grm>(
-    pub &'grm str,
-    #[serde(borrow, with = "leak_slice")] pub &'arn [AnnotatedRuleExpr<'arn, 'grm>],
-);
+pub struct Block<'arn, 'grm> {
+    pub name: &'grm str,
+    pub extend: bool,
+    #[serde(borrow, with = "leak_slice")] pub constructors: &'arn [AnnotatedRuleExpr<'arn,
+    'grm > ],
+}
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct AnnotatedRuleExpr<'arn, 'grm>(

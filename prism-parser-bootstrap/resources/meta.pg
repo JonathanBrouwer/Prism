@@ -4,7 +4,7 @@ rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule(name, e, params, blocks) <- e:"extend"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", "", AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params {

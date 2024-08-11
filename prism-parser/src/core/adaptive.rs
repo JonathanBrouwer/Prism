@@ -152,7 +152,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
         assert_eq!(self.args, r.args);
 
         //TODO remove this allocation?
-        let new_nodes: HashSet<&'grm str> = r.blocks.iter().map(|n| n.0).collect();
+        let new_nodes: HashSet<&'grm str> = r.blocks.iter().map(|n| n.name).collect();
         let mut result = Vec::with_capacity(self.blocks.len() + r.blocks.len());
         let mut new_iter = r.blocks.iter();
 
@@ -169,7 +169,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
                 let Some(new_block) = new_iter.next() else {
                     return Err(UpdateError::ToposortCycle);
                 };
-                if new_block.0 != old_block.name {
+                if new_block.name != old_block.name {
                     result.push(BlockState::new(new_block, ctx, allocs));
                     continue;
                 }
@@ -208,8 +208,8 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
         allocs: Allocs<'arn>,
     ) -> Self {
         Self {
-            name: block.0,
-            constructors: allocs.alloc_extend(block.1.iter().map(|r| (r, ctx))),
+            name: block.name,
+            constructors: allocs.alloc_extend(block.constructors.iter().map(|r| (r, ctx))),
         }
     }
 
@@ -220,15 +220,15 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
         ctx: VarMap<'arn, 'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {
-        assert_eq!(self.name, b.0);
+        assert_eq!(self.name, b.name);
         Self {
             name: self.name,
             constructors: allocs.alloc_extend_len(
-                self.constructors.len() + b.1.len(),
+                self.constructors.len() + b.constructors.len(),
                 self.constructors
                     .iter()
                     .cloned()
-                    .chain(b.1.iter().map(|r| (r, ctx))),
+                    .chain(b.constructors.iter().map(|r| (r, ctx))),
             ),
         }
     }

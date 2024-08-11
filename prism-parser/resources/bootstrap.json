@@ -2,11 +2,13 @@
   "rules": [
     {
       "name": "toplevel",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -24,18 +26,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "grammar",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -81,18 +85,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -274,7 +280,10 @@
                                       "InputLiteral": ""
                                     },
                                     {
-                                      "InputLiteral": ""
+                                      "Construct": [
+                                        "Nil",
+                                        []
+                                      ]
                                     },
                                     {
                                       "Construct": [
@@ -324,16 +333,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_params",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -391,18 +402,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_body",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -486,18 +499,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_block",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -667,18 +682,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_constructors",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -705,18 +722,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_annotated_expr",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -795,16 +814,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_annotation",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -972,18 +993,20 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_expr",
+      "extend": false,
       "args": [
         "action"
       ],
       "blocks": [
-        [
-          "action",
-          [
+        {
+          "name": "action",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -1029,10 +1052,11 @@
               }
             ]
           ]
-        ],
-        [
-          "choice",
-          [
+        },
+        {
+          "name": "choice",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -1066,10 +1090,11 @@
               }
             ]
           ]
-        ],
-        [
-          "sequence",
-          [
+        },
+        {
+          "name": "sequence",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -1106,10 +1131,11 @@
               }
             ]
           ]
-        ],
-        [
-          "bind",
-          [
+        },
+        {
+          "name": "bind",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -1155,10 +1181,11 @@
               }
             ]
           ]
-        ],
-        [
-          "repeat",
-          [
+        },
+        {
+          "name": "repeat",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -1320,10 +1347,11 @@
               }
             ]
           ]
-        ],
-        [
-          "base",
-          [
+        },
+        {
+          "name": "base",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2177,16 +2205,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "charclass",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2249,16 +2279,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "charclass_part",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2362,16 +2394,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "charclass_char",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2404,16 +2438,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "pstring",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [
                 {
@@ -2463,16 +2499,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "str_char",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2505,16 +2543,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "char_escapes",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2581,16 +2621,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "layout",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2647,16 +2689,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "integer",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [
                 {
@@ -2689,16 +2733,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "identifier",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [
                 {
@@ -2819,16 +2865,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "reserved",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "",
-          [
+        {
+          "name": "",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2878,16 +2926,18 @@
               }
             ]
           ]
-        ]
+        }
       ]
     },
     {
       "name": "prule_action",
+      "extend": false,
       "args": [],
       "blocks": [
-        [
-          "cons",
-          [
+        {
+          "name": "cons",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -2951,10 +3001,11 @@
               }
             ]
           ]
-        ],
-        [
-          "base",
-          [
+        },
+        {
+          "name": "base",
+          "extend": false,
+          "constructors": [
             [
               [],
               {
@@ -3130,7 +3181,7 @@
               }
             ]
           ]
-        ]
+        }
       ]
     }
   ]
