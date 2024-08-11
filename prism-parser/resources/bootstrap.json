@@ -1478,7 +1478,7 @@
                           "a",
                           {
                             "RunVar": [
-                              "action",
+                              "identifier",
                               []
                             ]
                           }

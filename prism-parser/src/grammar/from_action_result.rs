@@ -173,7 +173,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
             }?,
         ),
         Construct(_, "AtAdapt", b) => {
-            RuleExpr::AtAdapt(parse_a(&b[0], src)?, parse_identifier(&b[1], src)?)
+            RuleExpr::AtAdapt(parse_identifier(&b[0], src)?, parse_identifier(&b[1], src)?)
         }
         _ => return None,
     })

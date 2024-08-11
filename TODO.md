@@ -17,3 +17,4 @@ THE BIG TODO LIST:
 - Multi-file support
   - Grammars can be stored in `let` statement and returned from programs
     - How do manage this arena-wise?
+- Explicit "extend rule" "extend group"

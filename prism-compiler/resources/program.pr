@@ -1,1 +1,9 @@
-v1 v2 => v1
+grammar test {
+    rule expr {
+        group base {
+            Type <- "%";
+        }
+    }
+}
+adapt test;
+%

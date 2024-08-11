@@ -4,7 +4,7 @@ rule expr {
     group statement {
         GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
         GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
-        b <- "adapt" n:identifier ";" b:adapt(n, expr);
+        b <- "adapt" n:identifier ";" b:#adapt(n, expr);
         Let(n, v, b) <- "let" n:identifier "=" v:#next ";" b:#this;
         // todo: `t:#next` should be replaced by `t:expr.fndestruct` when the language supports it
         Let(n, TypeAssert(v, t), b) <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;

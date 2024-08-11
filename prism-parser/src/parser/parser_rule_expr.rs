@@ -235,11 +235,15 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 // First, get the grammar actionresult
-                //TODO match this logic with RuleExpr::Action
-                //TODO maybe refactor AtAdapt to take an identifier instead of RuleAction
-                let gr = state
-                    .alloc
-                    .alloc(apply_action(ga, Span::invalid(), vars, &state.alloc));
+                let gr = if let Some(ar) = vars.get(ga) {
+                    if let VarMapValue::Value(v) = ar {
+                        v
+                    } else {
+                        panic!("")
+                    }
+                } else {
+                    panic!("Name '{ga}' not in context")
+                };
 
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files

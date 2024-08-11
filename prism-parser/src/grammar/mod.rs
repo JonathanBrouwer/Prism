@@ -85,6 +85,6 @@ pub enum RuleExpr<'arn, 'grm> {
     NegLookahead(#[serde(with = "leak")] &'arn Self),
     This,
     Next,
-    AtAdapt(RuleAction<'arn, 'grm>, &'grm str),
+    AtAdapt(&'grm str, &'grm str),
     Guid,
 }
