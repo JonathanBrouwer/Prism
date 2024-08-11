@@ -18,3 +18,4 @@ THE BIG TODO LIST:
   - Grammars can be stored in `let` statement and returned from programs
     - How do manage this arena-wise?
 - Explicit "extend rule" "extend group"
+  - Half implemented, still need to implement the logic & test
