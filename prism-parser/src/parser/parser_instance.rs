@@ -12,8 +12,8 @@ use crate::grammar::GrammarFile;
 use crate::parser::parser_layout::full_input_layout;
 use crate::parser::parser_rule;
 use crate::parser::var_map::{VarMap, VarMapValue};
-use crate::META_GRAMMAR_STATE;
 use bumpalo::Bump;
+use crate::META_GRAMMAR;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -32,37 +32,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         let context = ParserContext::new();
         let state = ParserState::new(input, bump);
 
-        let visible_rules = VarMap::from_iter(
-            [
-                (
-                    "grammar",
-                    VarMapValue::new_rule(
-                        META_GRAMMAR_STATE
-                            .1
-                            .get("grammar")
-                            .and_then(|v| v.as_rule_id())
-                            .expect("grammar is a rule in meta grammar"),
-                        state.alloc,
-                    ),
-                ),
-                (
-                    "prule_action",
-                    VarMapValue::new_rule(
-                        META_GRAMMAR_STATE
-                            .1
-                            .get("prule_action")
-                            .and_then(|v| v.as_rule_id())
-                            .expect("prule_action is a rule in meta grammar"),
-                        state.alloc,
-                    ),
-                ),
-            ],
-            state.alloc,
-        );
+        let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, bump);
+        let visible_rules = VarMap::from_iter([
+            ("grammar", *meta_vars.get("grammar").expect("Meta grammar contains 'grammar' rule")),
+            ("prule_action", *meta_vars.get("prule_action").expect("Meta grammar contains 'prule_action' rule"))
+        ], bump);
 
         let (grammar_state, rules) =
-            META_GRAMMAR_STATE
-                .0
+            grammar_state
                 .adapt_with(from, visible_rules, None, state.alloc)?;
 
         Ok(Self {
