@@ -157,9 +157,12 @@ impl TcEnv {
 
                         PartialExpr::FnDestruct(f, v)
                     }
-                    "ScopeDefine" => {
-                        assert_eq!(args.len(), 2);
+                    "GrammarDefine" => {
+                        assert_eq!(args.len(), 4);
                         let guid = Self::parse_guid(&args[1]);
+                        let _id = Self::parse_name(&args[2], program);
+                        let _grammar = &args[3];
+
                         return self.insert_from_action_result_rec(
                             &args[0],
                             program,

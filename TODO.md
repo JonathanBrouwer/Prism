@@ -15,6 +15,5 @@ THE BIG TODO LIST:
 - Add type checking to grammar adaptation
 - Use a smarter data structure than a HashMap for caching
 - Multi-file support
-  - Make statement a parametric rules
   - Grammars can be stored in `let` statement and returned from programs
     - How do manage this arena-wise?
