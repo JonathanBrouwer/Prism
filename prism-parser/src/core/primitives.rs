@@ -4,7 +4,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
@@ -14,7 +14,7 @@ pub fn single<'arn, 'grm: 'arn, E: ParseError>(
     f: impl Fn(&char) -> bool,
 ) -> impl Parser<'arn, 'grm, (Span, char), E> {
     move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
+          state: &mut ParserState<'arn, 'grm, E>,
           _: ParserContext|
           -> PResult<(Span, char), E> {
         match pos.next(state.input) {
@@ -32,7 +32,7 @@ pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError>(
     p2: &'a impl Parser<'arn, 'grm, O2, E>,
 ) -> impl Parser<'arn, 'grm, (O1, O2), E> + 'a {
     move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
+          state: &mut ParserState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<(O1, O2), E> {
         let res1 = p1.parse(pos, state, context);
@@ -46,7 +46,7 @@ pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError>(
     p1: &'a impl Parser<'arn, 'grm, O, E>,
     p2: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         p1.parse(pos, state, context)
             .merge_choice(p2.parse(pos, state, context))
     }
@@ -60,7 +60,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
     max: Option<usize>,
 ) -> impl Parser<'arn, 'grm, Vec<OP>, E> {
     move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
+          state: &mut ParserState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<Vec<OP>, E> {
         let mut last_res: PResult<Vec<OP>, E> = PResult::new_empty(vec![], pos);
@@ -111,7 +111,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
 
 #[inline(always)]
 pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, _: ParserContext| -> PResult<(), E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, _: ParserContext| -> PResult<(), E> {
         match pos.next(state.input) {
             (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
             (s, None) => PResult::new_empty((), s),
@@ -123,7 +123,7 @@ pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> 
 pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + '_ {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         match p.parse(pos, state, context) {
             POk(o, _, _, err) => POk(o, pos, pos, err),
             PErr(e, s) => PErr(e, s),
@@ -135,7 +135,7 @@ pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
 pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, (), E> + '_ {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<(), E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<(), E> {
         match p.parse(pos, state, context) {
             POk(_, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
             PErr(_, _) => PResult::new_empty((), pos),

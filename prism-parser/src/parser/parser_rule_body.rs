@@ -9,7 +9,7 @@ use crate::core::adaptive::{Constructor, GrammarState};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::recovery::recovery_point;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_layout::parser_with_layout;
@@ -25,7 +25,7 @@ pub fn parser_body_cache_recurse<
     rules: &'arn GrammarState<'arn, 'grm>,
     block_ctx: BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
         const RED_ZONE: usize = 1024 * 1024;
         stacker::maybe_grow(RED_ZONE, RED_ZONE * 64, || {
             parser_cache_recurse(
@@ -43,7 +43,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
     (block_state, rule_args): BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
+          state: &mut ParserState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         match block_state {
@@ -78,7 +78,7 @@ fn parser_body_sub_constructors<
     (block_state, rule_args): BlockCtx<'arn, 'grm>,
     es: &'arn [Constructor<'arn, 'grm>],
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match es {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| match es {
         [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
         [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
             let rule_ctx = rule_ctx.iter_cloned();
@@ -112,7 +112,7 @@ fn parser_body_sub_annotations<
     expr: &'arn RuleExpr<'arn, 'grm>,
     vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| match annots {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| match annots {
         [RuleAnnotation::Error(err_label), rest @ ..] => {
             let mut res = parser_body_sub_annotations(rules, block_state, rest, expr, vars)
                 .parse(pos, state, context);
@@ -124,7 +124,7 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut PState<'arn, 'grm, E>,
+                                                   state: &mut ParserState<'arn, 'grm, E>,
                                                    context: ParserContext|
                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
@@ -140,7 +140,7 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut PState<'arn, 'grm, E>,
+                                                   state: &mut ParserState<'arn, 'grm, E>,
                                                    context: ParserContext|
                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
@@ -155,7 +155,7 @@ fn parser_body_sub_annotations<
             .parse(pos, state, context)
         }
         [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-            move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
+            move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
                     pos,
                     state,

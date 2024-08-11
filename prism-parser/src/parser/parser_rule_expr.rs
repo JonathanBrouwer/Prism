@@ -6,7 +6,7 @@ use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::core::recovery::recovery_point;
 use crate::core::span::Span;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
@@ -27,7 +27,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
     vars: VarMap<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
     move |pos: Pos,
-          state: &mut PState<'arn, 'grm, E>,
+          state: &mut ParserState<'arn, 'grm, E>,
           context: ParserContext|
           -> PResult<PR<'arn, 'grm>, E> {
         match expr {
@@ -101,7 +101,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
                 let p =
-                    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
+                    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
                         let mut res = PResult::new_empty((), pos);
                         for char in literal.chars() {
                             res = res

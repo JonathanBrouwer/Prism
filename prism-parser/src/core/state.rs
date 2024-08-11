@@ -16,8 +16,6 @@ pub struct ParserState<'arn, 'grm, E: ParseError> {
     pub recovery_points: HashMap<Pos, Pos>,
 }
 
-pub type PState<'arn, 'grm, E> = ParserState<'arn, 'grm, E>;
-
 impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
     pub fn new(input: &'grm str, alloc: Allocs<'arn>) -> Self {
         ParserState {

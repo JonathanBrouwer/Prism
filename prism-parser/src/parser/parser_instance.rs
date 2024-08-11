@@ -3,7 +3,7 @@ use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::recovery::parse_with_recovery;
-use crate::core::state::{PState, ParserState};
+use crate::core::state::{ParserState};
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
@@ -17,7 +17,7 @@ use bumpalo::Bump;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
-    state: PState<'arn, 'grm, E>,
+    state: ParserState<'arn, 'grm, E>,
 
     grammar_state: GrammarState<'arn, 'grm>,
     rules: VarMap<'arn, 'grm>,

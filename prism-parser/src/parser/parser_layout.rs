@@ -5,7 +5,7 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::primitives::end;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser::parser_rule::parser_rule;
@@ -22,7 +22,7 @@ pub fn parser_with_layout<
     vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         if context.layout_disabled || vars.get("layout").is_none() {
             return sub.parse(pos, state, context);
         }
@@ -79,7 +79,7 @@ pub fn full_input_layout<
     vars: VarMap<'arn, 'grm>,
     sub: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
         let res = sub.parse(pos, state, context);
         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
             .map(|(o, _)| o)

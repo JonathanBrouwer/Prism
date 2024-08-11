@@ -4,7 +4,7 @@ use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
@@ -93,7 +93,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
     block_state: BlockCtx<'arn, 'grm>,
     grammar_state: GrammarStateId,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| {
+    move |pos_start: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,

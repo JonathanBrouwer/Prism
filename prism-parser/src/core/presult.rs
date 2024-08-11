@@ -3,7 +3,7 @@ use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]
@@ -157,7 +157,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self,
         other: &P,
         pos: Pos,
-        state: &mut PState<'arn, 'grm, E>,
+        state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
     ) -> Self
     where
@@ -175,7 +175,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_seq_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        state: &mut PState<'arn, 'grm, E>,
+        state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
     ) -> PResult<(O, O2), E>
     where
@@ -195,7 +195,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
-        state: &mut PState<'arn, 'grm, E>,
+        state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
     ) -> (PResult<(O, Option<O2>), E>, bool)
     where
@@ -216,7 +216,7 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn merge_seq_chain_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: impl FnOnce(O) -> P2,
-        state: &mut PState<'arn, 'grm, E>,
+        state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
     ) -> PResult<O2, E>
     where

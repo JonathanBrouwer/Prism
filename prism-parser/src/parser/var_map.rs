@@ -3,7 +3,7 @@ use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
@@ -145,7 +145,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
     pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
         &'a self,
         rules: &'arn GrammarState<'arn, 'grm>,
-        state: &mut PState<'arn, 'grm, E>,
+        state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
     ) -> Option<&'arn ActionResult<'arn, 'grm>> {
         Some(match self {

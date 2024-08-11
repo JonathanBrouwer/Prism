@@ -3,7 +3,7 @@ use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::state::PState;
+use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
@@ -13,7 +13,7 @@ const MAX_RECOVERIES: usize = 2;
 pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     sub: &'a impl Parser<'arn, 'grm, O, E>,
     pos: Pos,
-    state: &mut PState<'arn, 'grm, E>,
+    state: &mut ParserState<'arn, 'grm, E>,
     context: ParserContext,
 ) -> Result<O, Vec<E>> {
     let mut result_errors: Vec<E> = Vec::new();
@@ -79,7 +79,7 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
     item: impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut PState<'arn, 'grm, E>, context: ParserContext| -> PResult<_, E> {
+    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<_, E> {
         // First try original parse
         match item.parse(
             pos,
