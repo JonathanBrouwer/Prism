@@ -3,7 +3,6 @@ use crate::core::pos::Pos;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::iter;
 
@@ -178,7 +177,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
                 break;
             }
         }
-        while let Some(old_block) = old_iter.next() {
+        for old_block in old_iter {
             result.push(*old_block);
         }
 

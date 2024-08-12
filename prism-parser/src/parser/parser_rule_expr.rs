@@ -5,7 +5,6 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim, single};
 use crate::core::recovery::recovery_point;
-use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
