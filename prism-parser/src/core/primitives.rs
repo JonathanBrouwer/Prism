@@ -46,7 +46,10 @@ pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError>(
     p1: &'a impl Parser<'arn, 'grm, O, E>,
     p2: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos,
+          state: &mut ParserState<'arn, 'grm, E>,
+          context: ParserContext|
+          -> PResult<O, E> {
         p1.parse(pos, state, context)
             .merge_choice(p2.parse(pos, state, context))
     }
@@ -123,7 +126,10 @@ pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> 
 pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + '_ {
-    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<O, E> {
+    move |pos: Pos,
+          state: &mut ParserState<'arn, 'grm, E>,
+          context: ParserContext|
+          -> PResult<O, E> {
         match p.parse(pos, state, context) {
             POk(o, _, _, err) => POk(o, pos, pos, err),
             PErr(e, s) => PErr(e, s),
@@ -135,7 +141,10 @@ pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
 pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, (), E> + '_ {
-    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<(), E> {
+    move |pos: Pos,
+          state: &mut ParserState<'arn, 'grm, E>,
+          context: ParserContext|
+          -> PResult<(), E> {
         match p.parse(pos, state, context) {
             POk(_, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
             PErr(_, _) => PResult::new_empty((), pos),

@@ -100,22 +100,23 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             }
             RuleExpr::Literal(literal) => {
                 //First construct the literal parser
-                let p =
-                    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
-                        let mut res = PResult::new_empty((), pos);
-                        for char in literal.chars() {
-                            res = res
-                                .merge_seq_parser(&single(|c| *c == char), state, context)
-                                .map(|_| ());
-                        }
-                        let mut res = res
-                            .map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
-                        res.add_label_implicit(ErrorLabel::Literal(
-                            pos.span_to(res.end_pos().next(state.input).0),
-                            *literal,
-                        ));
-                        res
-                    };
+                let p = move |pos: Pos,
+                              state: &mut ParserState<'arn, 'grm, E>,
+                              context: ParserContext| {
+                    let mut res = PResult::new_empty((), pos);
+                    for char in literal.chars() {
+                        res = res
+                            .merge_seq_parser(&single(|c| *c == char), state, context)
+                            .map(|_| ());
+                    }
+                    let mut res =
+                        res.map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
+                    res.add_label_implicit(ErrorLabel::Literal(
+                        pos.span_to(res.end_pos().next(state.input).0),
+                        *literal,
+                    ));
+                    res
+                };
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
                 p.parse(pos, state, context).map(PR::with_rtrn)

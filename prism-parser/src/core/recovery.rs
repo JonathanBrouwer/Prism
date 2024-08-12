@@ -79,7 +79,10 @@ pub fn parse_with_recovery<'a, 'arn: 'a, 'grm: 'arn, O, E: ParseError<L = ErrorL
 pub fn recovery_point<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'arn>(
     item: impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| -> PResult<_, E> {
+    move |pos: Pos,
+          state: &mut ParserState<'arn, 'grm, E>,
+          context: ParserContext|
+          -> PResult<_, E> {
         // First try original parse
         match item.parse(
             pos,

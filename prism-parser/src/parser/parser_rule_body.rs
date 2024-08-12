@@ -124,7 +124,11 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut ParserState<'arn, 'grm, E>,
+                                                   state: &mut ParserState<
+                'arn,
+                'grm,
+                E,
+            >,
                                                    context: ParserContext|
                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
@@ -140,7 +144,11 @@ fn parser_body_sub_annotations<
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
             parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut ParserState<'arn, 'grm, E>,
+                                                   state: &mut ParserState<
+                'arn,
+                'grm,
+                E,
+            >,
                                                    context: ParserContext|
                   -> PResult<_, E> {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(

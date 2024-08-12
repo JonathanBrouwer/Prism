@@ -110,10 +110,13 @@ impl<'grm> ParseError for TreeError<'grm> {
 
             report = report.with_label(
                 Label::new(label.span())
-                    .with_message(path.iter()
+                    .with_message(
+                        path.iter()
                             .map(|v| v.to_string())
                             .collect::<Vec<_>>()
-                            .join(" <- ").to_string())
+                            .join(" <- ")
+                            .to_string(),
+                    )
                     .with_order(-(<Pos as Into<usize>>::into(label.span().start) as i32)),
             );
         }

@@ -30,8 +30,8 @@ pub struct Rule<'arn, 'grm> {
 pub struct Block<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
-    #[serde(borrow, with = "leak_slice")] pub constructors: &'arn [AnnotatedRuleExpr<'arn,
-    'grm > ],
+    #[serde(borrow, with = "leak_slice")]
+    pub constructors: &'arn [AnnotatedRuleExpr<'arn, 'grm>],
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
