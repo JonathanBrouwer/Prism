@@ -3,7 +3,7 @@ rule toplevel = grammar(prule_action);
 rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
-    Rule(name, e, params, blocks) <- e:"extend"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
+    Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
     Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
@@ -18,8 +18,8 @@ rule prule_body(action) {
 }
 
 rule prule_block(action) {
-    Block(n, e, c) <- e:"extend"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
-    Block(n, e, []) <- e:"extend"? "group" n:#str(identifier?) ";";
+    Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
+    Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;
@@ -132,7 +132,7 @@ rule reserved {
     "neg";
     "pos";
     "group";
-    "extend";
+    "adapt";
 }
 
 rule prule_action {

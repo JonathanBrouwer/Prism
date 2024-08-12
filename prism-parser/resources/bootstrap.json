@@ -107,11 +107,11 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "e",
+                          "a",
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": "extend"
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -181,7 +181,7 @@
                           "Name": "name"
                         },
                         {
-                          "Name": "e"
+                          "Name": "a"
                         },
                         {
                           "Name": "params"
@@ -521,11 +521,11 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "e",
+                          "a",
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": "extend"
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -595,7 +595,7 @@
                           "Name": "n"
                         },
                         {
-                          "Name": "e"
+                          "Name": "a"
                         },
                         {
                           "Name": "c"
@@ -614,11 +614,11 @@
                     "Sequence": [
                       {
                         "NameBind": [
-                          "e",
+                          "a",
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": "extend"
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -667,7 +667,7 @@
                           "Name": "n"
                         },
                         {
-                          "Name": "e"
+                          "Name": "a"
                         },
                         {
                           "Construct": [
@@ -2922,7 +2922,7 @@
             [
               [],
               {
-                "Literal": "extend"
+                "Literal": "adapt"
               }
             ]
           ]

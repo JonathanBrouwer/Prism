@@ -19,3 +19,4 @@ THE BIG TODO LIST:
     - How do manage this arena-wise?
 - Explicit "extend rule" "extend group"
   - Half implemented, still need to implement the logic & test
+  - Test defining rule with same name, should not capture

@@ -1,9 +1,8 @@
-grammar test {
+grammar {
     rule expr {
         group base {
             Type <- "%";
         }
     }
 }
-adapt test;
-%
+Type

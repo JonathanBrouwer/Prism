@@ -67,8 +67,8 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .rules
             .iter()
             .map(|new_rule| {
-                let rule = if let Some(rule) = ctx.get(new_rule.name) {
-                    rule.as_rule_id().expect("Can only adapt rule id")
+                let rule = if new_rule.extend {
+                    ctx.get(new_rule.name).and_then(VarMapValue::as_rule_id).expect("Name refers to a rule id")
                 } else {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
@@ -152,37 +152,32 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
         assert_eq!(self.args, r.args);
 
         //TODO remove this allocation?
-        let new_nodes: HashSet<&'grm str> = r.blocks.iter().map(|n| n.name).collect();
         let mut result = Vec::with_capacity(self.blocks.len() + r.blocks.len());
-        let mut new_iter = r.blocks.iter();
+        let mut old_iter = self.blocks.iter();
 
-        for old_block in self.blocks {
-            // If this block is only present in the old rule, take it first
-            if !new_nodes.contains(old_block.name) {
-                result.push(*old_block);
+        for new_block in r.blocks {
+            // If this new block should not match an old block, add it as a new block state
+            if !new_block.extend {
+                result.push(BlockState::new(new_block, ctx, allocs));
                 continue;
             }
-
-            // Take all rules from the new rule until we found the matching block
+            // Find matching old block
             loop {
-                // Add all blocks that don't match
-                let Some(new_block) = new_iter.next() else {
+                // If the matching block can't be found, it must've already occurred, and therefore we have a cycle
+                let Some(old_block) = old_iter.next() else {
                     return Err(UpdateError::ToposortCycle);
                 };
-                if new_block.name != old_block.name {
-                    result.push(BlockState::new(new_block, ctx, allocs));
-                    continue;
+                // If this is not the matching block, add it and continue searching
+                if old_block.name != new_block.name {
+                    result.push(*old_block);
+                    continue
                 }
-
-                // Merge blocks
                 result.push(old_block.update(new_block, ctx, allocs));
-                break;
-            }
+                break
+            }   
         }
-
-        // Add remaining blocks from new iter
-        for new_block in new_iter {
-            result.push(BlockState::new(new_block, ctx, allocs));
+        while let Some(old_block) = old_iter.next() {
+            result.push(*old_block);
         }
 
         Ok(Self {

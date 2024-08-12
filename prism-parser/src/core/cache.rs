@@ -48,14 +48,14 @@ impl<'arn> Allocs<'arn> {
         }
     }
 
-    pub fn alloc<T: Copy>(&self, t: T) -> &'arn T {
+    pub fn alloc<T: Copy>(&self, t: T) -> &'arn mut T {
         self.bump.alloc(t)
     }
 
     pub fn alloc_extend<T: Copy, I: IntoIterator<Item = T, IntoIter: ExactSizeIterator>>(
         &self,
         iter: I,
-    ) -> &'arn [T] {
+    ) -> &'arn mut [T] {
         self.bump.alloc_slice_fill_iter(iter)
     }
 
@@ -63,7 +63,7 @@ impl<'arn> Allocs<'arn> {
         &self,
         len: usize,
         iter: I,
-    ) -> &'arn [T] {
+    ) -> &'arn mut [T] {
         let mut iter = iter.into_iter();
         let slice = self.bump.alloc_slice_fill_with(len, |_| {
             iter.next().expect("Iterator supplied too few elements")
@@ -78,8 +78,8 @@ impl<'arn> Allocs<'arn> {
     >(
         &self,
         iter: I,
-    ) -> Option<&'arn [T]> {
-        self.bump.alloc_slice_fill_iter_option(iter).map(|s| &*s)
+    ) -> Option<&'arn mut [T]> {
+        self.bump.alloc_slice_fill_iter_option(iter)
     }
 }
 

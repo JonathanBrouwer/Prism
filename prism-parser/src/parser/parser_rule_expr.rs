@@ -92,7 +92,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::CharClass(cc) => {
                 let p = single(|c| cc.contains(*c));
                 let alloc = state.alloc;
-                let map = |(span, _)| alloc.alloc(ActionResult::Value(span));
+                let map = |(span, _)| &*alloc.alloc(ActionResult::Value(span));
                 let p = map_parser(p, &map);
                 let p = recovery_point(p);
                 let p = parser_with_layout(rules, vars, &p);
@@ -109,7 +109,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                 .map(|_| ());
                         }
                         let mut res = res
-                            .map_with_span(|_, span| state.alloc.alloc(ActionResult::Value(span)));
+                            .map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
                         res.add_label_implicit(ErrorLabel::Literal(
                             pos.span_to(res.end_pos().next(state.input).0),
                             *literal,
