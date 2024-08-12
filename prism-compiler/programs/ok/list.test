@@ -4,13 +4,13 @@ let nil = (T : Type) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => 
 let cons = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => cons head (tail Out nil cons);
 
 grammar {
-    rule expr {
-        group base {
+    adapt rule expr {
+        adapt group base {
             l <- "list" "!" "[" l:list "]";
         }
     }
 
-    rule keyword {
+    adapt rule keyword {
         "list";
     }
 

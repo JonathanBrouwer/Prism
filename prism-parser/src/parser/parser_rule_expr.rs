@@ -266,7 +266,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let g: &'arn GrammarFile<'arn, 'grm> = state.alloc.alloc(g);
 
                 // Create new grammarstate
-                let (rules, rule_vars) = match rules.adapt_with(g, vars, Some(pos), state.alloc) {
+                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), state.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(pos.span_to(pos));
@@ -281,7 +281,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 };
                 let rules: &'arn GrammarState = state.alloc.alloc(rules);
 
-                let rule = rule_vars
+                let rule = vars
                     .get(adapt_rule)
                     .or_else(|| vars.get(adapt_rule))
                     .unwrap()

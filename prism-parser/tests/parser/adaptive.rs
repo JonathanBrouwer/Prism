@@ -228,3 +228,22 @@ passing tests:
 failing tests:
 
 }
+
+parse_test! {
+name: same_name_rule
+syntax: r#"
+    rule start {
+        b <- "{" g:grammar(prule_action) "}" b:#adapt(g, start);
+        X() <- "x";
+    }"#
+passing tests:
+    r###"x"### => "X()"
+
+    r###"{rule start {
+        Y() <- "y";
+    }}x"### => "X()"
+failing tests:
+    r###"{rule start {
+        Y() <- "y";
+    }}y"###
+}
