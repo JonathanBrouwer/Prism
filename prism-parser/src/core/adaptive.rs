@@ -67,7 +67,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .rules
             .iter()
             .map(|new_rule| {
-                let rule = if new_rule.extend {
+                let rule = if new_rule.adapt {
                     ctx.get(new_rule.name).and_then(VarMapValue::as_rule_id).expect("Name refers to a rule id")
                 } else {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
@@ -157,7 +157,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
 
         for new_block in r.blocks {
             // If this new block should not match an old block, add it as a new block state
-            if !new_block.extend {
+            if !new_block.adapt {
                 result.push(BlockState::new(new_block, ctx, allocs));
                 continue;
             }
