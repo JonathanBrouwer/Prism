@@ -1,12 +1,12 @@
 ### Input
 let y = Type;
 grammar {
-    rule expr {
-        group statement {
+    adapt rule expr {
+        adapt group statement {
             let y = Type -> Type; e <- "tel" e:expr;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "tel";
         "in";
     }

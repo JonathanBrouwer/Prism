@@ -1,22 +1,22 @@
 ### Input
 grammar {
-    rule expr {
-        group statement {
+    adapt rule expr {
+        adapt group statement {
             let x = Type; e <- "tle" x:identifier "in" e:expr;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "tle";
     }
 }
 
 grammar {
-    rule expr {
-        group statement {
+    adapt rule expr {
+        adapt group statement {
             tle x in e <- "tel" x:identifier "in" e:expr;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "tel";
         "in";
     }

@@ -1,12 +1,12 @@
 ### Input
 let x = Type -> Type;
 grammar {
-    rule expr {
-        group statement {
+    adapt rule expr {
+        adapt group statement {
             let n = Type; x <- "tel" n:identifier;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "tel";
     }
 }

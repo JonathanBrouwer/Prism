@@ -4,19 +4,19 @@ let true = (T: Type) => (v1: T) => (v2: T) => v1;
 let false = (T: Type) => (v1: T) => (v2: T) => v2;
 
 grammar {
-    rule expr {
+    adapt rule expr {
         group or {
             e1 Bool true e2 <- e1:#this "||" e2:#next;
         }
         group and {
             e1 Bool e2 false <- e1:#this "&&" e2:#next;
         }
-        group base {
+        adapt group base {
             b _ e1 e2 <- "if" b:expr "{" e1:expr "}" "else" "{" e2:expr "}";
             b Bool false true <- "!" b:#this;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "if";
     }
 

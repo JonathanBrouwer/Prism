@@ -1,11 +1,11 @@
 ### Input
 grammar {
-    rule expr {
-        group statement {
+    adapt rule expr {
+        adapt group statement {
             let x = Type; e <- "tel" x:identifier "in" e:expr;
         }
     }
-    rule keyword {
+    adapt rule keyword {
         "tel";
         "in";
     }
