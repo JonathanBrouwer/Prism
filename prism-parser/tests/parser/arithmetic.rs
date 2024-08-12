@@ -32,8 +32,8 @@ passing tests:
     // Add binary minus
     r###"
     grammar {
-        rule expr {
-            group additive {
+        adapt rule expr {
+            adapt group additive {
                 1 + (-2) <- x:#next "-" y:#this;
             }
         }

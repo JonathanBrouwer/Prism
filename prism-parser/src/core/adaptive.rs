@@ -174,7 +174,7 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
                 }
                 result.push(old_block.update(new_block, ctx, allocs));
                 break
-            }   
+            }
         }
         while let Some(old_block) = old_iter.next() {
             result.push(*old_block);

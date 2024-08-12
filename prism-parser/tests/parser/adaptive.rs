@@ -32,8 +32,8 @@ passing tests:
     // Simple, add to base
     r###"
     grammar {
-        rule expr {
-            group base {
+        adapt rule expr {
+            adapt group base {
                 Z() <- "z";
             }
         }
@@ -43,10 +43,10 @@ passing tests:
     // Add to base redundant specification
     r###"
     grammar {
-        rule expr {
+        adapt rule expr {
             group x {}
-            group additive {}
-            group base {
+            adapt group additive {}
+            adapt group base {
                 Z() <- "z";
             }
             group y {}
@@ -57,8 +57,8 @@ passing tests:
     // Add minus
     r###"
     grammar {
-        rule expr {
-            group additive {
+        adapt rule expr {
+            adapt group additive {
                 Sub(x, y) <- x:#next "-" y:#this;
             }
         }
@@ -68,14 +68,14 @@ passing tests:
     // Add mul + minus
     r###"
     grammar {
-        rule expr {
-            group additive {
+        adapt rule expr {
+            adapt group additive {
                 Sub(x, y) <- x:#next "-" y:#this ;
             }
             group multiplicative {
                 Mul(x, y) <- x:#next "*" y:#this;
             }
-            group base {}
+            adapt group base {}
         }
     };
     let x + y * y - x * x + y * x;
@@ -83,17 +83,17 @@ passing tests:
     // Add mul + minus seperately (1)
     r###"
     grammar {
-        rule expr {
-            group additive {}
+        adapt rule expr {
+            adapt group additive {}
             group multiplicative {
                 Mul(x, y) <- x:#next "*" y:#this;
             }
-            group base {}
+            adapt group base {}
         }
     };
     grammar {
-        rule expr {
-            group additive {
+        adapt rule expr {
+            adapt group additive {
                 Sub(x, y) <- x:#next "-" y:#this;
             }
         }
@@ -103,19 +103,19 @@ passing tests:
     // Add mul + minus seperately (2)
     r###"
     grammar {
-        rule expr{
-            group additive {
+        adapt rule expr{
+            adapt group additive {
                 Sub(x, y) <- x:#next "-" y:#this;
             }
         }
     };
     grammar {
-        rule expr {
-            group additive {}
+        adapt rule expr {
+            adapt group additive {}
             group multiplicative {
                 Mul(x, y) <- x:#next "*" y:#this;
             }
-            group base {}
+            adapt group base {}
         }
     };
     let x + y * y - x * x + y * x;
@@ -125,11 +125,11 @@ failing tests:
     // Turns order around
     r###"
     grammar {
-        rule expr {
-            group base {
+        adapt rule expr {
+            adapt group base {
                 Z() <- "z";
             }
-            group additive {}
+            adapt group additive {}
         }
     };
     let z;
@@ -168,24 +168,30 @@ syntax: r#"
 passing tests:
     r###"
     {
-        rule sub {
-            Y() <- "y";
+        adapt rule sub {
+            adapt group {
+                Y() <- "y";
+            }
         }
     }
     x
     "### => "X()"
     r###"
     {
-        rule sub {
-            Y() <- "y";
+        adapt rule sub {
+            adapt group {
+                Y() <- "y";
+            }
         }
     }
     y
     "### => "Env(Construct('Y', []))"
     r###"
     {
-        rule sub {
-            Y() <- "y";
+        adapt rule sub {
+            adapt group {
+                Y() <- "y";
+            }
         }
     }
     z
@@ -194,7 +200,7 @@ passing tests:
 failing tests:
     r###"
     {
-        rule sub {
+        adapt rule sub {
             Y() <- "y";
         }
     }
@@ -215,7 +221,7 @@ syntax: r#"
     rule sub = Z() <- "z";"#
 passing tests:
     r###"{
-    rule sub {
+    adapt rule sub {
         Y() <- "y";
     }}y"### => "Env(Construct('Y', []))"
 
