@@ -190,10 +190,12 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::NameBind(name, sub) => {
                 let res = parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
                 res.map(|mut res| {
-                    res.free = res
-                        .free
-                        .insert(name, VarMapValue::Value(res.rtrn), state.alloc);
-                    res
+                    PR {
+                        free: res
+                            .free
+                            .insert(name, VarMapValue::Value(res.rtrn), state.alloc),
+                        rtrn: ActionResult::VOID,
+                    }
                 })
             }
             RuleExpr::Action(sub, action) => {

@@ -17,3 +17,12 @@ THE BIG TODO LIST:
 - Multi-file support
   - Grammars can be stored in `let` statement and returned from programs
     - How do manage this arena-wise?
+
+
+"I found a FnConstruct with two more argument a, b"
+Events are the current entries of ActionResult
+
+"Ok, call this function on a, and this function on b please"
+"When a or b is done, notify me"
+
+Vars no longer needs to be in PR then
