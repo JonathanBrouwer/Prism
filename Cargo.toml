@@ -8,13 +8,13 @@ opt-level = 1
 
 [workspace.package]
 edition = "2021"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jonathan Brouwer <jonathantbrouwer@gmail.com>"]
-license = "GPL-3.0-or-later"
+license = "MPL-2.0"
 
 [workspace.dependencies]
 # Internal
-prism-parser = { path = "./prism-parser", version = "0.1" }
+prism-parser = { path = "./prism-parser", version = "0.2" }
 
 # External
 clap = { version = "4.5.8", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }
