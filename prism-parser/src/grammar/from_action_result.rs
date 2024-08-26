@@ -2,7 +2,7 @@ use crate::core::cache::Allocs;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::action_result::ActionResult::*;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::rule_action::RuleAction;
+use crate::grammar::rule_action::{RuleAction, RuleActionType};
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use std::borrow::Cow;
@@ -55,7 +55,13 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
         create Rule {
             name: parse_identifier(name, src)?,
             adapt: extend.iter_list().next().is_some(),
-            args: allocs.try_alloc_extend(args.iter_list().map(|n| parse_identifier(n, src)))?,
+            args: allocs.try_alloc_extend(args.iter_list().map(|n| {
+                let id = parse_identifier(n, src)?;
+                //TODO
+                Some((id, RuleActionType::Rule))
+            }))?,
+            //TODO
+            rtrn_type: RuleActionType::Rule,
             blocks: allocs.try_alloc_extend(blocks.iter_list().map(|block| parse_block(block, src, allocs, parse_a)))?,
         }
     }

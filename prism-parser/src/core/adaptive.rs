@@ -5,6 +5,7 @@ use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::iter;
+use crate::grammar::rule_action::RuleActionType;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -126,7 +127,7 @@ pub struct GrammarStateId(usize);
 #[derive(Copy, Clone)]
 pub struct RuleState<'arn, 'grm> {
     pub name: &'grm str,
-    pub args: &'arn [&'grm str],
+    pub args: &'arn [(&'grm str, RuleActionType<'arn, 'grm>)],
     pub blocks: &'arn [BlockState<'arn, 'grm>],
 }
 
@@ -135,7 +136,7 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, args: &'arn [&'grm str]) -> Self {
+    pub fn new_empty(name: &'grm str, args: &'arn [(&'grm str, RuleActionType<'arn, 'grm>)]) -> Self {
         Self {
             name,
             blocks: &[],

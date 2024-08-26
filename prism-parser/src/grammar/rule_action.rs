@@ -11,3 +11,11 @@ pub enum RuleAction<'arn, 'grm> {
     #[serde(skip)]
     ActionResult(&'arn ActionResult<'arn, 'grm>),
 }
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum RuleActionType<'arn, 'grm> {
+    Name(&'grm str),
+    Input,
+    Rule,
+    List(#[serde(with="leak")] &'arn Self),
+}

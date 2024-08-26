@@ -11,9 +11,9 @@ use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
 
 fn main() {
-    normal();
+    // normal();
     // part1();
-    // part2();
+    part2();
 }
 
 fn normal() {

@@ -2,12 +2,12 @@
   "rules": [
     {
       "name": "toplevel",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -31,14 +31,14 @@
     },
     {
       "name": "grammar",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -90,14 +90,14 @@
     },
     {
       "name": "prule",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -338,12 +338,12 @@
     },
     {
       "name": "prule_params",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -407,14 +407,14 @@
     },
     {
       "name": "prule_body",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -504,14 +504,14 @@
     },
     {
       "name": "prule_block",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -687,14 +687,14 @@
     },
     {
       "name": "prule_constructors",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -727,14 +727,14 @@
     },
     {
       "name": "prule_annotated_expr",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -819,12 +819,12 @@
     },
     {
       "name": "prule_annotation",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -998,14 +998,14 @@
     },
     {
       "name": "prule_expr",
-      "extend": false,
+      "adapt": false,
       "args": [
         "action"
       ],
       "blocks": [
         {
           "name": "action",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -1055,7 +1055,7 @@
         },
         {
           "name": "choice",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -1093,7 +1093,7 @@
         },
         {
           "name": "sequence",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -1134,7 +1134,7 @@
         },
         {
           "name": "bind",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -1184,7 +1184,7 @@
         },
         {
           "name": "repeat",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -1350,7 +1350,7 @@
         },
         {
           "name": "base",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2210,12 +2210,12 @@
     },
     {
       "name": "charclass",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2284,12 +2284,12 @@
     },
     {
       "name": "charclass_part",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2399,12 +2399,12 @@
     },
     {
       "name": "charclass_char",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2443,12 +2443,12 @@
     },
     {
       "name": "pstring",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [
@@ -2504,12 +2504,12 @@
     },
     {
       "name": "str_char",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2548,12 +2548,12 @@
     },
     {
       "name": "char_escapes",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2626,12 +2626,12 @@
     },
     {
       "name": "layout",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2694,12 +2694,12 @@
     },
     {
       "name": "integer",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [
@@ -2738,12 +2738,12 @@
     },
     {
       "name": "identifier",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [
@@ -2870,12 +2870,12 @@
     },
     {
       "name": "reserved",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -2931,12 +2931,12 @@
     },
     {
       "name": "prule_action",
-      "extend": false,
+      "adapt": false,
       "args": [],
       "blocks": [
         {
           "name": "cons",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],
@@ -3004,7 +3004,7 @@
         },
         {
           "name": "base",
-          "extend": false,
+          "adapt": false,
           "constructors": [
             [
               [],

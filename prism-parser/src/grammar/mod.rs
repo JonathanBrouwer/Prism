@@ -1,5 +1,5 @@
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::rule_action::RuleAction;
+use crate::grammar::rule_action::{RuleAction, RuleActionType};
 use crate::grammar::serde_leak::*;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,8 @@ pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
     #[serde(with = "leak_slice")]
-    pub args: &'arn [&'grm str],
+    pub args: &'arn [(&'grm str, RuleActionType<'arn, 'grm>)],
+    pub rtrn_type: RuleActionType<'arn, 'grm>,
     #[serde(borrow, with = "leak_slice")]
     pub blocks: &'arn [Block<'arn, 'grm>],
 }
