@@ -4,7 +4,9 @@
       "name": "toplevel",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Grammar"
+      },
       "blocks": [
         {
           "name": "",
@@ -39,7 +41,9 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Grammar"
+      },
       "blocks": [
         {
           "name": "",
@@ -102,7 +106,9 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Rule"
+      },
       "blocks": [
         {
           "name": "",
@@ -383,7 +389,11 @@
       "name": "prule_params",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "List": {
+          "Name": "Param"
+        }
+      },
       "blocks": [
         {
           "name": "",
@@ -458,7 +468,11 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "List": {
+          "Name": "Block"
+        }
+      },
       "blocks": [
         {
           "name": "",
@@ -559,7 +573,9 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Block"
+      },
       "blocks": [
         {
           "name": "",
@@ -746,7 +762,11 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "List": {
+          "Name": "AnnotatedPruleExpr"
+        }
+      },
       "blocks": [
         {
           "name": "",
@@ -790,7 +810,9 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "AnnotatedPruleExpr"
+      },
       "blocks": [
         {
           "name": "",
@@ -881,7 +903,9 @@
       "name": "prule_annotation",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Annotation"
+      },
       "blocks": [
         {
           "name": "",
@@ -1066,7 +1090,9 @@
           "Input"
         ]
       ],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "PruleExpr"
+      },
       "blocks": [
         {
           "name": "action",
@@ -2277,7 +2303,9 @@
       "name": "charclass",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "CharClass"
+      },
       "blocks": [
         {
           "name": "",
@@ -2352,7 +2380,9 @@
       "name": "charclass_part",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "Range"
+      },
       "blocks": [
         {
           "name": "",
@@ -2699,7 +2729,7 @@
       "name": "layout",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": "Unit",
       "blocks": [
         {
           "name": "",
@@ -2946,7 +2976,7 @@
       "name": "reserved",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": "Unit",
       "blocks": [
         {
           "name": "",
@@ -3008,7 +3038,9 @@
       "name": "prule_action",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "PruleAction"
+      },
       "blocks": [
         {
           "name": "cons",
@@ -3264,7 +3296,9 @@
       "name": "prule_action_type",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Input",
+      "rtrn_type": {
+        "Name": "PruleActionType"
+      },
       "blocks": [
         {
           "name": "",
