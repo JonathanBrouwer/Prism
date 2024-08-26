@@ -4,6 +4,7 @@
       "name": "toplevel",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -33,8 +34,12 @@
       "name": "grammar",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -92,8 +97,12 @@
       "name": "prule",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -340,6 +349,7 @@
       "name": "prule_params",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -409,8 +419,12 @@
       "name": "prule_body",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -506,8 +520,12 @@
       "name": "prule_block",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -689,8 +707,12 @@
       "name": "prule_constructors",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -729,8 +751,12 @@
       "name": "prule_annotated_expr",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -821,6 +847,7 @@
       "name": "prule_annotation",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -1000,8 +1027,12 @@
       "name": "prule_expr",
       "adapt": false,
       "args": [
-        "action"
+        [
+          "action",
+          "Rule"
+        ]
       ],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "action",
@@ -2212,6 +2243,7 @@
       "name": "charclass",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2286,6 +2318,7 @@
       "name": "charclass_part",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2401,6 +2434,7 @@
       "name": "charclass_char",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2445,6 +2479,7 @@
       "name": "pstring",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2506,6 +2541,7 @@
       "name": "str_char",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2550,6 +2586,7 @@
       "name": "char_escapes",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2628,6 +2665,7 @@
       "name": "layout",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2696,6 +2734,7 @@
       "name": "integer",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2740,6 +2779,7 @@
       "name": "identifier",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2872,6 +2912,7 @@
       "name": "reserved",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "",
@@ -2933,6 +2974,7 @@
       "name": "prule_action",
       "adapt": false,
       "args": [],
+      "rtrn_type": "Rule",
       "blocks": [
         {
           "name": "cons",
