@@ -107,7 +107,7 @@
         ]
       ],
       "rtrn_type": {
-        "Name": "Rule"
+        "Name": "PRule"
       },
       "blocks": [
         {
@@ -1091,7 +1091,7 @@
         ]
       ],
       "rtrn_type": {
-        "Name": "PruleExpr"
+        "Name": "PRuleExpr"
       },
       "blocks": [
         {
@@ -3039,7 +3039,7 @@
       "adapt": false,
       "args": [],
       "rtrn_type": {
-        "Name": "PruleAction"
+        "Name": "PRuleAction"
       },
       "blocks": [
         {
@@ -3297,7 +3297,7 @@
       "adapt": false,
       "args": [],
       "rtrn_type": {
-        "Name": "PruleActionType"
+        "Name": "PRuleActionType"
       },
       "blocks": [
         {

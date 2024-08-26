@@ -2,7 +2,7 @@ rule toplevel -> Grammar = grammar(prule_action);
 
 rule grammar(action) -> Grammar = GrammarFile(rs) <- rs:prule(action)*;
 
-rule prule(action) -> Rule {
+rule prule(action) -> PRule {
     Rule(name, a, params, type, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "->" type:prule_action_type "{" blocks:prule_body(action) "}";
     Rule(name, [], params, type, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "->" type:prule_action_type "=" expr:prule_expr(action) ";";
 }
@@ -33,7 +33,7 @@ rule prule_annotation -> Annotation {
     EnableRecovery() <- "#" "[" "enable_recovery" "]";
 }
 
-rule prule_expr(action) -> PruleExpr {
+rule prule_expr(action) -> PRuleExpr {
     group action {
         Action(r, a) <- a:action "<-" r:#this;
     }
@@ -135,7 +135,7 @@ rule reserved -> Unit {
     "adapt";
 }
 
-rule prule_action -> PruleAction {
+rule prule_action -> PRuleAction {
     group cons {
         Construct("Cons", h :: t :: []) <- h:#next "::" t:#this;
     }
@@ -148,7 +148,7 @@ rule prule_action -> PruleAction {
     }
 }
 
-rule prule_action_type -> PruleActionType {
+rule prule_action_type -> PRuleActionType {
     List(t) <- "[" t:prule_action_type "]";
     Rule(t) <- "rule" t:prule_action_type;
     Input() <- "Input";
