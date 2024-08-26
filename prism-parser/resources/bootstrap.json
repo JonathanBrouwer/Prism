@@ -4,7 +4,7 @@
       "name": "toplevel",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -36,10 +36,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -99,10 +99,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -157,6 +157,20 @@
                         ]
                       },
                       {
+                        "Literal": "->"
+                      },
+                      {
+                        "NameBind": [
+                          "type",
+                          {
+                            "RunVar": [
+                              "prule_action_type",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
                         "Literal": "{"
                       },
                       {
@@ -196,6 +210,9 @@
                           "Name": "params"
                         },
                         {
+                          "Name": "type"
+                        },
+                        {
                           "Name": "blocks"
                         }
                       ]
@@ -230,6 +247,20 @@
                           {
                             "RunVar": [
                               "prule_params",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "->"
+                      },
+                      {
+                        "NameBind": [
+                          "type",
+                          {
+                            "RunVar": [
+                              "prule_action_type",
                               []
                             ]
                           }
@@ -276,6 +307,9 @@
                         },
                         {
                           "Name": "params"
+                        },
+                        {
+                          "Name": "type"
                         },
                         {
                           "Construct": [
@@ -349,7 +383,7 @@
       "name": "prule_params",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -421,10 +455,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -522,10 +556,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -709,10 +743,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -753,10 +787,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -847,7 +881,7 @@
       "name": "prule_annotation",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -1029,10 +1063,10 @@
       "args": [
         [
           "action",
-          "Rule"
+          "Input"
         ]
       ],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "action",
@@ -2243,7 +2277,7 @@
       "name": "charclass",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2318,7 +2352,7 @@
       "name": "charclass_part",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2434,7 +2468,7 @@
       "name": "charclass_char",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2479,7 +2513,7 @@
       "name": "pstring",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2541,7 +2575,7 @@
       "name": "str_char",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2586,7 +2620,7 @@
       "name": "char_escapes",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2665,7 +2699,7 @@
       "name": "layout",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2734,7 +2768,7 @@
       "name": "integer",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2779,7 +2813,7 @@
       "name": "identifier",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2912,7 +2946,7 @@
       "name": "reserved",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "",
@@ -2974,7 +3008,7 @@
       "name": "prule_action",
       "adapt": false,
       "args": [],
-      "rtrn_type": "Rule",
+      "rtrn_type": "Input",
       "blocks": [
         {
           "name": "cons",
@@ -3218,6 +3252,153 @@
                   },
                   {
                     "Name": "a"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "prule_action_type",
+      "adapt": false,
+      "args": [],
+      "rtrn_type": "Input",
+      "blocks": [
+        {
+          "name": "",
+          "adapt": false,
+          "constructors": [
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "["
+                      },
+                      {
+                        "NameBind": [
+                          "t",
+                          {
+                            "RunVar": [
+                              "prule_action_type",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "]"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "List",
+                      [
+                        {
+                          "Name": "t"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "rule"
+                      },
+                      {
+                        "NameBind": [
+                          "t",
+                          {
+                            "RunVar": [
+                              "prule_action_type",
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Rule",
+                      [
+                        {
+                          "Name": "t"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Literal": "Input"
+                  },
+                  {
+                    "Construct": [
+                      "Input",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Literal": "Unit"
+                  },
+                  {
+                    "Construct": [
+                      "Unit",
+                      []
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "NameBind": [
+                      "n",
+                      {
+                        "RunVar": [
+                          "identifier",
+                          []
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "Name",
+                      [
+                        {
+                          "Name": "n"
+                        }
+                      ]
+                    ]
                   }
                 ]
               }

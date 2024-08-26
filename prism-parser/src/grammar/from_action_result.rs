@@ -51,17 +51,16 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
 ) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
-        match &rule_body[..] => [name, extend, args, blocks],
+        match &rule_body[..] => [name, extend, args, rtrn_type, blocks],
         create Rule {
             name: parse_identifier(name, src)?,
             adapt: extend.iter_list().next().is_some(),
             args: allocs.try_alloc_extend(args.iter_list().map(|n| {
                 let id = parse_identifier(n, src)?;
                 //TODO
-                Some((id, RuleActionType::Rule))
+                Some((id, RuleActionType::Input))
             }))?,
-            //TODO
-            rtrn_type: RuleActionType::Rule,
+            rtrn_type: parse_rule_action_type(rtrn_type, src, allocs)?,
             blocks: allocs.try_alloc_extend(blocks.iter_list().map(|block| parse_block(block, src, allocs, parse_a)))?,
         }
     }
@@ -274,4 +273,27 @@ pub fn parse_rule_action<'arn, 'grm>(
         Construct(_, "Name", b) => RuleAction::Name(parse_identifier(&b[0], src)?),
         _ => return None,
     })
+}
+
+pub fn parse_rule_action_type<'arn, 'grm>(
+    r: &ActionResult<'_, 'grm>,
+    src: &'grm str,
+    allocs: Allocs<'arn>,
+) -> Option<RuleActionType<'arn, 'grm>> {
+    // Some(match r {
+    //     Construct(_, "Rule", [t]) => RuleActionType::Rule,
+    //     Construct(_, "Unit", []) => RuleActionType::Unit,
+    //     Construct(_, "Input", []) => RuleActionType::Input,
+    //     
+    //     
+    //     
+    //     Value(_) => {}
+    //     Literal(_) => {}
+    //     Construct(_, _, _) => {}
+    //     Guid(_) => {}
+    //     RuleId(_) => {}
+    //     WithEnv(_, _) => {}
+    // })
+    
+    Some(RuleActionType::Input)
 }

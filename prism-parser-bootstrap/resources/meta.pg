@@ -1,31 +1,31 @@
-rule toplevel = grammar(prule_action);
+rule toplevel -> Grammar = grammar(prule_action);
 
-rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
+rule grammar(action) -> Grammar = GrammarFile(rs) <- rs:prule(action)*;
 
-rule prule(action) {
-    Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+rule prule(action) -> Rule {
+    Rule(name, a, params, type, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "->" type:prule_action_type "{" blocks:prule_body(action) "}";
+    Rule(name, [], params, type, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "->" type:prule_action_type "=" expr:prule_expr(action) ";";
 }
 
-rule prule_params {
+rule prule_params -> [Param] {
     params <- "(" params:#repeat(identifier, ",", *) ")";
     [] <- "";
 }
 
-rule prule_body(action) {
+rule prule_body(action) -> [Block] {
     prule_block(action)+;
     Block("", [], c) :: [] <- c:prule_constructors(action);
 }
 
-rule prule_block(action) {
+rule prule_block(action) -> Block {
     Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
     Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
 }
 
-rule prule_constructors(action) = prule_annotated_expr(action)*;
-rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
+rule prule_constructors(action) -> [AnnotatedPruleExpr] = prule_annotated_expr(action)*;
+rule prule_annotated_expr(action) -> AnnotatedPruleExpr = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
 
-rule prule_annotation {
+rule prule_annotation -> Annotation {
     Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
     DisableLayout() <- "#" "[" "disable_layout" "]";
     EnableLayout() <- "#" "[" "enable_layout" "]";
@@ -33,7 +33,7 @@ rule prule_annotation {
     EnableRecovery() <- "#" "[" "enable_recovery" "]";
 }
 
-rule prule_expr(action) {
+rule prule_expr(action) -> PruleExpr {
     group action {
         Action(r, a) <- a:action "<-" r:#this;
     }
@@ -71,33 +71,33 @@ rule prule_expr(action) {
     }
 }
 
-rule charclass {
+rule charclass -> CharClass {
     CharClass(negate, ps) <- negate:"^"? ps:#repeat(charclass_part, "|", *);
 }
 
-rule charclass_part {
+rule charclass_part -> Range {
     Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'";
     Range(c, c) <- "\'" c:charclass_char "\'";
 }
 
-rule charclass_char {
+rule charclass_char -> Input {
     [^ '\'' | '\\' | '\n'];
     char_escapes;
 }
 
-rule pstring {
+rule pstring -> Input {
     #[error("String")]
     #[disable_layout]
     #[disable_recovery]
     s <- "\"" s:#str(str_char*) "\"";
 }
 
-rule str_char {
+rule str_char -> Input {
     [^ '\"' | '\\' | '\n'];
     char_escapes;
 }
 
-rule char_escapes {
+rule char_escapes -> Input {
     "\n" <- "\\n";
     "\r" <- "\\r";
     "\\" <- "\\\\";
@@ -105,26 +105,26 @@ rule char_escapes {
     "\'" <- "\\\'";
 }
 
-rule layout {
+rule layout -> Unit {
     [' ' | '\r' | '\n'];
     "//" [^'\n']* "\n";
 }
 
-rule integer {
+rule integer -> Input {
     #[error("Integer")]
     #[disable_layout]
     #[disable_recovery]
     #str([ '0'-'9' ]+);
 }
 
-rule identifier {
+rule identifier -> Input {
     #[error("Identifier")]
     #[disable_layout]
     #[disable_recovery]
     n <- #neg(reserved #neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
 }
 
-rule reserved {
+rule reserved -> Unit {
     "end";
     "str";
     "rule";
@@ -135,7 +135,7 @@ rule reserved {
     "adapt";
 }
 
-rule prule_action {
+rule prule_action -> PruleAction {
     group cons {
         Construct("Cons", h :: t :: []) <- h:#next "::" t:#this;
     }
@@ -146,4 +146,12 @@ rule prule_action {
         Name(n) <- n:identifier;
         a <- "(" a:prule_action ")";
     }
+}
+
+rule prule_action_type -> PruleActionType {
+    List(t) <- "[" t:prule_action_type "]";
+    Rule(t) <- "rule" t:prule_action_type;
+    Input() <- "Input";
+    Unit() <- "Unit";
+    Name(n) <- n:identifier;
 }

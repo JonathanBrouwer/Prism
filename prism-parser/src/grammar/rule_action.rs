@@ -16,6 +16,7 @@ pub enum RuleAction<'arn, 'grm> {
 pub enum RuleActionType<'arn, 'grm> {
     Name(&'grm str),
     Input,
-    Rule,
+    Rule(#[serde(with="leak")] &'arn Self),
+    Unit,
     List(#[serde(with="leak")] &'arn Self),
 }
