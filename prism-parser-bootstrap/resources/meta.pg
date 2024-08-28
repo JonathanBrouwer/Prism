@@ -3,8 +3,8 @@ rule toplevel -> Grammar = grammar(prule_action);
 rule grammar(action) -> Grammar = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) -> PRule {
-    Rule(name, a, params, type, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "->" type:prule_action_type "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, type, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "->" type:prule_action_type "=" expr:prule_expr(action) ";";
+    Rule(name, a, params, Unit(), blocks) <- a:"adapt"? "rule" name:identifier params:prule_params <"->" prule_action_type>? "{" blocks:prule_body(action) "}";
+    Rule(name, [], params, Unit(), Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params <"->" prule_action_type>? "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params -> [Param] {

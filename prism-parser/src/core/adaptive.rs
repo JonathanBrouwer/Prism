@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::iter;
 use crate::grammar::rule_action::RuleActionType;
+use crate::META_GRAMMAR;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -40,6 +41,29 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             rules: &[],
             last_mut_pos: None,
         }
+    }
+    
+    pub fn new_with_meta_grammar(allocs: Allocs<'arn>, grammar: &'arn GrammarFile<'arn, 'grm>) -> (Self, VarMap<'arn, 'grm>) {
+        let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, allocs);
+        let visible_rules = VarMap::from_iter(
+            [
+                (
+                    "grammar",
+                    *meta_vars
+                        .get("grammar")
+                        .expect("Meta grammar contains 'grammar' rule"),
+                ),
+                (
+                    "prule_action",
+                    *meta_vars
+                        .get("prule_action")
+                        .expect("Meta grammar contains 'prule_action' rule"),
+                ),
+            ],
+            allocs,
+        );
+
+        grammar_state.adapt_with(grammar, visible_rules, None, allocs).expect("Initial adaptation succeeds")
     }
 
     /// Adapt this grammar state with `grammar`.
