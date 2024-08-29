@@ -67,8 +67,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             sequence_stack: vec![],
             grammar_state,
             pos: Pos::start(),
-            furthest_error: (),
-            furthest_error_pos: (),
+            furthest_error: None,
         };
 
         let start_rule = meta_vars
@@ -95,7 +94,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     match expr {
                         RuleExpr::RunVar(_, _) => todo!(),
                         RuleExpr::CharClass(cc) => {
-                            self.handle(self.parse_char(|c| cc.contains(*c)));
+                            let res = self.parse_char(|c| cc.contains(*c));
+                            self.handle(res);
                         },
                         RuleExpr::Literal(lit) => todo!(),
                         RuleExpr::Repeat { .. } => todo!(),
