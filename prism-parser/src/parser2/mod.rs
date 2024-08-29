@@ -10,6 +10,7 @@ use crate::grammar::{GrammarFile, RuleExpr};
 use crate::META_GRAMMAR;
 use std::marker::PhantomData;
 use std::slice;
+use crate::core::span::Span;
 
 pub trait Action {}
 
@@ -23,7 +24,7 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
 
-    phantom_data: PhantomData<E>,
+    furthest_error: Option<(E, Pos)>,
 }
 
 struct ParserSequence<'arn, 'grm: 'arn> {
@@ -61,12 +62,13 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         let mut state = Self {
             allocs,
             input,
-            phantom_data: PhantomData,
 
             choice_stack: vec![],
             sequence_stack: vec![],
             grammar_state,
             pos: Pos::start(),
+            furthest_error: (),
+            furthest_error_pos: (),
         };
 
         let start_rule = meta_vars
@@ -92,8 +94,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
                     match expr {
                         RuleExpr::RunVar(_, _) => todo!(),
-                        RuleExpr::CharClass(_) => todo!(),
-                        RuleExpr::Literal(lit) => {}
+                        RuleExpr::CharClass(cc) => {
+                            self.handle(self.parse_char(|c| cc.contains(*c)));
+                        },
+                        RuleExpr::Literal(lit) => todo!(),
                         RuleExpr::Repeat { .. } => todo!(),
                         RuleExpr::Sequence(seqs) => {
                             self.sequence_stack.push(ParserSequence {
@@ -131,6 +135,22 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         Ok(())
     }
 
+    fn handle(&mut self, res: PResult) {
+        match res {
+            PResult::POk(span) => {
+                todo!()
+            }
+            PResult::PErr => {
+                //TODO fail
+                todo!()
+            }
+        }
+    }
+
+    fn fail(&mut self) {
+        todo!()
+    }
+
     fn parse_rule(&mut self, rule: RuleId, grammar: &'arn GrammarState<'arn, 'grm>, pos: Pos) {
         let rule_state: &'arn RuleState<'arn, 'grm> = grammar
             .get(rule)
@@ -163,14 +183,7 @@ fn take_first<'a, T>(slice: &mut &'a [T]) -> Option<&'a T> {
     Some(first)
 }
 
-pub enum PResult<E: ParseError> {
-    POk {
-        start_span: Pos,
-        err_span: Pos,
-        furthest_error: Option<(E, Pos)>,
-    },
-    PErr {
-        error: E,
-        furthest_error: Pos,
-    },
+pub enum PResult {
+    POk(Span),
+    PErr,
 }

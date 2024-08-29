@@ -1,8 +1,4 @@
-use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
-use crate::core::span::Span;
-use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser2::PResult;
@@ -10,7 +6,7 @@ use crate::parser2::PResult;
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
     crate::parser2::ParserState<'arn, 'grm, E>
 {
-    pub fn parse_char(&mut self, f: impl Fn(&char) -> bool, pos: Pos) -> PResult<E> {
+    pub fn parse_char(&mut self, f: impl Fn(&char) -> bool) -> PResult<E> {
         todo!()
     }
 }
