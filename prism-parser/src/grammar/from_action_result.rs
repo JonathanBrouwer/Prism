@@ -281,11 +281,15 @@ pub fn parse_rule_action_type<'arn, 'grm>(
     allocs: Allocs<'arn>,
 ) -> Option<RuleActionType<'arn, 'grm>> {
     Some(match r {
-        Construct(_, "Rule", [t]) => RuleActionType::Rule(allocs.alloc(parse_rule_action_type(t, src, allocs)?)),
+        Construct(_, "Rule", [t]) => {
+            RuleActionType::Rule(allocs.alloc(parse_rule_action_type(t, src, allocs)?))
+        }
         Construct(_, "Unit", []) => RuleActionType::Unit,
         Construct(_, "Input", []) => RuleActionType::Input,
         Construct(_, "Name", [n]) => RuleActionType::Name(parse_identifier(n, src)?),
-        Construct(_, "List", [t]) => RuleActionType::List(allocs.alloc(parse_rule_action_type(t, src, allocs)?)),
+        Construct(_, "List", [t]) => {
+            RuleActionType::List(allocs.alloc(parse_rule_action_type(t, src, allocs)?))
+        }
         _ => return None,
     })
 }

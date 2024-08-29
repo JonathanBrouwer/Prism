@@ -21,7 +21,11 @@ pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
         assert_eq!(rule_state.args.len(), args.len());
         let rule_args = VarMap::from_iter(
-            rule_state.args.iter().map(|v| v.0).zip(args.iter().cloned()),
+            rule_state
+                .args
+                .iter()
+                .map(|v| v.0)
+                .zip(args.iter().cloned()),
             state.alloc,
         );
 

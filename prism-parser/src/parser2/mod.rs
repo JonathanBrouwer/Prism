@@ -1,5 +1,5 @@
-use std::marker::PhantomData;
-use std::slice;
+mod primitives;
+
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
@@ -8,12 +8,12 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::META_GRAMMAR;
+use std::marker::PhantomData;
+use std::slice;
 
-pub trait Action {
+pub trait Action {}
 
-}
-
-pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> {
+pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     allocs: Allocs<'arn>,
     input: &'grm str,
 
@@ -41,11 +41,14 @@ struct ParserChoice<'arn, 'grm: 'arn> {
 }
 
 enum ParserChoiceSub<'arn, 'grm: 'arn> {
-    Blocks(&'arn [BlockState<'arn, 'grm>], &'arn [Constructor<'arn, 'grm>]),
-    Exprs(&'arn [RuleExpr<'arn, 'grm>])
+    Blocks(
+        &'arn [BlockState<'arn, 'grm>],
+        &'arn [Constructor<'arn, 'grm>],
+    ),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>]),
 }
 
-impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn run_rule(
         rules: &'arn GrammarFile<'arn, 'grm>,
         rule: &str,
@@ -74,32 +77,32 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
         state.run(start_rule)
     }
 
-
     //TODO &mut self this, needs to reset state at end of run
     pub fn run(mut self, start_rule: RuleId) -> Result<(), AggregatedParseError<'grm, E>> {
         self.parse_rule(start_rule, self.grammar_state, self.pos);
-        
+
         while let Some(s) = self.sequence_stack.last_mut() {
             match &mut s.sequence {
                 ParserSequenceSub::Exprs(exprs) => {
                     //TODO use stdlib when slice::take_first stabilizes
                     let Some(expr) = take_first(exprs) else {
                         self.sequence_stack.pop();
-                        continue
+                        continue;
                     };
 
                     match expr {
                         RuleExpr::RunVar(_, _) => todo!(),
                         RuleExpr::CharClass(_) => todo!(),
-                        RuleExpr::Literal(_) => todo!(),
+                        RuleExpr::Literal(lit) => {}
                         RuleExpr::Repeat { .. } => todo!(),
                         RuleExpr::Sequence(seqs) => {
                             self.sequence_stack.push(ParserSequence {
                                 sequence: ParserSequenceSub::Exprs(seqs),
                             });
-                        },
+                        }
                         RuleExpr::Choice(choices) => {
-                            let (first_choice, rest_choices) = choices.split_first().expect("Choices not empty");
+                            let (first_choice, rest_choices) =
+                                choices.split_first().expect("Choices not empty");
 
                             self.choice_stack.push(ParserChoice {
                                 choice: ParserChoiceSub::Exprs(rest_choices),
@@ -109,7 +112,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                             self.sequence_stack.push(ParserSequence {
                                 sequence: ParserSequenceSub::Exprs(slice::from_ref(first_choice)),
                             })
-                        },
+                        }
                         RuleExpr::NameBind(_, _) => todo!(),
                         RuleExpr::Action(_, _) => todo!(),
                         RuleExpr::SliceInput(_) => todo!(),
@@ -123,18 +126,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 }
             }
         }
-        
+
         // Sequence stack is empty, done parsing
         Ok(())
     }
-    
-    
-    fn parse_rule(
-        &mut self,
-        rule: RuleId,
-        grammar: &'arn GrammarState<'arn, 'grm>,
-        pos: Pos,
-    ) {
+
+    fn parse_rule(&mut self, rule: RuleId, grammar: &'arn GrammarState<'arn, 'grm>, pos: Pos) {
         let rule_state: &'arn RuleState<'arn, 'grm> = grammar
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
@@ -144,7 +141,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
 
         // Push remaining blocks
         let (first_block, rest_blocks) = rule_state.blocks.split_first().expect("Blocks not empty");
-        let (first_constructor, rest_constructors) = first_block.constructors.split_first().expect("Constructors not empty");
+        let (first_constructor, rest_constructors) = first_block
+            .constructors
+            .split_first()
+            .expect("Constructors not empty");
         self.choice_stack.push(ParserChoice {
             choice: ParserChoiceSub::Blocks(&rest_blocks, rest_constructors),
             grammar_state: grammar,
@@ -152,7 +152,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
         });
         self.sequence_stack.push(ParserSequence {
             //TODO don't ignore attributes
-            sequence: ParserSequenceSub::Exprs(slice::from_ref(&first_constructor.0.1)),
+            sequence: ParserSequenceSub::Exprs(slice::from_ref(&first_constructor.0 .1)),
         });
     }
 }
@@ -172,5 +172,5 @@ pub enum PResult<E: ParseError> {
     PErr {
         error: E,
         furthest_error: Pos,
-    }
+    },
 }

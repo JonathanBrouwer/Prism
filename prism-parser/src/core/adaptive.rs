@@ -1,12 +1,12 @@
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
+use crate::grammar::rule_action::RuleActionType;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::META_GRAMMAR;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::iter;
-use crate::grammar::rule_action::RuleActionType;
-use crate::META_GRAMMAR;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -42,8 +42,11 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             last_mut_pos: None,
         }
     }
-    
-    pub fn new_with_meta_grammar(allocs: Allocs<'arn>, grammar: &'arn GrammarFile<'arn, 'grm>) -> (Self, VarMap<'arn, 'grm>) {
+
+    pub fn new_with_meta_grammar(
+        allocs: Allocs<'arn>,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
+    ) -> (Self, VarMap<'arn, 'grm>) {
         let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, allocs);
         let visible_rules = VarMap::from_iter(
             [
@@ -63,7 +66,9 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             allocs,
         );
 
-        grammar_state.adapt_with(grammar, visible_rules, None, allocs).expect("Initial adaptation succeeds")
+        grammar_state
+            .adapt_with(grammar, visible_rules, None, allocs)
+            .expect("Initial adaptation succeeds")
     }
 
     /// Adapt this grammar state with `grammar`.
@@ -160,7 +165,10 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, args: &'arn [(&'grm str, RuleActionType<'arn, 'grm>)]) -> Self {
+    pub fn new_empty(
+        name: &'grm str,
+        args: &'arn [(&'grm str, RuleActionType<'arn, 'grm>)],
+    ) -> Self {
         Self {
             name,
             blocks: &[],
