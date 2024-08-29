@@ -46,7 +46,7 @@ enum ParserChoiceSub<'arn, 'grm: 'arn> {
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
-    pub fn run_rule<A: Action>(
+    pub fn run_rule(
         rules: &'arn GrammarFile<'arn, 'grm>,
         rule: &str,
         allocs: Allocs<'arn>,

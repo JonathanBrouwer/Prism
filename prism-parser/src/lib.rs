@@ -14,7 +14,7 @@ pub mod core;
 pub mod error;
 pub mod grammar;
 pub mod parser;
-mod parser2;
+pub mod parser2;
 
 pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
     let meta_grammar = include_bytes!("../resources/bootstrap.bincode");

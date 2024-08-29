@@ -1,4 +1,16 @@
 use crate::parser::parse_test;
+
+parse_test! {
+name: empty
+syntax: r#"
+    rule start = "";
+    "#
+passing tests:
+    "" => ""
+failing tests:
+    "x"
+}
+
 parse_test! {
 name: literal
 syntax: r#"
@@ -19,7 +31,7 @@ failing tests:
 }
 
 parse_test! {
-name: literasl_indirect
+name: literal_indirect
 syntax: r#"
     rule start = lol;
 
