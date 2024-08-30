@@ -65,7 +65,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             RuleExpr::This => todo!(),
             RuleExpr::Next => todo!(),
             RuleExpr::AtAdapt(_, _) => todo!(),
-            RuleExpr::Guid => todo!(),
+            RuleExpr::Guid => {
+                Ok(())
+            },
         }
     }
 }
