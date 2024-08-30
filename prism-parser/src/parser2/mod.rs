@@ -3,6 +3,7 @@ mod primitives;
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
+use crate::core::span::Span;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
@@ -10,7 +11,6 @@ use crate::grammar::{GrammarFile, RuleExpr};
 use crate::META_GRAMMAR;
 use std::marker::PhantomData;
 use std::slice;
-use crate::core::span::Span;
 
 pub trait Action {}
 
@@ -21,10 +21,14 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     sequence_stack: Vec<ParserSequence<'arn, 'grm>>,
     choice_stack: Vec<ParserChoice<'arn, 'grm>>,
 
+    seq_state: SeqState<'arn, 'grm>,
+    furthest_error: Option<(E, Pos)>,
+}
+
+#[derive(Copy, Clone)]
+struct SeqState<'arn, 'grm: 'arn> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
-
-    furthest_error: Option<(E, Pos)>,
 }
 
 struct ParserSequence<'arn, 'grm: 'arn> {
@@ -37,8 +41,7 @@ enum ParserSequenceSub<'arn, 'grm: 'arn> {
 
 struct ParserChoice<'arn, 'grm: 'arn> {
     choice: ParserChoiceSub<'arn, 'grm>,
-    grammar_state: &'arn GrammarState<'arn, 'grm>,
-    pos: Pos,
+    seq_state: SeqState<'arn, 'grm>,
 }
 
 enum ParserChoiceSub<'arn, 'grm: 'arn> {
@@ -65,8 +68,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
             choice_stack: vec![],
             sequence_stack: vec![],
-            grammar_state,
-            pos: Pos::start(),
+            seq_state: SeqState {
+                grammar_state,
+                pos: Pos::start(),
+            },
             furthest_error: None,
         };
 
@@ -80,7 +85,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
     //TODO &mut self this, needs to reset state at end of run
     pub fn run(mut self, start_rule: RuleId) -> Result<(), AggregatedParseError<'grm, E>> {
-        self.parse_rule(start_rule, self.grammar_state, self.pos);
+        self.parse_rule(start_rule);
 
         while let Some(s) = self.sequence_stack.last_mut() {
             match &mut s.sequence {
@@ -96,7 +101,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         RuleExpr::CharClass(cc) => {
                             let res = self.parse_char(|c| cc.contains(*c));
                             self.handle(res);
-                        },
+                        }
                         RuleExpr::Literal(lit) => todo!(),
                         RuleExpr::Repeat { .. } => todo!(),
                         RuleExpr::Sequence(seqs) => {
@@ -110,8 +115,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
                             self.choice_stack.push(ParserChoice {
                                 choice: ParserChoiceSub::Exprs(rest_choices),
-                                grammar_state: self.grammar_state,
-                                pos: self.pos,
+                                seq_state: self.seq_state,
                             });
                             self.sequence_stack.push(ParserSequence {
                                 sequence: ParserSequenceSub::Exprs(slice::from_ref(first_choice)),
@@ -147,12 +151,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         }
     }
 
-    fn fail(&mut self) {
-        todo!()
-    }
-
-    fn parse_rule(&mut self, rule: RuleId, grammar: &'arn GrammarState<'arn, 'grm>, pos: Pos) {
-        let rule_state: &'arn RuleState<'arn, 'grm> = grammar
+    fn parse_rule(&mut self, rule: RuleId) {
+        let rule_state: &'arn RuleState<'arn, 'grm> = self
+            .seq_state
+            .grammar_state
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
@@ -167,8 +169,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             .expect("Constructors not empty");
         self.choice_stack.push(ParserChoice {
             choice: ParserChoiceSub::Blocks(&rest_blocks, rest_constructors),
-            grammar_state: grammar,
-            pos,
+            seq_state: self.seq_state,
         });
         self.sequence_stack.push(ParserSequence {
             //TODO don't ignore attributes
