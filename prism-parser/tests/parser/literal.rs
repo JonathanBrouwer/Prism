@@ -6,7 +6,7 @@ syntax: r#"
     rule start = "";
     "#
 passing tests:
-    "" => ""
+    "" => "''"
 failing tests:
     "x"
 }

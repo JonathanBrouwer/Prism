@@ -117,7 +117,7 @@ fn parser_body_sub_annotations<
             let mut res = parser_body_sub_annotations(rules, block_state, rest, expr, vars)
                 .parse(pos, state, context);
             res.add_label_explicit(ErrorLabel::Explicit(
-                pos.span_to(res.end_pos().next(state.input).0),
+                pos.span_to(res.end_pos().next(state.input).0.end),
                 *err_label,
             ));
             res

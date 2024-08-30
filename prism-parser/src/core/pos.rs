@@ -19,12 +19,12 @@ impl Pos {
         Span::new(self, other)
     }
 
-    pub fn next(self, input: &str) -> (Self, Option<(Span, char)>) {
+    pub fn next(self, input: &str) -> (Span, Option<char>) {
         match input[self.0..].chars().next() {
-            None => (self, None),
+            None => (self.span_to(self), None),
             Some(c) => (
-                Self(self.0 + c.len_utf8()),
-                Some((Span::new(self, Self(self.0 + c.len_utf8())), c)),
+                self.span_to(Self(self.0 + c.len_utf8())),
+                Some(c),
             ),
         }
     }

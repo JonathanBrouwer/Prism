@@ -19,9 +19,9 @@ pub fn single<'arn, 'grm: 'arn, E: ParseError>(
           -> PResult<(Span, char), E> {
         match pos.next(state.input) {
             // We can parse the character
-            (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos, pos_new),
+            (span, Some(e)) if f(&e) => PResult::new_ok((span, e), span.start, span.end),
             // Error
-            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
+            (span, _) => PResult::new_err(E::new(span), pos),
         }
     }
 }
@@ -116,8 +116,8 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
 pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> {
     move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, _: ParserContext| -> PResult<(), E> {
         match pos.next(state.input) {
-            (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
-            (s, None) => PResult::new_empty((), s),
+            (s, Some(_)) => PResult::new_err(E::new(s), pos),
+            (s, None) => PResult::new_empty((), s.start),
         }
     }
 }

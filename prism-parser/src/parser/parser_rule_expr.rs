@@ -111,7 +111,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     let mut res =
                         res.map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
                     res.add_label_implicit(ErrorLabel::Literal(
-                        pos.span_to(res.end_pos().next(state.input).0),
+                        pos.span_to(res.end_pos().next(state.input).0.end),
                         *literal,
                     ));
                     res

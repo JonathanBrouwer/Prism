@@ -99,8 +99,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     match expr {
                         RuleExpr::RunVar(_, _) => todo!(),
                         RuleExpr::CharClass(cc) => {
-                            let res = self.parse_char(|c| cc.contains(*c));
-                            self.handle(res);
+                            self.parse_char(|c| cc.contains(*c));
                         }
                         RuleExpr::Literal(lit) => todo!(),
                         RuleExpr::Repeat { .. } => todo!(),
@@ -139,16 +138,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         Ok(())
     }
 
-    fn handle(&mut self, res: PResult) {
-        match res {
-            PResult::POk(span) => {
-                todo!()
-            }
-            PResult::PErr => {
-                //TODO fail
-                todo!()
-            }
-        }
+    fn fail(&mut self, e: E) {
+
     }
 
     fn parse_rule(&mut self, rule: RuleId) {
