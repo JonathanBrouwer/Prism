@@ -22,10 +22,7 @@ impl Pos {
     pub fn next(self, input: &str) -> (Span, Option<char>) {
         match input[self.0..].chars().next() {
             None => (self.span_to(self), None),
-            Some(c) => (
-                self.span_to(Self(self.0 + c.len_utf8())),
-                Some(c),
-            ),
+            Some(c) => (self.span_to(Self(self.0 + c.len_utf8())), Some(c)),
         }
     }
 

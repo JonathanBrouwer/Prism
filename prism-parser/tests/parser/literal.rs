@@ -15,15 +15,15 @@ parse_test! {
 name: literal
 syntax: r#"
     rule start = "lol";
-   
+
     "#
 passing tests:
     "lol" => "'lol'"
 failing tests:
+    ""
     "lolz"
     "loll"
     "lol "
-    ""
     "l"
     "lo"
     " lol"

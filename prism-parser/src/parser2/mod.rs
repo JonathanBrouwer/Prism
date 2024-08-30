@@ -1,15 +1,15 @@
+mod parse_expr;
 mod primitives;
 
+use std::cmp::Ordering;
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
-use crate::core::span::Span;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
-use crate::META_GRAMMAR;
-use std::marker::PhantomData;
+use crate::parser2;
 use std::slice;
 
 pub trait Action {}
@@ -21,7 +21,7 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     sequence_stack: Vec<ParserSequence<'arn, 'grm>>,
     choice_stack: Vec<ParserChoice<'arn, 'grm>>,
 
-    seq_state: SeqState<'arn, 'grm>,
+    sequence_state: SeqState<'arn, 'grm>,
     furthest_error: Option<(E, Pos)>,
 }
 
@@ -41,7 +41,7 @@ enum ParserSequenceSub<'arn, 'grm: 'arn> {
 
 struct ParserChoice<'arn, 'grm: 'arn> {
     choice: ParserChoiceSub<'arn, 'grm>,
-    seq_state: SeqState<'arn, 'grm>,
+    sequence_state: SeqState<'arn, 'grm>,
 }
 
 enum ParserChoiceSub<'arn, 'grm: 'arn> {
@@ -51,6 +51,8 @@ enum ParserChoiceSub<'arn, 'grm: 'arn> {
     ),
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
 }
+
+pub type PResult<E> = Result<(), E>;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn run_rule(
@@ -68,7 +70,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
             choice_stack: vec![],
             sequence_stack: vec![],
-            seq_state: SeqState {
+            sequence_state: SeqState {
                 grammar_state,
                 pos: Pos::start(),
             },
@@ -91,60 +93,89 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             match &mut s.sequence {
                 ParserSequenceSub::Exprs(exprs) => {
                     //TODO use stdlib when slice::take_first stabilizes
-                    let Some(expr) = take_first(exprs) else {
+                    let Some(expr) = parser2::take_first(exprs) else {
                         self.sequence_stack.pop();
                         continue;
                     };
 
-                    match expr {
-                        RuleExpr::RunVar(_, _) => todo!(),
-                        RuleExpr::CharClass(cc) => {
-                            self.parse_char(|c| cc.contains(*c));
+                    match self.parse_expr(expr) {
+                        Ok(()) => {}
+                        Err(e) => {
+                            self.fail(e)?;
                         }
-                        RuleExpr::Literal(lit) => todo!(),
-                        RuleExpr::Repeat { .. } => todo!(),
-                        RuleExpr::Sequence(seqs) => {
-                            self.sequence_stack.push(ParserSequence {
-                                sequence: ParserSequenceSub::Exprs(seqs),
-                            });
-                        }
-                        RuleExpr::Choice(choices) => {
-                            let (first_choice, rest_choices) =
-                                choices.split_first().expect("Choices not empty");
-
-                            self.choice_stack.push(ParserChoice {
-                                choice: ParserChoiceSub::Exprs(rest_choices),
-                                seq_state: self.seq_state,
-                            });
-                            self.sequence_stack.push(ParserSequence {
-                                sequence: ParserSequenceSub::Exprs(slice::from_ref(first_choice)),
-                            })
-                        }
-                        RuleExpr::NameBind(_, _) => todo!(),
-                        RuleExpr::Action(_, _) => todo!(),
-                        RuleExpr::SliceInput(_) => todo!(),
-                        RuleExpr::PosLookahead(_) => todo!(),
-                        RuleExpr::NegLookahead(_) => todo!(),
-                        RuleExpr::This => todo!(),
-                        RuleExpr::Next => todo!(),
-                        RuleExpr::AtAdapt(_, _) => todo!(),
-                        RuleExpr::Guid => todo!(),
                     }
                 }
             }
         }
 
         // Sequence stack is empty, done parsing
+        // Check whether there is input left
+        if self.sequence_state.pos.next(self.input).1.is_some() {
+            self.add_error(E::new(self.sequence_state.pos.span_to(Pos::end(self.input))));
+            return Err(self.completely_fail());
+        }
+
         Ok(())
     }
 
-    fn fail(&mut self, e: E) {
+    fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
+        self.add_error(e);
 
+        while let Some(s) = self.choice_stack.last_mut() {
+            self.sequence_state = s.sequence_state;
+            match &mut s.choice {
+                ParserChoiceSub::Blocks(bs, cs) => {
+                    // Find the fist constructor from a block
+                    let c = loop {
+                        let Some(c) = take_first(cs) else {
+                            let Some(b) = take_first(bs) else {
+                                return Err(self.completely_fail())
+                            };
+                            continue
+                        };
+                        break c;
+                    };
+                    self.parse_constructor(c);
+                }
+                ParserChoiceSub::Exprs(exprs) => {
+                    todo!()
+                }
+            }
+        }
+
+        Err(self.completely_fail())
+    }
+
+    fn add_error(&mut self, e: E) {
+        match &mut self.furthest_error {
+            None => {
+                self.furthest_error = Some((e, self.sequence_state.pos))
+            }
+            Some((cur_err, cur_pos)) => {
+                match self.sequence_state.pos.cmp(cur_pos) {
+                    Ordering::Less => {}
+                    Ordering::Equal => {
+                        *cur_err = cur_err.clone().merge(e)
+                    }
+                    Ordering::Greater => {
+                        *cur_pos = self.sequence_state.pos;
+                        *cur_err = e;
+                    }
+                }
+            }
+        }
+    }
+
+    fn completely_fail(&mut self) -> AggregatedParseError<'grm, E> {
+        AggregatedParseError {
+            input: self.input,
+            errors: vec![self.furthest_error.take().expect("Cannot fail without error").0],
+        }
     }
 
     fn parse_rule(&mut self, rule: RuleId) {
         let rule_state: &'arn RuleState<'arn, 'grm> = self
-            .seq_state
+            .sequence_state
             .grammar_state
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
@@ -160,11 +191,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             .expect("Constructors not empty");
         self.choice_stack.push(ParserChoice {
             choice: ParserChoiceSub::Blocks(&rest_blocks, rest_constructors),
-            seq_state: self.seq_state,
+            sequence_state: self.sequence_state,
         });
+        self.parse_constructor(first_constructor)
+    }
+
+    fn parse_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
         self.sequence_stack.push(ParserSequence {
             //TODO don't ignore attributes
-            sequence: ParserSequenceSub::Exprs(slice::from_ref(&first_constructor.0 .1)),
+            sequence: ParserSequenceSub::Exprs(slice::from_ref(&c.0 .1)),
         });
     }
 }
@@ -173,9 +208,4 @@ fn take_first<'a, T>(slice: &mut &'a [T]) -> Option<&'a T> {
     let (first, rem) = slice.split_first()?;
     *slice = rem;
     Some(first)
-}
-
-pub enum PResult {
-    POk(Span),
-    PErr,
 }
