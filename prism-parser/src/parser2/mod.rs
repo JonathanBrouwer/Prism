@@ -87,7 +87,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
     //TODO &mut self this, needs to reset state at end of run
     pub fn run(mut self, start_rule: RuleId) -> Result<(), AggregatedParseError<'grm, E>> {
-        self.parse_rule(start_rule);
+        self.add_rule(start_rule);
 
         while let Some(s) = self.sequence_stack.last_mut() {
             match &mut s.sequence {
@@ -121,7 +121,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
     fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
         self.add_error(e);
 
-        while let Some(s) = self.choice_stack.last_mut() {
+        'outer: while let Some(s) = self.choice_stack.last_mut() {
             self.sequence_state = s.sequence_state;
             match &mut s.choice {
                 ParserChoiceSub::Blocks(bs, cs) => {
@@ -129,18 +129,24 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     let c = loop {
                         let Some(c) = take_first(cs) else {
                             let Some(b) = take_first(bs) else {
-                                return Err(self.completely_fail())
+                                self.choice_stack.pop();
+                                continue 'outer;
                             };
                             continue
                         };
                         break c;
                     };
-                    self.parse_constructor(c);
+                    self.add_constructor(c);
                 }
                 ParserChoiceSub::Exprs(exprs) => {
-                    todo!()
+                    let Some(expr) = take_first(exprs) else {
+                        self.choice_stack.pop();
+                        continue 'outer;
+                    };
+                    self.add_expr(expr);
                 }
             }
+            return Ok(())
         }
 
         Err(self.completely_fail())
@@ -173,7 +179,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         }
     }
 
-    fn parse_rule(&mut self, rule: RuleId) {
+    fn add_rule(&mut self, rule: RuleId) {
         let rule_state: &'arn RuleState<'arn, 'grm> = self
             .sequence_state
             .grammar_state
@@ -193,13 +199,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             choice: ParserChoiceSub::Blocks(&rest_blocks, rest_constructors),
             sequence_state: self.sequence_state,
         });
-        self.parse_constructor(first_constructor)
+        self.add_constructor(first_constructor)
     }
 
-    fn parse_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
+    fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
+        self.add_expr(&c.0.1)
+    }
+
+    fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
         self.sequence_stack.push(ParserSequence {
-            //TODO don't ignore attributes
-            sequence: ParserSequenceSub::Exprs(slice::from_ref(&c.0 .1)),
+            sequence: ParserSequenceSub::Exprs(slice::from_ref(expr)),
         });
     }
 }
