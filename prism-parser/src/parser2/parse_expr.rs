@@ -11,12 +11,25 @@ use crate::parser2::{
     SeqState,
 };
 use std::slice;
+use crate::parser::var_map::VarMapValue;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) -> PResult<E> {
         match expr {
-            RuleExpr::RunVar(_, var) => {
-                todo!()
+            RuleExpr::RunVar(rule_str, _) => {
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = self.sequence_state.vars.get(rule_str) else {
+                    panic!(
+                        "Tried to run variable `{rule_str}` as a rule, but it was not defined."
+                    );
+                };
+                let Some(rule) = rule.as_rule_id() else {
+                    panic!(
+                        "Tried to run variable `{rule_str}` as a rule, but it did not refer to a rule."
+                    );
+                };
+                self.add_rule(rule);
+                Ok(())
             },
             RuleExpr::CharClass(cc) => self.parse_char(|c| cc.contains(*c)),
             RuleExpr::Literal(lit) => self.parse_chars(lit.chars()),

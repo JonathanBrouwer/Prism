@@ -1,5 +1,6 @@
 mod parse_expr;
 mod primitives;
+mod var_map;
 
 use std::cmp::Ordering;
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
@@ -11,6 +12,7 @@ use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
 use std::slice;
+use crate::parser::var_map::VarMap;
 
 pub trait Action {}
 
@@ -29,6 +31,7 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
 struct SeqState<'arn, 'grm: 'arn> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
+    vars: VarMap<'arn, 'grm>
 }
 
 struct ParserSequence<'arn, 'grm: 'arn> {
@@ -61,7 +64,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         allocs: Allocs<'arn>,
         input: &'grm str,
     ) -> Result<(), AggregatedParseError<'grm, E>> {
-        let (grammar_state, meta_vars) = GrammarState::new_with_meta_grammar(allocs, rules);
+        let (grammar_state, vars) = GrammarState::new_with_meta_grammar(allocs, rules);
         let grammar_state = allocs.alloc(grammar_state);
 
         let mut state = Self {
@@ -73,11 +76,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             sequence_state: SeqState {
                 grammar_state,
                 pos: Pos::start(),
+                vars,
             },
             furthest_error: None,
         };
 
-        let start_rule = meta_vars
+        let start_rule = vars
             .get(rule)
             .expect("Rule exists")
             .as_rule_id()
