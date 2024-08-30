@@ -1,6 +1,6 @@
 mod parse_expr;
 mod primitives;
-mod var_map;
+mod cache;
 
 use std::cmp::Ordering;
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
@@ -12,6 +12,7 @@ use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
 use std::slice;
+use crate::parser2::cache::ParserCache;
 use crate::parser::var_map::VarMap;
 
 pub trait Action {}
@@ -19,6 +20,7 @@ pub trait Action {}
 pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     allocs: Allocs<'arn>,
     input: &'grm str,
+    cache: ParserCache<'arn, 'grm, E>,
 
     sequence_stack: Vec<ParserSequence<'arn, 'grm>>,
     choice_stack: Vec<ParserChoice<'arn, 'grm>>,
@@ -70,7 +72,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         let mut state = Self {
             allocs,
             input,
-
+            cache: Default::default(),
             choice_stack: vec![],
             sequence_stack: vec![],
             sequence_state: SeqState {
