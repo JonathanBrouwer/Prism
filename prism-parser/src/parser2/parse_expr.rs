@@ -28,6 +28,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         "Tried to run variable `{rule_str}` as a rule, but it did not refer to a rule."
                     );
                 };
+                panic!();
                 self.add_rule(rule);
                 Ok(())
             },
