@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
-use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserSequenceSub, ParserState, SeqState};
+use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn add_rule(&mut self, rule: RuleId) {
@@ -27,10 +27,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
             .constructors
             .split_first()
             .expect("Constructors not empty");
-        self.choice_stack.push(ParserChoice {
-            choice: ParserChoiceSub::Blocks(&rest_blocks, rest_constructors),
-            sequence_state: self.sequence_state,
-        });
+        self.add_choice(ParserChoiceSub::Blocks(&rest_blocks, rest_constructors));
         self.add_constructor(first_constructor)
     }
 
@@ -39,8 +36,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
     }
 
     pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
-        self.sequence_stack.push(ParserSequence {
-            sequence: ParserSequenceSub::Exprs(slice::from_ref(expr)),
-        });
+        self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(expr)));
     }
 }

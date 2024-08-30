@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
-use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserSequenceSub, ParserState, SeqState};
+use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
@@ -16,6 +16,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
 
         'outer: while let Some(s) = self.choice_stack.last_mut() {
             self.sequence_state = s.sequence_state;
+            self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
                 ParserChoiceSub::Blocks(bs, cs) => {
                     // Find the fist constructor from a block

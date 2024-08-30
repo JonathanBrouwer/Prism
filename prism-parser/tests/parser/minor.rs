@@ -76,3 +76,30 @@ passing tests:
 
 failing tests:
 }
+
+parse_test! {
+name: choice_bounded
+syntax: r#"
+    rule start = #str(<"a" / "ay"> "x");
+    "#
+passing tests:
+    "ax" => "'ax'"
+
+failing tests:
+    "ay"
+}
+
+parse_test! {
+name: sequence_bounded
+syntax: r#"
+    rule start = #str(<<"a" "b"> / "c" >);
+    "#
+passing tests:
+    "ab" => "'ab'"
+    "c" => "'c'"
+
+failing tests:
+    "a"
+    "ac"
+    "bc"
+}

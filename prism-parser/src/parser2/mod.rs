@@ -39,17 +39,15 @@ struct SeqState<'arn, 'grm: 'arn> {
     vars: VarMap<'arn, 'grm>
 }
 
-struct ParserSequence<'arn, 'grm: 'arn> {
-    sequence: ParserSequenceSub<'arn, 'grm>,
-}
-
-enum ParserSequenceSub<'arn, 'grm: 'arn> {
+enum ParserSequence<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
+    PopChoice,
 }
 
 struct ParserChoice<'arn, 'grm: 'arn> {
     choice: ParserChoiceSub<'arn, 'grm>,
     sequence_state: SeqState<'arn, 'grm>,
+    sequence_stack_len: usize,
 }
 
 enum ParserChoiceSub<'arn, 'grm: 'arn> {
@@ -99,8 +97,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.add_rule(start_rule);
 
         while let Some(s) = self.sequence_stack.last_mut() {
-            match &mut s.sequence {
-                ParserSequenceSub::Exprs(exprs) => {
+            match s {
+                ParserSequence::Exprs(exprs) => {
                     //TODO use stdlib when slice::take_first stabilizes
                     let Some(expr) = take_first(exprs) else {
                         self.sequence_stack.pop();
@@ -114,6 +112,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         }
                     }
                 }
+                ParserSequence::PopChoice => {
+                    self.choice_stack.pop();
+                    self.sequence_stack.pop();
+                }
             }
         }
 
@@ -125,6 +127,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         }
 
         Ok(())
+    }
+
+    pub fn add_choice(&mut self, choice: ParserChoiceSub<'arn, 'grm>) {
+        self.sequence_stack.push(ParserSequence::PopChoice);
+        self.choice_stack.push(ParserChoice {
+            choice,
+            sequence_state: self.sequence_state,
+            sequence_stack_len: self.sequence_stack.len(),
+        })
+
     }
 }
 
