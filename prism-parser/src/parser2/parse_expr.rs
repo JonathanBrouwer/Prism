@@ -15,7 +15,9 @@ use std::slice;
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) -> PResult<E> {
         match expr {
-            RuleExpr::RunVar(_, _) => todo!(),
+            RuleExpr::RunVar(_, var) => {
+                todo!()
+            },
             RuleExpr::CharClass(cc) => self.parse_char(|c| cc.contains(*c)),
             RuleExpr::Literal(lit) => self.parse_chars(lit.chars()),
             RuleExpr::Repeat { .. } => todo!(),
@@ -38,9 +40,24 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 });
                 Ok(())
             }
-            RuleExpr::NameBind(_, _) => todo!(),
-            RuleExpr::Action(_, _) => todo!(),
-            RuleExpr::SliceInput(_) => todo!(),
+            RuleExpr::NameBind(_, expr) => {
+                self.sequence_stack.push(ParserSequence {
+                    sequence: ParserSequenceSub::Exprs(slice::from_ref(expr)),
+                });
+                Ok(())
+            },
+            RuleExpr::Action(expr, _) => {
+                self.sequence_stack.push(ParserSequence {
+                    sequence: ParserSequenceSub::Exprs(slice::from_ref(expr)),
+                });
+                Ok(())
+            },
+            RuleExpr::SliceInput(expr) => {
+                self.sequence_stack.push(ParserSequence {
+                    sequence: ParserSequenceSub::Exprs(slice::from_ref(expr)),
+                });
+                Ok(())
+            },
             RuleExpr::PosLookahead(_) => todo!(),
             RuleExpr::NegLookahead(_) => todo!(),
             RuleExpr::This => todo!(),
