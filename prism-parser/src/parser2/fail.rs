@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::slice;
-use crate::core::adaptive::{Constructor, GrammarState, RuleId, RuleState};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
 use crate::error::aggregate_error::AggregatedParseError;
@@ -14,28 +14,30 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
     pub fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
         self.add_error(e);
 
-        'outer: while let Some(s) = self.choice_stack.last_mut() {
+        while let Some(s) = self.choice_stack.last_mut() {
             self.sequence_state = s.sequence_state;
             self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
                 ParserChoiceSub::Blocks(bs, cs) => {
-                    // Find the fist constructor from a block
-                    let c = loop {
-                        let Some(c) = take_first(cs) else {
-                            let Some(b) = take_first(bs) else {
-                                self.choice_stack.pop();
-                                continue 'outer;
-                            };
-                            continue
-                        };
-                        break c;
-                    };
-                    self.add_constructor(c);
+                    // If the current block has a constructor left, take that
+                    if let Some(c) = take_first(cs) {
+                        self.add_constructor(c);
+                    }
+                    // Otherwise, if there is a next block, take that
+                    else if let Some(b) = take_first(bs) {
+                        *cs = b.constructors;
+                        self.add_blockstate(b);
+                    }
+                    // Otherwise, use the next element on the choice stack
+                    else {
+                        self.choice_stack.pop();
+                        continue
+                    }
                 }
                 ParserChoiceSub::Exprs(exprs) => {
                     let Some(expr) = take_first(exprs) else {
                         self.choice_stack.pop();
-                        continue 'outer;
+                        continue
                     };
                     self.add_expr(expr);
                 }

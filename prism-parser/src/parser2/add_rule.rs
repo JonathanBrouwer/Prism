@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 use std::slice;
-use crate::core::adaptive::{Constructor, GrammarState, RuleId, RuleState};
+use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
 use crate::error::aggregate_error::AggregatedParseError;
@@ -29,6 +29,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
             .expect("Constructors not empty");
         self.add_choice(ParserChoiceSub::Blocks(&rest_blocks, rest_constructors));
         self.add_constructor(first_constructor)
+    }
+
+    pub fn add_blockstate(&mut self, bs: &'arn BlockState<'arn, 'grm>) {
+
     }
 
     pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {

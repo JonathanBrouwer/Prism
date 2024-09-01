@@ -136,7 +136,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             sequence_state: self.sequence_state,
             sequence_stack_len: self.sequence_stack.len(),
         })
-
     }
 }
 
