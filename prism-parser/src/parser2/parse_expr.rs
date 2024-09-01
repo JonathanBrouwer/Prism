@@ -33,7 +33,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             },
             RuleExpr::CharClass(cc) => self.parse_char(|c| cc.contains(*c)),
             RuleExpr::Literal(lit) => self.parse_chars(lit.chars()),
-            RuleExpr::Repeat { expr, min, max, delim } => todo!(),
+            RuleExpr::Repeat { expr, min, max, delim } => {
+                self.sequence_stack.push(ParserSequence::Repeat {
+                    expr,
+                    delim,
+                    min: *min,
+                    max: *max,
+                });
+                Ok(())
+            },
             RuleExpr::Sequence(seqs) => {
                 self.sequence_stack.push(ParserSequence::Exprs(seqs));
                 Ok(())

@@ -39,6 +39,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                     };
                     self.add_expr(expr);
                 }
+                ParserChoiceSub::RepeatOptional => {
+                    self.choice_stack.pop();
+                }
             }
             return Ok(())
         }

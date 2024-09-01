@@ -44,6 +44,12 @@ enum ParserSequence<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
     Block(&'arn BlockState<'arn, 'grm>),
     PopChoice,
+    Repeat {
+        expr: &'arn RuleExpr<'arn, 'grm>,
+        delim: &'arn RuleExpr<'arn, 'grm>,
+        min: u64,
+        max: Option<u64>,
+    },
 }
 
 struct ParserChoice<'arn, 'grm: 'arn> {
@@ -56,6 +62,7 @@ enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Blocks(&'arn [BlockState<'arn, 'grm>]),
     Constructors(&'arn [Constructor<'arn, 'grm>]),
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
+    RepeatOptional,
 }
 
 pub type PResult<E> = Result<(), E>;
@@ -137,6 +144,21 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     self.sequence_stack.pop();
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
                     self.add_constructor(first_constructor);
+                }
+                ParserSequence::Repeat { expr, delim, min, max } => {
+                    // If there are mandatory parts left, do them first
+                    if *min != 0 {
+                        *min -= 1;
+                        self.add_expr(expr);
+                        if *min != 0 {
+                            self.add_expr(delim);
+                        }
+                    }
+                    // Otherwise, add one more
+                    else {
+
+                    }
+                    todo!()
                 }
             }
         }
