@@ -49,7 +49,7 @@ enum ParserSequence<'arn, 'grm: 'arn> {
         delim: &'arn RuleExpr<'arn, 'grm>,
         min: u64,
         max: Option<u64>,
-        first: bool,
+        last_pos: Option<Pos>,
     },
 }
 
@@ -105,6 +105,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.add_rule(start_rule);
 
         while let Some(s) = self.sequence_stack.last_mut() {
+            todo!("Choice stack needs to be truncated");
             match s {
                 ParserSequence::Exprs(exprs) => {
                     //TODO use stdlib when slice::take_first stabilizes
@@ -146,30 +147,44 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
                     self.add_constructor(first_constructor);
                 }
-                ParserSequence::Repeat { expr, delim, min, max, first } => {
-                    // If there are mandatory parts left, do them first
-                    if *min != 0 {
+                ParserSequence::Repeat { expr, delim, min, max, last_pos } => {
+                    // If no progress was made, we've parsed as much as we're gonna get
+                    let first = if let Some(last_pos) = last_pos {
+                        if *last_pos == self.sequence_state.pos {
+                            assert_eq!(*min, 0, "Repeat rule made no progress");
+                            self.sequence_stack.pop();
+                            return Ok(())
+                        }
+                        false
+                    } else {
+                        true
+                    };
+
+                    // If we reached the maximum, return ok
+                    if let Some(max) = max {
+                        if *max == 0 {
+                            self.sequence_stack.pop();
+                            return Ok(())
+                        }
+                        *max -= 1;
+                    }
+
+                    *last_pos = Some(self.sequence_state.pos);
+                    let delim = *delim;
+                    let expr= *expr;
+
+                    // If we reached the minimum, parsing is optional
+                    if *min == 0 {
+                        self.add_choice(ParserChoiceSub::RepeatOptional);
+                    } else {
                         *min -= 1;
-                        self.add_expr(expr);
-                        if *min != 0 {
-                            todo!();
-                            ///TODO not correct when min = 0, use first
-                            self.add_expr(delim);
-                        }
                     }
-                    else {
-                        // If we reached the maximum, we're done
-                        if let Some(max) = max {
-                            if *max == 0 {
-                                return Ok(())
-                            }
-                            *max -= 1;
-                        }
-                        // Otherwise, add one more attempt to the stack
+
+                    // Add the next set of delim,expr to the stack. Skip delim if this is the first time.
+                    if !first {
                         self.add_expr(delim);
-                        self.add_expr(expr);
                     }
-                    todo!()
+                    self.add_expr(expr);
                 }
             }
         }

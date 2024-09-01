@@ -39,7 +39,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     delim,
                     min: *min,
                     max: *max,
-                    first: true,
+                    last_pos: None,
                 });
                 Ok(())
             },
