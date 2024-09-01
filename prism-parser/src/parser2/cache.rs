@@ -22,12 +22,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> Default for ParserCac
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserCache<'arn, 'grm, E> {
-    pub fn insert(&mut self, key: CacheKey, value: PResult<E>) {
-        // todo!()
+    pub fn insert(&mut self, key: CacheKey<'arn, 'grm>, value: PResult<E>) {
+        self.map.insert(key, value);
     }
 
-    pub fn get(&mut self, key: &CacheKey) -> Option<&PResult<E>> {
-        None
+    pub fn get(&mut self, key: &CacheKey<'arn, 'grm>) -> Option<&PResult<E>> {
+        self.map.get(key)
     }
 }
 
@@ -35,6 +35,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserCache<'arn, 'gr
 pub struct CacheKey<'arn, 'grm: 'arn> {
     pos: Pos,
     block: ByAddress<&'arn BlockState<'arn, 'grm>>,
+    /// It is important that `grammar` is a cache key since block states may be reused between grammar states
     grammar: ByAddress<&'arn GrammarState<'arn, 'grm>>,
 }
 
