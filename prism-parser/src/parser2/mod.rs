@@ -49,6 +49,7 @@ enum ParserSequence<'arn, 'grm: 'arn> {
         delim: &'arn RuleExpr<'arn, 'grm>,
         min: u64,
         max: Option<u64>,
+        first: bool,
     },
 }
 
@@ -145,18 +146,28 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
                     self.add_constructor(first_constructor);
                 }
-                ParserSequence::Repeat { expr, delim, min, max } => {
+                ParserSequence::Repeat { expr, delim, min, max, first } => {
                     // If there are mandatory parts left, do them first
                     if *min != 0 {
                         *min -= 1;
                         self.add_expr(expr);
                         if *min != 0 {
+                            todo!();
+                            ///TODO not correct when min = 0
                             self.add_expr(delim);
                         }
                     }
-                    // Otherwise, add one more
                     else {
-
+                        // If we reached the maximum, we're done
+                        if let Some(max) = max {
+                            if *max == 0 {
+                                return Ok(())
+                            }
+                            *max -= 1;
+                        }
+                        // Otherwise, add one more attempt to the stack
+                        self.add_expr(delim);
+                        self.add_expr(expr);
                     }
                     todo!()
                 }
