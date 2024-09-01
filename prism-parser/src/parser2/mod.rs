@@ -153,7 +153,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.add_expr(expr);
                         if *min != 0 {
                             todo!();
-                            ///TODO not correct when min = 0
+                            ///TODO not correct when min = 0, use first
                             self.add_expr(delim);
                         }
                     }
