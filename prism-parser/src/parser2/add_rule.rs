@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
-use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
+use crate::parser2::{PResult, ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn add_rule(&mut self, rule: RuleId) {
@@ -23,16 +23,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
 
         // Push remaining blocks
         let (first_block, rest_blocks) = rule_state.blocks.split_first().expect("Blocks not empty");
-        let (first_constructor, rest_constructors) = first_block
-            .constructors
-            .split_first()
-            .expect("Constructors not empty");
-        self.add_choice(ParserChoiceSub::Blocks(&rest_blocks, rest_constructors));
-        self.add_constructor(first_constructor)
-    }
-
-    pub fn add_blockstate(&mut self, bs: &'arn BlockState<'arn, 'grm>) {
-
+        self.add_choice(ParserChoiceSub::Blocks(&rest_blocks));
+        self.sequence_stack.push(ParserSequence::Block(first_block));
     }
 
     pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {

@@ -13,3 +13,4 @@ ariadne.workspace = true
 stacker.workspace = true
 bumpalo.workspace = true
 bumpalo_try.workspace = true
+by_address.workspace = true

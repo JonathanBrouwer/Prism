@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
-use crate::parser2::{ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
+use crate::parser2::{PResult, ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
@@ -18,21 +18,19 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
             self.sequence_state = s.sequence_state;
             self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
-                ParserChoiceSub::Blocks(bs, cs) => {
-                    // If the current block has a constructor left, take that
-                    if let Some(c) = take_first(cs) {
-                        self.add_constructor(c);
-                    }
-                    // Otherwise, if there is a next block, take that
-                    else if let Some(b) = take_first(bs) {
-                        *cs = b.constructors;
-                        self.add_blockstate(b);
-                    }
-                    // Otherwise, use the next element on the choice stack
-                    else {
+                ParserChoiceSub::Blocks(bs) => {
+                    let Some(b) = take_first(bs) else {
                         self.choice_stack.pop();
                         continue
-                    }
+                    };
+                    self.sequence_stack.push(ParserSequence::Block(b));
+                }
+                ParserChoiceSub::Constructors(cs) => {
+                    let Some(c) = take_first(cs) else {
+                        self.choice_stack.pop();
+                        continue;
+                    };
+                    self.add_constructor(c);
                 }
                 ParserChoiceSub::Exprs(exprs) => {
                     let Some(expr) = take_first(exprs) else {

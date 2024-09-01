@@ -14,8 +14,9 @@ use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser2;
 use std::slice;
-use crate::parser2::cache::ParserCache;
-use crate::parser2::fail::take_first;
+use crate::core::span::Span;
+use crate::parser2::cache::{CacheKey, ParserCache};
+use crate::parser2::fail::{take_first};
 use crate::parser::var_map::VarMap;
 
 pub trait Action {}
@@ -41,6 +42,7 @@ struct SeqState<'arn, 'grm: 'arn> {
 
 enum ParserSequence<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
+    Block(&'arn BlockState<'arn, 'grm>),
     PopChoice,
 }
 
@@ -51,10 +53,8 @@ struct ParserChoice<'arn, 'grm: 'arn> {
 }
 
 enum ParserChoiceSub<'arn, 'grm: 'arn> {
-    Blocks(
-        &'arn [BlockState<'arn, 'grm>],
-        &'arn [Constructor<'arn, 'grm>],
-    ),
+    Blocks(&'arn [BlockState<'arn, 'grm>]),
+    Constructors(&'arn [Constructor<'arn, 'grm>]),
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
 }
 
@@ -108,13 +108,35 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     match self.parse_expr(expr) {
                         Ok(()) => {}
                         Err(e) => {
-                            self.fail(e)?;
+                            let () = self.fail(e)?;
                         }
                     }
                 }
                 ParserSequence::PopChoice => {
                     self.choice_stack.pop();
                     self.sequence_stack.pop();
+                }
+                ParserSequence::Block(block) => {
+                    let key = CacheKey::new(
+                        self.sequence_state.pos,
+                        block,
+                        self.sequence_state.grammar_state
+                    );
+                    if let Some(cached_result) = self.cache.get(&key) {
+                        match cached_result {
+                            Ok(()) => {}
+                            Err(e) => {
+                                let e = e.clone();
+                                let () = self.fail(e)?;
+                            }
+                        }
+                        return Ok(())
+                    }
+                    self.cache.insert(key, PResult::Err(E::new(self.sequence_state.pos.span_to(self.sequence_state.pos))));
+                    let (first_constructor, rest_constructors) = block.constructors.split_first().expect("Block not empty");
+                    self.sequence_stack.pop();
+                    self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
+                    self.add_constructor(first_constructor);
                 }
             }
         }
