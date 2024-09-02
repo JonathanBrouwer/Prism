@@ -50,3 +50,21 @@ failing tests:
     "1+"
     "+1"
 }
+
+parse_test! {
+name: caching
+syntax: r#"
+    rule num = #str(['0'-'9']+);
+
+    rule start {
+        Div() <- num "/";
+        num;
+    }
+
+    "#
+passing tests:
+    "123" => "Num('123')"
+
+failing tests:
+    ""
+}

@@ -51,6 +51,9 @@ enum ParserSequence<'arn, 'grm: 'arn> {
         max: Option<u64>,
         last_pos: Option<Pos>,
     },
+    CacheOk {
+        key: CacheKey<'arn, 'grm>,
+    }
 }
 
 struct ParserChoice<'arn, 'grm: 'arn> {
@@ -132,7 +135,11 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     );
                     if let Some(cached_result) = self.cache.get(&key) {
                         match cached_result {
-                            Ok(()) => {}
+                            Ok(new_sequence_state) => {
+                                self.sequence_stack.pop();
+                                self.sequence_state = *new_sequence_state;
+                                continue
+                            }
                             Err(e) => {
                                 let e = e.clone();
                                 let () = self.fail(e)?;
@@ -142,13 +149,20 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     }
 
                     // Add initial error seed to prevent left recursion
-                    self.cache.insert(key, PResult::Err(E::new(self.sequence_state.pos.span_to(self.sequence_state.pos))));
+                    self.cache.insert(key.clone(), Err(E::new(self.sequence_state.pos.span_to(self.sequence_state.pos))));
 
                     // Add constructors of this block
                     let (first_constructor, rest_constructors) = block.constructors.split_first().expect("Block not empty");
                     self.sequence_stack.pop();
+                    self.sequence_stack.push(ParserSequence::CacheOk {
+                        key
+                    });
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
                     self.add_constructor(first_constructor);
+                }
+                ParserSequence::CacheOk { key } => {
+                    self.cache.insert(key.clone(), Ok(self.sequence_state));
+                    self.sequence_stack.pop();
                 }
                 ParserSequence::Repeat { expr, delim, min, max, last_pos } => {
                     // If no progress was made, we've parsed as much as we're gonna get
