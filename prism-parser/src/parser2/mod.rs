@@ -105,7 +105,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.add_rule(start_rule);
 
         while let Some(s) = self.sequence_stack.last_mut() {
-            todo!("Choice stack needs to be truncated");
             match s {
                 ParserSequence::Exprs(exprs) => {
                     //TODO use stdlib when slice::take_first stabilizes
@@ -139,9 +138,13 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                                 let () = self.fail(e)?;
                             }
                         }
-                        return Ok(())
+                        continue
                     }
+
+                    // Add initial error seed to prevent left recursion
                     self.cache.insert(key, PResult::Err(E::new(self.sequence_state.pos.span_to(self.sequence_state.pos))));
+
+                    // Add constructors of this block
                     let (first_constructor, rest_constructors) = block.constructors.split_first().expect("Block not empty");
                     self.sequence_stack.pop();
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
@@ -153,7 +156,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         if *last_pos == self.sequence_state.pos {
                             assert_eq!(*min, 0, "Repeat rule made no progress");
                             self.sequence_stack.pop();
-                            return Ok(())
+                            continue
                         }
                         false
                     } else {
@@ -164,7 +167,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     if let Some(max) = max {
                         if *max == 0 {
                             self.sequence_stack.pop();
-                            return Ok(())
+                            continue
                         }
                         *max -= 1;
                     }
@@ -181,10 +184,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     }
 
                     // Add the next set of delim,expr to the stack. Skip delim if this is the first time.
+                    self.add_expr(expr);
                     if !first {
                         self.add_expr(delim);
                     }
-                    self.add_expr(expr);
                 }
             }
         }
@@ -200,12 +203,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
     }
 
     pub fn add_choice(&mut self, choice: ParserChoiceSub<'arn, 'grm>) {
-        self.sequence_stack.push(ParserSequence::PopChoice);
         self.choice_stack.push(ParserChoice {
             choice,
             sequence_state: self.sequence_state,
             sequence_stack_len: self.sequence_stack.len(),
-        })
+        });
+        self.sequence_stack.push(ParserSequence::PopChoice);
     }
 }
 
