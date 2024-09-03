@@ -1,4 +1,4 @@
-use crate::core::adaptive::{Constructor, RuleId, RuleState};
+use crate::core::adaptive::{BlockState, Constructor, RuleId, RuleState};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
@@ -18,19 +18,19 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         assert_eq!(rule_state.args.len(), 0);
 
         // Push remaining blocks
-        let (first_block, rest_blocks) = rule_state.blocks.split_first().expect("Blocks not empty");
-        if !rest_blocks.is_empty() {
-            self.add_choice(ParserChoiceSub::Blocks(rest_blocks));
+        assert_ne!(rule_state.blocks.len(), 0);
+        if rule_state.blocks.len() > 1 {
+            self.add_choice(ParserChoiceSub::Blocks(&rule_state.blocks[1..]));
         }
-        self.sequence_stack.push(ParserSequence::Block(first_block));
+        self.sequence_stack.push(ParserSequence::Block(&rule_state.blocks));
     }
 
-    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
-        self.add_expr(&c.0 .1)
+    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) {
+        self.add_expr(&c.0 .1, blocks)
     }
 
-    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
+    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) {
         self.sequence_stack
-            .push(ParserSequence::Exprs(slice::from_ref(expr)));
+            .push(ParserSequence::Exprs(slice::from_ref(expr), blocks));
     }
 }

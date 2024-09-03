@@ -17,14 +17,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             .last_mut()
             .expect("Precondition of method");
         match s {
-            ParserSequence::Exprs(exprs) => {
+            ParserSequence::Exprs(exprs, &ref blocks) => {
                 //TODO use stdlib when slice::take_first stabilizes
                 let Some(expr) = take_first(exprs) else {
                     self.sequence_stack.pop().unwrap();
                     return Ok(());
                 };
 
-                match self.parse_expr(expr) {
+                match self.parse_expr(expr, blocks) {
                     Ok(()) => {}
                     Err(e) => {
                         let () = self.fail(e)?;
@@ -34,10 +34,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             ParserSequence::PopChoice(..) => {
                 self.drop_choice();
             }
-            ParserSequence::Block(block) => {
+            ParserSequence::Block(&ref blocks) => {
+                let block = &blocks[0];
+                
                 let key = CacheKey::new(
                     self.sequence_state.pos,
-                    block,
+                    &block,
                     self.sequence_state.grammar_state,
                 );
                 if let Some(cached_result) = self.cache.get(&key) {
@@ -68,20 +70,21 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 self.sequence_stack.pop().unwrap();
                 self.sequence_stack.push(ParserSequence::CacheOk { key });
                 if !rest_constructors.is_empty() {
-                    self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
+                    self.add_choice(ParserChoiceSub::Constructors(rest_constructors, blocks));
                 }
-                self.add_constructor(first_constructor);
+                self.add_constructor(first_constructor, blocks);
             }
             ParserSequence::CacheOk { key } => {
                 self.cache.insert(key.clone(), Ok(self.sequence_state));
                 self.sequence_stack.pop().unwrap();
             }
             ParserSequence::Repeat {
-                expr,
-                delim,
+                expr: &ref expr,
+                delim: &ref delim,
                 min,
                 max,
                 last_pos,
+                blocks: &ref blocks
             } => {
                 // If no progress was made, we've parsed as much as we're gonna get
                 let first = if let Some(last_pos) = last_pos {
@@ -105,9 +108,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 }
 
                 *last_pos = Some(self.sequence_state.pos);
-                let delim = *delim;
-                let expr = *expr;
-
+                
                 // If we reached the minimum, parsing is optional
                 if *min == 0 {
                     self.add_choice(ParserChoiceSub::RepeatOptional);
@@ -116,9 +117,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 }
 
                 // Add the next set of delim,expr to the stack. Skip delim if this is the first time.
-                self.add_expr(expr);
+                self.add_expr(expr, blocks);
                 if !first {
-                    self.add_expr(delim);
+                    self.add_expr(delim, blocks);
                 }
             }
             ParserSequence::PositiveLookaheadEnd { sequence_state } => {
@@ -141,8 +142,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 }
 
 pub enum ParserSequence<'arn, 'grm: 'arn> {
-    Exprs(&'arn [RuleExpr<'arn, 'grm>]),
-    Block(&'arn BlockState<'arn, 'grm>),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
+    /// Refers only to the first block, the rest are there for context
+    Block(&'arn [BlockState<'arn, 'grm>]),
     PopChoice(#[cfg(debug_assertions)] usize),
     Repeat {
         expr: &'arn RuleExpr<'arn, 'grm>,
@@ -150,6 +152,7 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
         min: u64,
         max: Option<u64>,
         last_pos: Option<Pos>,
+        blocks: &'arn [BlockState<'arn, 'grm>],
     },
     CacheOk {
         key: CacheKey<'arn, 'grm>,

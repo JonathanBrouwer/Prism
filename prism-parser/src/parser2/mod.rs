@@ -45,8 +45,8 @@ pub struct ParserChoice<'arn, 'grm: 'arn> {
 
 pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Blocks(&'arn [BlockState<'arn, 'grm>]),
-    Constructors(&'arn [Constructor<'arn, 'grm>]),
-    Exprs(&'arn [RuleExpr<'arn, 'grm>]),
+    Constructors(&'arn [Constructor<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
     RepeatOptional,
     NegativeLookaheadFail,
 }
