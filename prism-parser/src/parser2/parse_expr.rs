@@ -1,18 +1,12 @@
-use crate::core::adaptive::{GrammarState, RuleId, RuleState};
-use crate::core::cache::Allocs;
-use crate::core::pos::Pos;
-use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::{GrammarFile, RuleExpr};
-use crate::parser2;
+use crate::grammar::RuleExpr;
 use crate::parser2::{
-    PResult, ParserChoice, ParserChoiceSub, ParserSequence, ParserState,
-    SeqState,
+    PResult, ParserChoiceSub, ParserState
+    ,
 };
 use std::slice;
-use crate::parser::var_map::VarMapValue;
-
+use crate::parser2::parse_sequence::ParserSequence;
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) -> PResult<E> {
         match expr {
@@ -51,24 +45,39 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 let (first_choice, rest_choices) =
                     choices.split_first().expect("Choices not empty");
 
-                self.add_choice(ParserChoiceSub::Exprs(rest_choices));
+                if !rest_choices.is_empty() {
+                    self.add_choice(ParserChoiceSub::Exprs(rest_choices));
+                }
                 self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(first_choice)));
                 Ok(())
             }
             RuleExpr::NameBind(_, expr) => {
-                self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(expr)));
+                self.add_expr(expr);
                 Ok(())
             },
             RuleExpr::Action(expr, _) => {
-                self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(expr)));
+                self.add_expr(expr);
                 Ok(())
             },
             RuleExpr::SliceInput(expr) => {
-                self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(expr)));
+                self.add_expr(expr);
                 Ok(())
             },
-            RuleExpr::PosLookahead(_) => todo!(),
-            RuleExpr::NegLookahead(_) => todo!(),
+            RuleExpr::PosLookahead(expr) => {
+                self.sequence_stack.push(ParserSequence::PositiveLookaheadEnd {
+                    sequence_state: self.sequence_state
+                });
+                self.add_expr(expr);
+                Ok(())
+            },
+            RuleExpr::NegLookahead(expr) => {
+                self.add_choice(ParserChoiceSub::NegativeLookaheadFail);
+                self.sequence_stack.push(ParserSequence::NegativeLookaheadEnd {
+                    sequence_state: self.sequence_state
+                });
+                self.add_expr(expr);
+                Ok(())
+            },
             RuleExpr::This => todo!(),
             RuleExpr::Next => todo!(),
             RuleExpr::AtAdapt(_, _) => todo!(),

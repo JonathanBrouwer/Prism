@@ -12,11 +12,9 @@ syntax: r#"
 "#
 
 passing tests:
-
+    "x" => "X()"
 failing tests:
     ""
-    "x"
-
 }
 
 parse_test! {

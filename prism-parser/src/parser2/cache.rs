@@ -5,10 +5,10 @@ use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId, RuleId};
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::parser2::{PResult, SeqState};
+use crate::parser2::{PResult, SequenceState};
 
 pub struct ParserCache<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> {
-    map: HashMap<CacheKey<'arn, 'grm>, Result<SeqState<'arn, 'grm>, E>>,
+    map: HashMap<CacheKey<'arn, 'grm>, Result<SequenceState<'arn, 'grm>, E>>,
     phantom: PhantomData<&'arn &'grm str>,
 }
 
@@ -22,11 +22,11 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> Default for ParserCac
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserCache<'arn, 'grm, E> {
-    pub fn insert(&mut self, key: CacheKey<'arn, 'grm>, value: Result<SeqState<'arn, 'grm>, E>) {
+    pub fn insert(&mut self, key: CacheKey<'arn, 'grm>, value: Result<SequenceState<'arn, 'grm>, E>) {
         self.map.insert(key, value);
     }
 
-    pub fn get(&mut self, key: &CacheKey<'arn, 'grm>) -> Option<&Result<SeqState<'arn, 'grm>, E>> {
+    pub fn get(&mut self, key: &CacheKey<'arn, 'grm>) -> Option<&Result<SequenceState<'arn, 'grm>, E>> {
         self.map.get(key)
     }
 }

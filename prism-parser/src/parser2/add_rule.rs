@@ -1,14 +1,10 @@
-use std::cmp::Ordering;
 use std::slice;
-use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId, RuleState};
-use crate::core::cache::Allocs;
-use crate::core::pos::Pos;
-use crate::error::aggregate_error::AggregatedParseError;
+use crate::core::adaptive::{Constructor, RuleId, RuleState};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::grammar::{GrammarFile, RuleExpr};
-use crate::parser2;
-use crate::parser2::{PResult, ParserChoice, ParserChoiceSub, ParserSequence, ParserState, SeqState};
+use crate::grammar::RuleExpr;
+use crate::parser2::{ParserChoiceSub, ParserState};
+use crate::parser2::parse_sequence::ParserSequence;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn add_rule(&mut self, rule: RuleId) {
@@ -23,7 +19,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
 
         // Push remaining blocks
         let (first_block, rest_blocks) = rule_state.blocks.split_first().expect("Blocks not empty");
-        self.add_choice(ParserChoiceSub::Blocks(&rest_blocks));
+        if !rest_blocks.is_empty() {
+            self.add_choice(ParserChoiceSub::Blocks(&rest_blocks));
+        }
         self.sequence_stack.push(ParserSequence::Block(first_block));
     }
 

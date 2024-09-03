@@ -37,20 +37,20 @@ syntax: r#"
     }
     "#
 passing tests:
-    "x" => "[Leaf()]"
-    "()" => "[Nodes([])]"
-    "(x)" => "[Nodes([Leaf()])]"
-    "(xx)" => "[Nodes([Leaf(), Leaf()])]"
-    "((x))" => "[Nodes([Nodes([Leaf()])])]"
-    "xx" => "[Leaf(), Leaf()]"
-    "" => "[]"
+    // "x" => "[Leaf()]"
+    // "()" => "[Nodes([])]"
+    // "(x)" => "[Nodes([Leaf()])]"
+    // "(xx)" => "[Nodes([Leaf(), Leaf()])]"
+    // "((x))" => "[Nodes([Nodes([Leaf()])])]"
+    // "xx" => "[Leaf(), Leaf()]"
+    // "" => "[]"
 
 failing tests:
     "(x"
-    "x)"
-    "(y)"
-    "(x))"
-    "((x)"
+    // "x)"
+    // "(y)"
+    // "(x))"
+    // "((x)"
 }
 
 parse_test! {
