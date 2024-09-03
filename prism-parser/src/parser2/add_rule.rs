@@ -18,11 +18,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         assert_eq!(rule_state.args.len(), 0);
 
         // Push remaining blocks
-        assert_ne!(rule_state.blocks.len(), 0);
-        if rule_state.blocks.len() > 1 {
-            self.add_choice(ParserChoiceSub::Blocks(&rule_state.blocks[1..]));
+        self.add_blocks(rule_state.blocks)
+    }
+
+    pub fn add_blocks(&mut self, blocks: &'arn [BlockState<'arn, 'grm>]) {
+        assert_ne!(blocks.len(), 0);
+        if blocks.len() > 1 {
+            self.add_choice(ParserChoiceSub::Blocks(&blocks[1..]));
         }
-        self.sequence_stack.push(ParserSequence::Block(&rule_state.blocks));
+        self.sequence_stack.push(ParserSequence::Block(&blocks));
     }
 
     pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) {

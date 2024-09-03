@@ -18,8 +18,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.drop_choice();
                         continue;
                     }
-                    *bs = &bs[1..];
                     self.sequence_stack.push(ParserSequence::Block(bs));
+                    *bs = &bs[1..];
                 }
                 ParserChoiceSub::Constructors(cs, &ref bs) => {
                     let Some(c) = take_first(cs) else {

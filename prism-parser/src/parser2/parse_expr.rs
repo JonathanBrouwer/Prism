@@ -82,8 +82,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 self.add_expr(expr, blocks);
                 Ok(())
             }
-            RuleExpr::This => todo!(),
-            RuleExpr::Next => todo!(),
+            RuleExpr::This => {
+                self.add_blocks(blocks);
+                Ok(())
+            },
+            RuleExpr::Next => {
+                assert!(blocks.len() > 1);
+                self.add_blocks(&blocks[1..]);
+                Ok(())
+            },
             RuleExpr::AtAdapt(_, _) => todo!(),
             RuleExpr::Guid => Ok(()),
         }

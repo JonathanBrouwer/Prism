@@ -68,3 +68,26 @@ passing tests:
 failing tests:
     ""
 }
+
+
+parse_test! {
+name: blocks
+syntax: r#"
+    rule start {
+        group x {
+            "x" #next;
+        }
+        group y {
+            "y";
+        }
+    }
+
+    "#
+passing tests:
+    "y" => "y"
+    "xy" => "xy"
+
+failing tests:
+    "x"
+    ""
+}
