@@ -8,18 +8,26 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 
 pub struct ParserCache<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
-    map: HashMap<CacheKey<'arn, 'grm>, Result<SequenceState<'arn, 'grm>, E>>,
-    phantom: PhantomData<&'arn &'grm str>,
+    cache: HashMap<CacheKey<'arn, 'grm>, CacheEntry<'arn, 'grm, E>>,
+    cache_stack: Vec<CacheKey<'arn, 'grm>>,
+}
+
+struct CacheEntry<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
+    value: Result<SequenceState<'arn, 'grm>, E>,
+    read: bool,
 }
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> Default for ParserCache<'arn, 'grm, E> {
     fn default() -> Self {
         Self {
-            map: HashMap::default(),
-            phantom: PhantomData,
+            cache: HashMap::default(),
+            cache_stack: vec![],
         }
     }
 }
+
+#[derive(Copy, Clone)]
+pub struct CacheState(usize);
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'grm, E> {
     pub fn insert(
@@ -27,23 +35,45 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
         key: CacheKey<'arn, 'grm>,
         value: Result<SequenceState<'arn, 'grm>, E>,
     ) {
-        self.map.insert(key, value);
+        self.cache.insert(key, CacheEntry {
+            value,
+            read: false,
+        });
     }
 
     pub fn get(
         &mut self,
         key: &CacheKey<'arn, 'grm>,
     ) -> Option<&Result<SequenceState<'arn, 'grm>, E>> {
-        self.map.get(key)
+        let entry = self.cache.get_mut(key)?;
+        entry.read = true;
+        Some(&entry.value)
+    }
+
+    pub fn is_read(
+        &self,
+        key: &CacheKey<'arn, 'grm>,
+    ) -> bool {
+        self.cache.get(key).unwrap().read
+    }
+
+    pub fn cache_state_get(&self) -> CacheState {
+        CacheState(self.cache_stack.len())
+    }
+
+    pub fn cache_state_revert(&mut self, CacheState(state): CacheState) {
+        self.cache_stack.drain(state..).for_each(|key| {
+            self.cache.remove(&key);
+        })
     }
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey<'arn, 'grm: 'arn> {
-    pos: Pos,
-    block: ByAddress<&'arn BlockState<'arn, 'grm>>,
+    pub pos: Pos,
+    pub block: ByAddress<&'arn BlockState<'arn, 'grm>>,
     /// It is important that `grammar` is a cache key since block states may be reused between grammar states
-    grammar: ByAddress<&'arn GrammarState<'arn, 'grm>>,
+    pub grammar: ByAddress<&'arn GrammarState<'arn, 'grm>>,
 }
 
 impl<'arn, 'grm: 'arn> CacheKey<'arn, 'grm> {

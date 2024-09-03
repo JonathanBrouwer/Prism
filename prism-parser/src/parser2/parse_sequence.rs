@@ -2,9 +2,10 @@ use crate::core::adaptive::BlockState;
 use crate::core::pos::Pos;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
-use crate::parser2::cache::CacheKey;
+use crate::parser2::cache::{CacheKey, CacheState};
 use crate::parser2::fail::take_first;
 use crate::parser2::{ParserChoiceSub, ParserState, SequenceState};
 use crate::parser2::add_rule::BlockCtx;
@@ -55,27 +56,40 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     return Ok(());
                 }
 
-                // Add initial error seed to prevent left recursion
-                self.cache.insert(
-                    key.clone(),
-                    Err(E::new(
-                        self.sequence_state.pos.span_to(self.sequence_state.pos),
-                    )),
-                );
+                // Add left rec to sequence stack
+                self.sequence_stack.pop().unwrap();
+                self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_pos: None, last_cache_state: self.cache.cache_state_get(), blocks });
+                self.add_block(block, blocks);
 
-                // Add constructors of this block
-                let (first_constructor, rest_constructors) =
-                    block.constructors.split_first().expect("Block not empty");
-                self.sequence_stack.pop().unwrap();
-                self.sequence_stack.push(ParserSequence::CacheOk { key });
-                if !rest_constructors.is_empty() {
-                    self.add_choice(ParserChoiceSub::Constructors(rest_constructors, blocks));
-                }
-                self.add_constructor(first_constructor, blocks);
+                // Add initial error seed to prevent left recursion
+                let err_span = self.sequence_state.pos.span_to(self.sequence_state.pos);
+                let mut err = E::new(
+                    err_span
+                );
+                err.add_label_explicit(Debug(err_span, "LEFTREC"));
+                self.cache.insert(
+                    key,
+                    Err(err),
+                );
             }
-            ParserSequence::CacheOk { key } => {
+            ParserSequence::LeftRecurse {  ref key, last_pos, last_cache_state, blocks: &ref blocks } => {
+                // If the last_pos is none and the cache was not read, no left-recursion is needed, since this is the first iteration and the corresponding cache entry was not touched
+                // If the last_pos is some and equal to the current pos, parsing stagnated so we can return the current result
+                if (last_pos.is_none() && !self.cache.is_read(key)) || last_pos.is_some_and(|last_pos| last_pos == self.sequence_state.pos) {
+                    self.cache.insert(key.clone(), Ok(self.sequence_state));
+                    self.sequence_stack.pop().unwrap();
+                    return Ok(())
+                }
+                
+                // Reset cache to state before this iteration, and plant the seed
+                self.cache.cache_state_revert(*last_cache_state);
                 self.cache.insert(key.clone(), Ok(self.sequence_state));
-                self.sequence_stack.pop().unwrap();
+                
+                // We need to make progress in the next iteration, to keep track of this we store last_pos
+                *last_pos = Some(self.sequence_state.pos);
+
+                let block = key.block.0;
+                self.add_block(block, blocks);
             }
             ParserSequence::Repeat {
                 expr: &ref expr,
@@ -153,8 +167,11 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
         last_pos: Option<Pos>,
         blocks: BlockCtx<'arn, 'grm>,
     },
-    CacheOk {
+    LeftRecurse {
         key: CacheKey<'arn, 'grm>,
+        last_pos: Option<Pos>,
+        last_cache_state: CacheState,
+        blocks: BlockCtx<'arn, 'grm>,
     },
     PositiveLookaheadEnd {
         sequence_state: SequenceState<'arn, 'grm>,
