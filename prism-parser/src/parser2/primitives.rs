@@ -1,5 +1,3 @@
-use crate::core::context::PR;
-use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser2::PResult;
@@ -19,8 +17,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
         }
     }
 
-    pub fn parse_chars(&mut self, mut chars: impl Iterator<Item = char>) -> PResult<E> {
-        while let Some(expect) = chars.next() {
+    pub fn parse_chars(&mut self, chars: impl Iterator<Item = char>) -> PResult<E> {
+        for expect in chars {
             self.parse_char(|got| expect == *got)?;
         }
         PResult::Ok(())

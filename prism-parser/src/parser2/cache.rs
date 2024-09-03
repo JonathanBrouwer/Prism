@@ -1,8 +1,8 @@
-use crate::core::adaptive::{BlockState, GrammarState, GrammarStateId, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::pos::Pos;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::parser2::{PResult, SequenceState};
+use crate::parser2::SequenceState;
 use by_address::ByAddress;
 use std::collections::HashMap;
 use std::marker::PhantomData;

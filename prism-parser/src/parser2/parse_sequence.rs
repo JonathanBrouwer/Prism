@@ -1,6 +1,5 @@
 use crate::core::adaptive::BlockState;
 use crate::core::pos::Pos;
-use crate::core::presult::PResult;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;

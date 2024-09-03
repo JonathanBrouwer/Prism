@@ -20,7 +20,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         // Push remaining blocks
         let (first_block, rest_blocks) = rule_state.blocks.split_first().expect("Blocks not empty");
         if !rest_blocks.is_empty() {
-            self.add_choice(ParserChoiceSub::Blocks(&rest_blocks));
+            self.add_choice(ParserChoiceSub::Blocks(rest_blocks));
         }
         self.sequence_stack.push(ParserSequence::Block(first_block));
     }

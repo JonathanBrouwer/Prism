@@ -19,7 +19,7 @@ use parse_sequence::ParserSequence;
 pub trait Action {}
 
 pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
-    allocs: Allocs<'arn>,
+    _allocs: Allocs<'arn>,
     input: &'grm str,
     cache: ParserCache<'arn, 'grm, E>,
 
@@ -31,19 +31,19 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
 }
 
 #[derive(Copy, Clone)]
-struct SequenceState<'arn, 'grm: 'arn> {
+pub struct SequenceState<'arn, 'grm: 'arn> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
     vars: VarMap<'arn, 'grm>,
 }
 
-struct ParserChoice<'arn, 'grm: 'arn> {
+pub struct ParserChoice<'arn, 'grm: 'arn> {
     choice: ParserChoiceSub<'arn, 'grm>,
     sequence_state: SequenceState<'arn, 'grm>,
     sequence_stack_len: usize,
 }
 
-enum ParserChoiceSub<'arn, 'grm: 'arn> {
+pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Blocks(&'arn [BlockState<'arn, 'grm>]),
     Constructors(&'arn [Constructor<'arn, 'grm>]),
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
@@ -63,8 +63,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         let (grammar_state, vars) = GrammarState::new_with_meta_grammar(allocs, rules);
         let grammar_state = allocs.alloc(grammar_state);
 
-        let mut state = Self {
-            allocs,
+        let state = Self {
+            _allocs: allocs,
             input,
             cache: Default::default(),
             choice_stack: vec![],
