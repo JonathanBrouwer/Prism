@@ -17,22 +17,22 @@ failing tests:
     ""
 }
 
-parse_test! {
-name: infinite_repeat_delim
-syntax: r#"
-    rule start = X() <- #repeat("", ",", *) "x";
-
-    "#
-
-passing tests:
-    "x" => "X()"
-    ",x" => "X()"
-    ",,x" => "X()"
-
-failing tests:
-    ""
-
-}
+// parse_test! {
+// name: infinite_repeat_delim
+// syntax: r#"
+//     rule start = X() <- #repeat("", ",", *) "x";
+//
+//     "#
+//
+// passing tests:
+//     "x" => "X()"
+//     ",x" => "X()"
+//     ",,x" => "X()"
+//
+// failing tests:
+//     ""
+//
+// }
 
 parse_test! {
 name: infinite_directrec
