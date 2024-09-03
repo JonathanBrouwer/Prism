@@ -15,6 +15,7 @@ use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser::var_map::VarMap;
 use crate::parser2::cache::ParserCache;
 use parse_sequence::ParserSequence;
+use crate::parser2::add_rule::BlockCtx;
 
 pub trait Action {}
 
@@ -45,8 +46,8 @@ pub struct ParserChoice<'arn, 'grm: 'arn> {
 
 pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Blocks(&'arn [BlockState<'arn, 'grm>]),
-    Constructors(&'arn [Constructor<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
-    Exprs(&'arn [RuleExpr<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
+    Constructors(&'arn [Constructor<'arn, 'grm>], BlockCtx<'arn, 'grm>),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
     RepeatOptional,
     NegativeLookaheadFail,
 }

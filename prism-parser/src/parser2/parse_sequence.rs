@@ -7,6 +7,7 @@ use crate::grammar::RuleExpr;
 use crate::parser2::cache::CacheKey;
 use crate::parser2::fail::take_first;
 use crate::parser2::{ParserChoiceSub, ParserState, SequenceState};
+use crate::parser2::add_rule::BlockCtx;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     /// Parse the top-most sequence from the sequence stack
@@ -34,9 +35,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             ParserSequence::PopChoice(..) => {
                 self.drop_choice();
             }
-            ParserSequence::Block(&ref blocks) => {
-                let block = &blocks[0];
-                
+            ParserSequence::Block(&ref block, &ref blocks) => {
                 let key = CacheKey::new(
                     self.sequence_state.pos,
                     &block,
@@ -108,7 +107,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 }
 
                 *last_pos = Some(self.sequence_state.pos);
-                
+
                 // If we reached the minimum, parsing is optional
                 if *min == 0 {
                     self.add_choice(ParserChoiceSub::RepeatOptional);
@@ -142,9 +141,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 }
 
 pub enum ParserSequence<'arn, 'grm: 'arn> {
-    Exprs(&'arn [RuleExpr<'arn, 'grm>], &'arn [BlockState<'arn, 'grm>]),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
     /// Refers only to the first block, the rest are there for context
-    Block(&'arn [BlockState<'arn, 'grm>]),
+    Block(&'arn BlockState<'arn, 'grm>, BlockCtx<'arn, 'grm>),
     PopChoice(#[cfg(debug_assertions)] usize),
     Repeat {
         expr: &'arn RuleExpr<'arn, 'grm>,
@@ -152,7 +151,7 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
         min: u64,
         max: Option<u64>,
         last_pos: Option<Pos>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
+        blocks: BlockCtx<'arn, 'grm>,
     },
     CacheOk {
         key: CacheKey<'arn, 'grm>,

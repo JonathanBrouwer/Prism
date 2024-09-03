@@ -6,6 +6,8 @@ use crate::parser2::parse_sequence::ParserSequence;
 use crate::parser2::{ParserChoiceSub, ParserState};
 use std::slice;
 
+pub type BlockCtx<'arn, 'grm> = &'arn [BlockState<'arn, 'grm>];
+
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn add_rule(&mut self, rule: RuleId) {
         let rule_state: &'arn RuleState<'arn, 'grm> = self
@@ -26,14 +28,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         if blocks.len() > 1 {
             self.add_choice(ParserChoiceSub::Blocks(&blocks[1..]));
         }
-        self.sequence_stack.push(ParserSequence::Block(&blocks));
+        self.sequence_stack.push(ParserSequence::Block(&blocks[0], &blocks));
     }
 
-    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) {
+    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) {
         self.add_expr(&c.0 .1, blocks)
     }
 
-    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) {
+    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) {
         self.sequence_stack
             .push(ParserSequence::Exprs(slice::from_ref(expr), blocks));
     }

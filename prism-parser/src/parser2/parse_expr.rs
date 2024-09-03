@@ -4,9 +4,10 @@ use crate::grammar::RuleExpr;
 use crate::parser2::parse_sequence::ParserSequence;
 use crate::parser2::{PResult, ParserChoiceSub, ParserState};
 use crate::core::adaptive::BlockState;
+use crate::parser2::add_rule::BlockCtx;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
-    pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: &'arn [BlockState<'arn, 'grm>]) -> PResult<E> {
+    pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) -> PResult<E> {
         match expr {
             RuleExpr::RunVar(rule_str, _) => {
                 // Figure out which rule the variable `rule` refers to

@@ -18,7 +18,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.drop_choice();
                         continue;
                     }
-                    self.sequence_stack.push(ParserSequence::Block(bs));
+                    self.sequence_stack.push(ParserSequence::Block(&bs[0], bs));
                     *bs = &bs[1..];
                 }
                 ParserChoiceSub::Constructors(cs, &ref bs) => {
