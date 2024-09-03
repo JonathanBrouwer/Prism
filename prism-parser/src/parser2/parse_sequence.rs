@@ -5,15 +5,18 @@ use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
-use crate::parser2::{ParserChoiceSub, ParserState, SequenceState};
 use crate::parser2::cache::CacheKey;
 use crate::parser2::fail::take_first;
+use crate::parser2::{ParserChoiceSub, ParserState, SequenceState};
 
-impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     /// Parse the top-most sequence from the sequence stack
     /// Returns an error if an unrecoverable error occurred
     pub fn parse_sequence(&mut self) -> Result<(), AggregatedParseError<'grm, E>> {
-        let s = self.sequence_stack.last_mut().expect("Precondition of method");
+        let s = self
+            .sequence_stack
+            .last_mut()
+            .expect("Precondition of method");
         match s {
             ParserSequence::Exprs(exprs) => {
                 //TODO use stdlib when slice::take_first stabilizes
@@ -36,7 +39,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 let key = CacheKey::new(
                     self.sequence_state.pos,
                     block,
-                    self.sequence_state.grammar_state
+                    self.sequence_state.grammar_state,
                 );
                 if let Some(cached_result) = self.cache.get(&key) {
                     match cached_result {
@@ -49,18 +52,22 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                             let () = self.fail(e)?;
                         }
                     }
-                    return Ok(())
+                    return Ok(());
                 }
 
                 // Add initial error seed to prevent left recursion
-                self.cache.insert(key.clone(), Err(E::new(self.sequence_state.pos.span_to(self.sequence_state.pos))));
+                self.cache.insert(
+                    key.clone(),
+                    Err(E::new(
+                        self.sequence_state.pos.span_to(self.sequence_state.pos),
+                    )),
+                );
 
                 // Add constructors of this block
-                let (first_constructor, rest_constructors) = block.constructors.split_first().expect("Block not empty");
+                let (first_constructor, rest_constructors) =
+                    block.constructors.split_first().expect("Block not empty");
                 self.sequence_stack.pop().unwrap();
-                self.sequence_stack.push(ParserSequence::CacheOk {
-                    key
-                });
+                self.sequence_stack.push(ParserSequence::CacheOk { key });
                 if !rest_constructors.is_empty() {
                     self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
                 }
@@ -70,13 +77,19 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 self.cache.insert(key.clone(), Ok(self.sequence_state));
                 self.sequence_stack.pop().unwrap();
             }
-            ParserSequence::Repeat { expr, delim, min, max, last_pos } => {
+            ParserSequence::Repeat {
+                expr,
+                delim,
+                min,
+                max,
+                last_pos,
+            } => {
                 // If no progress was made, we've parsed as much as we're gonna get
                 let first = if let Some(last_pos) = last_pos {
                     if *last_pos == self.sequence_state.pos {
                         assert_eq!(*min, 0, "Repeat rule made no progress");
                         self.sequence_stack.pop().unwrap();
-                        return Ok(())
+                        return Ok(());
                     }
                     false
                 } else {
@@ -87,7 +100,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 if let Some(max) = max {
                     if *max == 0 {
                         self.sequence_stack.pop().unwrap();
-                        return Ok(())
+                        return Ok(());
                     }
                     *max -= 1;
                 }
@@ -112,7 +125,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
             ParserSequence::PositiveLookaheadEnd { sequence_state } => {
                 self.sequence_state = *sequence_state;
                 self.sequence_stack.pop().unwrap();
-            },
+            }
             ParserSequence::NegativeLookaheadEnd { sequence_state } => {
                 // If this sequence is encountered, parsing the negative lookahead expr succeeeded
                 // We need to remove the negative lookahead choice from the choice stack then fail
@@ -122,7 +135,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                     panic!()
                 };
                 self.fail(e)?;
-            },
+            }
         }
         Ok(())
     }

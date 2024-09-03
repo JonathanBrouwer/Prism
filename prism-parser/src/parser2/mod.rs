@@ -1,9 +1,9 @@
-mod parse_expr;
-mod primitives;
+mod add_rule;
 mod cache;
 mod fail;
-mod add_rule;
+mod parse_expr;
 mod parse_sequence;
+mod primitives;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId};
 use crate::core::cache::Allocs;
@@ -12,9 +12,9 @@ use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
-use parse_sequence::ParserSequence;
-use crate::parser2::cache::ParserCache;
 use crate::parser::var_map::VarMap;
+use crate::parser2::cache::ParserCache;
+use parse_sequence::ParserSequence;
 
 pub trait Action {}
 
@@ -34,7 +34,7 @@ pub struct ParserState<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
 struct SequenceState<'arn, 'grm: 'arn> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
-    vars: VarMap<'arn, 'grm>
+    vars: VarMap<'arn, 'grm>,
 }
 
 struct ParserChoice<'arn, 'grm: 'arn> {
@@ -96,11 +96,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         // Sequence stack is empty, done parsing
         // Check whether there is input left
         if self.sequence_state.pos.next(self.input).1.is_some() {
-            self.add_error(E::new(self.sequence_state.pos.span_to(Pos::end(self.input))));
+            self.add_error(E::new(
+                self.sequence_state.pos.span_to(Pos::end(self.input)),
+            ));
             return Err(self.completely_fail());
         }
 
         Ok(())
     }
 }
-

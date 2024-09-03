@@ -1,12 +1,12 @@
-use std::slice;
 use crate::core::adaptive::{Constructor, RuleId, RuleState};
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
-use crate::parser2::{ParserChoiceSub, ParserState};
 use crate::parser2::parse_sequence::ParserSequence;
+use crate::parser2::{ParserChoiceSub, ParserState};
+use std::slice;
 
-impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn add_rule(&mut self, rule: RuleId) {
         let rule_state: &'arn RuleState<'arn, 'grm> = self
             .sequence_state
@@ -26,10 +26,11 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
     }
 
     pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
-        self.add_expr(&c.0.1)
+        self.add_expr(&c.0 .1)
     }
 
     pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
-        self.sequence_stack.push(ParserSequence::Exprs(slice::from_ref(expr)));
+        self.sequence_stack
+            .push(ParserSequence::Exprs(slice::from_ref(expr)));
     }
 }

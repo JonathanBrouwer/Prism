@@ -1,11 +1,11 @@
-use std::cmp::Ordering;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::parser2::{ParserChoice, ParserChoiceSub, ParserState};
 use crate::parser2::parse_sequence::ParserSequence;
+use crate::parser2::{ParserChoice, ParserChoiceSub, ParserState};
+use std::cmp::Ordering;
 
-impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
         self.add_error(e);
 
@@ -16,7 +16,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 ParserChoiceSub::Blocks(bs) => {
                     let Some(b) = take_first(bs) else {
                         self.drop_choice();
-                        continue
+                        continue;
                     };
                     self.sequence_stack.push(ParserSequence::Block(b));
                 }
@@ -30,7 +30,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                 ParserChoiceSub::Exprs(exprs) => {
                     let Some(expr) = take_first(exprs) else {
                         self.drop_choice();
-                        continue
+                        continue;
                     };
                     self.add_expr(expr);
                 }
@@ -41,7 +41,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
                     self.drop_choice();
                 }
             }
-            return Ok(())
+            return Ok(());
         }
 
         Err(self.completely_fail())
@@ -49,33 +49,35 @@ impl<'arn, 'grm: 'arn, E: ParseError<L= ErrorLabel<'grm>>> ParserState<'arn, 'gr
 
     pub fn add_error(&mut self, e: E) {
         match &mut self.furthest_error {
-            None => {
-                self.furthest_error = Some((e, self.sequence_state.pos))
-            }
-            Some((cur_err, cur_pos)) => {
-                match self.sequence_state.pos.cmp(cur_pos) {
-                    Ordering::Less => {}
-                    Ordering::Equal => {
-                        *cur_err = cur_err.clone().merge(e)
-                    }
-                    Ordering::Greater => {
-                        *cur_pos = self.sequence_state.pos;
-                        *cur_err = e;
-                    }
+            None => self.furthest_error = Some((e, self.sequence_state.pos)),
+            Some((cur_err, cur_pos)) => match self.sequence_state.pos.cmp(cur_pos) {
+                Ordering::Less => {}
+                Ordering::Equal => *cur_err = cur_err.clone().merge(e),
+                Ordering::Greater => {
+                    *cur_pos = self.sequence_state.pos;
+                    *cur_err = e;
                 }
-            }
+            },
         }
     }
 
     pub fn completely_fail(&mut self) -> AggregatedParseError<'grm, E> {
         AggregatedParseError {
             input: self.input,
-            errors: vec![self.furthest_error.take().expect("Cannot fail without error").0],
+            errors: vec![
+                self.furthest_error
+                    .take()
+                    .expect("Cannot fail without error")
+                    .0,
+            ],
         }
     }
 
     pub fn add_choice(&mut self, choice: ParserChoiceSub<'arn, 'grm>) {
-        self.sequence_stack.push(ParserSequence::PopChoice(#[cfg(debug_assertions)] self.choice_stack.len()));
+        self.sequence_stack.push(ParserSequence::PopChoice(
+            #[cfg(debug_assertions)]
+            self.choice_stack.len(),
+        ));
         self.choice_stack.push(ParserChoice {
             choice,
             sequence_state: self.sequence_state,

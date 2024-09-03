@@ -1,10 +1,5 @@
 use crate::parser::parse_test;
 
-#[test]
-fn placeholder() {
-
-}
-
 parse_test! {
 name: infinite_repeat
 syntax: r#"
