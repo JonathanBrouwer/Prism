@@ -31,9 +31,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.sequence_stack.push(ParserSequence::Block(&blocks[0], &blocks));
     }
 
-    pub fn add_block(&mut self, block: &'arn BlockState<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) {
+    pub fn add_constructors(&mut self, constructors: &'arn [Constructor<'arn, 'grm>], blocks: BlockCtx<'arn, 'grm>) {
         let (first_constructor, rest_constructors) =
-            block.constructors.split_first().expect("Block not empty");
+            constructors.split_first().expect("Block not empty");
         if !rest_constructors.is_empty() {
             self.add_choice(ParserChoiceSub::Constructors(rest_constructors, blocks));
         }

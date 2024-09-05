@@ -4,6 +4,7 @@ mod fail;
 mod parse_expr;
 mod parse_sequence;
 mod primitives;
+mod debug;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId};
 use crate::core::cache::Allocs;
@@ -50,6 +51,7 @@ pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
     RepeatOptional,
     NegativeLookaheadFail,
+    LeftRecursionFail,
 }
 
 pub type PResult<E> = Result<(), E>;
@@ -91,6 +93,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.add_rule(start_rule);
 
         while !self.sequence_stack.is_empty() {
+            self.print_debug_info();
             self.parse_sequence()?;
         }
 

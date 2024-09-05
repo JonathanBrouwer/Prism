@@ -18,14 +18,21 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.drop_choice();
                         continue;
                     }
-                    self.sequence_stack.push(ParserSequence::Block(&bs[0], bs));
+                    let ps = ParserSequence::Block(&bs[0], bs);
                     *bs = &bs[1..];
+                    if bs.is_empty() {
+                        self.drop_choice();
+                    }
+                    self.sequence_stack.push(ps);
                 }
                 ParserChoiceSub::Constructors(cs, &ref bs) => {
                     let Some(c) = take_first(cs) else {
                         self.drop_choice();
                         continue;
                     };
+                    if cs.is_empty() {
+                        self.drop_choice();
+                    }
                     self.add_constructor(c, bs);
                 }
                 ParserChoiceSub::Exprs(exprs, &ref bs) => {
@@ -33,12 +40,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.drop_choice();
                         continue;
                     };
+                    if exprs.is_empty() {
+                        self.drop_choice();
+                    }
                     self.add_expr(expr, bs);
                 }
-                ParserChoiceSub::RepeatOptional => {
-                    self.drop_choice();
-                }
-                ParserChoiceSub::NegativeLookaheadFail => {
+                ParserChoiceSub::RepeatOptional | ParserChoiceSub::NegativeLookaheadFail | ParserChoiceSub::LeftRecursionFail => {
                     self.drop_choice();
                 }
             }

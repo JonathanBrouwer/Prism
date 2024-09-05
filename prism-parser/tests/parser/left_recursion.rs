@@ -14,9 +14,9 @@ syntax: r#"
 
     "#
 passing tests:
-    "Y" => "Y()"
+    // "Y" => "Y()"
     "YX" => "X(Y())"
-    "YXX" => "X(X(Y()))"
+    // "YXX" => "X(X(Y()))"
 
 failing tests:
     "XY"

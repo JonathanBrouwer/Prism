@@ -35,10 +35,11 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
         key: CacheKey<'arn, 'grm>,
         value: Result<SequenceState<'arn, 'grm>, E>,
     ) {
-        self.cache.insert(key, CacheEntry {
+        self.cache.insert(key.clone(), CacheEntry {
             value,
             read: false,
         });
+        self.cache_stack.push(key);
     }
 
     pub fn get(
