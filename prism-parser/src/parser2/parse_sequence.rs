@@ -36,7 +36,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             ParserSequence::PopChoice(..) => {
                 self.drop_choice();
             }
-            ParserSequence::Block(&ref block, &ref blocks) => {
+            ParserSequence::Blocks(&ref blocks) => {
+                let block = &blocks[0];
                 let key = CacheKey::new(
                     self.sequence_state.pos,
                     &block,
@@ -59,6 +60,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 // Add left rec to sequence stack
                 self.sequence_stack.pop().unwrap();
                 self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_pos: None, last_cache_state: self.cache.cache_state_get(), blocks });
+                if blocks.len() > 1 {
+                    self.add_choice(ParserChoiceSub::Blockss(&blocks[1..]));
+                }
                 self.add_constructors(block.constructors, blocks);
 
                 // Add initial error seed to prevent left recursion
@@ -159,8 +163,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
 pub enum ParserSequence<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
-    /// Refers only to the first block, the rest are there for context
-    Block(&'arn BlockState<'arn, 'grm>, BlockCtx<'arn, 'grm>),
+    Blocks(&'arn [BlockState<'arn, 'grm>]),
     PopChoice(#[cfg(debug_assertions)] usize),
     Repeat {
         expr: &'arn RuleExpr<'arn, 'grm>,

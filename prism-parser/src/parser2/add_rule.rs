@@ -24,11 +24,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
     }
 
     pub fn add_blocks(&mut self, blocks: &'arn [BlockState<'arn, 'grm>]) {
-        assert_ne!(blocks.len(), 0);
-        if blocks.len() > 1 {
-            self.add_choice(ParserChoiceSub::Blocks(&blocks[1..]));
+        if blocks.len() == 0 {
+            return
         }
-        self.sequence_stack.push(ParserSequence::Block(&blocks[0], &blocks));
+        self.sequence_stack.push(ParserSequence::Blocks(&blocks));
     }
 
     pub fn add_constructors(&mut self, constructors: &'arn [Constructor<'arn, 'grm>], blocks: BlockCtx<'arn, 'grm>) {

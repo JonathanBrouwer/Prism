@@ -13,17 +13,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             self.sequence_state = s.sequence_state;
             self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
-                ParserChoiceSub::Blocks(bs) => {
-                    if bs.is_empty() {
-                        self.drop_choice();
-                        continue;
-                    }
-                    let ps = ParserSequence::Block(&bs[0], bs);
-                    *bs = &bs[1..];
-                    if bs.is_empty() {
-                        self.drop_choice();
-                    }
-                    self.sequence_stack.push(ps);
+                ParserChoiceSub::Blockss(&ref bs) => {
+                    self.add_blocks(bs);
                 }
                 ParserChoiceSub::Constructors(cs, &ref bs) => {
                     let Some(c) = take_first(cs) else {

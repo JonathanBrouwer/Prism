@@ -17,8 +17,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         print!(" ");
                     }
                 }
-                ParserSequence::Block(b, _) => {
-                    print_debug_block(b);
+                ParserSequence::Blocks(bs) => {
+                    print!("block{{{}}}", bs[0].name);
                 },
                 ParserSequence::PopChoice(_) => print!("pop"),
                 ParserSequence::Repeat { expr, .. } => {
@@ -36,13 +36,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         print!("/ ");
         for c in &self.choice_stack {
             match c.choice {
-                ParserChoiceSub::Blocks(bs) => {
-                    print!("blocks{{ ");
-                    for b in bs {
-                        print_debug_block(b);
-                        print!(" ");
-                    }
-                    print!("}}");
+                ParserChoiceSub::Blockss(bs) => {
+                    print!("block{{{}}}", bs[0].name);
                 },
                 ParserChoiceSub::Constructors(cs, _) => print!("cs"),
                 ParserChoiceSub::Exprs(exprs, _) => print!("exprs"),
