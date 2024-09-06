@@ -37,6 +37,7 @@ pub struct SequenceState<'arn, 'grm: 'arn> {
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     pos: Pos,
     vars: VarMap<'arn, 'grm>,
+    block_ctx: Option<BlockCtx<'arn, 'grm>>,
 }
 
 pub struct ParserChoice<'arn, 'grm: 'arn> {
@@ -46,9 +47,9 @@ pub struct ParserChoice<'arn, 'grm: 'arn> {
 }
 
 pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
-    Blockss(&'arn [BlockState<'arn, 'grm>]),
-    Constructors(&'arn [Constructor<'arn, 'grm>], BlockCtx<'arn, 'grm>),
-    Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
+    Blocks(&'arn [BlockState<'arn, 'grm>]),
+    Constructors(&'arn [Constructor<'arn, 'grm>]),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>]),
     RepeatOptional,
     NegativeLookaheadFail,
     LeftRecursionFail,
@@ -76,6 +77,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 grammar_state,
                 pos: Pos::start(),
                 vars,
+                block_ctx: None,
             },
             furthest_error: None,
         };

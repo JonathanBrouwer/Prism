@@ -31,20 +31,23 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
     }
 
     pub fn add_constructors(&mut self, constructors: &'arn [Constructor<'arn, 'grm>], blocks: BlockCtx<'arn, 'grm>) {
+        self.sequence_stack.push(ParserSequence::RestoreBlockCtx(self.sequence_state.block_ctx));
+        self.sequence_state.block_ctx = Some(blocks);
+
         let (first_constructor, rest_constructors) =
             constructors.split_first().expect("Block not empty");
         if !rest_constructors.is_empty() {
-            self.add_choice(ParserChoiceSub::Constructors(rest_constructors, blocks));
+            self.add_choice(ParserChoiceSub::Constructors(rest_constructors));
         }
-        self.add_constructor(first_constructor, blocks);
+        self.add_constructor(first_constructor);
     }
 
-    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) {
-        self.add_expr(&c.0 .1, blocks)
+    pub fn add_constructor(&mut self, c: &'arn Constructor<'arn, 'grm>) {
+        self.add_expr(&c.0 .1)
     }
 
-    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>, blocks: BlockCtx<'arn, 'grm>) {
+    pub fn add_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
         self.sequence_stack
-            .push(ParserSequence::Exprs(slice::from_ref(expr), blocks));
+            .push(ParserSequence::Exprs(slice::from_ref(expr)));
     }
 }

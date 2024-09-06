@@ -19,14 +19,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             .last_mut()
             .expect("Precondition of method");
         match s {
-            ParserSequence::Exprs(exprs, &ref blocks) => {
+            ParserSequence::Exprs(exprs) => {
                 //TODO use stdlib when slice::take_first stabilizes
                 let Some(expr) = take_first(exprs) else {
                     self.sequence_stack.pop().unwrap();
                     return Ok(());
                 };
 
-                match self.parse_expr(expr, blocks) {
+                match self.parse_expr(expr) {
                     Ok(()) => {}
                     Err(e) => {
                         let () = self.fail(e)?;
@@ -61,7 +61,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 self.sequence_stack.pop().unwrap();
                 self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_seq_state: None, last_cache_state: self.cache.cache_state_get(), blocks });
                 if blocks.len() > 1 {
-                    self.add_choice(ParserChoiceSub::Blockss(&blocks[1..]));
+                    self.add_choice(ParserChoiceSub::Blocks(&blocks[1..]));
                 }
                 self.add_constructors(block.constructors, blocks);
 
@@ -101,13 +101,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 self.add_choice(ParserChoiceSub::LeftRecursionFail);
                 self.add_constructors(block.constructors, blocks);
             }
+            ParserSequence::RestoreBlockCtx(bcx) => {
+                self.sequence_state.block_ctx = *bcx;
+                self.sequence_stack.pop().unwrap();
+            }
             ParserSequence::Repeat {
                 expr: &ref expr,
                 delim: &ref delim,
                 min,
                 max,
                 last_pos,
-                blocks: &ref blocks
             } => {
                 // If no progress was made, we've parsed as much as we're gonna get
                 let first = if let Some(last_pos) = last_pos {
@@ -140,9 +143,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 }
 
                 // Add the next set of delim,expr to the stack. Skip delim if this is the first time.
-                self.add_expr(expr, blocks);
+                self.add_expr(expr);
                 if !first {
-                    self.add_expr(delim, blocks);
+                    self.add_expr(delim);
                 }
             }
             ParserSequence::PositiveLookaheadEnd { sequence_state } => {
@@ -165,8 +168,10 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 }
 
 pub enum ParserSequence<'arn, 'grm: 'arn> {
-    Exprs(&'arn [RuleExpr<'arn, 'grm>], BlockCtx<'arn, 'grm>),
+    Exprs(&'arn [RuleExpr<'arn, 'grm>]),
     Blocks(&'arn [BlockState<'arn, 'grm>]),
+    //TODO could maybe be combined with LeftRecurse
+    RestoreBlockCtx(Option<BlockCtx<'arn, 'grm>>),
     PopChoice(#[cfg(debug_assertions)] usize),
     Repeat {
         expr: &'arn RuleExpr<'arn, 'grm>,
@@ -174,7 +179,6 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
         min: u64,
         max: Option<u64>,
         last_pos: Option<Pos>,
-        blocks: BlockCtx<'arn, 'grm>,
     },
     LeftRecurse {
         key: CacheKey<'arn, 'grm>,

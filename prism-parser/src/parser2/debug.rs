@@ -10,7 +10,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         print!("[{}] ", self.sequence_state.pos);
         for s in &self.sequence_stack {
             match s {
-                ParserSequence::Exprs(es, _) => {
+                ParserSequence::Exprs(es) => {
                     print!("exprs{{ ");
                     for e in es.iter() {
                         print_debug_expr(e);
@@ -30,6 +30,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 ParserSequence::LeftRecurse { key, .. } => print!("lr{{{}}}", key.block.name),
                 ParserSequence::PositiveLookaheadEnd { .. } => print!("pl"),
                 ParserSequence::NegativeLookaheadEnd { .. } => print!("ng"),
+                ParserSequence::RestoreBlockCtx(_) => print!("bc"),
             }
             print!(" ");
         }
@@ -37,11 +38,11 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         print!("/ ");
         for c in &self.choice_stack {
             match c.choice {
-                ParserChoiceSub::Blockss(bs) => {
+                ParserChoiceSub::Blocks(bs) => {
                     print!("block{{{}}}", bs[0].name);
                 },
-                ParserChoiceSub::Constructors(cs, _) => print!("cs"),
-                ParserChoiceSub::Exprs(exprs, _) => print!("exprs"),
+                ParserChoiceSub::Constructors(cs) => print!("cs"),
+                ParserChoiceSub::Exprs(exprs) => print!("exprs"),
                 ParserChoiceSub::RepeatOptional => print!("rp"),
                 ParserChoiceSub::NegativeLookaheadFail => print!("nl"),
                 ParserChoiceSub::LeftRecursionFail => print!("lr"),

@@ -16,7 +16,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             self.sequence_state = s.sequence_state;
             self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
-                ParserChoiceSub::Blockss(bs) => {
+                ParserChoiceSub::Blocks(bs) => {
                     let bs_old = *bs;
                     *bs = &bs[1..];
                     if bs.is_empty() {
@@ -24,7 +24,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     }
                     self.add_blocks(bs_old);
                 }
-                ParserChoiceSub::Constructors(cs, &ref bs) => {
+                ParserChoiceSub::Constructors(cs) => {
                     let Some(c) = take_first(cs) else {
                         self.drop_choice();
                         continue;
@@ -32,9 +32,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     if cs.is_empty() {
                         self.drop_choice();
                     }
-                    self.add_constructor(c, bs);
+                    self.add_constructor(c);
                 }
-                ParserChoiceSub::Exprs(exprs, &ref bs) => {
+                ParserChoiceSub::Exprs(exprs) => {
                     let Some(expr) = take_first(exprs) else {
                         self.drop_choice();
                         continue;
@@ -42,7 +42,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     if exprs.is_empty() {
                         self.drop_choice();
                     }
-                    self.add_expr(expr, bs);
+                    self.add_expr(expr);
                 }
                 ParserChoiceSub::RepeatOptional | ParserChoiceSub::NegativeLookaheadFail | ParserChoiceSub::LeftRecursionFail => {
                     self.drop_choice();
