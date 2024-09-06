@@ -93,7 +93,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         self.add_rule(start_rule);
 
         while !self.sequence_stack.is_empty() {
-            self.print_debug_info();
+            // self.print_debug_info();
             self.parse_sequence()?;
         }
 

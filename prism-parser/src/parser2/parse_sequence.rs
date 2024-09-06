@@ -59,7 +59,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
                 // Add left rec to sequence stack
                 self.sequence_stack.pop().unwrap();
-                self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_pos: None, last_cache_state: self.cache.cache_state_get(), blocks });
+                self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_seq_state: None, last_cache_state: self.cache.cache_state_get(), blocks });
                 if blocks.len() > 1 {
                     self.add_choice(ParserChoiceSub::Blockss(&blocks[1..]));
                 }
@@ -76,10 +76,13 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     Err(err),
                 );
             }
-            ParserSequence::LeftRecurse {  ref key, last_pos, last_cache_state, blocks: &ref blocks } => {
+            ParserSequence::LeftRecurse {  ref key, last_seq_state, last_cache_state, blocks: &ref blocks } => {
                 // If the last_pos is none and the cache was not read, no left-recursion is needed, since this is the first iteration and the corresponding cache entry was not touched
                 // If the last_pos is some and equal to the current pos, parsing stagnated so we can return the current result
-                if (last_pos.is_none() && !self.cache.is_read(key)) || last_pos.is_some_and(|last_pos| last_pos >= self.sequence_state.pos) {
+                if (last_seq_state.is_none() && !self.cache.is_read(key)) || last_seq_state.is_some_and(|last_seq_state| last_seq_state.pos >= self.sequence_state.pos) {
+                    if let Some(last_seq_state) = last_seq_state {
+                        self.sequence_state = *last_seq_state;
+                    }
                     self.cache.insert(key.clone(), Ok(self.sequence_state));
                     self.sequence_stack.pop().unwrap();
                     return Ok(())
@@ -90,7 +93,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 self.cache.insert(key.clone(), Ok(self.sequence_state));
                 
                 // We need to make progress in the next iteration, to keep track of this we store last_pos and restore sequence state
-                *last_pos = Some(self.sequence_state.pos);
+                *last_seq_state = Some(self.sequence_state);
                 self.sequence_state.pos = key.pos;
                 self.sequence_state.grammar_state = *key.grammar;
 
@@ -175,7 +178,7 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
     },
     LeftRecurse {
         key: CacheKey<'arn, 'grm>,
-        last_pos: Option<Pos>,
+        last_seq_state: Option<SequenceState<'arn, 'grm>>,
         last_cache_state: CacheState,
         blocks: BlockCtx<'arn, 'grm>,
     },

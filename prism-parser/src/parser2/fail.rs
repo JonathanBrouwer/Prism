@@ -8,13 +8,21 @@ use std::cmp::Ordering;
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn fail(&mut self, e: E) -> Result<(), AggregatedParseError<'grm, E>> {
         self.add_error(e);
+        self.fail_without_error()
+    }
 
+    pub fn fail_without_error(&mut self) -> Result<(), AggregatedParseError<'grm, E>> {
         while let Some(s) = self.choice_stack.last_mut() {
             self.sequence_state = s.sequence_state;
             self.sequence_stack.truncate(s.sequence_stack_len);
             match &mut s.choice {
-                ParserChoiceSub::Blockss(&ref bs) => {
-                    self.add_blocks(bs);
+                ParserChoiceSub::Blockss(bs) => {
+                    let bs_old = *bs;
+                    *bs = &bs[1..];
+                    if bs.is_empty() {
+                        self.drop_choice();
+                    }
+                    self.add_blocks(bs_old);
                 }
                 ParserChoiceSub::Constructors(cs, &ref bs) => {
                     let Some(c) = take_first(cs) else {

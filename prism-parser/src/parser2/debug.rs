@@ -4,7 +4,6 @@ use crate::grammar::RuleExpr;
 use crate::parser2::parse_sequence::ParserSequence;
 use crate::parser2::{PResult, ParserChoiceSub, ParserState};
 use crate::core::adaptive::BlockState;
-use crate::parser2::add_rule::BlockCtx;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn print_debug_info(&self) {
@@ -12,10 +11,12 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
         for s in &self.sequence_stack {
             match s {
                 ParserSequence::Exprs(es, _) => {
-                    for e in es.iter().rev() {
+                    print!("exprs{{ ");
+                    for e in es.iter() {
                         print_debug_expr(e);
                         print!(" ");
                     }
+                    print!("}}");
                 }
                 ParserSequence::Blocks(bs) => {
                     print!("block{{{}}}", bs[0].name);
@@ -26,7 +27,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     print_debug_expr(expr);
                     print!("}}");
                 },
-                ParserSequence::LeftRecurse { .. } => print!("lr"),
+                ParserSequence::LeftRecurse { key, .. } => print!("lr{{{}}}", key.block.name),
                 ParserSequence::PositiveLookaheadEnd { .. } => print!("pl"),
                 ParserSequence::NegativeLookaheadEnd { .. } => print!("ng"),
             }
