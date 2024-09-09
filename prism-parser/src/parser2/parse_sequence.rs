@@ -59,7 +59,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
                 // Add left rec to sequence stack
                 self.sequence_stack.pop().unwrap();
-                self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_seq_state: None, last_cache_state: self.cache.cache_state_get(), blocks });
+                self.sequence_stack.push(ParserSequence::LeftRecurse { key: key.clone(), last_seq_state: None, last_cache_state: self.cache.cache_state_get(), blocks, old_ctx: self.sequence_state.block_ctx });
                 if blocks.len() > 1 {
                     self.add_choice(ParserChoiceSub::Blocks(&blocks[1..]));
                 }
@@ -76,7 +76,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     Err(err),
                 );
             }
-            ParserSequence::LeftRecurse {  ref key, last_seq_state, last_cache_state, blocks: &ref blocks } => {
+            ParserSequence::LeftRecurse {  ref key, last_seq_state, last_cache_state, blocks: &ref blocks, old_ctx } => {
                 // If the last_pos is none and the cache was not read, no left-recursion is needed, since this is the first iteration and the corresponding cache entry was not touched
                 // If the last_pos is some and equal to the current pos, parsing stagnated so we can return the current result
                 if (last_seq_state.is_none() && !self.cache.is_read(key)) || last_seq_state.is_some_and(|last_seq_state| last_seq_state.pos >= self.sequence_state.pos) {
@@ -84,6 +84,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         self.sequence_state = *last_seq_state;
                     }
                     self.cache.insert(key.clone(), Ok(self.sequence_state));
+                    self.sequence_state.block_ctx = old_ctx.take();
                     self.sequence_stack.pop().unwrap();
                     return Ok(())
                 }
@@ -100,10 +101,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 let block = key.block.0;
                 self.add_choice(ParserChoiceSub::LeftRecursionFail);
                 self.add_constructors(block.constructors, blocks);
-            }
-            ParserSequence::RestoreBlockCtx(bcx) => {
-                self.sequence_state.block_ctx = *bcx;
-                self.sequence_stack.pop().unwrap();
             }
             ParserSequence::Repeat {
                 expr: &ref expr,
@@ -170,8 +167,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 pub enum ParserSequence<'arn, 'grm: 'arn> {
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
     Blocks(&'arn [BlockState<'arn, 'grm>]),
-    //TODO could maybe be combined with LeftRecurse
-    RestoreBlockCtx(Option<BlockCtx<'arn, 'grm>>),
     PopChoice(#[cfg(debug_assertions)] usize),
     Repeat {
         expr: &'arn RuleExpr<'arn, 'grm>,
@@ -185,6 +180,7 @@ pub enum ParserSequence<'arn, 'grm: 'arn> {
         last_seq_state: Option<SequenceState<'arn, 'grm>>,
         last_cache_state: CacheState,
         blocks: BlockCtx<'arn, 'grm>,
+        old_ctx: Option<BlockCtx<'arn, 'grm>>
     },
     PositiveLookaheadEnd {
         sequence_state: SequenceState<'arn, 'grm>,

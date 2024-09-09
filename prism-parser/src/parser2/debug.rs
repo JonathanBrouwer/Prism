@@ -30,7 +30,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 ParserSequence::LeftRecurse { key, .. } => print!("lr{{{}}}", key.block.name),
                 ParserSequence::PositiveLookaheadEnd { .. } => print!("pl"),
                 ParserSequence::NegativeLookaheadEnd { .. } => print!("ng"),
-                ParserSequence::RestoreBlockCtx(_) => print!("bc"),
             }
             print!(" ");
         }
