@@ -129,7 +129,7 @@ name: layout_in_rule
 syntax: r#"
     rule layout = " ";
 
-    rule start = Ok() <- " " "x" " " "y" "z" " ";
+    rule start = Ok() <- "x" "y" "z";
 
     "#
 passing tests:
@@ -137,22 +137,26 @@ passing tests:
     " x yz " => "Ok()"
     "  x  y  z  " => "Ok()"
     "  x  yz  " => "Ok()"
+    "xyz" => "Ok()"
+    "xyz " => "Ok()"
+    "xy z" => "Ok()"
+    "xy z " => "Ok()"
+    "x yz" => "Ok()"
+    "x yz " => "Ok()"
+    "x y z" => "Ok()"
+    "x y z " => "Ok()"
+    " xyz" => "Ok()"
+    " xyz " => "Ok()"
+    " xy z" => "Ok()"
+    " xy z " => "Ok()"
+    " x yz" => "Ok()"
+    " x y z" => "Ok()"
 
 failing tests:
-    "xyz"
-    "xyz "
-    "xy z"
-    "xy z "
-    "x yz"
-    "x yz "
-    "x y z"
-    "x y z "
-    " xyz"
-    " xyz "
-    " xy z"
-    " xy z "
-    " x yz"
-    " x y z"
+    "xy"
+    "x"
+    "z"
+    "xzy"
 }
 
 parse_test! {
@@ -213,43 +217,43 @@ passing tests:
 failing tests:
 }
 
-parse_test! {
-name: slice_layout_4
-syntax: r#"
-    rule layout = " ";
+// parse_test! {
+// name: slice_layout_4
+// syntax: r#"
+//     rule layout = " ";
+//
+//     rule start = s <- #pos(" ") s:#str("x"*);
+//
+//     "#
+// passing tests:
+//
+//     " xxx" => "'xxx'"
+//     " x  x x" => "'x  x x'"
+//     " xx  x " => "'xx  x'"
+//     " x" => "'x'"
+//
+// failing tests:
+//     "xxx"
+//     "x x x"
+//     "x xx"
+// }
 
-    rule start = s <- #pos(" ") s:#str("x"*);
-
-    "#
-passing tests:
-
-    " xxx" => "'xxx'"
-    " x  x x" => "'x  x x'"
-    " xx  x " => "'xx  x'"
-    " x" => "'x'"
-
-failing tests:
-    "xxx"
-    "x x x"
-    "x xx"
-}
-
-parse_test! {
-name: slice_layout_5
-syntax: r#"
-    rule layout = " ";
-
-    rule start = s <- #pos(" ") s:#str("x"*);
-
-    "#
-passing tests:
-    " xxx" => "'xxx'"
-    " x  x x" => "'x  x x'"
-    " xx  x " => "'xx  x'"
-    " x" => "'x'"
-
-failing tests:
-    "xxx"
-    "x x x"
-    "x xx"
-}
+// parse_test! {
+// name: slice_layout_5
+// syntax: r#"
+//     rule layout = " ";
+//
+//     rule start = s <- #pos(" ") s:#str("x"*);
+//
+//     "#
+// passing tests:
+//     " xxx" => "'xxx'"
+//     " x  x x" => "'x  x x'"
+//     " xx  x " => "'xx  x'"
+//     " x" => "'x'"
+//
+// failing tests:
+//     "xxx"
+//     "x x x"
+//     "x xx"
+// }

@@ -1,13 +1,13 @@
+use crate::core::adaptive::BlockState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
+use crate::parser2::add_rule::BlockCtx;
 use crate::parser2::parse_sequence::ParserSequence;
 use crate::parser2::{PResult, ParserChoiceSub, ParserState};
-use crate::core::adaptive::BlockState;
-use crate::parser2::add_rule::BlockCtx;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
-    pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) -> PResult<E> {
+    pub fn parse_expr(&mut self, expr: &'arn RuleExpr<'arn, 'grm>) {
         match expr {
             RuleExpr::RunVar(rule_str, _) => {
                 // Figure out which rule the variable `rule` refers to
@@ -20,10 +20,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     );
                 };
                 self.add_rule(rule);
-                Ok(())
             }
-            RuleExpr::CharClass(cc) => self.parse_char(|c| cc.contains(*c)),
-            RuleExpr::Literal(lit) => self.parse_chars(lit.chars()),
+            RuleExpr::CharClass(cc) => {
+                self.sequence_stack.push(ParserSequence::CharClass(cc));
+                self.sequence_stack.push(ParserSequence::Layout { last_pos: None });
+            }
+            RuleExpr::Literal(lit) => {
+                self.sequence_stack.push(ParserSequence::Literal(lit));
+                self.sequence_stack.push(ParserSequence::Layout { last_pos: None });
+            }
             RuleExpr::Repeat {
                 expr,
                 min,
@@ -37,11 +42,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     max: *max,
                     last_pos: None,
                 });
-                Ok(())
             }
             RuleExpr::Sequence(seqs) => {
                 self.sequence_stack.push(ParserSequence::Exprs(seqs));
-                Ok(())
             }
             RuleExpr::Choice(choices) => {
                 let (first_choice, rest_choices) =
@@ -51,19 +54,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     self.add_choice(ParserChoiceSub::Exprs(rest_choices));
                 }
                 self.add_expr(first_choice);
-                Ok(())
             }
             RuleExpr::NameBind(_, expr) => {
                 self.add_expr(expr);
-                Ok(())
             }
             RuleExpr::Action(expr, _) => {
                 self.add_expr(expr);
-                Ok(())
             }
             RuleExpr::SliceInput(expr) => {
                 self.add_expr(expr);
-                Ok(())
             }
             RuleExpr::PosLookahead(expr) => {
                 self.sequence_stack
@@ -71,7 +70,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         sequence_state: self.sequence_state,
                     });
                 self.add_expr(expr);
-                Ok(())
             }
             RuleExpr::NegLookahead(expr) => {
                 self.add_choice(ParserChoiceSub::NegativeLookaheadFail);
@@ -80,19 +78,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                         sequence_state: self.sequence_state,
                     });
                 self.add_expr(expr);
-                Ok(())
             }
             RuleExpr::This => {
                 self.add_blocks(self.sequence_state.block_ctx.unwrap());
-                Ok(())
-            },
+            }
             RuleExpr::Next => {
                 assert!(self.sequence_state.block_ctx.unwrap().len() > 1);
                 self.add_blocks(&self.sequence_state.block_ctx.unwrap()[1..]);
-                Ok(())
-            },
+            }
             RuleExpr::AtAdapt(_, _) => todo!(),
-            RuleExpr::Guid => Ok(()),
+            RuleExpr::Guid => {}
         }
     }
 }

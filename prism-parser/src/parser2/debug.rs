@@ -1,9 +1,9 @@
+use crate::core::adaptive::BlockState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::RuleExpr;
 use crate::parser2::parse_sequence::ParserSequence;
 use crate::parser2::{PResult, ParserChoiceSub, ParserState};
-use crate::core::adaptive::BlockState;
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn print_debug_info(&self) {
@@ -20,16 +20,19 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 }
                 ParserSequence::Blocks(bs) => {
                     print!("block{{{}}}", bs[0].name);
-                },
+                }
                 ParserSequence::PopChoice(_) => print!("pop"),
                 ParserSequence::Repeat { expr, .. } => {
                     print!("repeat{{");
                     print_debug_expr(expr);
                     print!("}}");
-                },
+                }
                 ParserSequence::LeftRecurse { key, .. } => print!("lr{{{}}}", key.block.name),
                 ParserSequence::PositiveLookaheadEnd { .. } => print!("pl"),
                 ParserSequence::NegativeLookaheadEnd { .. } => print!("ng"),
+                ParserSequence::Layout { .. } => print!("la"),
+                ParserSequence::CharClass(_) => print!("cc"),
+                ParserSequence::Literal(lit) => print!("'{}'", lit.chars().collect::<String>()),
             }
             print!(" ");
         }
@@ -39,12 +42,13 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
             match c.choice {
                 ParserChoiceSub::Blocks(bs) => {
                     print!("block{{{}}}", bs[0].name);
-                },
-                ParserChoiceSub::Constructors(cs) => print!("cs"),
-                ParserChoiceSub::Exprs(exprs) => print!("exprs"),
-                ParserChoiceSub::RepeatOptional => print!("rp"),
-                ParserChoiceSub::NegativeLookaheadFail => print!("nl"),
-                ParserChoiceSub::LeftRecursionFail => print!("lr"),
+                }
+                ParserChoiceSub::Constructors(_) => print!("cs"),
+                ParserChoiceSub::Exprs(_) => print!("exprs"),
+                ParserChoiceSub::RepeatFail => print!("ref"),
+                ParserChoiceSub::NegativeLookaheadFail => print!("nlf"),
+                ParserChoiceSub::LeftRecursionFail => print!("lrf"),
+                ParserChoiceSub::LayoutFail => print!("laf"),
             }
             print!(" ");
         }
@@ -66,7 +70,7 @@ fn print_debug_expr(expr: &RuleExpr) {
                 print!("  ");
             }
             print!("}}");
-        },
+        }
         RuleExpr::Choice(_) => todo!(),
         RuleExpr::NameBind(_, e) => print_debug_expr(e),
         RuleExpr::Action(e, _) => print_debug_expr(e),
@@ -80,11 +84,10 @@ fn print_debug_expr(expr: &RuleExpr) {
     }
 }
 
-
 fn print_debug_block(block: &BlockState) {
     print!("block{{");
     for constructor in block.constructors {
-        print_debug_expr(&constructor.0.1);
+        print_debug_expr(&constructor.0 .1);
         print!(" ");
     }
     print!("}}");

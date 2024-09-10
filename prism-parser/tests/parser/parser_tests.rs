@@ -69,7 +69,6 @@ failing tests:
     ""
 }
 
-
 parse_test! {
 name: blocks
 syntax: r#"

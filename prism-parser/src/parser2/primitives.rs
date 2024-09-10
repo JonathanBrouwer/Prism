@@ -1,3 +1,5 @@
+use crate::core::pos::Pos;
+use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parser2::PResult;
@@ -22,5 +24,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
             self.parse_char(|got| expect == *got)?;
         }
         PResult::Ok(())
+    }
+
+    pub fn parse_eof(&mut self) -> Result<(), AggregatedParseError<'grm, E>> {
+        if self.sequence_state.pos.next(self.input).1.is_some() {
+            self.add_error(E::new(
+                self.sequence_state.pos.span_to(Pos::end(self.input)),
+            ));
+            return Err(self.completely_fail());
+        }
+        Ok(())
     }
 }

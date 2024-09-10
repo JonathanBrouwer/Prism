@@ -25,12 +25,16 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
     pub fn add_blocks(&mut self, blocks: &'arn [BlockState<'arn, 'grm>]) {
         if blocks.len() == 0 {
-            return
+            return;
         }
         self.sequence_stack.push(ParserSequence::Blocks(&blocks));
     }
 
-    pub fn add_constructors(&mut self, constructors: &'arn [Constructor<'arn, 'grm>], blocks: BlockCtx<'arn, 'grm>) {
+    pub fn add_constructors(
+        &mut self,
+        constructors: &'arn [Constructor<'arn, 'grm>],
+        blocks: BlockCtx<'arn, 'grm>,
+    ) {
         self.sequence_state.block_ctx = Some(blocks);
 
         let (first_constructor, rest_constructors) =

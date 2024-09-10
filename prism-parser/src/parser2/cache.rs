@@ -35,10 +35,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
         key: CacheKey<'arn, 'grm>,
         value: Result<SequenceState<'arn, 'grm>, E>,
     ) {
-        self.cache.insert(key.clone(), CacheEntry {
-            value,
-            read: false,
-        });
+        self.cache
+            .insert(key.clone(), CacheEntry { value, read: false });
         self.cache_stack.push(key);
     }
 
@@ -51,10 +49,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
         Some(&entry.value)
     }
 
-    pub fn is_read(
-        &self,
-        key: &CacheKey<'arn, 'grm>,
-    ) -> bool {
+    pub fn is_read(&self, key: &CacheKey<'arn, 'grm>) -> bool {
         self.cache.get(key).unwrap().read
     }
 

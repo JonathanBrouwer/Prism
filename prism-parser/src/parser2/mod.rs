@@ -1,10 +1,10 @@
 mod add_rule;
 mod cache;
+mod debug;
 mod fail;
 mod parse_expr;
 mod parse_sequence;
 mod primitives;
-mod debug;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState, RuleId};
 use crate::core::cache::Allocs;
@@ -14,9 +14,9 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser::var_map::VarMap;
+use crate::parser2::add_rule::BlockCtx;
 use crate::parser2::cache::ParserCache;
 use parse_sequence::ParserSequence;
-use crate::parser2::add_rule::BlockCtx;
 
 pub trait Action {}
 
@@ -50,9 +50,10 @@ pub enum ParserChoiceSub<'arn, 'grm: 'arn> {
     Blocks(&'arn [BlockState<'arn, 'grm>]),
     Constructors(&'arn [Constructor<'arn, 'grm>]),
     Exprs(&'arn [RuleExpr<'arn, 'grm>]),
-    RepeatOptional,
+    RepeatFail,
     NegativeLookaheadFail,
     LeftRecursionFail,
+    LayoutFail,
 }
 
 pub type PResult<E> = Result<(), E>;
@@ -92,6 +93,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
     //TODO &mut self this, needs to reset state at end of run
     pub fn run(mut self, start_rule: RuleId) -> Result<(), AggregatedParseError<'grm, E>> {
+        self.sequence_stack.push(ParserSequence::Layout { last_pos: None });
         self.add_rule(start_rule);
 
         while !self.sequence_stack.is_empty() {
@@ -101,12 +103,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
         // Sequence stack is empty, done parsing
         // Check whether there is input left
-        if self.sequence_state.pos.next(self.input).1.is_some() {
-            self.add_error(E::new(
-                self.sequence_state.pos.span_to(Pos::end(self.input)),
-            ));
-            return Err(self.completely_fail());
-        }
+        self.parse_eof()?;
 
         Ok(())
     }

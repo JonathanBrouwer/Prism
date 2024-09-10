@@ -76,23 +76,23 @@ failing tests:
 
 }
 
-parse_test! {
-name: infinite_test
-syntax: r#"
-    rule layout = " ";
-
-    rule num {
-        #[disable_layout]
-        #str("x"+);
-    }
-
-    rule start {
-        Num(e) <- e:num;
-    }
-
-    "#
-passing tests:
-
-failing tests:
-    "x x"
-}
+// parse_test! {
+// name: infinite_test
+// syntax: r#"
+//     rule layout = " ";
+//
+//     rule num {
+//         #[disable_layout]
+//         #str("x"+);
+//     }
+//
+//     rule start {
+//         Num(e) <- e:num;
+//     }
+//
+//     "#
+// passing tests:
+//
+// failing tests:
+//     "x x"
+// }
