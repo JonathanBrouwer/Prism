@@ -5,15 +5,16 @@ use crate::error::ParseError;
 use crate::parser2::SequenceState;
 use by_address::ByAddress;
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
 pub struct ParserCache<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
-    cache: HashMap<CacheKey<'arn, 'grm>, CacheEntry<'arn, 'grm, E>>,
+    cache: HashMap<CacheKey<'arn, 'grm>, CacheEntry<'grm, E>>,
     cache_stack: Vec<CacheKey<'arn, 'grm>>,
 }
 
-struct CacheEntry<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
-    value: Result<SequenceState<'arn, 'grm>, E>,
+struct CacheEntry<'grm, E: ParseError<L = ErrorLabel<'grm>>> {
+    value: Result<Pos, E>,
     read: bool,
 }
 
@@ -33,7 +34,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
     pub fn insert(
         &mut self,
         key: CacheKey<'arn, 'grm>,
-        value: Result<SequenceState<'arn, 'grm>, E>,
+        value: Result<Pos, E>,
     ) {
         self.cache
             .insert(key.clone(), CacheEntry { value, read: false });
@@ -43,7 +44,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserCache<'arn, 'g
     pub fn get(
         &mut self,
         key: &CacheKey<'arn, 'grm>,
-    ) -> Option<&Result<SequenceState<'arn, 'grm>, E>> {
+    ) -> Option<&Result<Pos, E>> {
         let entry = self.cache.get_mut(key)?;
         entry.read = true;
         Some(&entry.value)
@@ -72,6 +73,11 @@ pub struct CacheKey<'arn, 'grm: 'arn> {
     pub grammar: ByAddress<&'arn GrammarState<'arn, 'grm>>,
 }
 
+impl<'arn, 'grm: 'arn> Debug for CacheKey<'arn, 'grm> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {} {:?}", self.pos, self.block.name,  self.grammar.0.unique_id())
+    }
+}
 impl<'arn, 'grm: 'arn> CacheKey<'arn, 'grm> {
     pub fn new(
         pos: Pos,

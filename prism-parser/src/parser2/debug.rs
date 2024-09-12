@@ -59,8 +59,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
 
 fn print_debug_expr(expr: &RuleExpr) {
     match expr {
-        RuleExpr::RunVar(_, _) => todo!(),
-        RuleExpr::CharClass(_) => todo!(),
+        RuleExpr::RunVar(v, _) => print!("rule{{{v}}}"),
+        RuleExpr::CharClass(cc) => print!("cc"),
         RuleExpr::Literal(lit) => print!("'{}'", lit.chars().collect::<String>()),
         RuleExpr::Repeat { .. } => todo!(),
         RuleExpr::Sequence(seq) => {
@@ -74,7 +74,11 @@ fn print_debug_expr(expr: &RuleExpr) {
         RuleExpr::Choice(_) => todo!(),
         RuleExpr::NameBind(_, e) => print_debug_expr(e),
         RuleExpr::Action(e, _) => print_debug_expr(e),
-        RuleExpr::SliceInput(_) => todo!(),
+        RuleExpr::SliceInput(s) => {
+            print!("slice{{");
+            print_debug_expr(s);
+            print!("}}");
+        },
         RuleExpr::PosLookahead(_) => todo!(),
         RuleExpr::NegLookahead(_) => todo!(),
         RuleExpr::This => print!("#this"),

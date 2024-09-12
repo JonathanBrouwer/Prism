@@ -26,6 +26,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     self.sequence_stack.pop().unwrap();
                     return Ok(());
                 };
+                if exprs.is_empty() {
+                    self.sequence_stack.pop().unwrap();
+                }
                 self.parse_expr(expr);
             }
             ParserSequence::PopChoice(..) => {
@@ -40,9 +43,9 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                 );
                 if let Some(cached_result) = self.cache.get(&key) {
                     match cached_result {
-                        Ok(new_sequence_state) => {
+                        Ok(new_pos) => {
                             self.sequence_stack.pop().unwrap();
-                            self.sequence_state = *new_sequence_state;
+                            self.sequence_state.pos = *new_pos;
                         }
                         Err(e) => {
                             let e = e.clone();
@@ -88,15 +91,15 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'g
                     if let Some(last_seq_state) = last_seq_state {
                         self.sequence_state = *last_seq_state;
                     }
-                    self.cache.insert(key.clone(), Ok(self.sequence_state));
-                    self.sequence_state.block_ctx = old_ctx.take();
+                    self.cache.insert(key.clone(), Ok(self.sequence_state.pos));
+                    self.sequence_state.block_ctx = *old_ctx;
                     self.sequence_stack.pop().unwrap();
                     return Ok(());
                 }
 
                 // Reset cache to state before this iteration, and plant the seed
                 self.cache.cache_state_revert(*last_cache_state);
-                self.cache.insert(key.clone(), Ok(self.sequence_state));
+                self.cache.insert(key.clone(), Ok(self.sequence_state.pos));
 
                 // We need to make progress in the next iteration, to keep track of this we store last_pos and restore sequence state
                 *last_seq_state = Some(self.sequence_state);
