@@ -9,15 +9,14 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 
-#[inline(always)]
-pub fn single<'arn, 'grm: 'arn, E: ParseError>(
-    f: impl Fn(&char) -> bool,
-) -> impl Parser<'arn, 'grm, (Span, char), E> {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          _: ParserContext|
-          -> PResult<(Span, char), E> {
-        match pos.next(state.input) {
+impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+    #[inline(always)]
+    pub fn parse_char(
+        &self,
+        f: impl Fn(&char) -> bool,
+        pos: Pos,
+    ) -> PResult<(Span, char), E> {
+        match pos.next(self.input) {
             // We can parse the character
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos, pos_new),
             // Error
@@ -27,7 +26,7 @@ pub fn single<'arn, 'grm: 'arn, E: ParseError>(
 }
 
 #[inline(always)]
-pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError>(
+pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError<L = ErrorLabel<'grm>>>(
     p1: &'a impl Parser<'arn, 'grm, O1, E>,
     p2: &'a impl Parser<'arn, 'grm, O2, E>,
 ) -> impl Parser<'arn, 'grm, (O1, O2), E> + 'a {
@@ -42,7 +41,7 @@ pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError>(
 }
 
 #[inline(always)]
-pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError>(
+pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError<L = ErrorLabel<'grm>>>(
     p1: &'a impl Parser<'arn, 'grm, O, E>,
     p2: &'a impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + 'a {
@@ -113,7 +112,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
 }
 
 #[inline(always)]
-pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> {
+pub fn end<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>() -> impl Parser<'arn, 'grm, (), E> {
     move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, _: ParserContext| -> PResult<(), E> {
         match pos.next(state.input) {
             (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
@@ -123,7 +122,7 @@ pub fn end<'arn, 'grm: 'arn, E: ParseError>() -> impl Parser<'arn, 'grm, (), E> 
 }
 
 #[inline(always)]
-pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
+pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, O, E> + '_ {
     move |pos: Pos,
@@ -138,7 +137,7 @@ pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
 }
 
 #[inline(always)]
-pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError>(
+pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
     p: &impl Parser<'arn, 'grm, O, E>,
 ) -> impl Parser<'arn, 'grm, (), E> + '_ {
     move |pos: Pos,
