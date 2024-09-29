@@ -24,33 +24,15 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         //Start attemping to parse layout
         let mut res = PResult::new_empty((), pos);
         loop {
-            let r = parser_rule(rules, layout, &[]).parse(pos, self,ParserContext { layout_disabled: true, ..context });
+            // Parse the `layout` rule once more
+            let old_pos = res.end_pos();
+            let new_res = parser_rule(rules, layout, &[]).parse(old_pos, self, ParserContext { layout_disabled: true, ..context });
 
-
-            // let pos_before_layout = sub_res.end_pos();
-            // // Add in optional error information from sub_res, then require another layout token
-            // let new_res = res.merge_seq_opt(sub_res).merge_seq_parser(
-            //     &parser_rule(rules, layout, &[]),
-            //     state,
-            //     ParserContext {
-            //         layout_disabled: true,
-            //         ..context
-            //     },
-            // );
-            // match new_res {
-            //     // We have parsed more layout, we can try again
-            //     POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
-            //         res = POk((), new_end_pos, new_end_pos, new_err);
-            //     }
-            //     // We have not parsed more layout ...
-            //     // ... because layout parser did not parse more characters
-            //     POk(_, _, _, err) => {
-            //         let (e, pos) = err.unwrap();
-            //         return PErr(e, pos);
-            //     }
-            //     // ... because layout parser failed
-            //     PErr(e, pos) => return PErr(e, pos),
-            // }
+            // If no more progress was made, we will get stuck in a loop if we try again so we bail
+            res = res.merge_seq_opt(new_res).map(|_| ());
+            if res.end_pos() == old_pos {
+                return res
+            }
         }
     }
 }
@@ -60,7 +42,7 @@ pub fn parser_with_layout<
     'arn: 'a,
     'grm: 'arn,
     O,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     vars: VarMap<'arn, 'grm>,
@@ -120,7 +102,7 @@ pub fn full_input_layout<
     'arn: 'a,
     'grm: 'arn,
     O,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     vars: VarMap<'arn, 'grm>,

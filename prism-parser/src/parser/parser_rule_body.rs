@@ -20,7 +20,7 @@ pub fn parser_body_cache_recurse<
     'a,
     'arn: 'a,
     'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_ctx: BlockCtx<'arn, 'grm>,
@@ -38,7 +38,7 @@ pub fn parser_body_cache_recurse<
     }
 }
 
-fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     (block_state, rule_args): BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
@@ -72,7 +72,7 @@ fn parser_body_sub_constructors<
     'a,
     'arn: 'a,
     'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     (block_state, rule_args): BlockCtx<'arn, 'grm>,
@@ -104,7 +104,7 @@ fn parser_body_sub_annotations<
     'a,
     'arn: 'a,
     'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>> + 'grm,
+    E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_state: BlockCtx<'arn, 'grm>,

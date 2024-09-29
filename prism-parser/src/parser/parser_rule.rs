@@ -9,7 +9,7 @@ use crate::grammar::action_result::ActionResult;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
-pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+pub fn parser_rule<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     rule: RuleId,
     args: &'a [VarMapValue<'arn, 'grm>],

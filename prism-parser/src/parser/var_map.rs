@@ -142,7 +142,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         }
     }
 
-    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>>>(
         &'a self,
         rules: &'arn GrammarState<'arn, 'grm>,
         state: &mut ParserState<'arn, 'grm, E>,

@@ -19,7 +19,7 @@ use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 
-pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_ctx: BlockCtx<'arn, 'grm>,
     expr: &'arn RuleExpr<'arn, 'grm>,
@@ -89,41 +89,25 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 }
             }
             RuleExpr::CharClass(cc) => {
-
-                let res = state.parse_char(|c| cc.contains(*c), pos);
-                todo!()
-
-                // let p = single(|c| cc.contains(*c));
-                // let alloc = state.alloc;
-                // let map = |(span, _)| &*alloc.alloc(ActionResult::Value(span));
-                // let p = map_parser(p, &map);
-                // let p = recovery_point(p);
-                // let p = parser_with_layout(rules, vars, &p);
-                // p.parse(pos, state, context).map(PR::with_rtrn)
+                //TODO recovery
+                let res = state.parse_layout_eager(rules, vars, pos, context);
+                let res = state.parse_char(|c| cc.contains(*c), res.end_pos());
+                res.map(|(span, _)| PR::with_rtrn(&*state.alloc.alloc(ActionResult::Value(span))))
             }
             RuleExpr::Literal(literal) => {
-                todo!()
-                // //First construct the literal parser
-                // let p = move |pos: Pos,
-                //               state: &mut ParserState<'arn, 'grm, E>,
-                //               context: ParserContext| {
-                //     let mut res = PResult::new_empty((), pos);
-                //     for char in literal.chars() {
-                //         res = res
-                //             .merge_seq_parser(&single(|c| *c == char), state, context)
-                //             .map(|_| ());
-                //     }
-                //     let mut res =
-                //         res.map_with_span(|_, span| &*state.alloc.alloc(ActionResult::Value(span)));
-                //     res.add_label_implicit(ErrorLabel::Literal(
-                //         pos.span_to(res.end_pos().next(state.input).0),
-                //         *literal,
-                //     ));
-                //     res
-                // };
-                // let p = recovery_point(p);
-                // let p = parser_with_layout(rules, vars, &p);
-                // p.parse(pos, state, context).map(PR::with_rtrn)
+                //TODO recovery
+                let mut res = state.parse_layout_eager(rules, vars, pos, context);
+                for char in literal.chars() {
+                    let new_res = state.parse_char(|c| *c == char, res.end_pos());
+                    res = res.merge_seq(new_res).map(|_| ());
+                }
+                let mut res =
+                    res.map_with_span(|_, span| PR::with_rtrn(&*state.alloc.alloc(ActionResult::Value(span))));
+                res.add_label_implicit(ErrorLabel::Literal(
+                    pos.span_to(res.end_pos().next(state.input).0),
+                    *literal,
+                ));
+                res
             }
             RuleExpr::Repeat {
                 expr,

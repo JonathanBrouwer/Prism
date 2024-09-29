@@ -20,7 +20,7 @@ pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new
     bincode::deserialize(meta_grammar).unwrap()
 });
 
-pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm>(
+pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
     grammar: &'grm str,
     allocs: Allocs<'grm>,
 ) -> Result<GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
