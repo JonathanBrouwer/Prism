@@ -5,7 +5,6 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::apply_action::apply_action;
@@ -162,7 +161,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     if i != 0 && res.end_pos() <= pos {
                         let span = pos.span_to(pos);
                         let mut e = E::new(span);
-                        e.add_label_explicit(Debug(span, "INFLOOP"));
+                        e.add_label_explicit(ErrorLabel::Debug(span, "INFLOOP"));
                         return PResult::new_err(e, pos);
                     }
                 }

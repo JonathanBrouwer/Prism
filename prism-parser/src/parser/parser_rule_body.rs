@@ -18,15 +18,12 @@ pub fn parser_body_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Err
     block_ctx: BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
-        const RED_ZONE: usize = 1024 * 1024;
-        stacker::maybe_grow(RED_ZONE, RED_ZONE * 64, || {
-            parser_cache_recurse(
-                &parser_body_sub_blocks(rules, block_ctx),
-                block_ctx,
-                rules.unique_id(),
-            )
-            .parse(pos, state, context)
-        })
+        parser_cache_recurse(
+            &parser_body_sub_blocks(rules, block_ctx),
+            block_ctx,
+            rules.unique_id(),
+        )
+        .parse(pos, state, context)
     }
 }
 
