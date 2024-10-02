@@ -1,3 +1,4 @@
+use std::os::linux::raw::stat;
 use crate::core::context::ParserContext;
 use crate::core::parser::Parser;
 use crate::core::pos::Pos;
@@ -34,35 +35,6 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 }
 
 #[inline(always)]
-pub fn seq2<'arn, 'grm: 'arn, 'a, O1, O2, E: ParseError<L = ErrorLabel<'grm>>>(
-    p1: &'a impl Parser<'arn, 'grm, O1, E>,
-    p2: &'a impl Parser<'arn, 'grm, O2, E>,
-) -> impl Parser<'arn, 'grm, (O1, O2), E> + 'a {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          context: ParserContext|
-          -> PResult<(O1, O2), E> {
-        let res1 = p1.parse(pos, state, context);
-        let end_pos = res1.end_pos();
-        res1.merge_seq(p2.parse(end_pos, state, context))
-    }
-}
-
-#[inline(always)]
-pub fn choice2<'arn, 'grm: 'arn, 'a, O, E: ParseError<L = ErrorLabel<'grm>>>(
-    p1: &'a impl Parser<'arn, 'grm, O, E>,
-    p2: &'a impl Parser<'arn, 'grm, O, E>,
-) -> impl Parser<'arn, 'grm, O, E> + 'a {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          context: ParserContext|
-          -> PResult<O, E> {
-        p1.parse(pos, state, context)
-            .merge_choice(p2.parse(pos, state, context))
-    }
-}
-
-#[inline(always)]
 pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>>>(
     item: impl Parser<'arn, 'grm, OP, E>,
     delimiter: impl Parser<'arn, 'grm, OD, E>,
@@ -80,9 +52,7 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
             let part = if i == 0 {
                 item.parse(pos, state, context)
             } else {
-                seq2(&delimiter, &item)
-                    .parse(pos, state, context)
-                    .map(|x| x.1)
+                delimiter.parse(pos, state, context).merge_seq_parser(&item, state, context).map(|x| x.1)
             };
             let should_continue = part.is_ok();
 
