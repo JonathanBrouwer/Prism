@@ -131,7 +131,7 @@ impl TcEnv {
         }
 
         // We deliberately don't beta-reduce i1 here since we want to keep the inferred value small
-        return match self.values[*i1] {
+        match self.values[*i1] {
             PartialExpr::Type => {
                 self.values[*i2] = PartialExpr::Type;
                 self.handle_constraints(i2, s2)
@@ -302,7 +302,7 @@ impl TcEnv {
             PartialExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
-        };
+        }
     }
 
     #[must_use]

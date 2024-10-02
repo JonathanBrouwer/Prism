@@ -1,6 +1,6 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{ParserContext, PR};
-use crate::core::parser::{map_parser, Parser};
+use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;

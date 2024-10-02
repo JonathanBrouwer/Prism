@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};

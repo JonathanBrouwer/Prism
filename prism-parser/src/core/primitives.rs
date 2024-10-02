@@ -1,14 +1,9 @@
-use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
-use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
-use std::os::linux::raw::stat;
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_char(&mut self, f: impl Fn(&char) -> bool, pos: Pos) -> PResult<(Span, char), E> {
