@@ -1,4 +1,3 @@
-use crate::core::cache::parser_cache_recurse;
 use crate::core::parser::Parser;
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
@@ -18,12 +17,13 @@ pub fn parser_body_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Err
     block_ctx: BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
     move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
-        parser_cache_recurse(
-            &parser_body_sub_blocks(rules, block_ctx),
+        state.parse_cache_recurse(
+            |state, pos| parser_body_sub_blocks(rules, block_ctx).parse(pos, state, context),
             block_ctx,
             rules.unique_id(),
+            pos, 
+            context
         )
-        .parse(pos, state, context)
     }
 }
 

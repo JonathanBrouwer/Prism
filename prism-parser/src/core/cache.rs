@@ -88,12 +88,15 @@ pub struct ParserCacheEntry<PR> {
     pub value: PR,
 }
 
-pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
-    sub: &'a impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E>,
-    block_state: BlockCtx<'arn, 'grm>,
-    grammar_state: GrammarStateId,
-) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
-    move |pos_start: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
+impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+    pub fn parse_cache_recurse(
+        &mut self,
+        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<&'arn ActionResult<'arn, 'grm>, E>,
+        block_state: BlockCtx<'arn, 'grm>,
+        grammar_state: GrammarStateId,
+        pos_start: Pos,
+        context: ParserContext,
+    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,
@@ -101,7 +104,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
             ctx: context,
             state: grammar_state,
         };
-        if let Some(cached) = state.cache_get(&key) {
+        if let Some(cached) = self.cache_get(&key) {
             return cached.clone();
         }
 
@@ -110,8 +113,8 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
         res_recursive.add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
-        let cache_state = state.cache_state_get();
-        state.cache_insert(key.clone(), res_recursive);
+        let cache_state = self.cache_state_get();
+        self.cache_insert(key.clone(), res_recursive);
 
         //Now execute the grammar rule, taking into account left recursion
         //The way this is done is heavily inspired by http://web.cs.ucla.edu/~todd/research/pepm08.pdf
@@ -120,33 +123,33 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
         //- Try to parse the current (rule, position). If this fails, there is definitely no left recursion. Otherwise, we now have a seed.
         //- Put the new seed in the cache, and rerun on the current (rule, position). Make sure to revert the cache to the previous state.
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
-        let res = sub.parse(pos_start, state, context);
+        let res = sub(self, pos_start);
         match res {
             POk(mut o, mut spos, mut epos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
-                if !state.cache_is_read(key.clone()).unwrap() {
+                if !self.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
                     let res = POk(o, spos, epos, be);
-                    state.cache_insert(key, res.clone());
+                    self.cache_insert(key, res.clone());
                     res
                 } else {
                     //There was leftrec, we need to grow the seed
                     loop {
                         //Insert the current seed into the cache
-                        state.cache_state_revert(cache_state);
-                        state.cache_insert(key.clone(), POk(o, spos, epos, be.clone()));
+                        self.cache_state_revert(cache_state);
+                        self.cache_insert(key.clone(), POk(o, spos, epos, be.clone()));
 
                         //Grow the seed
-                        let new_res = sub.parse(pos_start, state, context);
+                        let new_res = sub(self, pos_start);
                         match new_res {
                             POk(new_o, new_spos, new_epos, new_be)
-                                if new_epos.cmp(&epos).is_gt() =>
-                            {
-                                o = new_o;
-                                spos = new_spos;
-                                epos = new_epos;
-                                be = new_be;
-                            }
+                            if new_epos.cmp(&epos).is_gt() =>
+                                {
+                                    o = new_o;
+                                    spos = new_spos;
+                                    epos = new_epos;
+                                    be = new_be;
+                                }
                             POk(_, _, _, new_be) => {
                                 be = err_combine_opt(be, new_be);
                                 break;
@@ -164,7 +167,7 @@ pub fn parser_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLab
                 }
             }
             res @ PErr(_, _) => {
-                state.cache_insert(key, res.clone());
+                self.cache_insert(key, res.clone());
                 res
             }
         }
