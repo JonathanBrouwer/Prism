@@ -1,9 +1,6 @@
-use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
-use crate::core::state::ParserState;
 use crate::error::{err_combine, err_combine_opt, ParseError};
 
 #[derive(Clone)]

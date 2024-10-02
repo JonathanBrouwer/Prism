@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{ParserContext, PR};
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -243,9 +242,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)))
                 })
             }
-            RuleExpr::This => self.parse_rule_block(rules, block_ctx, pos, context)
+            RuleExpr::This => self
+                .parse_rule_block(rules, block_ctx, pos, context)
                 .map(PR::with_rtrn),
-            RuleExpr::Next => self.parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
+            RuleExpr::Next => self
+                .parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
                 .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => self
                 .parse_expr(rules, block_ctx, sub, vars, pos, context)
@@ -310,7 +311,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     .expect("Adaptation rule exists");
 
                 // Parse body
-                let mut res = self.parse_rule(rules, rule, &[], pos, context)
+                let mut res = self
+                    .parse_rule(rules, rule, &[], pos, context)
                     .map(PR::with_rtrn);
                 res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res

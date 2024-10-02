@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
@@ -36,10 +35,16 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             let pos_before_layout = new_res.end_pos();
             // Add in optional error information from sub_res, then require another layout token
             let new_res = res.merge_seq_opt(new_res).merge_seq_chain(|pos| {
-                self.parse_rule(rules, layout, &[], pos, ParserContext {
-                    layout_disabled: true,
-                    ..context
-                })
+                self.parse_rule(
+                    rules,
+                    layout,
+                    &[],
+                    pos,
+                    ParserContext {
+                        layout_disabled: true,
+                        ..context
+                    },
+                )
             });
             match new_res {
                 // We have parsed more layout, we can try again

@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarStateId;
 use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
@@ -143,13 +142,13 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         let new_res = sub(self, pos_start);
                         match new_res {
                             POk(new_o, new_spos, new_epos, new_be)
-                            if new_epos.cmp(&epos).is_gt() =>
-                                {
-                                    o = new_o;
-                                    spos = new_spos;
-                                    epos = new_epos;
-                                    be = new_be;
-                                }
+                                if new_epos.cmp(&epos).is_gt() =>
+                            {
+                                o = new_o;
+                                spos = new_spos;
+                                epos = new_epos;
+                                be = new_be;
+                            }
                             POk(_, _, _, new_be) => {
                                 be = err_combine_opt(be, new_be);
                                 break;

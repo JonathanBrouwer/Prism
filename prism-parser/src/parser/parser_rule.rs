@@ -1,6 +1,5 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
-use crate::core::context::{ParserContext, PR};
-use crate::core::parser::Parser;
+use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -16,7 +15,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         rule: RuleId,
         args: &[VarMapValue<'arn, 'grm>],
         pos: Pos,
-        context: ParserContext
+        context: ParserContext,
     ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)

@@ -1,7 +1,6 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
-use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
