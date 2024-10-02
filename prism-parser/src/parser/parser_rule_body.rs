@@ -136,7 +136,7 @@ fn parser_body_sub_annotations<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Error
             )
         }
         &[] => state
-            .parser_expr(rules, block_state, expr, vars, pos, context)
+            .parse_expr(rules, block_state, expr, vars, pos, context)
             .map(|pr| pr.rtrn),
     }
 }

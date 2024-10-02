@@ -150,7 +150,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
                 state
-                    .parser_expr(
+                    .parse_expr(
                         rules,
                         captured_expr.block_ctx,
                         captured_expr.expr,

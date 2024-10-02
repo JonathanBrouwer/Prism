@@ -15,7 +15,6 @@ use crate::META_GRAMMAR;
 use bumpalo::Bump;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
-    context: ParserContext,
     state: ParserState<'arn, 'grm, E>,
 
     grammar_state: GrammarState<'arn, 'grm>,
@@ -28,7 +27,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         bump: Allocs<'arn>,
         from: &'arn GrammarFile<'arn, 'grm>,
     ) -> Result<Self, AdaptError<'grm>> {
-        let context = ParserContext::new();
         let state = ParserState::new(input, bump);
 
         let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, bump);
@@ -54,7 +52,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             grammar_state.adapt_with(from, visible_rules, None, state.alloc)?;
 
         Ok(Self {
-            context,
             state,
             grammar_state,
             rules,
@@ -73,18 +70,14 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .expect("Rule exists")
             .as_rule_id()
             .expect("Rule is a rule");
-        let result = parser_rule::parser_rule(&self.grammar_state, rule, &[]).parse(
-            Pos::start(),
-            &mut self.state,
-            self.context,
-        );
+        let result = self.state.parse_rule(&self.grammar_state, rule, &[], Pos::start(), ParserContext::new());
         let end_pos = result.end_pos();
         let result = result
             .merge_seq(self.state.parse_end_with_layout(
                 &self.grammar_state,
                 self.rules,
                 end_pos,
-                self.context,
+                ParserContext::new(),
             ))
             .map(|(o, ())| o);
 

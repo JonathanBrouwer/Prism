@@ -29,7 +29,6 @@ macro_rules! parse_test {
             use prism_parser::core::presult::PResult::*;
             use prism_parser::core::pos::Pos;
             use prism_parser::error::error_printer::*;
-            use prism_parser::parser::parser_rule::parser_rule;
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
