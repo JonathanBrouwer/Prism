@@ -3,7 +3,6 @@ use crate::core::context::{ParserContext, PR};
 use crate::core::parser::{map_parser, Parser};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
-use crate::core::primitives::{negative_lookahead, positive_lookahead};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
@@ -117,7 +116,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             } => {
                 let item = parser_expr(rules, block_ctx, expr, vars);
                 let delimiter = parser_expr(rules, block_ctx, delim, vars);
-                
+
                 let mut res: PResult<Vec<_>, E> = PResult::new_empty(vec![], pos);
 
                 for i in 0..max.unwrap_or(u64::MAX) {
@@ -248,13 +247,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 .parse(pos, state, context)
                 .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => {
-                positive_lookahead(&parser_expr(rules, block_ctx, sub, vars))
-                    .parse(pos, state, context)
+                parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context).positive_lookahead(pos)
             }
             RuleExpr::NegLookahead(sub) => {
-                negative_lookahead(&parser_expr(rules, block_ctx, sub, vars))
-                    .parse(pos, state, context)
-                    .map(|_| PR::with_rtrn(ActionResult::VOID))
+                parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context).negative_lookahead(pos).map(|()| PR::with_rtrn(ActionResult::VOID))
             }
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 // First, get the grammar actionresult

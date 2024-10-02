@@ -11,7 +11,7 @@ use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
-    #[inline(always)]
+
     pub fn parse_char(
         &mut self,
         f: impl Fn(&char) -> bool,
@@ -25,7 +25,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         }
     }
 
-    #[inline(always)]
+
     pub fn parse_end(&mut self, pos: Pos) -> PResult<(), E> {
         match pos.next(self.input) {
             (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
@@ -34,32 +34,3 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     }
 }
 
-#[inline(always)]
-pub fn positive_lookahead<'arn, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
-    p: &impl Parser<'arn, 'grm, O, E>,
-) -> impl Parser<'arn, 'grm, O, E> + '_ {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          context: ParserContext|
-          -> PResult<O, E> {
-        match p.parse(pos, state, context) {
-            POk(o, _, _, err) => POk(o, pos, pos, err),
-            PErr(e, s) => PErr(e, s),
-        }
-    }
-}
-
-#[inline(always)]
-pub fn negative_lookahead<'arn, 'grm: 'arn, O, E: ParseError<L = ErrorLabel<'grm>>>(
-    p: &impl Parser<'arn, 'grm, O, E>,
-) -> impl Parser<'arn, 'grm, (), E> + '_ {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          context: ParserContext|
-          -> PResult<(), E> {
-        match p.parse(pos, state, context) {
-            POk(_, _, _, _) => PResult::new_err(E::new(pos.span_to(pos)), pos),
-            PErr(_, _) => PResult::new_empty((), pos),
-        }
-    }
-}

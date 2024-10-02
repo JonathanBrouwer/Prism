@@ -13,22 +13,22 @@ pub enum PResult<O, E: ParseError> {
 }
 
 impl<O, E: ParseError> PResult<O, E> {
-    #[inline(always)]
+
     pub fn new_empty(o: O, pos: Pos) -> Self {
         POk(o, pos, pos, None)
     }
 
-    #[inline(always)]
+
     pub fn new_ok(o: O, start: Pos, end: Pos) -> Self {
         POk(o, start, end, None)
     }
 
-    #[inline(always)]
+
     pub fn new_err(e: E, s: Pos) -> Self {
         PErr(e, s)
     }
 
-    #[inline(always)]
+
     pub fn map<P>(self, f: impl FnOnce(O) -> P) -> PResult<P, E> {
         match self {
             POk(o, start, end, e) => POk(f(o), start, end, e),
@@ -36,7 +36,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn map_with_span<P>(self, f: impl FnOnce(O, Span) -> P) -> PResult<P, E> {
         match self {
             POk(o, start, end, e) => POk(f(o, start.span_to(end)), start, end, e),
@@ -44,7 +44,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn add_label_explicit(&mut self, l: E::L) {
         match self {
             POk(_, _, _, e) => {
@@ -58,7 +58,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn add_label_implicit(&mut self, l: E::L) {
         match self {
             POk(_, _, _, e) => {
@@ -72,7 +72,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn collapse(self) -> Result<O, E> {
         match self {
             POk(o, _, _, _) => Ok(o),
@@ -80,7 +80,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn is_ok(&self) -> bool {
         match self {
             POk(_, _, _, _) => true,
@@ -88,7 +88,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn is_err(&self) -> bool {
         match self {
             POk(_, _, _, _) => false,
@@ -96,7 +96,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn end_pos(&self) -> Pos {
         match self {
             POk(_, _, s, _) => *s,
@@ -104,7 +104,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn merge_choice(self, other: Self) -> Self {
         match (self, other) {
             // Left ok
@@ -123,7 +123,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn merge_seq<O2>(self, other: PResult<O2, E>) -> PResult<(O, O2), E> {
         match (self, other) {
             (POk(o1, start1, end1, e1), POk(o2, start2, end2, e2)) => {
@@ -139,7 +139,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn merge_seq_opt<O2>(self, other: PResult<O2, E>) -> PResult<(O, Option<O2>), E> {
         match (self, other) {
             (r1 @ POk(_, _, _, _), r2 @ POk(_, _, _, _)) => {
@@ -152,7 +152,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
+
     pub fn merge_choice_parser<'arn, 'grm, P: Parser<'arn, 'grm, O, E>>(
         self,
         other: &P,
@@ -171,7 +171,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_choice(other.parse(pos, state, context))
     }
 
-    #[inline(always)]
+
     pub fn merge_seq_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
@@ -191,7 +191,7 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_seq(other.parse(pos, state, context))
     }
 
-    #[inline(always)]
+
     pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
         self,
         other: &P2,
@@ -212,23 +212,6 @@ impl<O, E: ParseError> PResult<O, E> {
         (self.merge_seq_opt(other_res), should_continue)
     }
 
-    #[inline(always)]
-    pub fn merge_seq_chain_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
-        self,
-        other: impl FnOnce(O) -> P2,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
-    ) -> PResult<O2, E>
-    where
-        'grm: 'arn,
-    {
-        match self {
-            POk(o, _, end_pos, _) => other(o).parse(end_pos, state, context),
-            PErr(_, _) => self.map(|_| unreachable!()),
-        }
-    }
-
-    #[inline(always)]
     pub fn ok(self) -> Option<O> {
         match self {
             POk(o, _, _, _) => Some(o),
@@ -236,11 +219,24 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    #[inline(always)]
     pub fn ok_ref(&self) -> Option<&O> {
         match self {
             POk(o, _, _, _) => Some(o),
             PErr(_, _) => None,
+        }
+    }
+
+    pub fn positive_lookahead(self, start_pos: Pos) -> Self {
+        match self {
+            POk(o, _, _, err) => POk(o, start_pos, start_pos, err),
+            PErr(e, s) => PErr(e, s),
+        }
+    }
+
+    pub fn negative_lookahead(self, start_pos: Pos) -> PResult<(), E> {
+        match self {
+            POk(_, _, _, _) => PResult::new_err(E::new(start_pos.span_to(start_pos)), start_pos),
+            PErr(_, _) => PResult::new_empty((), start_pos),
         }
     }
 }
