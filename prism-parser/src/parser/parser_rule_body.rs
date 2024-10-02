@@ -8,11 +8,9 @@ use crate::core::adaptive::{Constructor, GrammarState};
 
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
-use crate::core::recovery::recovery_point;
 use crate::core::state::ParserState;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::{RuleAnnotation, RuleExpr};
-use crate::parser::parser_layout::parser_with_layout;
 use crate::parser::parser_rule_expr::parser_expr;
 use crate::parser::var_map::{BlockCtx, VarMap};
 
@@ -123,14 +121,7 @@ fn parser_body_sub_annotations<
             res
         }
         [RuleAnnotation::DisableLayout, rest @ ..] => {
-            parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut ParserState<
-                'arn,
-                'grm,
-                E,
-            >,
-                                                   context: ParserContext|
-                  -> PResult<_, E> {
+            state.parse_with_layout(rules, vars, |state, pos| {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
                     pos,
                     state,
@@ -139,52 +130,26 @@ fn parser_body_sub_annotations<
                         ..context
                     },
                 )
-            })
-            .parse(pos, state, context)
+            }, pos, context)
         }
         [RuleAnnotation::EnableLayout, rest @ ..] => {
-            parser_with_layout(rules, vars, &move |pos: Pos,
-                                                   state: &mut ParserState<
-                'arn,
-                'grm,
-                E,
-            >,
-                                                   context: ParserContext|
-                  -> PResult<_, E> {
-                parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
-                    pos,
-                    state,
-                    ParserContext {
-                        layout_disabled: false,
-                        ..context
-                    },
-                )
-            })
-            .parse(pos, state, context)
+            parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
+                pos,
+                state,
+                ParserContext {
+                    layout_disabled: false,
+                    ..context
+                },
+            )
         }
-        [RuleAnnotation::DisableRecovery, rest @ ..] => recovery_point(
-            move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, context: ParserContext| {
-                parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
+        [RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery, rest @ ..] => parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
                     pos,
                     state,
                     ParserContext {
                         recovery_disabled: true,
                         ..context
                     },
-                )
-            },
-        )
-        .parse(pos, state, context),
-        [RuleAnnotation::EnableRecovery, rest @ ..] => {
-            parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
-                pos,
-                state,
-                ParserContext {
-                    recovery_disabled: false,
-                    ..context
-                },
-            )
-        }
+                ),
         &[] => parser_expr(rules, block_state, expr, vars)
             .parse(pos, state, context)
             .map(|pr| pr.rtrn),

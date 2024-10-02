@@ -10,7 +10,6 @@ mod lookahead;
 mod minor;
 mod parametric;
 mod parser_tests;
-mod recovery;
 mod repeat;
 mod span_merging;
 

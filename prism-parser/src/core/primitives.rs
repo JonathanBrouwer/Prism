@@ -12,7 +12,7 @@ use crate::error::ParseError;
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     #[inline(always)]
     pub fn parse_char(
-        &self,
+        &mut self,
         f: impl Fn(&char) -> bool,
         pos: Pos,
     ) -> PResult<(Span, char), E> {
@@ -21,6 +21,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos, pos_new),
             // Error
             (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
+        }
+    }
+
+    #[inline(always)]
+    pub fn parse_end(&mut self, pos: Pos) -> PResult<(), E> {
+        match pos.next(self.input) {
+            (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
+            (s, None) => PResult::new_empty((), s),
         }
     }
 }
@@ -108,16 +116,6 @@ pub fn repeat_delim<'arn, 'grm: 'arn, OP, OD, E: ParseError<L = ErrorLabel<'grm>
         }
 
         last_res
-    }
-}
-
-#[inline(always)]
-pub fn end<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>() -> impl Parser<'arn, 'grm, (), E> {
-    move |pos: Pos, state: &mut ParserState<'arn, 'grm, E>, _: ParserContext| -> PResult<(), E> {
-        match pos.next(state.input) {
-            (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
-            (s, None) => PResult::new_empty((), s),
-        }
     }
 }
 
