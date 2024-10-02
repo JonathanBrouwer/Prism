@@ -3,9 +3,10 @@ use crate::core::context::{ParserContext, PR};
 use crate::core::parser::{map_parser, Parser};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
-use crate::core::primitives::{negative_lookahead, positive_lookahead, repeat_delim};
+use crate::core::primitives::{negative_lookahead, positive_lookahead};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
+use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::apply_action::apply_action;
@@ -114,14 +115,48 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 max,
                 delim,
             } => {
-                //TODO this allocates :c
-                let res = repeat_delim(
-                    parser_expr(rules, block_ctx, expr, vars),
-                    parser_expr(rules, block_ctx, delim, vars),
-                    *min as usize,
-                    max.map(|max| max as usize),
-                )
-                .parse(pos, state, context);
+                let item = parser_expr(rules, block_ctx, expr, vars);
+                let delimiter = parser_expr(rules, block_ctx, delim, vars);
+                
+                let mut res: PResult<Vec<_>, E> = PResult::new_empty(vec![], pos);
+
+                for i in 0..max.unwrap_or(u64::MAX) {
+                    let pos = res.end_pos();
+                    let part = if i == 0 {
+                        item.parse(pos, state, context)
+                    } else {
+                        delimiter.parse(pos, state, context).merge_seq_parser(&item, state, context).map(|x| x.1)
+                    };
+                    let should_continue = part.is_ok();
+
+                    if i < *min {
+                        res = res.merge_seq(part).map(|(mut vec, item)| {
+                            vec.push(item);
+                            vec
+                        });
+                    } else {
+                        res = res.merge_seq_opt(part).map(|(mut vec, item)| {
+                            if let Some(item) = item {
+                                vec.push(item);
+                            }
+                            vec
+                        });
+                    };
+
+                    if !should_continue {
+                        break;
+                    };
+
+                    // If the result is OK and the last pos has not changed, we got into an infinite loop
+                    // We break out with an infinite loop error
+                    // The i != 0 check is to make sure to take the delim into account
+                    if i != 0 && res.end_pos() <= pos {
+                        let span = pos.span_to(pos);
+                        let mut e = E::new(span);
+                        e.add_label_explicit(Debug(span, "INFLOOP"));
+                        return PResult::new_err(e, pos);
+                    }
+                }
 
                 res.map_with_span(|rtrn, span| {
                     PR::with_rtrn(rtrn.iter().rfold(
