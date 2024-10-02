@@ -30,7 +30,6 @@ impl<
         T: Fn(Pos, &mut ParserState<'arn, 'grm, E>, ParserContext) -> PResult<O, E>,
     > Parser<'arn, 'grm, O, E> for T
 {
-
     fn parse(
         &self,
         pos: Pos,

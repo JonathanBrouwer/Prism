@@ -14,12 +14,7 @@ use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::parser_rule_expr::parser_expr;
 use crate::parser::var_map::{BlockCtx, VarMap};
 
-pub fn parser_body_cache_recurse<
-    'a,
-    'arn: 'a,
-    'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>>,
->(
+pub fn parser_body_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_ctx: BlockCtx<'arn, 'grm>,
 ) -> impl Parser<'arn, 'grm, &'arn ActionResult<'arn, 'grm>, E> + 'a {
@@ -66,12 +61,7 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
     }
 }
 
-fn parser_body_sub_constructors<
-    'a,
-    'arn: 'a,
-    'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>>,
->(
+fn parser_body_sub_constructors<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     (block_state, rule_args): BlockCtx<'arn, 'grm>,
     es: &'arn [Constructor<'arn, 'grm>],
@@ -98,12 +88,7 @@ fn parser_body_sub_constructors<
     }
 }
 
-fn parser_body_sub_annotations<
-    'a,
-    'arn: 'a,
-    'grm: 'arn,
-    E: ParseError<L = ErrorLabel<'grm>>,
->(
+fn parser_body_sub_annotations<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarState<'arn, 'grm>,
     block_state: BlockCtx<'arn, 'grm>,
     annots: &'arn [RuleAnnotation<'grm>],
@@ -120,8 +105,10 @@ fn parser_body_sub_annotations<
             ));
             res
         }
-        [RuleAnnotation::DisableLayout, rest @ ..] => {
-            state.parse_with_layout(rules, vars, |state, pos| {
+        [RuleAnnotation::DisableLayout, rest @ ..] => state.parse_with_layout(
+            rules,
+            vars,
+            |state, pos| {
                 parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
                     pos,
                     state,
@@ -130,8 +117,10 @@ fn parser_body_sub_annotations<
                         ..context
                     },
                 )
-            }, pos, context)
-        }
+            },
+            pos,
+            context,
+        ),
         [RuleAnnotation::EnableLayout, rest @ ..] => {
             parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
                 pos,
@@ -142,14 +131,16 @@ fn parser_body_sub_annotations<
                 },
             )
         }
-        [RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery, rest @ ..] => parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
-                    pos,
-                    state,
-                    ParserContext {
-                        recovery_disabled: true,
-                        ..context
-                    },
-                ),
+        [RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery, rest @ ..] => {
+            parser_body_sub_annotations(rules, block_state, rest, expr, vars).parse(
+                pos,
+                state,
+                ParserContext {
+                    recovery_disabled: true,
+                    ..context
+                },
+            )
+        }
         &[] => parser_expr(rules, block_state, expr, vars)
             .parse(pos, state, context)
             .map(|pr| pr.rtrn),

@@ -1,7 +1,9 @@
 use crate::core::adaptive::{AdaptError, GrammarState};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
+use crate::core::parser::Parser;
 use crate::core::pos::Pos;
+use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
@@ -12,8 +14,6 @@ use crate::parser::parser_rule;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
-use crate::core::parser::Parser;
-use crate::core::presult::PResult;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     context: ParserContext,
@@ -74,9 +74,20 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .expect("Rule exists")
             .as_rule_id()
             .expect("Rule is a rule");
-        let result = parser_rule::parser_rule(&self.grammar_state, rule, &[]).parse(Pos::start(), &mut self.state, self.context);
+        let result = parser_rule::parser_rule(&self.grammar_state, rule, &[]).parse(
+            Pos::start(),
+            &mut self.state,
+            self.context,
+        );
         let end_pos = result.end_pos();
-        let result = result.merge_seq(self.state.parse_end_with_layout(&self.grammar_state, self.rules, end_pos, self.context)).map(|(o, ())| o);
+        let result = result
+            .merge_seq(self.state.parse_end_with_layout(
+                &self.grammar_state,
+                self.rules,
+                end_pos,
+                self.context,
+            ))
+            .map(|(o, ())| o);
 
         result.collapse().map_err(|error| AggregatedParseError {
             input: self.state.input,
