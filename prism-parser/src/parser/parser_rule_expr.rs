@@ -17,16 +17,16 @@ use crate::parser::parser_rule::parser_rule;
 use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 
-pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
-    rules: &'arn GrammarState<'arn, 'grm>,
-    block_ctx: BlockCtx<'arn, 'grm>,
-    expr: &'arn RuleExpr<'arn, 'grm>,
-    vars: VarMap<'arn, 'grm>,
-) -> impl Parser<'arn, 'grm, PR<'arn, 'grm>, E> + 'a {
-    move |pos: Pos,
-          state: &mut ParserState<'arn, 'grm, E>,
-          context: ParserContext|
-          -> PResult<PR<'arn, 'grm>, E> {
+impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+    pub fn parser_expr(
+        &mut self,
+        rules: &'arn GrammarState<'arn, 'grm>,
+        block_ctx: BlockCtx<'arn, 'grm>,
+        expr: &'arn RuleExpr<'arn, 'grm>,
+        vars: VarMap<'arn, 'grm>,
+        pos: Pos,
+        context: ParserContext,
+    ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar(mut rule_str, args) => {
                 let mut result_args = vec![];
@@ -69,14 +69,20 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                                     0,
                                     "Tried to apply an argument to a non-rule expr"
                                 );
-                                parser_expr(rules, captured.block_ctx, captured.expr, captured.vars)
-                                    .parse(pos, state, context)
+                                self.parser_expr(
+                                    rules,
+                                    captured.block_ctx,
+                                    captured.expr,
+                                    captured.vars,
+                                    pos,
+                                    context,
+                                )
                             }
                         }
                         VarMapValue::Value(value) => {
                             if let ActionResult::RuleId(rule) = value {
                                 parser_rule(rules, *rule, &result_args)
-                                    .parse(pos, state, context)
+                                    .parse(pos, self, context)
                                     .map(PR::with_rtrn)
                             } else {
                                 //TODO remove this code and replace with $value expressions
@@ -86,7 +92,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     };
                 }
             }
-            RuleExpr::CharClass(cc) => state
+            RuleExpr::CharClass(cc) => self
                 .parse_with_layout(
                     rules,
                     vars,
@@ -94,8 +100,8 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                     pos,
                     context,
                 )
-                .map(|(span, _)| PR::with_rtrn(&*state.alloc.alloc(ActionResult::Value(span)))),
-            RuleExpr::Literal(literal) => state.parse_with_layout(
+                .map(|(span, _)| PR::with_rtrn(&*self.alloc.alloc(ActionResult::Value(span)))),
+            RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
                 |state, start_pos| {
@@ -119,19 +125,17 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 max,
                 delim,
             } => {
-                let item = parser_expr(rules, block_ctx, expr, vars);
-                let delimiter = parser_expr(rules, block_ctx, delim, vars);
-
                 let mut res: PResult<Vec<_>, E> = PResult::new_empty(vec![], pos);
 
                 for i in 0..max.unwrap_or(u64::MAX) {
                     let pos = res.end_pos();
                     let part = if i == 0 {
-                        item.parse(pos, state, context)
+                        self.parser_expr(rules, block_ctx, expr, vars, pos, context)
                     } else {
-                        delimiter
-                            .parse(pos, state, context)
-                            .merge_seq_parser(&item, state, context)
+                        self.parser_expr(rules, block_ctx, delim, vars, pos, context)
+                            .merge_seq_chain(|pos| {
+                                self.parser_expr(rules, block_ctx, expr, vars, pos, context)
+                            })
                             .map(|x| x.1)
                     };
                     let should_continue = part.is_ok();
@@ -167,12 +171,12 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 res.map_with_span(|rtrn, span| {
                     PR::with_rtrn(rtrn.iter().rfold(
-                        state.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
+                        self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
                         |rest, next| {
-                            state.alloc.alloc(ActionResult::Construct(
+                            self.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
-                                state.alloc.alloc_extend([*next.rtrn, *rest]),
+                                self.alloc.alloc_extend([*next.rtrn, *rest]),
                             ))
                         },
                     ))
@@ -184,16 +188,14 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 let mut res_vars: VarMap = vars;
                 for sub in *subs {
                     res = res
-                        .merge_seq_parser(
-                            &parser_expr(rules, block_ctx, sub, res_vars),
-                            state,
-                            context,
-                        )
-                        .map(|(l, r)| l.extend(r.free.iter_cloned(), state.alloc));
+                        .merge_seq_chain(|pos| {
+                            self.parser_expr(rules, block_ctx, sub, res_vars, pos, context)
+                        })
+                        .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
                     match &res.ok_ref() {
                         None => break,
                         Some(o) => {
-                            res_vars = res_vars.extend(o.iter_cloned(), state.alloc);
+                            res_vars = res_vars.extend(o.iter_cloned(), self.alloc);
                         }
                     }
                 }
@@ -205,12 +207,9 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
             RuleExpr::Choice(subs) => {
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
                 for sub in *subs {
-                    res = res.merge_choice_parser(
-                        &parser_expr(rules, block_ctx, sub, vars),
-                        pos,
-                        state,
-                        context,
-                    );
+                    res = res.merge_choice_chain(|| {
+                        self.parser_expr(rules, block_ctx, sub, vars, pos, context)
+                    });
                     if res.is_ok() {
                         break;
                     }
@@ -218,47 +217,47 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
+                let res = self.parser_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map(|res| PR {
                     free: res
                         .free
-                        .insert(name, VarMapValue::Value(res.rtrn), state.alloc),
+                        .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
                     rtrn: ActionResult::VOID,
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
+                let res = self.parser_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map_with_span(|res, span| {
                     let rtrn = apply_action(
                         action,
                         span,
-                        res.free.extend(vars.iter_cloned(), state.alloc),
-                        &state.alloc,
+                        res.free.extend(vars.iter_cloned(), self.alloc),
+                        &self.alloc,
                     );
 
                     PR {
                         free: res.free,
-                        rtrn: state.alloc.alloc(rtrn),
+                        rtrn: self.alloc.alloc(rtrn),
                     }
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = parser_expr(rules, block_ctx, sub, vars).parse(pos, state, context);
+                let res = self.parser_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(state.alloc.alloc(ActionResult::Value(span)))
+                    PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)))
                 })
             }
             RuleExpr::This => parser_body_cache_recurse(rules, block_ctx)
-                .parse(pos, state, context)
+                .parse(pos, self, context)
                 .map(PR::with_rtrn),
             RuleExpr::Next => parser_body_cache_recurse(rules, (&block_ctx.0[1..], block_ctx.1))
-                .parse(pos, state, context)
+                .parse(pos, self, context)
                 .map(PR::with_rtrn),
-            RuleExpr::PosLookahead(sub) => parser_expr(rules, block_ctx, sub, vars)
-                .parse(pos, state, context)
+            RuleExpr::PosLookahead(sub) => self
+                .parser_expr(rules, block_ctx, sub, vars, pos, context)
                 .positive_lookahead(pos),
-            RuleExpr::NegLookahead(sub) => parser_expr(rules, block_ctx, sub, vars)
-                .parse(pos, state, context)
+            RuleExpr::NegLookahead(sub) => self
+                .parser_expr(rules, block_ctx, sub, vars, pos, context)
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(ActionResult::VOID)),
             RuleExpr::AtAdapt(ga, adapt_rule) => {
@@ -276,7 +275,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, state.input, state.alloc, |ar, _| {
+                let g = match parse_grammarfile(gr, self.input, self.alloc, |ar, _| {
                     Some(RuleAction::ActionResult(ar))
                 }) {
                     Some(g) => g,
@@ -291,10 +290,10 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let g: &'arn GrammarFile<'arn, 'grm> = state.alloc.alloc(g);
+                let g: &'arn GrammarFile<'arn, 'grm> = self.alloc.alloc(g);
 
                 // Create new grammarstate
-                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), state.alloc) {
+                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), self.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(pos.span_to(pos));
@@ -307,7 +306,7 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
                         return PResult::new_err(e, pos);
                     }
                 };
-                let rules: &'arn GrammarState = state.alloc.alloc(rules);
+                let rules: &'arn GrammarState = self.alloc.alloc(rules);
 
                 let rule = vars
                     .get(adapt_rule)
@@ -318,16 +317,16 @@ pub fn parser_expr<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>
 
                 // Parse body
                 let mut res = parser_rule(rules, rule, &[])
-                    .parse(pos, state, context)
+                    .parse(pos, self, context)
                     .map(PR::with_rtrn);
                 res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res
             }
             RuleExpr::Guid => {
-                let guid = state.guid_counter;
-                state.guid_counter += 1;
+                let guid = self.guid_counter;
+                self.guid_counter += 1;
                 PResult::new_empty(
-                    PR::with_rtrn(state.alloc.alloc(ActionResult::Guid(guid))),
+                    PR::with_rtrn(self.alloc.alloc(ActionResult::Guid(guid))),
                     pos,
                 )
             }

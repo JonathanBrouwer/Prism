@@ -8,7 +8,6 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::RuleExpr;
-use crate::parser::parser_rule_expr::parser_expr;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
@@ -150,15 +149,17 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
     ) -> Option<&'arn ActionResult<'arn, 'grm>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
-                parser_expr(
-                    rules,
-                    captured_expr.block_ctx,
-                    captured_expr.expr,
-                    captured_expr.vars,
-                )
-                .parse(Pos::invalid(), state, context)
-                .ok()?
-                .rtrn
+                state
+                    .parser_expr(
+                        rules,
+                        captured_expr.block_ctx,
+                        captured_expr.expr,
+                        captured_expr.vars,
+                        Pos::invalid(),
+                        context,
+                    )
+                    .ok()?
+                    .rtrn
             }
             VarMapValue::Value(v) => v,
         })

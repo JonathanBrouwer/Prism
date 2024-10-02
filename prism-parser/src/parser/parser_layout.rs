@@ -1,5 +1,6 @@
 use crate::core::adaptive::GrammarState;
 use crate::core::context::ParserContext;
+use crate::core::parser::Parser;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
@@ -35,14 +36,16 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
             let pos_before_layout = new_res.end_pos();
             // Add in optional error information from sub_res, then require another layout token
-            let new_res = res.merge_seq_opt(new_res).merge_seq_parser(
-                &parser_rule(rules, layout, &[]),
-                self,
-                ParserContext {
-                    layout_disabled: true,
-                    ..context
-                },
-            );
+            let new_res = res.merge_seq_opt(new_res).merge_seq_chain(|pos| {
+                parser_rule(rules, layout, &[]).parse(
+                    pos,
+                    self,
+                    ParserContext {
+                        layout_disabled: true,
+                        ..context
+                    },
+                )
+            });
             match new_res {
                 // We have parsed more layout, we can try again
                 POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
@@ -70,24 +73,3 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         self.parse_with_layout(rules, vars, |state, pos| state.parse_end(pos), pos, context)
     }
 }
-
-// pub fn full_input_layout<
-//     'a,
-//     'arn: 'a,
-//     'grm: 'arn,
-//     O,
-//     E: ParseError<L = ErrorLabel<'grm>>,
-// >(
-//     rules: &'arn GrammarState<'arn, 'grm>,
-//     vars: VarMap<'arn, 'grm>,
-//     sub: &'a impl Parser<'arn, 'grm, O, E>,
-// ) -> impl Parser<'arn, 'grm, O, E> + 'a {
-//     move |pos: Pos,
-//           state: &mut ParserState<'arn, 'grm, E>,
-//           context: ParserContext|
-//           -> PResult<O, E> {
-//         let res = sub.parse(pos, state, context);
-//         res.merge_seq_parser(&parser_with_layout(rules, vars, &end()), state, context)
-//             .map(|(o, _)| o)
-//     }
-// }

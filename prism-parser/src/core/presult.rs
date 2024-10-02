@@ -138,13 +138,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    pub fn merge_choice_parser<'arn, 'grm, P: Parser<'arn, 'grm, O, E>>(
-        self,
-        other: &P,
-        pos: Pos,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
-    ) -> Self
+    pub fn merge_choice_chain<'arn, 'grm>(self, mut other: impl FnMut() -> PResult<O, E>) -> Self
     where
         'grm: 'arn,
     {
@@ -153,47 +147,44 @@ impl<O, E: ParseError> PResult<O, E> {
             return self;
         }
 
-        self.merge_choice(other.parse(pos, state, context))
+        self.merge_choice(other())
     }
 
-    pub fn merge_seq_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
+    pub fn merge_seq_chain<'arn, 'grm, O2>(
         self,
-        other: &P2,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
+        mut other: impl FnMut(Pos) -> PResult<O2, E>,
     ) -> PResult<(O, O2), E>
     where
         'grm: 'arn,
     {
-        //TODO write as  self.merge_seq_chain_parser(|o1| map_parser(other, &|o2| (o1, o2)), state, context)
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
         }
 
         let pos = self.end_pos();
-        self.merge_seq(other.parse(pos, state, context))
+        self.merge_seq(other(pos))
     }
 
-    pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
-        self,
-        other: &P2,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
-    ) -> (PResult<(O, Option<O2>), E>, bool)
-    where
-        'grm: 'arn,
-    {
-        //Quick out
-        if self.is_err() {
-            return (self.map(|_| unreachable!()), false);
-        }
-
-        let pos = self.end_pos();
-        let other_res = other.parse(pos, state, context);
-        let should_continue = other_res.is_ok();
-        (self.merge_seq_opt(other_res), should_continue)
-    }
+    // pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
+    //     self,
+    //     other: &P2,
+    //     state: &mut ParserState<'arn, 'grm, E>,
+    //     context: ParserContext,
+    // ) -> (PResult<(O, Option<O2>), E>, bool)
+    // where
+    //     'grm: 'arn,
+    // {
+    //     //Quick out
+    //     if self.is_err() {
+    //         return (self.map(|_| unreachable!()), false);
+    //     }
+    //
+    //     let pos = self.end_pos();
+    //     let other_res = other.parse(pos, state, context);
+    //     let should_continue = other_res.is_ok();
+    //     (self.merge_seq_opt(other_res), should_continue)
+    // }
 
     pub fn ok(self) -> Option<O> {
         match self {

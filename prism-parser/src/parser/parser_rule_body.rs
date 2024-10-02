@@ -11,7 +11,6 @@ use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::grammar::action_result::ActionResult;
 use crate::grammar::{RuleAnnotation, RuleExpr};
-use crate::parser::parser_rule_expr::parser_expr;
 use crate::parser::var_map::{BlockCtx, VarMap};
 
 pub fn parser_body_cache_recurse<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>(
@@ -50,12 +49,9 @@ fn parser_body_sub_blocks<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = ErrorLabel
                         .parse(pos, state, context);
 
                 // Parse next with recursion check
-                res.merge_choice_parser(
-                    &parser_body_cache_recurse(rules, (brest, rule_args)),
-                    pos,
-                    state,
-                    context,
-                )
+                res.merge_choice_chain(|| {
+                    parser_body_cache_recurse(rules, (brest, rule_args)).parse(pos, state, context)
+                })
             }
         }
     }
@@ -77,12 +73,10 @@ fn parser_body_sub_constructors<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Erro
             let res =
                 parser_body_sub_annotations(rules, (block_state, rule_args), annots, expr, vars)
                     .parse(pos, state, context)
-                    .merge_choice_parser(
-                        &parser_body_sub_constructors(rules, (block_state, rule_args), rest),
-                        pos,
-                        state,
-                        context,
-                    );
+                    .merge_choice_chain(|| {
+                        parser_body_sub_constructors(rules, (block_state, rule_args), rest)
+                            .parse(pos, state, context)
+                    });
             res
         }
     }
@@ -141,8 +135,8 @@ fn parser_body_sub_annotations<'a, 'arn: 'a, 'grm: 'arn, E: ParseError<L = Error
                 },
             )
         }
-        &[] => parser_expr(rules, block_state, expr, vars)
-            .parse(pos, state, context)
+        &[] => state
+            .parser_expr(rules, block_state, expr, vars, pos, context)
             .map(|pr| pr.rtrn),
     }
 }
