@@ -12,7 +12,6 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::{GrammarFile, RuleExpr};
-use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
@@ -244,11 +243,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)))
                 })
             }
-            RuleExpr::This => parser_body_cache_recurse(rules, block_ctx)
-                .parse(pos, self, context)
+            RuleExpr::This => self.parse_rule_block(rules, block_ctx, pos, context)
                 .map(PR::with_rtrn),
-            RuleExpr::Next => parser_body_cache_recurse(rules, (&block_ctx.0[1..], block_ctx.1))
-                .parse(pos, self, context)
+            RuleExpr::Next => self.parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
                 .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => self
                 .parse_expr(rules, block_ctx, sub, vars, pos, context)

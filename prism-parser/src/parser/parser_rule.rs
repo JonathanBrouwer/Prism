@@ -7,7 +7,6 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::action_result::ActionResult;
-use crate::parser::parser_rule_body::parser_body_cache_recurse;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
@@ -29,8 +28,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             self.alloc,
         );
 
-        let mut res = parser_body_cache_recurse(rules, (rule_state.blocks, rule_args))
-            .parse(pos, self, context);
+        let mut res = self.parse_rule_block(rules, (rule_state.blocks, rule_args), pos, context);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),
             rule_state.name,
