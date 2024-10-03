@@ -24,7 +24,6 @@ macro_rules! parse_test {
             use prism_parser::grammar::GrammarFile;
             use prism_parser::grammar;
             use prism_parser::error::empty_error::EmptyError;
-            use prism_parser::core::parser::Parser;
             use prism_parser::core::presult::PResult;
             use prism_parser::core::presult::PResult::*;
             use prism_parser::core::pos::Pos;
