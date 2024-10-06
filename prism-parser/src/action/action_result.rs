@@ -4,6 +4,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
+use crate::action::action::ActionVisitor;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
@@ -19,6 +20,29 @@ pub enum ActionResult<'arn, 'grm> {
     #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
+
+impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResult<'arn, 'grm> {
+    fn visit_value(&mut self, span: Span) -> Self {
+        Self::Value(span)
+    }
+
+    fn visit_literal(&mut self, literal: EscapedString<'grm>) -> Self {
+        Self::Literal(literal)
+    }
+
+    fn visit_construct(&mut self, span: Span, name: &'grm str, args: &'arn [Self]) -> Self {
+        Self::Construct(span, name, args)
+    }
+
+    fn visit_guid(&mut self, guid: usize) -> Self {
+        Self::Guid(guid)
+    }
+
+    fn visit_rule(&mut self, rule: RuleId) -> Self {
+        Self::RuleId(rule)
+    }
+}
+
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
     pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
