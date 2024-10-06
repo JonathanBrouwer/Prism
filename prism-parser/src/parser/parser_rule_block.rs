@@ -7,7 +7,7 @@ use crate::core::adaptive::{Constructor, GrammarState};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
-use crate::grammar::action_result::ActionResult;
+use crate::action::action_result::ActionResult;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::var_map::{BlockCtx, VarMap};
 

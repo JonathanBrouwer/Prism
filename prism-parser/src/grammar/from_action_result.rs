@@ -1,6 +1,6 @@
 use crate::core::cache::Allocs;
-use crate::grammar::action_result::ActionResult;
-use crate::grammar::action_result::ActionResult::*;
+use crate::action::action_result::ActionResult;
+use crate::action::action_result::ActionResult::*;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};

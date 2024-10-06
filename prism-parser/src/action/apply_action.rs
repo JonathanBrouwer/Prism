@@ -1,6 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
-use crate::grammar::action_result::ActionResult;
+use crate::action::action_result::ActionResult;
 use crate::grammar::rule_action::RuleAction;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
