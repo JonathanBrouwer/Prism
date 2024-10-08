@@ -219,7 +219,7 @@ impl TcEnv {
                 };
                 (e, *span)
             }
-            ActionResult::WithEnv(new_vars, ar) => {
+            ActionResult::Adapt(new_vars, ar) => {
                 let ActionResult::Construct(_span, "ScopeEnter", args) = ar else {
                     unreachable!()
                 };

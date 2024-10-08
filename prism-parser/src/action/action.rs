@@ -1,6 +1,7 @@
 use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::parser::var_map::VarMap;
 
 pub trait ActionVisitor<'arn, 'grm>: Sized {
     fn visit_value(&mut self, span: Span) -> Self;
@@ -12,4 +13,6 @@ pub trait ActionVisitor<'arn, 'grm>: Sized {
     fn visit_guid(&mut self, guid: usize) -> Self;
 
     fn visit_rule(&mut self, rule: RuleId) -> Self;
+
+    fn visit_adapt(&mut self, var_map: VarMap<'arn, 'grm>, sub: &'arn Self) -> Self;
 }

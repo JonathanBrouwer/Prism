@@ -1,3 +1,4 @@
+use std::env::var;
 use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
@@ -18,7 +19,7 @@ pub enum ActionResult<'arn, 'grm> {
     Guid(usize),
     RuleId(RuleId),
     #[serde(skip)]
-    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
+    Adapt(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResult<'arn, 'grm> {
@@ -40,6 +41,10 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResult<'arn, 'grm> {
 
     fn visit_rule(&mut self, rule: RuleId) -> Self {
         Self::RuleId(rule)
+    }
+
+    fn visit_adapt(&mut self, var_map: VarMap<'arn, 'grm>, sub: &'arn Self) -> Self {
+        Self::Adapt(var_map, sub)
     }
 }
 
@@ -76,7 +81,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
             ActionResult::RuleId(rule) => format!("Rule({rule})"),
-            ActionResult::WithEnv(_, ar) => format!("Env({})", ar.to_string(src)),
+            ActionResult::Adapt(_, ar) => format!("Env({})", ar.to_string(src)),
         }
     }
 
