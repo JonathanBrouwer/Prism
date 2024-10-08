@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
@@ -168,8 +169,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     },
                 ),
             &[] => self
-                .parse_expr(rules, block_state, expr, vars, pos, context)
-                .map(|pr| pr.rtrn),
+                .parse_expr(rules, block_state, expr, vars, &mut HashMap::new(), pos, context),
         }
     }
 }

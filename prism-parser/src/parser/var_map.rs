@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
@@ -154,11 +155,12 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
                         captured_expr.block_ctx,
                         captured_expr.expr,
                         captured_expr.vars,
+                        &mut HashMap::new(),
+                        
                         Pos::invalid(),
                         context,
                     )
                     .ok()?
-                    .rtrn
             }
             VarMapValue::Value(v) => v,
         })
