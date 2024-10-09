@@ -5,7 +5,7 @@ use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),

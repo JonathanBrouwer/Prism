@@ -8,6 +8,6 @@ pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
     Construct(&'grm str, #[serde(with = "leak_slice")] &'arn [Self]),
-    #[serde(skip)]
-    ActionResult(&'arn ActionResult<'arn, 'grm>),
+    // #[serde(skip)]
+    // ActionResult(&'arn ActionResult<'arn, 'grm>),
 }

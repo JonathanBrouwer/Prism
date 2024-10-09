@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hint::black_box;
 use std::mem;
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{ParserContext};
@@ -8,7 +9,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::action::action_result::ActionResult;
-use crate::action::apply_action::{apply_action, FreeMap};
+use crate::action::apply_action::{apply_action_before, FreeMap};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
@@ -16,13 +17,13 @@ use crate::grammar::{GrammarFile, RuleExpr};
 use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
-    pub fn parse_expr(
+    pub fn parse_expr<'a>(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,
         block_ctx: BlockCtx<'arn, 'grm>,
         expr: &'arn RuleExpr<'arn, 'grm>,
         vars: VarMap<'arn, 'grm>,
-        free: &mut FreeMap<'arn, 'grm>,
+        free: &mut FreeMap<'_, 'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
     ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
@@ -211,40 +212,24 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let PResult::POk(ar, _, _, _) = res else {
                     return res
                 };
-                let Some(free_ars) = free.get_mut(name)  else {
+                let Some(free_ar) = free.get_mut(name)  else {
                     return res;
                 };
-                for free_ar in free_ars {
-                    **free_ar = *ar;
-                }
+                // *free_ar = *ar;
                 res
             }
             RuleExpr::Action(sub, action) => {
-                let ar: &'arn mut _ = self.alloc.alloc(*ActionResult::VOID);
-                let ar_copy: &'static _ = unsafe { mem::transmute(&*ar) };
-                apply_action(&action, free, self.alloc, ar);
-                let res = self.parse_expr(rules, block_ctx, sub, vars, free,pos, context);
-                
-                res.map(|_| {
-                    ar_copy
-                })
+                let mut ar: ActionResult<'arn, 'grm> = *ActionResult::VOID;
+                let mut free = HashMap::new();
+                apply_action_before(action, &mut free, &mut ar);
+                let res = self.parse_expr(rules, block_ctx, sub, vars, &mut free, pos, context);
+                drop(free);
+                black_box(ar);
 
-
-                //TODO
-                // let res = self.parse_expr(rules, block_ctx, sub, vars, free,pos, context);
-                // res.map_with_span(|res, span| {
-                //     let rtrn = apply_action(
-                //         action,
-                //         span,
-                //         res.free.extend(vars.iter_cloned(), self.alloc),
-                //         &self.alloc,
-                //     );
-                //
-                //     PR {
-                //         free: res.free,
-                //         rtrn: self.alloc.alloc(rtrn),
-                //     }
+                // res.map_with_span(|_, span| {
+                //     &*self.alloc.alloc(apply_action_after(action, span, free, self.alloc))
                 // })
+                todo!()
             }
             RuleExpr::SliceInput(sub) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars,free, pos, context);

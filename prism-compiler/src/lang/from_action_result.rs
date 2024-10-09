@@ -219,15 +219,15 @@ impl TcEnv {
                 };
                 (e, *span)
             }
-            ActionResult::WithEnv(new_vars, ar) => {
-                let ActionResult::Construct(_span, "ScopeEnter", args) = ar else {
-                    unreachable!()
-                };
-                let guid = Self::parse_guid(&args[1]);
-                let vars = vars.jump(guid).extend_with_ars(new_vars, vars);
-
-                return self.insert_from_action_result_rec(&args[0], program, &vars);
-            }
+            // ActionResult::WithEnv(new_vars, ar) => {
+            //     let ActionResult::Construct(_span, "ScopeEnter", args) = ar else {
+            //         unreachable!()
+            //     };
+            //     let guid = Self::parse_guid(&args[1]);
+            //     let vars = vars.jump(guid).extend_with_ars(new_vars, vars);
+            //
+            //     return self.insert_from_action_result_rec(&args[0], program, &vars);
+            // }
             _ => unreachable!(),
         };
         self.store(inner, ValueOrigin::SourceCode(inner_span))
