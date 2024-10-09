@@ -90,6 +90,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
+name = "erased"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1731451909bde27714eacba19c2566362a7f35224f52b153d3f42cf60f72472"
+
+[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -126,6 +132,7 @@ dependencies = [
  "bincode",
  "bumpalo",
  "bumpalo_try",
+ "erased",
  "serde",
 ]
 

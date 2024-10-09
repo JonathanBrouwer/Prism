@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;

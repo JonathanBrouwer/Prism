@@ -167,9 +167,12 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         ..context
                     },
                 ),
-            &[] => self
-                .parse_expr(rules, block_state, expr, vars, pos, context)
-                .map(|pr| pr.rtrn),
+            &[] => {
+                todo!()
+                // self
+                //     .parse_expr(rules, block_state, expr, vars, pos, context)
+                //     .map(|pr| pr.rtrn)
+            },
         }
     }
 }

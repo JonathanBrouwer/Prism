@@ -12,3 +12,4 @@ bincode.workspace = true
 ariadne.workspace = true
 bumpalo.workspace = true
 bumpalo_try.workspace = true
+erased.workspace = true

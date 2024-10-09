@@ -148,17 +148,18 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
     ) -> Option<&'arn ActionResult<'arn, 'grm>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
-                state
-                    .parse_expr(
-                        rules,
-                        captured_expr.block_ctx,
-                        captured_expr.expr,
-                        captured_expr.vars,
-                        Pos::invalid(),
-                        context,
-                    )
-                    .ok()?
-                    .rtrn
+                todo!()
+                // state
+                //     .parse_expr(
+                //         rules,
+                //         captured_expr.block_ctx,
+                //         captured_expr.expr,
+                //         captured_expr.vars,
+                //         Pos::invalid(),
+                //         context,
+                //     )
+                //     .ok()?
+                //     .rtrn
             }
             VarMapValue::Value(v) => v,
         })
