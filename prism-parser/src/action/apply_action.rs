@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 use crate::action::ActionVisitor;
 use crate::grammar::rule_action::RuleAction;
+
 
 pub fn apply_action<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
     action: &RuleAction<'arn, 'grm>,
@@ -16,8 +18,9 @@ pub fn apply_action<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
         }
         RuleAction::Construct(name, actions) => {
             let mut visitors = visitor.visit_construct(name);
-            for (sub_visitor, sub_action) in visitors.iter_mut().zip(actions.iter()) {
-                apply_action(sub_action, &mut **sub_visitor, free_visitors);
+            for (sub_visitor, sub_action) in visitors.into_iter().zip(actions.iter()) {
+                //TODO leak
+                apply_action(sub_action, Box::leak(sub_visitor), free_visitors);
             }
         }
     }

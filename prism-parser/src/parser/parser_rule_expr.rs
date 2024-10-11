@@ -9,7 +9,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::action::action_result::ActionResult;
-use crate::action::apply_action::apply_action;
+use crate::action::apply_action::{apply_action};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
@@ -221,7 +221,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             // }
             RuleExpr::NameBind(name, sub) => {
                 let mut visitor = free_visitors.remove(name).unwrap();
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut *visitor, free_visitors);
+                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, free_visitors);
                 free_visitors.insert(name, visitor);
                 res
             }
@@ -337,5 +337,15 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             // }
             _ => todo!(),
         }
+    }
+}
+
+pub fn take<T, F>(mut_ref: &mut T, closure: impl FnOnce(T) -> T) {
+    use std::ptr;
+
+    unsafe {
+        let old_t = ptr::read(mut_ref);
+        let new_t = closure(old_t);
+        ptr::write(mut_ref, new_t);
     }
 }
