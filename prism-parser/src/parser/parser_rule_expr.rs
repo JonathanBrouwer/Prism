@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use erased::Erased;
-use crate::action::ActionVisitor;
+use crate::action::{ActionVisitor, IgnoreVisitor};
 use crate::core::adaptive::GrammarState;
-use crate::core::context::{ParserContext, PR};
+use crate::core::context::{ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -25,8 +25,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-        visitor: ActionVisitor<'arn, 'grm>,
-    ) -> PResult<Erased<'arn>, E> {
+        visitor: &mut dyn ActionVisitor<'arn, 'grm>,
+        free_visitors: &mut HashMap<&'grm str, &mut dyn ActionVisitor<'arn, 'grm>>
+    ) -> PResult<(), E> {
         match expr {
             RuleExpr::RunVar(mut rule_str, args) => {
                 // let mut result_args = vec![];
@@ -101,7 +102,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         pos,
                         context,
                     )
-                    .map(|(span, _)| (visitor.visit_input_str)(&self.input[span]))
+                    .map(|(span, _)| visitor.visit_input_str(&self.input[span]))
             },
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
@@ -114,7 +115,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                     let span = start_pos.span_to(res.end_pos());
                     let mut res =
-                        res.map(|_| (visitor.visit_input_str)(&state.input[span]));
+                        res.map(|_| visitor.visit_input_str(&state.input[span]));
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
@@ -218,16 +219,17 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             //     }
             //     res
             // }
-            // RuleExpr::NameBind(name, sub) => {
-            //     let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
-            //     res.map(|res| PR {
-            //         free: res
-            //             .free
-            //             .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
-            //         rtrn: ActionResult::VOID,
-            //     })
-            // }
+            RuleExpr::NameBind(name, sub) => {
+                let mut visitor = free_visitors.remove(name).unwrap();
+                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut *visitor, free_visitors);
+                free_visitors.insert(name, visitor);
+                res
+            }
             RuleExpr::Action(sub, action) => {
+                let mut new_visit_map = HashMap::new();
+                apply_action(action, visitor, &mut new_visit_map);
+                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map);
+
                 todo!()
                 // let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
                 // res.map_with_span(|res, span| {

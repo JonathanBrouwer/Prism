@@ -1,66 +1,24 @@
 use std::collections::HashMap;
-use crate::core::cache::Allocs;
-use crate::core::span::Span;
-use crate::action::action_result::ActionResult;
+use crate::action::ActionVisitor;
 use crate::grammar::rule_action::RuleAction;
-use crate::parser::var_map::{VarMap, VarMapValue};
 
-pub fn apply_action<'arn, 'grm>(
-    rule: &RuleAction<'arn, 'grm>,
-    span: Span,
-    vars: VarMap<'arn, 'grm>,
-    allocs: &Allocs<'arn>,
-) -> ActionResult<'arn, 'grm> {
-    match rule {
+pub fn apply_action<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
+    action: &RuleAction<'arn, 'grm>,
+    visitor: &'visitor mut dyn ActionVisitor<'arn, 'grm>,
+    free_visitors: &mut HashMap<&'grm str, &'visitor_map mut dyn ActionVisitor<'arn, 'grm>>
+) {
+    match action {
         RuleAction::Name(name) => {
-            if let Some(ar) = vars.get(name) {
-                if let VarMapValue::Value(v) = ar {
-                    **v
-                } else {
-                    panic!("")
-                }
-            } else {
-                panic!("Name '{name}' not in context")
-            }
+            free_visitors.insert(name, visitor);
         }
-        RuleAction::InputLiteral(lit) => ActionResult::Literal(*lit),
-        RuleAction::Construct(name, args) => {
-            let args_vals =
-                allocs.alloc_extend(args.iter().map(|a| apply_action(a, span, vars, allocs)));
-            ActionResult::Construct(span, name, args_vals)
+        RuleAction::InputLiteral(lit) => {
+            visitor.visit_literal(*lit);
+        }
+        RuleAction::Construct(name, actions) => {
+            let mut visitors = visitor.visit_construct(name);
+            for (sub_visitor, sub_action) in visitors.iter_mut().zip(actions.iter()) {
+                apply_action(sub_action, &mut **sub_visitor, free_visitors);
+            }
         }
     }
 }
-
-// fn apply_action_v2<'arn, 'grm>(
-//     rule: &RuleAction<'arn, 'grm>,
-//     allocs: &Allocs<'arn>,
-//     map: &mut HashMap<&'grm str, &'arn ActionResult<'arn, 'grm>>,
-//     ar:
-// ) -> ActionResult<'arn, 'grm> {
-//
-//
-//
-//     match rule {
-//         RuleAction::Name(name) => {
-//             map.insert(name, )
-//
-//             if let Some(ar) = vars.get(name) {
-//                 if let VarMapValue::Value(v) = ar {
-//                     **v
-//                 } else {
-//                     panic!("")
-//                 }
-//             } else {
-//                 panic!("Name '{name}' not in context")
-//             }
-//         }
-//         RuleAction::InputLiteral(lit) => ActionResult::Literal(*lit),
-//         RuleAction::Construct(name, args) => {
-//             let args_vals =
-//                 allocs.alloc_extend(args.iter().map(|a| crate::action::apply_action::apply_action(a, span, vars, allocs)));
-//             ActionResult::Construct(span, name, args_vals)
-//         }
-//         RuleAction::ActionResult(ar) => ActionResult::WithEnv(vars, ar),
-//     }
-// }

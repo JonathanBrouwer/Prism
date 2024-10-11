@@ -3,21 +3,6 @@ use crate::parser::var_map::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 
-#[derive(Clone)]
-pub struct PR<'arn, 'grm> {
-    pub free: VarMap<'arn, 'grm>,
-    pub rtrn: &'arn ActionResult<'arn, 'grm>,
-}
-
-impl<'arn, 'grm> PR<'arn, 'grm> {
-    pub fn with_rtrn(rtrn: &'arn ActionResult<'arn, 'grm>) -> Self {
-        Self {
-            free: VarMap::default(),
-            rtrn,
-        }
-    }
-}
-
 #[derive(Eq, PartialEq, Hash, Clone, Copy)]
 pub struct ParserContext {
     pub(crate) recovery_disabled: bool,
