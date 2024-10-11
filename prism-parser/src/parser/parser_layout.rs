@@ -1,3 +1,4 @@
+use crate::action::IgnoreVisitor;
 use crate::core::adaptive::GrammarState;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
@@ -44,6 +45,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         layout_disabled: true,
                         ..context
                     },
+                    &mut IgnoreVisitor
                 )
             });
             match new_res {

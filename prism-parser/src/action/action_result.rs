@@ -4,6 +4,8 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
+use crate::action::ActionVisitor;
+use crate::core::cache::Allocs;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
@@ -16,6 +18,28 @@ pub enum ActionResult<'arn, 'grm> {
     ),
     Guid(usize),
     RuleId(RuleId),
+}
+
+#[derive(Copy, Clone)]
+pub struct ActionResultVisitor<'a, 'arn, 'grm>(&'a ActionResult<'arn, 'grm>);
+
+impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'grm> {
+    fn visit_input_str(&mut self, s: &'arn str) {
+        todo!()
+    }
+
+    fn visit_literal(&mut self, lit: EscapedString<'grm>) {
+        todo!()
+    }
+
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
+        todo!()
+        // vec![allocs.alloc(ActionResultVisitor(&self.0))]
+    }
+
+    fn visit_guid(&mut self, guid: usize) {
+        todo!()
+    }
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {

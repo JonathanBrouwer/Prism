@@ -47,7 +47,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         );
 
         let (grammar_state, rules) =
-            grammar_state.adapt_with(from, visible_rules, None, state.alloc)?;
+            grammar_state.adapt_with(from, visible_rules, None, state.allocs)?;
 
         Ok(Self {
             state,
@@ -68,27 +68,30 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .expect("Rule exists")
             .as_rule_id()
             .expect("Rule is a rule");
-        let result = self.state.parse_rule(
-            &self.grammar_state,
-            rule,
-            &[],
-            Pos::start(),
-            ParserContext::new(),
-        );
-        let end_pos = result.end_pos();
-        let result = result
-            .merge_seq(self.state.parse_end_with_layout(
-                &self.grammar_state,
-                self.rules,
-                end_pos,
-                ParserContext::new(),
-            ))
-            .map(|(o, ())| o);
 
-        result.collapse().map_err(|error| AggregatedParseError {
-            input: self.state.input,
-            errors: vec![error],
-        })
+        todo!()
+
+        // let result = self.state.parse_rule(
+        //     &self.grammar_state,
+        //     rule,
+        //     &[],
+        //     Pos::start(),
+        //     ParserContext::new(),
+        // );
+        // let end_pos = result.end_pos();
+        // let result = result
+        //     .merge_seq(self.state.parse_end_with_layout(
+        //         &self.grammar_state,
+        //         self.rules,
+        //         end_pos,
+        //         ParserContext::new(),
+        //     ))
+        //     .map(|(o, ())| o);
+        //
+        // result.collapse().map_err(|error| AggregatedParseError {
+        //     input: self.state.input,
+        //     errors: vec![error],
+        // })
     }
 }
 

@@ -8,7 +8,6 @@ use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
 use crate::action::apply_action::{apply_action};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
@@ -216,7 +215,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             }
             RuleExpr::Action(sub, action) => {
                 let mut new_visit_map = HashMap::new();
-                apply_action(action, visitor, &mut new_visit_map);
+                apply_action(action, visitor, &mut new_visit_map, self.allocs);
                 self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
             RuleExpr::SliceInput(sub) => {
