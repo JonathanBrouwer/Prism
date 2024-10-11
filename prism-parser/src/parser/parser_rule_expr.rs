@@ -185,73 +185,46 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             //         ))
             //     })
             // }
-            // RuleExpr::Sequence(subs) => {
-            //     let mut res = PResult::new_empty(VarMap::default(), pos);
-            //     //TODO can we do better than tracking res_vars by cloning?
-            //     let mut res_vars: VarMap = vars;
-            //     for sub in *subs {
-            //         res = res
-            //             .merge_seq_chain(|pos| {
-            //                 self.parse_expr(rules, block_ctx, sub, res_vars, pos, context)
-            //             })
-            //             .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
-            //         match &res.ok_ref() {
-            //             None => break,
-            //             Some(o) => {
-            //                 res_vars = res_vars.extend(o.iter_cloned(), self.alloc);
-            //             }
-            //         }
-            //     }
-            //     res.map(|map| PR {
-            //         free: map,
-            //         rtrn: ActionResult::VOID,
-            //     })
-            // }
-            // RuleExpr::Choice(subs) => {
-            //     let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
-            //     for sub in *subs {
-            //         res = res.merge_choice_chain(|| {
-            //             self.parse_expr(rules, block_ctx, sub, vars, pos, context)
-            //         });
-            //         if res.is_ok() {
-            //             break;
-            //         }
-            //     }
-            //     res
-            // }
-            RuleExpr::NameBind(name, sub) => {
-                let mut visitor = free_visitors.remove(name).unwrap();
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, free_visitors);
-                free_visitors.insert(name, visitor);
+            RuleExpr::Sequence(subs) => {
+                let mut res = PResult::new_empty((), pos);
+                for sub in *subs {
+                    res = res
+                        .merge_seq_chain(|pos| {
+                            self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, free_visitors)
+                        }).map(|((), ())| ());
+                    if res.is_err() {
+                        break
+                    }
+                }
                 res
+            }
+            RuleExpr::Choice(subs) => {
+                let mut res: PResult<(), E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
+                for sub in *subs {
+                    res = res.merge_choice_chain(|| {
+                        self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, &mut HashMap::new())
+                    });
+                    if res.is_ok() {
+                        break;
+                    }
+                }
+                res
+            }
+            RuleExpr::NameBind(name, sub) => {
+                let visitor: &mut _ = *free_visitors.get_mut(name).unwrap();
+                self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, &mut HashMap::new())
             }
             RuleExpr::Action(sub, action) => {
                 let mut new_visit_map = HashMap::new();
                 apply_action(action, visitor, &mut new_visit_map);
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map);
-
-                todo!()
-                // let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
-                // res.map_with_span(|res, span| {
-                //     let rtrn = apply_action(
-                //         action,
-                //         span,
-                //         res.free.extend(vars.iter_cloned(), self.alloc),
-                //         &self.alloc,
-                //     );
-                //
-                //     PR {
-                //         free: res.free,
-                //         rtrn: self.alloc.alloc(rtrn),
-                //     }
-                // })
+                self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
-            // RuleExpr::SliceInput(sub) => {
-            //     let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
-            //     res.map_with_span(|_, span| {
-            //         PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)))
-            //     })
-            // }
+            RuleExpr::SliceInput(sub) => {
+                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
+                res.map_with_span(|_, span| {
+                    visitor.visit_input_str(&self.input[span])
+                })
+            }
             // RuleExpr::This => self
             //     .parse_rule_block(rules, block_ctx, pos, context)
             //     .map(PR::with_rtrn),
@@ -327,14 +300,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             //     res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
             //     res
             // }
-            // RuleExpr::Guid => {
-            //     let guid = self.guid_counter;
-            //     self.guid_counter += 1;
-            //     PResult::new_empty(
-            //         PR::with_rtrn(self.alloc.alloc(ActionResult::Guid(guid))),
-            //         pos,
-            //     )
-            // }
+            RuleExpr::Guid => {
+                visitor.visit_guid(self.guid_counter);
+                self.guid_counter += 1;
+                PResult::new_empty(
+                    (),
+                    pos,
+                )
+            }
             _ => todo!(),
         }
     }
