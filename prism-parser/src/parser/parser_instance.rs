@@ -6,7 +6,7 @@ use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
+use crate::action::action_result::{ActionResult, ActionResultVisitor};
 use crate::grammar::GrammarFile;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
@@ -69,29 +69,35 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .as_rule_id()
             .expect("Rule is a rule");
 
-        todo!()
+        let mut ar = self.state.allocs.alloc(*ActionResult::VOID);
+        let mut ar_visitor = ActionResultVisitor(&mut *ar);
+        let result = self.state.parse_rule(
+            &self.grammar_state,
+            rule,
+            &[],
+            Pos::start(),
+            ParserContext::new(),
+            &mut ar_visitor,
+        );
+        let end_pos = result.end_pos();
+        let result = result
+            .merge_seq(self.state.parse_end_with_layout(
+                &self.grammar_state,
+                self.rules,
+                end_pos,
+                ParserContext::new(),
+            ))
+            .map(|(o, ())| o);
 
-        // let result = self.state.parse_rule(
-        //     &self.grammar_state,
-        //     rule,
-        //     &[],
-        //     Pos::start(),
-        //     ParserContext::new(),
-        // );
-        // let end_pos = result.end_pos();
-        // let result = result
-        //     .merge_seq(self.state.parse_end_with_layout(
-        //         &self.grammar_state,
-        //         self.rules,
-        //         end_pos,
-        //         ParserContext::new(),
-        //     ))
-        //     .map(|(o, ())| o);
-        //
-        // result.collapse().map_err(|error| AggregatedParseError {
-        //     input: self.state.input,
-        //     errors: vec![error],
-        // })
+        match result.collapse() {
+            Ok(()) => Ok(ar),
+            Err(error) => {
+                Err(AggregatedParseError {
+                    input: self.state.input,
+                    errors: vec![error],
+                })
+            }
+        }
     }
 }
 

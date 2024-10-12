@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use erased::Erased;
 use crate::action::{ActionVisitor, IgnoreVisitor};
+use crate::action::action_result::ActionResult;
 use crate::core::adaptive::GrammarState;
 use crate::core::context::{ParserContext};
 use crate::core::pos::Pos;
@@ -29,68 +30,69 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     ) -> PResult<(), E> {
         match expr {
             RuleExpr::RunVar(mut rule_str, args) => {
-                // let mut result_args = vec![];
-                // let mut args = args;
-                // let mut block_ctx = block_ctx;
-                // let mut vars = vars;
-                //
-                // loop {
-                //     // Figure out which rule the variable `rule` refers to
-                //     let Some(rule) = vars.get(rule_str) else {
-                //         panic!(
-                //             "Tried to run variable `{rule_str}` as a rule, but it was not defined."
-                //         );
-                //     };
-                //
-                //     result_args.splice(
-                //         0..0,
-                //         args.iter().map(|arg| {
-                //             VarMapValue::Expr(CapturedExpr {
-                //                 expr: arg,
-                //                 block_ctx,
-                //                 vars,
-                //             })
-                //         }),
-                //     );
-                //
-                //     return match rule {
-                //         VarMapValue::Expr(captured) => {
-                //             // If the `Expr` we call is a rule, we might be using it as a higher-order rule
-                //             // We process this rule in a loop, using the context of the captured expression
-                //             if let RuleExpr::RunVar(sub_rule, sub_args) = captured.expr {
-                //                 rule_str = sub_rule;
-                //                 args = sub_args;
-                //                 block_ctx = captured.block_ctx;
-                //                 vars = captured.vars;
-                //                 continue;
-                //             } else {
-                //                 assert_eq!(
-                //                     result_args.len(),
-                //                     0,
-                //                     "Tried to apply an argument to a non-rule expr"
-                //                 );
-                //                 self.parse_expr(
-                //                     rules,
-                //                     captured.block_ctx,
-                //                     captured.expr,
-                //                     captured.vars,
-                //                     pos,
-                //                     context,
-                //                 )
-                //             }
-                //         }
-                //         VarMapValue::Value(value) => {
-                //             if let ActionResult::RuleId(rule) = value {
-                //                 self.parse_rule(rules, *rule, &result_args, pos, context)
-                //                     .map(PR::with_rtrn)
-                //             } else {
-                //                 //TODO remove this code and replace with $value expressions
-                //                 PResult::new_empty(PR::with_rtrn(value), pos)
-                //             }
-                //         }
-                //     };
-                // }
-                todo!()
+                let mut result_args = vec![];
+                let mut args = args;
+                let mut block_ctx = block_ctx;
+                let mut vars = vars;
+
+                loop {
+                    // Figure out which rule the variable `rule` refers to
+                    let Some(rule) = vars.get(rule_str) else {
+                        panic!(
+                            "Tried to run variable `{rule_str}` as a rule, but it was not defined."
+                        );
+                    };
+
+                    result_args.splice(
+                        0..0,
+                        args.iter().map(|arg| {
+                            VarMapValue::Expr(CapturedExpr {
+                                expr: arg,
+                                block_ctx,
+                                vars,
+                            })
+                        }),
+                    );
+
+                    return match rule {
+                        VarMapValue::Expr(captured) => {
+                            // If the `Expr` we call is a rule, we might be using it as a higher-order rule
+                            // We process this rule in a loop, using the context of the captured expression
+                            if let RuleExpr::RunVar(sub_rule, sub_args) = captured.expr {
+                                rule_str = sub_rule;
+                                args = sub_args;
+                                block_ctx = captured.block_ctx;
+                                vars = captured.vars;
+                                continue;
+                            } else {
+                                assert_eq!(
+                                    result_args.len(),
+                                    0,
+                                    "Tried to apply an argument to a non-rule expr"
+                                );
+                                self.parse_expr(
+                                    rules,
+                                    captured.block_ctx,
+                                    captured.expr,
+                                    captured.vars,
+                                    pos,
+                                    context,
+                                    visitor,
+                                    &mut HashMap::new(),
+                                )
+                            }
+                        }
+                        VarMapValue::Value(value) => {
+                            if let ActionResult::RuleId(rule) = value {
+                                self.parse_rule(rules, *rule, &result_args, pos, context, visitor)
+                            } else {
+                                todo!()
+                                //TODO remove this code and replace with $value expressions
+                                // PResult::new_empty(PR::with_rtrn(value), pos)
+                            }
+                        }
+                    };
+                }
             }
             RuleExpr::CharClass(cc) => {
                 self
@@ -101,7 +103,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         pos,
                         context,
                     )
-                    .map(|(span, _)| visitor.visit_input_str(&self.input[span]))
+                    .map(|(span, _)| visitor.visit_input_str(&self.input[span], span))
             },
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
@@ -114,7 +116,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                     let span = start_pos.span_to(res.end_pos());
                     let mut res =
-                        res.map(|_| visitor.visit_input_str(&state.input[span]));
+                        res.map(|_| visitor.visit_input_str(&state.input[span], span));
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
@@ -221,7 +223,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::SliceInput(sub) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
                 res.map_with_span(|_, span| {
-                    visitor.visit_input_str(&self.input[span])
+                    visitor.visit_input_str(&self.input[span], span)
                 })
             }
             // RuleExpr::This => self

@@ -19,7 +19,7 @@ pub fn apply_action<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
             visitor.visit_literal(*lit);
         }
         RuleAction::Construct(name, actions) => {
-            let mut visitors = visitor.visit_construct(name, allocs);
+            let mut visitors = visitor.visit_construct(name, actions.len(), allocs);
             for (sub_visitor, sub_action) in visitors.into_iter().zip(actions.iter()) {
                 apply_action(sub_action, sub_visitor, free_visitors, allocs);
             }

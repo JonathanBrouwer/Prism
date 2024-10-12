@@ -47,6 +47,10 @@ impl<'arn> Allocs<'arn> {
     }
 
     pub fn alloc<T: Copy>(&self, t: T) -> &'arn mut T {
+        self.alloc_unchecked(t)
+    }
+
+    pub fn alloc_unchecked<T>(&self, t: T) -> &'arn mut T {
         self.bump.alloc(t)
     }
 

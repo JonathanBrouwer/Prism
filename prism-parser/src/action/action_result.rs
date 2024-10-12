@@ -1,3 +1,4 @@
+use std::{iter, mem};
 use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
@@ -20,25 +21,30 @@ pub enum ActionResult<'arn, 'grm> {
     RuleId(RuleId),
 }
 
-#[derive(Copy, Clone)]
-pub struct ActionResultVisitor<'a, 'arn, 'grm>(&'a ActionResult<'arn, 'grm>);
+pub struct ActionResultVisitor<'a, 'arn, 'grm>(pub &'a mut ActionResult<'arn, 'grm>);
 
 impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'grm> {
-    fn visit_input_str(&mut self, s: &'arn str) {
-        todo!()
+    fn visit_input_str(&mut self, s: &'arn str, span: Span) {
+        *self.0 = ActionResult::Value(span);
     }
 
     fn visit_literal(&mut self, lit: EscapedString<'grm>) {
-        todo!()
+        *self.0 = ActionResult::Literal(lit);
     }
 
-    fn visit_construct<'a>(&'a mut self, name: &'grm str, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
-        todo!()
-        // vec![allocs.alloc(ActionResultVisitor(&self.0))]
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
+        //TODO this does NOT set the self pointer
+        let mut result: &'arn mut _ = allocs.alloc_extend(iter::repeat_n(*ActionResult::VOID, arity_hint));
+        let unsound_static_result: &'static [ActionResult<'static, 'static>] = unsafe { mem::transmute(&*result) };
+        let v = result.iter_mut().map(|action| {
+            allocs.alloc_unchecked(ActionResultVisitor(action)) as &mut dyn ActionVisitor<'arn, 'grm>
+        }).collect();
+        *self.0 = ActionResult::Construct(Span::invalid(), name, unsound_static_result);
+        v
     }
 
     fn visit_guid(&mut self, guid: usize) {
-        todo!()
+        *self.0 = ActionResult::Guid(guid);
     }
 }
 
