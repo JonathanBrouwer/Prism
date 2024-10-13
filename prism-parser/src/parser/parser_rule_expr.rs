@@ -210,6 +210,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
             RuleExpr::SliceInput(sub) => {
+                println!("{sub:?}");
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
                 res.map_with_span(|_, span| {
                     visitor.visit_input_str(&self.input[span], span)

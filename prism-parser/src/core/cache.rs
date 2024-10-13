@@ -107,6 +107,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             state: grammar_state,
         };
         if let Some(cached) = self.cache_get(&key) {
+            if cached.is_ok() {
+                todo!("Should be fixed");
+            }
             return cached.clone();
         }
 
@@ -135,6 +138,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     self.cache_insert(key, res.clone());
                     res
                 } else {
+                    todo!("Should be fixed");
                     //There was leftrec, we need to grow the seed
                     loop {
                         //Insert the current seed into the cache

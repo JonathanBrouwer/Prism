@@ -26,6 +26,7 @@ pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
     allocs: Allocs<'grm>,
 ) -> Result<GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
     run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar, _| {
+        println!("{}", ar.to_string(grammar));
         parse_grammarfile(ar, grammar, allocs, |ar, src| {
             parse_rule_action(ar, src, allocs)
         })

@@ -7,6 +7,10 @@ use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use std::borrow::Cow;
 
+pub fn invalid_grammar<T>() -> Option<T> {
+    panic!()
+}
+
 #[macro_export]
 macro_rules! result_match {
     {match $e1:expr => $p1:pat_param, $(match $es:expr => $ps:pat_param,)* create $body:expr} => {
@@ -14,7 +18,7 @@ macro_rules! result_match {
             $p1 => {
                 result_match! { $(match $es => $ps,)* create $body }
             },
-            _ => None,
+            _ => invalid_grammar(),
         }
     };
     {create $body:expr} => {
@@ -119,7 +123,7 @@ fn parse_rule_annotation<'arn_in, 'grm>(
         Construct(_, "EnableLayout", _) => RuleAnnotation::EnableLayout,
         Construct(_, "DisableRecovery", _) => RuleAnnotation::DisableRecovery,
         Construct(_, "EnableRecovery", _) => RuleAnnotation::EnableRecovery,
-        _ => return None,
+        _ => return invalid_grammar(),
     })
 }
 
@@ -178,7 +182,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         Construct(_, "AtAdapt", b) => {
             RuleExpr::AtAdapt(parse_identifier(&b[0], src)?, parse_identifier(&b[1], src)?)
         }
-        _ => return None,
+        _ => return invalid_grammar(),
     })
 }
 
@@ -191,9 +195,9 @@ pub(crate) fn parse_identifier<'grm>(
         // If the identifier of a block is a literal, it does not contain escaped chars
         Literal(s) => match s.to_cow() {
             Cow::Borrowed(s) => Some(s),
-            Cow::Owned(_) => None,
+            Cow::Owned(_) => invalid_grammar(),
         },
-        _ => None,
+        _ => invalid_grammar(),
     }
 }
 
@@ -211,7 +215,7 @@ fn parse_string_char(r: &ActionResult<'_, '_>, src: &str) -> Option<char> {
     Some(match r {
         Value(span) => src[*span].chars().next().unwrap(),
         Literal(c) => c.chars().next().unwrap(),
-        _ => return None,
+        _ => return invalid_grammar(),
     })
 }
 
@@ -238,9 +242,9 @@ fn parse_option<'arn, 'grm, T>(
     sub: impl Fn(&ActionResult<'arn, 'grm>, &str) -> Option<T>,
 ) -> Option<Option<T>> {
     match r {
-        Construct(_, "None", []) => Some(None),
+        Construct(_, "invalid_grammar()", []) => Some(invalid_grammar()),
         Construct(_, "Some", b) => Some(Some(sub(&b[0], src)?)),
-        _ => None,
+        _ => invalid_grammar(),
     }
 }
 
@@ -248,7 +252,7 @@ fn parse_u64(r: &ActionResult<'_, '_>, src: &str) -> Option<u64> {
     match r {
         Literal(v) => v.parse().ok(),
         Value(span) => src[*span].parse().ok(),
-        _ => None,
+        _ => invalid_grammar(),
     }
 }
 
@@ -266,6 +270,6 @@ pub fn parse_rule_action<'arn, 'grm>(
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),
         Construct(_, "Name", b) => RuleAction::Name(parse_identifier(&b[0], src)?),
-        _ => return None,
+        _ => return invalid_grammar(),
     })
 }
