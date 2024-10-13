@@ -123,69 +123,58 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 pos,
                 context,
             ),
-            // RuleExpr::Repeat {
-            //     expr,
-            //     min,
-            //     max,
-            //     delim,
-            // } => {
-            //     let mut res: PResult<Vec<_>, E> = PResult::new_empty(vec![], pos);
-            //
-            //     for i in 0..max.unwrap_or(u64::MAX) {
-            //         let pos = res.end_pos();
-            //         let part = if i == 0 {
-            //             self.parse_expr(rules, block_ctx, expr, vars, pos, context)
-            //         } else {
-            //             self.parse_expr(rules, block_ctx, delim, vars, pos, context)
-            //                 .merge_seq_chain(|pos| {
-            //                     self.parse_expr(rules, block_ctx, expr, vars, pos, context)
-            //                 })
-            //                 .map(|x| x.1)
-            //         };
-            //         let should_continue = part.is_ok();
-            //
-            //         if i < *min {
-            //             res = res.merge_seq(part).map(|(mut vec, item)| {
-            //                 vec.push(item);
-            //                 vec
-            //             });
-            //         } else {
-            //             res = res.merge_seq_opt(part).map(|(mut vec, item)| {
-            //                 if let Some(item) = item {
-            //                     vec.push(item);
-            //                 }
-            //                 vec
-            //             });
-            //         };
-            //
-            //         if !should_continue {
-            //             break;
-            //         };
-            //
-            //         // If the result is OK and the last pos has not changed, we got into an infinite loop
-            //         // We break out with an infinite loop error
-            //         // The i != 0 check is to make sure to take the delim into account
-            //         if i != 0 && res.end_pos() <= pos {
-            //             let span = pos.span_to(pos);
-            //             let mut e = E::new(span);
-            //             e.add_label_explicit(ErrorLabel::Debug(span, "INFLOOP"));
-            //             return PResult::new_err(e, pos);
-            //         }
-            //     }
-            //
-            //     res.map_with_span(|rtrn, span| {
-            //         PR::with_rtrn(rtrn.iter().rfold(
-            //             self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
-            //             |rest, next| {
-            //                 self.alloc.alloc(ActionResult::Construct(
-            //                     span,
-            //                     "Cons",
-            //                     self.alloc.alloc_extend([*next.rtrn, *rest]),
-            //                 ))
-            //             },
-            //         ))
-            //     })
-            // }
+            RuleExpr::Repeat {
+                expr,
+                min,
+                max,
+                delim,
+            } => {
+                let mut res: PResult<(), E> = PResult::new_empty((), pos);
+                let mut current_visitor = visitor;
+
+                for i in 0..max.unwrap_or(u64::MAX) {
+                    let mut next_visitors = current_visitor.visit_construct("Cons", 2, self.allocs).into_iter();
+                    let element_visitor = next_visitors.next().unwrap();
+                    let rest_visitor = next_visitors.next().unwrap();
+                    rest_visitor.visit_construct("Nil", 0, self.allocs);
+                    assert!(next_visitors.next().is_none());
+
+                    let pos = res.end_pos();
+                    let part = if i == 0 {
+                        self.parse_expr(rules, block_ctx, expr, vars, pos, context, element_visitor, &mut HashMap::new())
+                    } else {
+                        self.parse_expr(rules, block_ctx, delim, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
+                            .merge_seq_chain(|pos| {
+                                self.parse_expr(rules, block_ctx, expr, vars, pos, context, element_visitor, &mut HashMap::new())
+                            })
+                            .map(|((), ())| ())
+                    };
+                    let should_continue = part.is_ok();
+
+                    if i < *min {
+                        res = res.merge_seq(part).map(|((), ())| ());
+                    } else {
+                        res = res.merge_seq_opt(part).map(|((), _)| ());
+                    };
+
+                    if !should_continue {
+                        break;
+                    };
+                    current_visitor = rest_visitor;
+
+                    // If the result is OK and the last pos has not changed, we got into an infinite loop
+                    // We break out with an infinite loop error
+                    // The i != 0 check is to make sure to take the delim into account
+                    if i != 0 && res.end_pos() <= pos {
+                        let span = pos.span_to(pos);
+                        let mut e = E::new(span);
+                        e.add_label_explicit(ErrorLabel::Debug(span, "INFLOOP"));
+                        return PResult::new_err(e, pos);
+                    }
+                }
+
+                res
+            }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty((), pos);
                 for sub in *subs {
@@ -226,20 +215,18 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     visitor.visit_input_str(&self.input[span], span)
                 })
             }
-            // RuleExpr::This => self
-            //     .parse_rule_block(rules, block_ctx, pos, context)
-            //     .map(PR::with_rtrn),
-            // RuleExpr::Next => self
-            //     .parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
-            //     .map(PR::with_rtrn),
-            // RuleExpr::PosLookahead(sub) => self
-            //     .parse_expr(rules, block_ctx, sub, vars, pos, context)
-            //     .positive_lookahead(pos),
-            // RuleExpr::NegLookahead(sub) => self
-            //     .parse_expr(rules, block_ctx, sub, vars, pos, context)
-            //     .negative_lookahead(pos)
-            //     .map(|()| PR::with_rtrn(ActionResult::VOID)),
-            // RuleExpr::AtAdapt(ga, adapt_rule) => {
+            RuleExpr::This => self
+                .parse_rule_block(rules, block_ctx, pos, context, visitor),
+            RuleExpr::Next => self
+                .parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context, visitor),
+            RuleExpr::PosLookahead(sub) => self
+                .parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, free_visitors)
+                .positive_lookahead(pos),
+            RuleExpr::NegLookahead(sub) => self
+                .parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
+                .negative_lookahead(pos),
+            RuleExpr::AtAdapt(ga, adapt_rule) => {
+                todo!()
             //     // First, get the grammar actionresult
             //     let gr = if let Some(ar) = vars.get(ga) {
             //         if let VarMapValue::Value(v) = ar {
@@ -300,7 +287,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             //         .map(PR::with_rtrn);
             //     res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
             //     res
-            // }
+            }
             RuleExpr::Guid => {
                 visitor.visit_guid(self.guid_counter);
                 self.guid_counter += 1;
@@ -309,7 +296,6 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     pos,
                 )
             }
-            _ => todo!(),
         }
     }
 }
