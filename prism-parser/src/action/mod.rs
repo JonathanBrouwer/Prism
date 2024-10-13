@@ -11,6 +11,9 @@ pub trait ActionVisitor<'arn, 'grm> {
     fn visit_literal(&mut self, lit: EscapedString<'grm>);
     fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)>;
     fn visit_guid(&mut self, guid: usize);
+
+    fn cache(&self) -> *const ();
+    fn visit_cache(&mut self, value: *const ());
 }
 
 #[derive(Copy, Clone)]
@@ -27,5 +30,12 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for IgnoreVisitor {
     }
 
     fn visit_guid(&mut self, guid: usize) {
+    }
+
+    fn cache(&self) -> *const () {
+        &() as *const ()
+    }
+
+    fn visit_cache(&mut self, value: *const ()) {
     }
 }

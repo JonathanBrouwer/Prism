@@ -10,6 +10,7 @@ use crate::error::{err_combine_opt, ParseError};
 use crate::parser::var_map::BlockCtx;
 use bumpalo::Bump;
 use bumpalo_try::BumpaloExtend;
+use crate::action::ActionVisitor;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
@@ -28,7 +29,7 @@ impl From<BlockCtx<'_, '_>> for BlockKey {
     }
 }
 
-pub type CacheVal<'arn, 'grm, E> = PResult<(), E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<*const (), E>;
 
 #[derive(Copy, Clone)]
 pub struct Allocs<'arn> {
@@ -93,11 +94,12 @@ pub struct ParserCacheEntry<PR> {
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        mut sub: impl FnMut(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<(), E>,
+        mut sub: impl FnMut(&mut ParserState<'arn, 'grm, E>, Pos, &mut dyn ActionVisitor<'arn, 'grm>) -> PResult<(), E>,
         block_state: BlockCtx<'arn, 'grm>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
+        visitor: &mut dyn ActionVisitor<'arn, 'grm>,
     ) -> PResult<(), E> {
         //Check if this result is cached
         let key = CacheKey {
@@ -107,10 +109,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             state: grammar_state,
         };
         if let Some(cached) = self.cache_get(&key) {
-            if cached.is_ok() {
-                todo!("Should be fixed");
-            }
-            return cached.clone();
+            return cached.clone().map(|p| {
+                visitor.visit_cache(p);
+                ()
+            });
         }
 
         //Before executing, put a value for the current position in the cache.
@@ -128,25 +130,24 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         //- Try to parse the current (rule, position). If this fails, there is definitely no left recursion. Otherwise, we now have a seed.
         //- Put the new seed in the cache, and rerun on the current (rule, position). Make sure to revert the cache to the previous state.
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
-        let res = sub(self, pos_start);
+        let res = sub(self, pos_start, visitor);
         match res {
-            POk(mut o, mut spos, mut epos, mut be) => {
+            POk(mut o@(), mut spos, mut epos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !self.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
                     let res = POk(o, spos, epos, be);
-                    self.cache_insert(key, res.clone());
+                    self.cache_insert(key, res.clone().map(|()| visitor.cache()));
                     res
                 } else {
-                    todo!("Should be fixed");
                     //There was leftrec, we need to grow the seed
                     loop {
                         //Insert the current seed into the cache
                         self.cache_state_revert(cache_state);
-                        self.cache_insert(key.clone(), POk(o, spos, epos, be.clone()));
+                        self.cache_insert(key.clone(), POk(visitor.cache(), spos, epos, be.clone()));
 
                         //Grow the seed
-                        let new_res = sub(self, pos_start);
+                        let new_res = sub(self, pos_start, visitor);
                         match new_res {
                             POk(new_o, new_spos, new_epos, new_be)
                                 if new_epos.cmp(&epos).is_gt() =>
@@ -173,7 +174,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 }
             }
             res @ PErr(_, _) => {
-                self.cache_insert(key, res.clone());
+                self.cache_insert(key, res.clone().map(|_| unreachable!()));
                 res
             }
         }

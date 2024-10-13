@@ -1,4 +1,4 @@
-use std::{iter, mem};
+use std::{iter, mem, ptr};
 use crate::core::adaptive::RuleId;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
@@ -45,6 +45,15 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'gr
 
     fn visit_guid(&mut self, guid: usize) {
         *self.0 = ActionResult::Guid(guid);
+    }
+
+    fn cache(&self) -> *const () {
+        self.0 as *const ActionResult as *const ()
+    }
+
+    fn visit_cache(&mut self, value: *const ()) {
+        let ar: ActionResult = unsafe { ptr::read(value as *const ActionResult) };
+        *self.0 = ar;
     }
 }
 

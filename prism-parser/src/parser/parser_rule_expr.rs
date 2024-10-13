@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use erased::Erased;
+use std::mem;
 use crate::action::{ActionVisitor, IgnoreVisitor};
 use crate::action::action_result::ActionResult;
 use crate::core::adaptive::GrammarState;
@@ -133,10 +133,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut current_visitor = visitor;
 
                 for i in 0..max.unwrap_or(u64::MAX) {
+                    let mut unsound_current_visitor: &'arn mut dyn ActionVisitor<'arn, 'grm> = unsafe { mem::transmute(&mut *current_visitor) };
                     let mut next_visitors = current_visitor.visit_construct("Cons", 2, self.allocs).into_iter();
                     let element_visitor = next_visitors.next().unwrap();
                     let rest_visitor = next_visitors.next().unwrap();
-                    rest_visitor.visit_construct("Nil", 0, self.allocs);
                     assert!(next_visitors.next().is_none());
 
                     let pos = res.end_pos();
@@ -158,9 +158,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     };
 
                     if !should_continue {
-                        break;
-                    };
-                    current_visitor = rest_visitor;
+                        unsound_current_visitor.visit_construct("Nil", 0, self.allocs);
+                        return res;
+                    } else {
+                        current_visitor = rest_visitor;
+                    }
 
                     // If the result is OK and the last pos has not changed, we got into an infinite loop
                     // We break out with an infinite loop error
@@ -210,7 +212,6 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
             RuleExpr::SliceInput(sub) => {
-                println!("{sub:?}");
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
                 res.map_with_span(|_, span| {
                     visitor.visit_input_str(&self.input[span], span)

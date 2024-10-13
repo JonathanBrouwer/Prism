@@ -24,11 +24,12 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     ) -> PResult<(), E> {
         //TODO fix caching
         self.parse_cache_recurse(
-            |state, pos| state.parse_sub_blocks(rules, block_ctx, pos, context, visitor),
+            |state, pos, visitor| state.parse_sub_blocks(rules, block_ctx, pos, context, visitor),
             block_ctx,
             rules.unique_id(),
             pos,
             context,
+            visitor
         )
     }
 
