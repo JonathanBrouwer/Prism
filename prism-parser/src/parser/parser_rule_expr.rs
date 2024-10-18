@@ -133,7 +133,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut current_visitor = visitor;
 
                 for i in 0..max.unwrap_or(u64::MAX) {
-                    let mut unsound_current_visitor: &'arn mut dyn ActionVisitor<'arn, 'grm> = unsafe { mem::transmute(&mut *current_visitor) };
+                    let unsound_current_visitor: &'arn mut dyn ActionVisitor<'arn, 'grm> = unsafe { mem::transmute(&mut *current_visitor) };
                     let mut next_visitors = current_visitor.visit_construct("Cons", 2, self.allocs).into_iter();
                     let element_visitor = next_visitors.next().unwrap();
                     let rest_visitor = next_visitors.next().unwrap();
@@ -207,8 +207,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, &mut HashMap::new())
             }
             RuleExpr::Action(sub, action) => {
-                let mut new_visit_map = HashMap::new();
-                apply_action(action, visitor, &mut new_visit_map, self.allocs);
+                let mut new_visit_map = apply_action(action, visitor, self.allocs);
                 self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
             RuleExpr::SliceInput(sub) => {
