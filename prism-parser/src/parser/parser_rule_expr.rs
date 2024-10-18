@@ -103,7 +103,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         pos,
                         context,
                     )
-                    .map(|(span, _)| visitor.visit_input_str(&self.input[span], span))
+                    .map(|(span, _)| visitor.visit_input_str(&self.input[span], span, self.allocs))
             },
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
@@ -116,7 +116,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                     let span = start_pos.span_to(res.end_pos());
                     let mut res =
-                        res.map(|_| visitor.visit_input_str(&state.input[span], span));
+                        res.map(|_| visitor.visit_input_str(&state.input[span], span, state.allocs));
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
@@ -214,7 +214,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::SliceInput(sub) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
                 res.map_with_span(|_, span| {
-                    visitor.visit_input_str(&self.input[span], span)
+                    visitor.visit_input_str(&self.input[span], span, self.allocs)
                 })
             }
             RuleExpr::This => self
@@ -291,7 +291,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             //     res
             }
             RuleExpr::Guid => {
-                visitor.visit_guid(self.guid_counter);
+                visitor.visit_guid(self.guid_counter, self.allocs);
                 self.guid_counter += 1;
                 PResult::new_empty(
                     (),

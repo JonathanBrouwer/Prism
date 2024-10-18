@@ -69,8 +69,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .as_rule_id()
             .expect("Rule is a rule");
 
-        let mut ar = self.state.allocs.alloc(*ActionResult::VOID);
-        let mut ar_visitor = ActionResultVisitor(&mut *ar);
+        let mut ar = ActionResult::VOID;
+        let mut ar_visitor = ActionResultVisitor(&mut ar);
         let result = self.state.parse_rule(
             &self.grammar_state,
             rule,

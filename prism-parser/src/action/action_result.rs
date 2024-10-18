@@ -15,45 +15,51 @@ pub enum ActionResult<'arn, 'grm> {
     Construct(
         Span,
         &'grm str,
-        #[serde(with = "leak_slice")] &'arn [ActionResult<'arn, 'grm>],
+        #[serde(with = "leak_slice_of_refs")] &'arn [&'arn ActionResult<'arn, 'grm>],
     ),
     Guid(usize),
     RuleId(RuleId),
 }
 
-pub struct ActionResultVisitor<'a, 'arn, 'grm>(pub &'a mut ActionResult<'arn, 'grm>);
+pub struct ActionResultVisitor<'a, 'arn, 'grm>(pub &'a mut &'arn ActionResult<'arn, 'grm>);
 
 impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'grm> {
-    fn visit_input_str(&mut self, s: &'arn str, span: Span) {
-        *self.0 = ActionResult::Value(span);
+    fn visit_input_str(&mut self, s: &'arn str, span: Span, allocs: Allocs<'arn>) {
+        *self.0 = allocs.alloc(ActionResult::Value(span));
     }
 
-    fn visit_literal(&mut self, lit: EscapedString<'grm>) {
-        *self.0 = ActionResult::Literal(lit);
+    fn visit_literal(&mut self, lit: EscapedString<'grm>, allocs: Allocs<'arn>) {
+        *self.0 = allocs.alloc(ActionResult::Literal(lit));
     }
 
     fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
-        //TODO this does NOT set the self pointer
-        let mut result: &'arn mut _ = allocs.alloc_extend(iter::repeat_n(*ActionResult::VOID, arity_hint));
-        let unsound_static_result: &'static [ActionResult<'static, 'static>] = unsafe { mem::transmute(&*result) };
-        let v = result.iter_mut().map(|action| {
+        // Allocate new ActionResult::Construct
+        let new_construct: &'arn mut ActionResult<'arn, 'grm> = allocs.alloc(ActionResult::Construct(Span::invalid(), name, &[]));
+        let new_construct: &'a mut ActionResult<'arn, 'grm> = modify_immutable_ref(self.0, new_construct);
+        let ActionResult::Construct(_, _, current_args) = new_construct else {
+            unreachable!()
+        };
+
+        // Allocate new args
+        let new_args: &'arn mut [&'arn ActionResult<'arn, 'grm>] = allocs.alloc_extend(iter::repeat_n(ActionResult::VOID, arity_hint));
+        let new_args: &'a mut [&'arn ActionResult<'arn, 'grm>] = modify_immutable_ref(current_args, new_args);
+
+        // Generate visitors for args
+        new_args.iter_mut().map(|action| {
             allocs.alloc_unchecked(ActionResultVisitor(action)) as &mut dyn ActionVisitor<'arn, 'grm>
-        }).collect();
-        *self.0 = ActionResult::Construct(Span::invalid(), name, unsound_static_result);
-        v
+        }).collect()
     }
 
-    fn visit_guid(&mut self, guid: usize) {
-        *self.0 = ActionResult::Guid(guid);
+    fn visit_guid(&mut self, guid: usize, allocs: Allocs<'arn>) {
+        *self.0 = allocs.alloc(ActionResult::Guid(guid));
     }
 
     fn cache(&self) -> *const () {
-        self.0 as *const ActionResult as *const ()
+        *self.0 as *const ActionResult as *const ()
     }
 
     fn visit_cache(&mut self, value: *const ()) {
-        let ar: ActionResult = unsafe { ptr::read(value as *const ActionResult) };
-        *self.0 = ar;
+        *self.0 = unsafe { &*(value as *const ActionResult<'arn, 'grm>) };
     }
 }
 
@@ -110,7 +116,7 @@ impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
         match self.0 {
             ActionResult::Construct(_, "Cons", els) => {
                 assert_eq!(els.len(), 2);
-                self.0 = els[1];
+                self.0 = *els[1];
                 self.1 = self.1.map(|v| v - 1);
                 Some(&els[0])
             }
@@ -129,3 +135,16 @@ impl<'arn, 'grm: 'arn> Iterator for ARListIterator<'arn, 'grm> {
 }
 
 impl ExactSizeIterator for ARListIterator<'_, '_> {}
+
+fn modify_immutable_ref<'a, 'b, T: ?Sized>(r: &'a mut &'b T, new_value: &'b mut T) -> &'a mut T {
+    // Safety: `r` is a mutable ref to an immutable ref to `T`, not sure why safe rust rejects this cast
+    let old_value: *mut *const T = unsafe { mem::transmute(r) };
+    let new_value: *mut T = new_value;
+
+    // Safety: `old_value` was a mutable reference to a &'b T, so writing a value of type &'b mut T into it is sound
+    unsafe { ptr::write(old_value, new_value as *const T) };
+
+    // Safety: Since the borrow of `r` is transferred into the return value, `r` cannot be accessed until the return value is dropped
+    // Therefore even though a mutable and immutable reference are alive at the same time, they cannot be accessed at the same time, so this is sound
+    unsafe { &mut *new_value }
+}

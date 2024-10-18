@@ -5,15 +5,55 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
+pub mod leak_slice_of_refs {
+    use super::*;
+
+    pub fn serialize<S: Serializer, T: Serialize>(xs: &[&T], s: S) -> Result<S::Ok, S::Error> {
+        xs.serialize(s)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+        deserializer: D,
+    ) -> Result<&'de [&'de T], D::Error> {
+        struct VecVisitor<T> {
+            marker: PhantomData<T>,
+        }
+
+        impl<'de, T> Visitor<'de> for VecVisitor<T>
+        where
+            T: Deserialize<'de> + 'de,
+        {
+            type Value = Vec<&'de T>;
+
+            fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+                formatter.write_str("a sequence")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut values = Vec::<&'de T>::with_capacity(seq.size_hint().unwrap_or(0));
+                while let Some(value) = seq.next_element::<T>()? {
+                    values.push(Box::leak(Box::new(value)));
+                }
+                Ok(values)
+            }
+        }
+
+        let visitor = VecVisitor {
+            marker: PhantomData,
+        };
+        let vec: Vec<&'de T> = deserializer.deserialize_seq(visitor)?;
+        Ok(vec.leak())
+    }
+}
+
 pub mod leak_slice {
     use super::*;
 
     pub fn serialize<S: Serializer, T: Serialize>(xs: &[T], s: S) -> Result<S::Ok, S::Error> {
-        let mut seq = s.serialize_seq(Some(xs.len()))?;
-        for x in xs {
-            seq.serialize_element(x)?;
-        }
-        seq.end()
+        xs.serialize(s)
     }
 
     pub fn deserialize<'de, D: Deserializer<'de>, T: Deserialize<'de>>(

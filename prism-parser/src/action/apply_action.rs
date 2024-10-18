@@ -16,7 +16,7 @@ pub fn apply_action<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
             free_visitors.insert(name, visitor);
         }
         RuleAction::InputLiteral(lit) => {
-            visitor.visit_literal(*lit);
+            visitor.visit_literal(*lit, allocs);
         }
         RuleAction::Construct(name, actions) => {
             let mut visitors = visitor.visit_construct(name, actions.len(), allocs);
