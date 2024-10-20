@@ -133,7 +133,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut current_visitor = visitor;
 
                 for i in 0..max.unwrap_or(u64::MAX) {
-                    let unsound_current_visitor: &'arn mut dyn ActionVisitor<'arn, 'grm> = unsafe { mem::transmute(&mut *current_visitor) };
+                    let current_visitor_ptr = current_visitor as *mut dyn ActionVisitor<'arn, 'grm>;
                     let mut next_visitors = current_visitor.visit_construct("Cons", 2, self.allocs).into_iter();
                     let element_visitor = next_visitors.next().unwrap();
                     let rest_visitor = next_visitors.next().unwrap();
@@ -158,7 +158,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     };
 
                     if !should_continue {
-                        unsound_current_visitor.visit_construct("Nil", 0, self.allocs);
+                        // Safety: The mutable reference to current_visitor should be safe to use again here
+                        unsafe { &mut *current_visitor_ptr }.visit_construct("Nil", 0, self.allocs);
                         return res;
                     } else {
                         current_visitor = rest_visitor;

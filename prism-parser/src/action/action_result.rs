@@ -32,7 +32,7 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'gr
         *self.0 = allocs.alloc(ActionResult::Literal(lit));
     }
 
-    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
         // Allocate new ActionResult::Construct
         let new_construct: &'arn mut ActionResult<'arn, 'grm> = allocs.alloc(ActionResult::Construct(Span::invalid(), name, &[]));
         let new_construct: &'a mut ActionResult<'arn, 'grm> = modify_immutable_ref(self.0, new_construct);
@@ -41,7 +41,7 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for ActionResultVisitor<'_, 'arn, 'gr
         };
 
         // Allocate new args
-        let new_args: &'arn mut [&'arn ActionResult<'arn, 'grm>] = allocs.alloc_extend(iter::repeat_n(ActionResult::VOID, arity_hint));
+        let new_args: &'arn mut [&'arn ActionResult<'arn, 'grm>] = allocs.alloc_extend(iter::repeat_n(ActionResult::VOID, arity));
         let new_args: &'a mut [&'arn ActionResult<'arn, 'grm>] = modify_immutable_ref(current_args, new_args);
 
         // Generate visitors for args

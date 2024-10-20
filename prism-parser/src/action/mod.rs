@@ -9,7 +9,7 @@ pub mod apply_action;
 pub trait ActionVisitor<'arn, 'grm> {
     fn visit_input_str(&mut self, s: &'arn str, span: Span, allocs: Allocs<'arn>);
     fn visit_literal(&mut self, lit: EscapedString<'grm>, allocs: Allocs<'arn>);
-    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)>;
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)>;
     fn visit_guid(&mut self, guid: usize, allocs: Allocs<'arn>);
 
     fn cache(&self) -> *const ();
@@ -25,8 +25,8 @@ impl<'arn, 'grm> ActionVisitor<'arn, 'grm> for IgnoreVisitor {
     fn visit_literal(&mut self, lit: EscapedString<'grm>, allocs: Allocs<'arn>) {
     }
 
-    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
-        iter::from_fn(|| Some(allocs.alloc(IgnoreVisitor) as &mut dyn ActionVisitor)).take(arity_hint).collect()
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
+        iter::from_fn(|| Some(allocs.alloc(IgnoreVisitor) as &mut dyn ActionVisitor)).take(arity).collect()
     }
 
     fn visit_guid(&mut self, guid: usize, allocs: Allocs<'arn>) {
@@ -54,10 +54,10 @@ impl<'visitor_map, 'arn, 'grm> ActionVisitor<'arn, 'grm> for ManyVisitor<'visito
         }
     }
 
-    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity_hint: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
-        let mut sub_vecs = self.0.iter_mut().map(|v| v.visit_construct(name, arity_hint, allocs).into_iter()).collect::<Vec<_>>();
+    fn visit_construct<'a>(&'a mut self, name: &'grm str, arity: usize, allocs: Allocs<'arn>) -> Vec<&'a mut (dyn ActionVisitor<'arn, 'grm> + 'a)> {
+        let mut sub_vecs = self.0.iter_mut().map(|v| v.visit_construct(name, arity, allocs).into_iter()).collect::<Vec<_>>();
         let mut result: Vec<&'a mut dyn ActionVisitor> = vec![];
-        for _ in 0..arity_hint {
+        for _ in 0..arity {
             let v = sub_vecs.iter_mut().map(|it| it.next().unwrap()).collect::<Vec<_>>();
             result.push(allocs.alloc_unchecked(ManyVisitor(v)));
         }
