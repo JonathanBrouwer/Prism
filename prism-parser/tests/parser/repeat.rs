@@ -1,5 +1,18 @@
 use crate::parser::parse_test;
 parse_test! {
+name: repeat_simple
+syntax: r#"rule start = #str("x"*);"#
+passing tests:
+    "" => "''"
+    "x" => "'x'"
+    "xx" => "'xx'"
+
+failing tests:
+    "y"
+    "yy"
+}
+
+parse_test! {
 name: repeat_star
 syntax: r#"
     rule start = #str([ 'w'-'z' | '8' | 'p'-'q' ]*);

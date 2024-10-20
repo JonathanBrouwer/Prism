@@ -132,27 +132,29 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
         let res = sub(self, pos_start, visitor);
         match res {
-            POk(mut o@(), mut spos, mut epos, mut be) => {
+            POk((), mut spos, mut epos, mut be) => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !self.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
-                    let res = POk(o, spos, epos, be);
+                    let res = POk((), spos, epos, be);
                     self.cache_insert(key, res.clone().map(|()| visitor.cache()));
                     res
                 } else {
+                    let mut last_ok = visitor.cache();
+                    
                     //There was leftrec, we need to grow the seed
                     loop {
                         //Insert the current seed into the cache
                         self.cache_state_revert(cache_state);
-                        self.cache_insert(key.clone(), POk(visitor.cache(), spos, epos, be.clone()));
+                        self.cache_insert(key.clone(), POk(last_ok, spos, epos, be.clone()));
 
                         //Grow the seed
                         let new_res = sub(self, pos_start, visitor);
                         match new_res {
-                            POk(new_o, new_spos, new_epos, new_be)
+                            POk((), new_spos, new_epos, new_be)
                                 if new_epos.cmp(&epos).is_gt() =>
                             {
-                                o = new_o;
+                                last_ok = visitor.cache();
                                 spos = new_spos;
                                 epos = new_epos;
                                 be = new_be;
@@ -170,7 +172,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, spos, epos, be)
+                    visitor.visit_cache(last_ok);
+                    POk((), spos, epos, be)
                 }
             }
             res @ PErr(_, _) => {

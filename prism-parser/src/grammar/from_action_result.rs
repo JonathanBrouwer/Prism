@@ -35,6 +35,7 @@ pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm>(
         &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<GrammarFile<'arn_out, 'grm>> {
+    println!("{}", r.to_string(src));
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
@@ -242,7 +243,7 @@ fn parse_option<'arn, 'grm, T>(
     sub: impl Fn(&ActionResult<'arn, 'grm>, &str) -> Option<T>,
 ) -> Option<Option<T>> {
     match r {
-        Construct(_, "invalid_grammar()", []) => Some(invalid_grammar()),
+        Construct(_, "None", []) => Some(None),
         Construct(_, "Some", b) => Some(Some(sub(&b[0], src)?)),
         _ => invalid_grammar(),
     }

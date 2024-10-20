@@ -175,6 +175,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                 }
 
+                current_visitor.visit_construct("Nil", 0, self.allocs);
                 res
             }
             RuleExpr::Sequence(subs) => {
