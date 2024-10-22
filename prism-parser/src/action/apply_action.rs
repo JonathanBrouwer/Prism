@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::action::{ActionVisitor, ManyVisitor};
+use crate::action::action_result::ActionResult;
 use crate::core::cache::Allocs;
 use crate::grammar::rule_action::RuleAction;
 
@@ -32,6 +33,10 @@ fn apply_action_rec<'visitor: 'visitor_map, 'visitor_map, 'arn, 'grm>(
             for (sub_visitor, sub_action) in visitors.into_iter().zip(actions.iter()) {
                 apply_action_rec(sub_action, sub_visitor, free_visitors, allocs);
             }
+        }
+        RuleAction::ActionResult(ar) => {
+            //TODO horribly unsound
+            visitor.visit_cache(*ar as *const ActionResult as *const ())
         }
     }
 }

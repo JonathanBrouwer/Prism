@@ -35,7 +35,6 @@ pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm>(
         &'grm str,
     ) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<GrammarFile<'arn_out, 'grm>> {
-    println!("{}", r.to_string(src));
     result_match! {
         match r => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
