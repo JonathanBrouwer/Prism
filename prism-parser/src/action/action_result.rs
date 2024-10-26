@@ -18,7 +18,6 @@ pub enum ActionResult<'arn, 'grm> {
         #[serde(with = "leak_slice_of_refs")] &'arn [&'arn ActionResult<'arn, 'grm>],
     ),
     Guid(usize),
-    RuleId(RuleId),
 }
 
 pub struct ActionResultVisitor<'a, 'arn, 'grm>(pub &'a mut &'arn ActionResult<'arn, 'grm>);
@@ -94,7 +93,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                     .join(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
-            ActionResult::RuleId(rule) => format!("Rule({rule})"),
         }
     }
 
