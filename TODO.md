@@ -1,6 +1,5 @@
 THE BIG TODO LIST:
 - Eta reduction
-- Rewrite parser to be non-recursive
 - LSP support
   - Allow attributes such as `#[lsp("comment")]` in grammars
 - Paramatricity

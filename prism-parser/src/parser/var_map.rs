@@ -115,61 +115,26 @@ pub struct CapturedExpr<'arn, 'grm> {
 #[derive(Copy, Clone)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
-    Value(&'arn ActionResult<'arn, 'grm>),
+    Rule(RuleId),
+    // Value(&'arn ActionResult<'arn, 'grm>),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VarMapValue::Expr(_) => write!(f, "{{expr}}"),
-            VarMapValue::Value(ar) => write!(f, "{ar:?}"),
+            VarMapValue::Rule(r) => write!(f, "{r:?}"),
         }
     }
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
     pub fn new_rule(rule: RuleId, alloc: Allocs<'arn>) -> Self {
-        Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
-    }
-
-    pub fn as_value(&self) -> Option<&ActionResult<'arn, 'grm>> {
-        if let VarMapValue::Value(value) = self {
-            Some(value)
-        } else {
-            None
-        }
-    }
-
-    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>>>(
-        &'a self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
-    ) -> Option<&'arn ActionResult<'arn, 'grm>> {
-        Some(match self {
-            VarMapValue::Expr(captured_expr) => {
-                todo!()
-                // state
-                //     .parse_expr(
-                //         rules,
-                //         captured_expr.block_ctx,
-                //         captured_expr.expr,
-                //         captured_expr.vars,
-                //         Pos::invalid(),
-                //         context,
-                //     )
-                //     .ok()?
-                //     .rtrn
-            }
-            VarMapValue::Value(v) => v,
-        })
+        Self::Rule(rule)
     }
 
     pub fn as_rule_id(&self) -> Option<RuleId> {
-        let VarMapValue::Value(ar) = self else {
-            return None;
-        };
-        let ActionResult::RuleId(rule) = ar else {
+        let VarMapValue::Rule(rule) = self else {
             return None;
         };
         Some(*rule)
