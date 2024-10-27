@@ -116,7 +116,7 @@ pub struct CapturedExpr<'arn, 'grm> {
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
     Rule(RuleId),
-    // Value(&'arn ActionResult<'arn, 'grm>),
+    Value(*const ()),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
@@ -124,6 +124,7 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
         match self {
             VarMapValue::Expr(_) => write!(f, "{{expr}}"),
             VarMapValue::Rule(r) => write!(f, "{r:?}"),
+            VarMapValue::Value(_) => write!(f, "[value...]"),
         }
     }
 }

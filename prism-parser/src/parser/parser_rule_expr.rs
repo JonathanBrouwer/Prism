@@ -28,6 +28,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         visitor: &mut dyn ActionVisitor<'arn, 'grm>,
         free_visitors: &mut HashMap<&'grm str, &mut dyn ActionVisitor<'arn, 'grm>>
     ) -> PResult<(), E> {
+        let vars_with_visited = vars.extend(free_visitors.iter().map(|(key, value)| {
+            (*key, VarMapValue::Value(value.cache()))
+        }), self.allocs);
+
         match expr {
             RuleExpr::RunVar(mut rule_str, args) => {
                 let mut result_args = vec![];
@@ -49,7 +53,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             VarMapValue::Expr(CapturedExpr {
                                 expr: arg,
                                 block_ctx,
-                                vars,
+                                vars: vars_with_visited
                             })
                         }),
                     );
@@ -85,6 +89,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         VarMapValue::Rule(rule) => {
                             self.parse_rule(rules, *rule, &result_args, pos, context, visitor)
                         }
+                        VarMapValue::Value(v) => {
+                            visitor.visit_cache(*v);
+                            PResult::new_empty((), pos)
+                        },
                     };
                 }
             }
@@ -135,11 +143,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
                     let pos = res.end_pos();
                     let part = if i == 0 {
-                        self.parse_expr(rules, block_ctx, expr, vars, pos, context, element_visitor, &mut HashMap::new())
+                        self.parse_expr(rules, block_ctx, expr, vars_with_visited, pos, context, element_visitor, &mut HashMap::new())
                     } else {
-                        self.parse_expr(rules, block_ctx, delim, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
+                        self.parse_expr(rules, block_ctx, delim, vars_with_visited, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
                             .merge_seq_chain(|pos| {
-                                self.parse_expr(rules, block_ctx, expr, vars, pos, context, element_visitor, &mut HashMap::new())
+                                self.parse_expr(rules, block_ctx, expr, vars_with_visited, pos, context, element_visitor, &mut HashMap::new())
                             })
                             .map(|((), ())| ())
                     };
@@ -190,7 +198,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut res: PResult<(), E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
                 for sub in *subs {
                     res = res.merge_choice_chain(|| {
-                        self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, &mut HashMap::new())
+                        self.parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, visitor, &mut HashMap::new())
                     });
                     if res.is_ok() {
                         break;
@@ -202,14 +210,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let visitor = &mut **free_visitors.entry(name).or_insert_with(|| {
                     self.allocs.alloc_unchecked(ActionResultVisitor(self.allocs.alloc(ActionResult::VOID)))
                 });
-                self.parse_expr(rules, block_ctx, sub, vars, pos, context, visitor, &mut HashMap::new())
+                self.parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, visitor, &mut HashMap::new())
             }
             RuleExpr::Action(sub, action) => {
                 let mut new_visit_map = apply_action(action, visitor, self.allocs);
-                self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
+                self.parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, &mut IgnoreVisitor, &mut new_visit_map)
             }
             RuleExpr::SliceInput(sub) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
+                let res = self.parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, &mut IgnoreVisitor, &mut HashMap::new());
                 res.map_with_span(|_, span| {
                     visitor.visit_input_str(&self.input[span], span, self.allocs)
                 })
@@ -222,7 +230,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 .parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, free_visitors)
                 .positive_lookahead(pos),
             RuleExpr::NegLookahead(sub) => self
-                .parse_expr(rules, block_ctx, sub, vars, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
+                .parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
                 .negative_lookahead(pos),
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 todo!()
