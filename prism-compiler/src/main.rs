@@ -28,10 +28,10 @@ fn main() {
 
     let mut tc_env = TcEnv::default();
     let root = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
-        println!(
-            "> Action result\n====================\n{}\n\n",
-            r.to_string(&program)
-        );
+        // println!(
+        //     "> Action result\n====================\n{}\n\n",
+        //     r.to_string(&program)
+        // );
         tc_env.insert_from_action_result(r, &program, allocs)
     }) {
         Ok(idx) => idx,

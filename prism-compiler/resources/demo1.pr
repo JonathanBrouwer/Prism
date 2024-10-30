@@ -1,0 +1,3 @@
+let function_type: Type = (Type -> Type);
+let f: function_type = (v => v);
+f

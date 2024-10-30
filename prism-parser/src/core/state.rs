@@ -56,9 +56,4 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
             self.cache.remove(&key);
         })
     }
-
-    pub(crate) fn clear(&mut self) {
-        self.cache.clear();
-        self.cache_stack.clear();
-    }
 }
