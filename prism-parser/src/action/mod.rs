@@ -14,6 +14,8 @@ pub trait ActionVisitor<'arn, 'grm> {
 
     fn cache(&self) -> *const ();
     fn visit_cache(&mut self, value: *const ());
+
+    fn visit_env(&mut self, value: *const ());
 }
 
 #[derive(Copy, Clone)]

@@ -233,66 +233,65 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 .parse_expr(rules, block_ctx, sub, vars_with_visited, pos, context, &mut IgnoreVisitor, &mut HashMap::new())
                 .negative_lookahead(pos),
             RuleExpr::AtAdapt(ga, adapt_rule) => {
-                todo!()
-                // // First, get the grammar actionresult
-                // let gr = if let Some(ar) = vars.get(ga) {
-                //     if let VarMapValue::Value(v) = ar {
-                //         v
-                //     } else {
-                //         panic!("")
-                //     }
-                // } else {
-                //     panic!("Name '{ga}' not in context")
-                // };
-                //
-                // // Parse it into a grammar
-                // //TODO performance: We should have a cache for grammar files
-                // //TODO and grammar state + new grammar -> grammar state
-                // let g = match parse_grammarfile(gr, self.input, self.allocs, |ar, _| {
-                //     Some(RuleAction::ActionResult(ar))
-                // }) {
-                //     Some(g) => g,
-                //     None => {
-                //         let mut e = E::new(pos.span_to(pos));
-                //         e.add_label_implicit(ErrorLabel::Explicit(
-                //             pos.span_to(pos),
-                //             EscapedString::from_escaped(
-                //                 "language grammar to be correct, but adaptation AST was malformed.",
-                //             ),
-                //         ));
-                //         return PResult::new_err(e, pos);
-                //     }
-                // };
-                // let g: &'arn GrammarFile<'arn, 'grm> = self.allocs.alloc(g);
-                //
-                // // Create new grammarstate
-                // let (rules, _) = match rules.adapt_with(g, vars, Some(pos), self.allocs) {
-                //     Ok(rules) => rules,
-                //     Err(_) => {
-                //         let mut e = E::new(pos.span_to(pos));
-                //         e.add_label_implicit(ErrorLabel::Explicit(
-                //             pos.span_to(pos),
-                //             EscapedString::from_escaped(
-                //                 "language grammar to be correct, but adaptation created cycle in block order.",
-                //             ),
-                //         ));
-                //         return PResult::new_err(e, pos);
-                //     }
-                // };
-                // let rules: &'arn GrammarState = self.allocs.alloc(rules);
-                //
-                // let rule = vars
-                //     .get(adapt_rule)
-                //     .or_else(|| vars.get(adapt_rule))
-                //     .unwrap()
-                //     .as_rule_id()
-                //     .expect("Adaptation rule exists");
-                //
-                // // Parse body
-                // let mut res = self
-                //     .parse_rule(rules, rule, &[], pos, context, visitor);
-                // res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
-                // res
+                // First, get the grammar actionresult
+                let gr = if let Some(ar) = vars.get(ga) {
+                    if let VarMapValue::Value(v) = ar {
+                        v
+                    } else {
+                        panic!("")
+                    }
+                } else {
+                    panic!("Name '{ga}' not in context")
+                };
+
+                // Parse it into a grammar
+                //TODO performance: We should have a cache for grammar files
+                //TODO and grammar state + new grammar -> grammar state
+                let g = match parse_grammarfile(unsafe { &*(*gr as *const ActionResult<'arn, 'grm>) }, self.input, self.allocs, |ar, _| {
+                    Some(RuleAction::ActionResult(ar))
+                }) {
+                    Some(g) => g,
+                    None => {
+                        let mut e = E::new(pos.span_to(pos));
+                        e.add_label_implicit(ErrorLabel::Explicit(
+                            pos.span_to(pos),
+                            EscapedString::from_escaped(
+                                "language grammar to be correct, but adaptation AST was malformed.",
+                            ),
+                        ));
+                        return PResult::new_err(e, pos);
+                    }
+                };
+                let g: &'arn GrammarFile<'arn, 'grm> = self.allocs.alloc(g);
+
+                // Create new grammarstate
+                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), self.allocs) {
+                    Ok(rules) => rules,
+                    Err(_) => {
+                        let mut e = E::new(pos.span_to(pos));
+                        e.add_label_implicit(ErrorLabel::Explicit(
+                            pos.span_to(pos),
+                            EscapedString::from_escaped(
+                                "language grammar to be correct, but adaptation created cycle in block order.",
+                            ),
+                        ));
+                        return PResult::new_err(e, pos);
+                    }
+                };
+                let rules: &'arn GrammarState = self.allocs.alloc(rules);
+
+                let rule = vars
+                    .get(adapt_rule)
+                    .or_else(|| vars.get(adapt_rule))
+                    .unwrap()
+                    .as_rule_id()
+                    .expect("Adaptation rule exists");
+
+                // Parse body
+                let mut res = self
+                    .parse_rule(rules, rule, &[], pos, context, visitor);
+                res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
+                res
             }
             RuleExpr::Guid => {
                 visitor.visit_guid(self.guid_counter, self.allocs);
