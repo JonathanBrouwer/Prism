@@ -19,9 +19,10 @@ pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
     #[serde(with = "leak_slice")]
-    pub args: &'arn [&'grm str],
+    pub args: &'arn [(&'grm str, &'grm str)],
     #[serde(borrow, with = "leak_slice")]
     pub blocks: &'arn [Block<'arn, 'grm>],
+    pub return_type: &'grm str,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]

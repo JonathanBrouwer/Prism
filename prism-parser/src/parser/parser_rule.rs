@@ -23,7 +23,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
         assert_eq!(rule_state.args.len(), args.len());
         let rule_args = VarMap::from_iter(
-            rule_state.args.iter().cloned().zip(args.iter().cloned()),
+            rule_state.args.iter().map(|(_arg_type, arg_name)| *arg_name).zip(args.iter().cloned()),
             self.alloc,
         );
 

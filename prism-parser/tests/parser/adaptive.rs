@@ -39,7 +39,7 @@ passing tests:
         }
     };
     let z;
-    "### => "[Let(Env(Construct('Z', [])))]"
+    "### => "[Let(Env(Construct('ActionResult', 'Z', [])))]"
     // Add to base redundant specification
     r###"
     grammar {
@@ -53,7 +53,7 @@ passing tests:
         }
     };
     let z;
-    "### => "[Let(Env(Construct('Z', [])))]"
+    "### => "[Let(Env(Construct('ActionResult', 'Z', [])))]"
     // Add minus
     r###"
     grammar {
@@ -64,7 +64,7 @@ passing tests:
         }
     };
     let x + y - x + x + y - x;
-    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
+    "### => "[Let(Add(X(), Env(Construct('ActionResult', 'Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus
     r###"
     grammar {
@@ -79,7 +79,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
+    "### => "[Let(Add(X(), Env(Construct('ActionResult', 'Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus seperately (1)
     r###"
     grammar {
@@ -99,7 +99,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
+    "### => "[Let(Add(X(), Env(Construct('ActionResult', 'Sub', [Name('x'), Name('y')]))))]"
     // Add mul + minus seperately (2)
     r###"
     grammar {
@@ -119,7 +119,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => "[Let(Add(X(), Env(Construct('Sub', [Name('x'), Name('y')]))))]"
+    "### => "[Let(Add(X(), Env(Construct('ActionResult', 'Sub', [Name('x'), Name('y')]))))]"
 
 failing tests:
     // Turns order around
@@ -185,7 +185,7 @@ passing tests:
         }
     }
     y
-    "### => "Env(Construct('Y', []))"
+    "### => "Env(Construct('ActionResult', 'Y', []))"
     r###"
     {
         adapt rule sub {
@@ -223,7 +223,7 @@ passing tests:
     r###"{
     adapt rule sub {
         Y() <- "y";
-    }}y"### => "Env(Construct('Y', []))"
+    }}y"### => "Env(Construct('ActionResult', 'Y', []))"
 
 failing tests:
 

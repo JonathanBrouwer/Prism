@@ -55,9 +55,9 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
         create Rule {
             name: parse_identifier(name, src)?,
             adapt: extend.iter_list().next().is_some(),
-            args: allocs.try_alloc_extend(args.iter_list().map(|n| parse_identifier(n, src)))?,
+            args: allocs.try_alloc_extend(args.iter_list().map(|n| parse_identifier(n, src).map(|name| ("ActionResult", name))))?,
             blocks: allocs.try_alloc_extend(blocks.iter_list().map(|block| parse_block(block, src, allocs, parse_a)))?,
-        }
+        return_type: "ActionResult",}
     }
 }
 
@@ -260,8 +260,9 @@ pub fn parse_rule_action<'arn, 'grm>(
     Some(match r {
         Construct(_, "Construct", b) => RuleAction::Construct(
             parse_identifier(&b[0], src).unwrap(),
+            parse_identifier(&b[1], src).unwrap(),
             result_match! {
-                create allocs.try_alloc_extend(b[1].iter_list().map(|sub| parse_rule_action(sub, src, allocs)))?
+                create allocs.try_alloc_extend(b[2].iter_list().map(|sub| parse_rule_action(sub, src, allocs)))?
             }?,
         ),
         Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(&b[0], src)?),

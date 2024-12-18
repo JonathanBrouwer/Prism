@@ -123,10 +123,12 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
+pub type ArgsSlice<'arn, 'grm> = &'arn [(&'grm str, &'grm str)];
+
 #[derive(Copy, Clone)]
 pub struct RuleState<'arn, 'grm> {
     pub name: &'grm str,
-    pub args: &'arn [&'grm str],
+    pub args: ArgsSlice<'arn, 'grm>,
     pub blocks: &'arn [BlockState<'arn, 'grm>],
 }
 
@@ -135,7 +137,7 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, args: &'arn [&'grm str]) -> Self {
+    pub fn new_empty(name: &'grm str, args: ArgsSlice<'arn, 'grm>) -> Self {
         Self {
             name,
             blocks: &[],
