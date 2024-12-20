@@ -10,6 +10,7 @@ use crate::grammar::RuleExpr;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
+use crate::action::parsable::Parsed;
 
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
@@ -115,7 +116,7 @@ pub struct CapturedExpr<'arn, 'grm> {
 #[derive(Copy, Clone)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
-    Value(&'arn ActionResult<'arn, 'grm>),
+    Value(Parsed<'arn>),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {

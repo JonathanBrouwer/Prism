@@ -11,6 +11,7 @@ use crate::grammar::GrammarFile;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
+use crate::action::parsable::{Parsable, Parsed};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,
@@ -61,7 +62,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
     pub fn run(
         &'arn mut self,
         rule: &'grm str,
-    ) -> Result<&'arn ActionResult<'arn, 'grm>, AggregatedParseError<'grm, E>> {
+    ) -> Result<Parsed<'arn>, AggregatedParseError<'grm, E>> {
         let rule = self
             .rules
             .get(rule)
@@ -101,7 +102,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     let bump = Bump::new();
     let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(|ar| ar_map(ar, allocs))
+    instance.run(rule).map(|ar| ar_map(ActionResult::from_parsed(ar), allocs))
 }
 
 #[macro_export]

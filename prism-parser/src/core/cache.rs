@@ -11,6 +11,7 @@ use crate::parser::var_map::BlockCtx;
 use bumpalo::Bump;
 use bumpalo_try::BumpaloExtend;
 use crate::action::action_result::ActionResult;
+use crate::action::parsable::Parsed;
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
@@ -29,7 +30,7 @@ impl From<BlockCtx<'_, '_>> for BlockKey {
     }
 }
 
-pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn>, E>;
 
 #[derive(Copy, Clone)]
 pub struct Allocs<'arn> {
@@ -90,12 +91,12 @@ pub struct ParserCacheEntry<PR> {
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<&'arn ActionResult<'arn, 'grm>, E>,
+        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<Parsed<'arn>, E>,
         block_state: BlockCtx<'arn, 'grm>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,

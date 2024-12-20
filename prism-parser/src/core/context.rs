@@ -2,15 +2,16 @@ use crate::action::action_result::ActionResult;
 use crate::parser::var_map::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use crate::action::parsable::{Parsable, Parsed};
 
 #[derive(Clone)]
 pub struct PR<'arn, 'grm> {
     pub free: VarMap<'arn, 'grm>,
-    pub rtrn: &'arn ActionResult<'arn, 'grm>,
+    pub rtrn: Parsed<'arn>,
 }
 
 impl<'arn, 'grm> PR<'arn, 'grm> {
-    pub fn with_rtrn(rtrn: &'arn ActionResult<'arn, 'grm>) -> Self {
+    pub fn with_rtrn(rtrn: Parsed<'arn>) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,

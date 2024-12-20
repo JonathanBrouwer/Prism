@@ -4,6 +4,8 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
+use crate::action::parsable::{Parsable, Parsed};
+use crate::core::cache::Allocs;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ActionResult<'arn, 'grm> {
@@ -18,6 +20,28 @@ pub enum ActionResult<'arn, 'grm> {
     RuleId(RuleId),
     #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
+}
+
+impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
+    fn from_span(span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
+        Self::Value(span)
+    }
+
+    fn from_literal(literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
+        Self::Literal(literal)
+    }
+
+    fn from_guid(guid: usize, _allocs: Allocs<'arn>) -> Self {
+        Self::Guid(guid)
+    }
+
+    fn from_rule(rule: RuleId, _allocs: Allocs<'arn>) -> Self {
+        Self::RuleId(rule)
+    }
+
+    fn from_construct(span: Span, constructor: &'grm str, args: &[Parsed<'arn>], allocs: Allocs<'arn>) -> Self {
+        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *ActionResult::from_parsed(*parsed))))
+    }
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {

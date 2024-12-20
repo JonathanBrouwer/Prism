@@ -7,6 +7,8 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::action::action_result::ActionResult;
 use crate::action::apply_action::apply_action;
+use crate::action::parsable::Parsable;
+use crate::action::void::Void;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
@@ -76,13 +78,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             }
                         }
                         VarMapValue::Value(value) => {
-                            if let ActionResult::RuleId(rule) = value {
-                                self.parse_rule(rules, *rule, &result_args, pos, context)
-                                    .map(PR::with_rtrn)
-                            } else {
-                                //TODO remove this code and replace with $value expressions
-                                PResult::new_empty(PR::with_rtrn(value), pos)
-                            }
+                            // if let ActionResult::RuleId(rule) = value {
+                            //     self.parse_rule(rules, *rule, &result_args, pos, context)
+                            //         .map(PR::with_rtrn)
+                            // } else {
+                            //     //TODO remove this code and replace with $value expressions
+                            //     PResult::new_empty(PR::with_rtrn(value), pos)
+                            // }
+                            todo!()
                         }
                     };
                 }
@@ -164,18 +167,19 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                 }
 
-                res.map_with_span(|rtrn, span| {
-                    PR::with_rtrn(rtrn.iter().rfold(
-                        self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
-                        |rest, next| {
-                            self.alloc.alloc(ActionResult::Construct(
-                                span,
-                                "Cons",
-                                self.alloc.alloc_extend([*next.rtrn, *rest]),
-                            ))
-                        },
-                    ))
-                })
+                todo!()
+                // res.map_with_span(|rtrn, span| {
+                //     PR::with_rtrn(rtrn.iter().rfold(
+                //         self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
+                //         |rest, next| {
+                //             self.alloc.alloc(ActionResult::Construct(
+                //                 span,
+                //                 "Cons",
+                //                 self.alloc.alloc_extend([*next.rtrn, *rest]),
+                //             ))
+                //         },
+                //     ))
+                // })
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);
@@ -196,7 +200,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: ActionResult::VOID,
+                    rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -217,7 +221,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     free: res
                         .free
                         .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
-                    rtrn: ActionResult::VOID,
+                    rtrn: Void.to_parsed()
                 })
             }
             RuleExpr::Action(sub, action) => {
@@ -232,7 +236,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
                     PR {
                         free: res.free,
-                        rtrn: self.alloc.alloc(rtrn),
+                        //TODO ar specific
+                        rtrn: self.alloc.alloc(rtrn).to_parsed(),
                     }
                 })
             }

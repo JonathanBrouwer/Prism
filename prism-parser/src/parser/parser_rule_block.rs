@@ -8,6 +8,7 @@ use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::action::action_result::ActionResult;
+use crate::action::parsable::Parsed;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::var_map::{BlockCtx, VarMap};
 
@@ -18,7 +19,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         block_ctx: BlockCtx<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         self.parse_cache_recurse(
             |state, pos| state.parse_sub_blocks(rules, block_ctx, pos, context),
             block_ctx,
@@ -34,7 +35,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         (block_state, rule_args): BlockCtx<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         match block_state {
             [] => unreachable!(),
             [b] => self.parse_sub_constructors(
@@ -69,7 +70,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         es: &'arn [Constructor<'arn, 'grm>],
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         match es {
             [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
             [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
@@ -102,6 +103,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn parse_sub_annotations(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,
@@ -111,7 +113,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res =
