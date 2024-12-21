@@ -13,7 +13,7 @@ pub enum ActionResult<'arn, 'grm> {
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, &'arn [Parsed<'arn, 'grm>]),
     Guid(usize),
-    WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
+    WithEnv(VarMap<'arn, 'grm>, Parsed<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
@@ -70,7 +70,7 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                     .join(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
-            ActionResult::WithEnv(_, ar) => format!("Env({})", ar.to_string(src)),
+            ActionResult::WithEnv(_, ar) => format!("Env({})", ar.into_value::<ActionResult<'arn, 'grm>>().to_string(src)),
         }
     }
 

@@ -4,6 +4,7 @@ use crate::grammar::serde_leak::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::{Debug, Formatter};
+use crate::core::parsable::Parsed;
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'arn, 'grm> {
@@ -15,7 +16,7 @@ pub enum RuleAction<'arn, 'grm> {
         #[serde(with = "leak_slice")] &'arn [Self],
     ),
     #[serde(skip)]
-    ActionResult(&'arn ActionResult<'arn, 'grm>),
+    Value(Parsed<'arn, 'grm>),
 }
 //
 // impl<'arn, 'grm> Debug for RuleAction<'arn, 'grm> {
