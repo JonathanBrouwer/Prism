@@ -1,12 +1,12 @@
 use crate::action::action_result::ActionResult;
 use crate::action::action_result::ActionResult::*;
 use crate::core::cache::Allocs;
+use crate::core::parsable::Parsed;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
 use std::borrow::Cow;
-use crate::core::parsable::Parsed;
 
 #[macro_export]
 macro_rules! result_match {
@@ -23,17 +23,14 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm: 'arn_in>(
+    r: Parsed<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<GrammarFile<'arn_out, 'grm>> {
     result_match! {
-        match r => Construct(_, "GrammarFile", rules),
+        match r.into_value::<ActionResult<'arn_in, 'grm>>() => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         create GrammarFile {
             rules: allocs.try_alloc_extend(rules.into_value::<ActionResult>().iter_list().map(|rule| parse_rule(rule.into_value::<ActionResult>(), src, allocs, &parse_a)))?,
@@ -45,10 +42,7 @@ fn parse_rule<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
@@ -66,10 +60,7 @@ fn parse_block<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<Block<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Block", b),
@@ -84,10 +75,7 @@ fn parse_constructors<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<&'arn_out [AnnotatedRuleExpr<'arn_out, 'grm>]> {
     result_match! {
         create allocs.try_alloc_extend(r.iter_list().map(|c| parse_annotated_rule_expr(c.into_value::<ActionResult>(), src, allocs, parse_a)))?
@@ -98,10 +86,7 @@ fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<AnnotatedRuleExpr<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
@@ -130,10 +115,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(
-        Parsed<'arn_in, 'grm>,
-        &'grm str,
-    ) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
 ) -> Option<RuleExpr<'arn_out, 'grm>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(

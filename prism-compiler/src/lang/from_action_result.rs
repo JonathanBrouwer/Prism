@@ -86,9 +86,6 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
     }
 }
 
-#[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
-pub struct Guid(pub usize);
-
 impl TcEnv {
     pub fn insert_from_action_result<'arn>(
         &mut self,

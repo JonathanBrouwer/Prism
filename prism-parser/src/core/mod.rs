@@ -2,6 +2,7 @@ pub mod adaptive;
 pub mod cache;
 pub mod context;
 pub mod parsable;
+pub mod parsed_debug;
 pub mod pos;
 pub mod presult;
 pub mod primitives;

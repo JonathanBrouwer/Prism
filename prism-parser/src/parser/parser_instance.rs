@@ -98,14 +98,12 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'c> FnOnce(&'c ActionResult<'c, 'grm>, Allocs<'c>) -> T,
+    ar_map: impl for<'c> FnOnce(Parsed<'c, 'grm>, Allocs<'c>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
     let bump = Bump::new();
     let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance
-        .run(rule)
-        .map(|ar| ar_map(ar.into_value::<ActionResult<'_, 'grm>>(), allocs))
+    instance.run(rule).map(|value| ar_map(value, allocs))
 }
 
 #[macro_export]

@@ -16,10 +16,6 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
         panic!("Cannot parse a {} from a literal", type_name::<Self>())
     }
 
-    fn from_guid(_guid: usize, _allocs: Allocs<'arn>) -> Self {
-        panic!("Cannot parse a {} from a guid", type_name::<Self>())
-    }
-
     fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
         panic!("Cannot parse a {} from a rule id", type_name::<Self>())
     }
@@ -44,9 +40,11 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
         }
     }
 
-    fn from_parsed(parsed: Parsed<'arn, 'grm>) -> &'arn Self {
-        assert_eq!(parsed.checksum, checksum_parsable::<Self>());
-        unsafe { parsed.ptr.cast::<Self>().as_ref() }
+    fn try_from_parsed(parsed: Parsed<'arn, 'grm>) -> Option<&'arn Self> {
+        if parsed.checksum != checksum_parsable::<Self>() {
+            return None;
+        }
+        Some(unsafe { parsed.ptr.cast::<Self>().as_ref() })
     }
 }
 
@@ -55,11 +53,10 @@ fn checksum_parsable<'arn, 'grm: 'arn, P: Parsable<'arn, 'grm> + 'arn>() -> u64 
 
     hash.write_usize(P::from_span as usize);
     hash.write_usize(P::from_literal as usize);
-    hash.write_usize(P::from_guid as usize);
     hash.write_usize(P::from_rule as usize);
     hash.write_usize(P::from_construct as usize);
     hash.write_usize(P::to_parsed as usize);
-    hash.write_usize(P::from_parsed as usize);
+    hash.write_usize(P::try_from_parsed as usize);
 
     hash.finish()
 }
@@ -73,7 +70,11 @@ pub struct Parsed<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     pub fn into_value<P: Parsable<'arn, 'grm>>(self) -> &'arn P {
-        P::from_parsed(self)
+        P::try_from_parsed(self).expect("Expected wrong king of Parsable")
+    }
+
+    pub fn try_into_value<P: Parsable<'arn, 'grm>>(self) -> Option<&'arn P> {
+        P::try_from_parsed(self)
     }
 }
 
@@ -92,10 +93,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
         Self
     }
 
-    fn from_guid(_guid: usize, _allocs: Allocs<'arn>) -> Self {
-        Self
-    }
-
     fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
         Self
     }
@@ -109,6 +106,11 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
         Self
     }
 }
+
+#[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub struct Guid(pub usize);
+
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Guid {}
 
 #[cfg(test)]
 mod tests {
@@ -125,7 +127,7 @@ mod tests {
     fn a_a_same() {
         let a = A;
         let parsed = a.to_parsed();
-        A::from_parsed(parsed);
+        parsed.into_value::<A>();
     }
 
     #[test]
@@ -133,6 +135,6 @@ mod tests {
     fn a_b_different() {
         let a = A;
         let parsed = a.to_parsed();
-        B::from_parsed(parsed);
+        parsed.into_value::<B>();
     }
 }

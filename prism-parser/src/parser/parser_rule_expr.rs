@@ -2,7 +2,7 @@ use crate::action::action_result::ActionResult;
 use crate::action::apply_action::apply_action;
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
-use crate::core::parsable::{Parsable, Void};
+use crate::core::parsable::{Guid, Parsable, Void};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -260,7 +260,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 // First, get the grammar actionresult
                 let gr = if let Some(ar) = vars.get(ga) {
                     if let VarMapValue::Value(v) = ar {
-                        v
+                        *v
                     } else {
                         panic!("")
                     }
@@ -269,7 +269,6 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
 
                 // Parse it into a grammar
-                let gr = gr.into_value::<ActionResult<'arn, 'grm>>();
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
                 let g = match parse_grammarfile(gr, self.input, self.alloc, |parsed, _| {
@@ -321,12 +320,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 res
             }
             RuleExpr::Guid => {
-                let guid = self.guid_counter;
+                let guid = Guid(self.guid_counter);
                 self.guid_counter += 1;
-                PResult::new_empty(
-                    PR::with_rtrn(self.alloc.alloc(ActionResult::Guid(guid)).to_parsed()),
-                    pos,
-                )
+
+                PResult::new_empty(PR::with_rtrn(self.alloc.alloc(guid).to_parsed()), pos)
             }
         }
     }

@@ -12,7 +12,6 @@ pub enum ActionResult<'arn, 'grm> {
     Value(Span),
     Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, &'arn [Parsed<'arn, 'grm>]),
-    Guid(usize),
     WithEnv(VarMap<'arn, 'grm>, Parsed<'arn, 'grm>),
 }
 
@@ -23,10 +22,6 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
 
     fn from_literal(literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
         Self::Literal(literal)
-    }
-
-    fn from_guid(guid: usize, _allocs: Allocs<'arn>) -> Self {
-        Self::Guid(guid)
     }
 
     fn from_construct(
@@ -45,32 +40,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
             ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
             ActionResult::Literal(s) => s.to_cow(),
             _ => panic!("Tried to get value of non-valued action result"),
-        }
-    }
-
-    pub fn to_string(&self, src: &str) -> String {
-        match self {
-            ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
-            ActionResult::Literal(lit) => format!("\'{}\'", lit),
-            ActionResult::Construct(_, "Cons" | "Nil", _) => {
-                format!(
-                    "[{}]",
-                    self.iter_list()
-                        .map(|e| e.into_value::<ActionResult<'arn, 'grm>>().to_string(src))
-                        .collect::<Vec<String>>()
-                        .join(", ")
-                )
-            }
-            ActionResult::Construct(_, c, es) => format!(
-                "{}({})",
-                c,
-                es.iter()
-                    .map(|e| e.into_value::<ActionResult<'arn, 'grm>>().to_string(src))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            ),
-            ActionResult::Guid(r) => format!("Guid({r})"),
-            ActionResult::WithEnv(_, ar) => format!("Env({})", ar.into_value::<ActionResult<'arn, 'grm>>().to_string(src)),
         }
     }
 
