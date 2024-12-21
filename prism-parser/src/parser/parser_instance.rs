@@ -11,7 +11,7 @@ use crate::grammar::GrammarFile;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
-use crate::action::parsable::{Parsable, Parsed};
+use crate::core::parsable::{Parsable, Parsed};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,

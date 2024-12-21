@@ -1,7 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::action::action_result::ActionResult;
-use crate::action::parsable::Parsable;
+use crate::core::parsable::Parsable;
 use crate::grammar::rule_action::RuleAction;
 use crate::parser::var_map::{VarMap, VarMapValue};
 

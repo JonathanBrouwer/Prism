@@ -6,7 +6,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::action::action_result::ActionResult;
-use crate::action::parsable::Parsed;
+use crate::core::parsable::Parsed;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {

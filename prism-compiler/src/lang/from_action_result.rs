@@ -5,7 +5,7 @@ use prism_parser::action::action_result::ActionResult;
 use prism_parser::parser::var_map::{VarMap, VarMapValue};
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
-use prism_parser::action::parsable::Parsable;
+use prism_parser::core::parsable::Parsable;
 
 #[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {

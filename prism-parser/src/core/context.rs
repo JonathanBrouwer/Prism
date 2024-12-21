@@ -2,7 +2,7 @@ use crate::action::action_result::ActionResult;
 use crate::parser::var_map::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
-use crate::action::parsable::{Parsable, Parsed};
+use crate::core::parsable::{Parsable, Parsed};
 
 #[derive(Clone)]
 pub struct PR<'arn, 'grm> {

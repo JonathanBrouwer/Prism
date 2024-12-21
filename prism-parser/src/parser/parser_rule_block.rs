@@ -8,7 +8,7 @@ use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::action::action_result::ActionResult;
-use crate::action::parsable::Parsed;
+use crate::core::parsable::Parsed;
 use crate::grammar::{RuleAnnotation, RuleExpr};
 use crate::parser::var_map::{BlockCtx, VarMap};
 

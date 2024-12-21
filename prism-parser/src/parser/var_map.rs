@@ -10,7 +10,7 @@ use crate::grammar::RuleExpr;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
-use crate::action::parsable::{Parsable, Parsed};
+use crate::core::parsable::{Parsable, Parsed};
 
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);

@@ -79,9 +79,33 @@ unsafe impl<'arn, 'grm> Send for Parsed<'arn, 'grm> {
 
 }
 
+pub struct Void;
+
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
+    fn from_span(_span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
+        Self
+    }
+
+    fn from_literal(_literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
+        Self
+    }
+
+    fn from_guid(_guid: usize, _allocs: Allocs<'arn>) -> Self {
+        Self
+    }
+
+    fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
+        Self
+    }
+
+    fn from_construct(_span: Span, _constructor: &'grm str, _args: &[Parsed<'arn, 'grm>], _allocs: Allocs<'arn>) -> Self {
+        Self
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::action::parsable::Parsable;
+    use crate::core::parsable::Parsable;
 
     #[derive(Debug)]
     struct A;

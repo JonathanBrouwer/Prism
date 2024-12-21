@@ -9,7 +9,7 @@ use prism_parser::grammar::from_action_result::{parse_grammarfile, parse_rule_ac
 use prism_parser::grammar::GrammarFile;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
-use prism_parser::action::parsable::Parsable;
+use prism_parser::core::parsable::Parsable;
 
 fn main() {
     normal();

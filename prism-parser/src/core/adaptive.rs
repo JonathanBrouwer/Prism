@@ -6,7 +6,7 @@ use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::iter;
-use crate::action::parsable::Parsable;
+use crate::core::parsable::Parsable;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {

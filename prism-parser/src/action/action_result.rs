@@ -4,7 +4,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
-use crate::action::parsable::{Parsable, Parsed};
+use crate::core::parsable::{Parsable, Parsed};
 use crate::core::cache::Allocs;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
