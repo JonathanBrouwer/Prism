@@ -1,6 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::action::action_result::ActionResult;
+use crate::action::parsable::Parsable;
 use crate::grammar::rule_action::RuleAction;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
@@ -14,7 +15,7 @@ pub fn apply_action<'arn, 'grm>(
         RuleAction::Name(name) => {
             if let Some(ar) = vars.get(name) {
                 if let VarMapValue::Value(v) = ar {
-                    **v
+                    *ActionResult::from_parsed(*v)
                 } else {
                     panic!("")
                 }

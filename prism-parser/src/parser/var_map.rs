@@ -10,7 +10,7 @@ use crate::grammar::RuleExpr;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
-use crate::action::parsable::Parsed;
+use crate::action::parsable::{Parsable, Parsed};
 
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
@@ -123,30 +123,30 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VarMapValue::Expr(_) => write!(f, "{{expr}}"),
-            VarMapValue::Value(ar) => write!(f, "{ar:?}"),
+            VarMapValue::Value(_) => write!(f, "{{value}}"),
         }
     }
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
     pub fn new_rule(rule: RuleId, alloc: Allocs<'arn>) -> Self {
-        Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
+        Self::Value(alloc.alloc(ActionResult::RuleId(rule)).to_parsed())
     }
 
-    pub fn as_value(&self) -> Option<&ActionResult<'arn, 'grm>> {
+    pub fn as_value(&self) -> Option<Parsed<'arn>> {
         if let VarMapValue::Value(value) = self {
-            Some(value)
+            Some(*value)
         } else {
             None
         }
     }
 
-    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>>>(
+    pub fn run_to_value<'a, E: ParseError<L = ErrorLabel<'grm>>>(
         &'a self,
         rules: &'arn GrammarState<'arn, 'grm>,
         state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
-    ) -> Option<&'arn ActionResult<'arn, 'grm>> {
+    ) -> Option<Parsed<'arn>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
                 state
@@ -161,7 +161,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
                     .ok()?
                     .rtrn
             }
-            VarMapValue::Value(v) => v,
+            VarMapValue::Value(v) => *v,
         })
     }
 
@@ -169,7 +169,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         let VarMapValue::Value(ar) = self else {
             return None;
         };
-        let ActionResult::RuleId(rule) = ar else {
+        let ActionResult::RuleId(rule) = ActionResult::from_parsed(*ar) else {
             return None;
         };
         Some(*rule)
