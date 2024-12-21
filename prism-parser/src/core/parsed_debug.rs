@@ -1,12 +1,11 @@
 use crate::action::action_result::ActionResult;
+use crate::core::input::Input;
 use crate::core::parsable::{Guid, Parsed};
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     pub fn to_string(&self, src: &str) -> String {
         if let Some(ar) = self.try_into_value::<ActionResult>() {
             match ar {
-                ActionResult::Value(span) => format!("\'{}\'", &src[*span]),
-                ActionResult::Literal(lit) => format!("\'{}\'", lit),
                 ActionResult::Construct(_, "Cons" | "Nil", _) => {
                     format!(
                         "[{}]",
@@ -28,6 +27,8 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
             }
         } else if let Some(guid) = self.try_into_value::<Guid>() {
             format!("Guid({})", guid.0)
+        } else if let Some(input) = self.try_into_value::<Input>() {
+            format!("\'{}\'", input.as_cow(src))
         } else {
             panic!("Could not debug print unknown parsed")
         }

@@ -1,5 +1,6 @@
 use crate::action::action_result::ActionResult;
 use crate::core::cache::Allocs;
+use crate::core::input::Input;
 use crate::core::parsable::{Parsable, Parsed};
 use crate::core::span::Span;
 use crate::grammar::rule_action::RuleAction;
@@ -24,7 +25,7 @@ pub fn apply_action<'arn, 'grm>(
                     panic!("Name '{name}' not in context")
                 }
             }
-            RuleAction::InputLiteral(lit) => ActionResult::Literal(*lit),
+            RuleAction::InputLiteral(lit) => return allocs.alloc(Input::Literal(*lit)).to_parsed(),
             RuleAction::Construct(_namespace, name, args) => {
                 let args_vals =
                     allocs.alloc_extend(args.iter().map(|a| apply_action(a, span, vars, allocs)));

@@ -1,29 +1,16 @@
-use crate::core::adaptive::RuleId;
 use crate::core::cache::Allocs;
 use crate::core::parsable::{Parsable, Parsed};
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::serde_leak::*;
 use crate::parser::var_map::VarMap;
-use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone)]
 pub enum ActionResult<'arn, 'grm> {
-    Value(Span),
-    Literal(EscapedString<'grm>),
     Construct(Span, &'grm str, &'arn [Parsed<'arn, 'grm>]),
     WithEnv(VarMap<'arn, 'grm>, Parsed<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
-    fn from_span(span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
-        Self::Value(span)
-    }
-
-    fn from_literal(literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
-        Self::Literal(literal)
-    }
-
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -35,14 +22,6 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> ActionResult<'arn, 'grm> {
-    pub fn get_value(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
-        match self {
-            ActionResult::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
-            ActionResult::Literal(s) => s.to_cow(),
-            _ => panic!("Tried to get value of non-valued action result"),
-        }
-    }
-
     pub fn iter_list(&self) -> ARListIterator<'arn, 'grm> {
         ARListIterator(*self, None)
     }

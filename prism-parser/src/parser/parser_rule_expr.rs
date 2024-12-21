@@ -2,6 +2,7 @@ use crate::action::action_result::ActionResult;
 use crate::action::apply_action::apply_action;
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
+use crate::core::input::Input;
 use crate::core::parsable::{Guid, Parsable, Void};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -92,9 +93,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     pos,
                     context,
                 )
-                .map(|(span, _)| {
-                    PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)).to_parsed())
-                }),
+                .map(|(span, _)| PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
@@ -105,9 +104,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         res = res.merge_seq(new_res).map(|_| ());
                     }
                     let span = start_pos.span_to(res.end_pos());
-                    let mut res = res.map(|_| {
-                        PR::with_rtrn(state.alloc.alloc(ActionResult::Value(span)).to_parsed())
-                    });
+                    let mut res = res
+                        .map(|_| PR::with_rtrn(state.alloc.alloc(Input::Value(span)).to_parsed()));
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
@@ -240,7 +238,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::SliceInput(sub) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)).to_parsed())
+                    PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
                 })
             }
             RuleExpr::This => self

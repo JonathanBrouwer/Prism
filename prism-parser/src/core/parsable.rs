@@ -8,14 +8,6 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
-    fn from_span(_span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
-        panic!("Cannot parse a {} from a span", type_name::<Self>())
-    }
-
-    fn from_literal(_literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
-        panic!("Cannot parse a {} from a literal", type_name::<Self>())
-    }
-
     fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
         panic!("Cannot parse a {} from a rule id", type_name::<Self>())
     }
@@ -51,8 +43,6 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
 fn checksum_parsable<'arn, 'grm: 'arn, P: Parsable<'arn, 'grm> + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
-    hash.write_usize(P::from_span as usize);
-    hash.write_usize(P::from_literal as usize);
     hash.write_usize(P::from_rule as usize);
     hash.write_usize(P::from_construct as usize);
     hash.write_usize(P::to_parsed as usize);
@@ -85,14 +75,6 @@ unsafe impl<'arn, 'grm> Send for Parsed<'arn, 'grm> {}
 pub struct Void;
 
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
-    fn from_span(_span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
-        Self
-    }
-
-    fn from_literal(_literal: EscapedString<'grm>, _allocs: Allocs<'arn>) -> Self {
-        Self
-    }
-
     fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
         Self
     }
