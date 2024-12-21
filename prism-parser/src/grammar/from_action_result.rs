@@ -3,12 +3,10 @@ use crate::action::action_result::ActionResult::*;
 use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::core::parsable::Parsed;
-use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::grammar::{CharClass, RuleAnnotation};
-use std::borrow::Cow;
 
 #[macro_export]
 macro_rules! result_match {
@@ -120,7 +118,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             allocs.alloc(parse_rule_expr(
-                &b[0].into_value::<ActionResult>(),
+                b[0].into_value::<ActionResult>(),
                 src,
                 allocs,
                 parse_a,
@@ -136,7 +134,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
             parse_identifier(b[0], src)?,
             allocs.alloc(parse_rule_expr(
-                &b[1].into_value::<ActionResult>(),
+                b[1].into_value::<ActionResult>(),
                 src,
                 allocs,
                 parse_a,
@@ -144,15 +142,15 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         ),
         Construct(_, "Repeat", b) => RuleExpr::Repeat {
             expr: allocs.alloc(parse_rule_expr(
-                &b[0].into_value::<ActionResult>(),
+                b[0].into_value::<ActionResult>(),
                 src,
                 allocs,
                 parse_a,
             )?),
             min: parse_u64(b[1], src)?,
-            max: parse_option(&b[2].into_value::<ActionResult>(), src, parse_u64)?,
+            max: parse_option(b[2].into_value::<ActionResult>(), src, parse_u64)?,
             delim: allocs.alloc(parse_rule_expr(
-                &b[3].into_value::<ActionResult>(),
+                b[3].into_value::<ActionResult>(),
                 src,
                 allocs,
                 parse_a,
@@ -160,24 +158,24 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         },
         Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(b[0], src)?),
         Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(
-            &b[0].into_value::<ActionResult>(),
+            b[0].into_value::<ActionResult>(),
             src,
             allocs,
         )?),
         Construct(_, "SliceInput", b) => RuleExpr::SliceInput(allocs.alloc(parse_rule_expr(
-            &b[0].into_value::<ActionResult>(),
+            b[0].into_value::<ActionResult>(),
             src,
             allocs,
             parse_a,
         )?)),
         Construct(_, "PosLookahead", b) => RuleExpr::PosLookahead(allocs.alloc(parse_rule_expr(
-            &b[0].into_value::<ActionResult>(),
+            b[0].into_value::<ActionResult>(),
             src,
             allocs,
             parse_a,
         )?)),
         Construct(_, "NegLookahead", b) => RuleExpr::NegLookahead(allocs.alloc(parse_rule_expr(
-            &b[0].into_value::<ActionResult>(),
+            b[0].into_value::<ActionResult>(),
             src,
             allocs,
             parse_a,
@@ -205,7 +203,7 @@ pub(crate) fn parse_identifier<'grm>(r: Parsed<'_, 'grm>, src: &'grm str) -> Opt
 }
 
 pub(crate) fn parse_string<'arn, 'grm>(
-    r: Parsed<'_, 'grm>,
+    r: Parsed<'arn, 'grm>,
     src: &'grm str,
 ) -> Option<EscapedString<'grm>> {
     result_match! {

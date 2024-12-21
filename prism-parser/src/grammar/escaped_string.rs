@@ -36,7 +36,7 @@ impl Display for EscapedString<'_> {
 
 struct EscapedStringIter<'grm>(Chars<'grm>);
 
-impl<'grm> Iterator for EscapedStringIter<'grm> {
+impl Iterator for EscapedStringIter<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {

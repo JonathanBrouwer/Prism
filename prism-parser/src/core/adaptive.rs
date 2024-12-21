@@ -4,9 +4,7 @@ use crate::core::pos::Pos;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
-use std::any::type_name;
 use std::fmt::{Display, Formatter};
-use std::iter;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -29,7 +27,7 @@ impl Display for RuleId {
     }
 }
 
-impl<'arn, 'grm> Default for GrammarState<'arn, 'grm> {
+impl Default for GrammarState<'_, '_> {
     fn default() -> Self {
         Self::new()
     }

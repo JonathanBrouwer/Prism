@@ -1,8 +1,7 @@
-use crate::action::action_result::ActionResult;
-use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
-use crate::core::parsable::{Parsable, Parsed};
+use crate::core::parsable::Parsed;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
@@ -15,7 +14,7 @@ use std::ptr::null;
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
 
-impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
+impl Debug for VarMap<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
         for (name, value) in self.iter_cloned() {
@@ -119,7 +118,7 @@ pub enum VarMapValue<'arn, 'grm> {
     Value(Parsed<'arn, 'grm>),
 }
 
-impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
+impl Debug for VarMapValue<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VarMapValue::Expr(_) => write!(f, "{{expr}}"),

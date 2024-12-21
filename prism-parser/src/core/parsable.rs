@@ -1,7 +1,6 @@
 use crate::core::adaptive::RuleId;
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
 use std::any::type_name;
 use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
@@ -68,9 +67,9 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     }
 }
 
-unsafe impl<'arn, 'grm> Sync for Parsed<'arn, 'grm> {}
+unsafe impl Sync for Parsed<'_, '_> {}
 
-unsafe impl<'arn, 'grm> Send for Parsed<'arn, 'grm> {}
+unsafe impl Send for Parsed<'_, '_> {}
 
 pub struct Void;
 
