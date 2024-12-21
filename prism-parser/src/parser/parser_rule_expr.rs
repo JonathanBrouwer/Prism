@@ -171,10 +171,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             self.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
-                                self.alloc.alloc_extend([
-                                    *next.rtrn.into_value::<ActionResult<'arn, 'grm>>(),
-                                    *rest,
-                                ]),
+                                self.alloc.alloc_extend([next.rtrn, rest.to_parsed()]),
                             ))
                         },
                     )

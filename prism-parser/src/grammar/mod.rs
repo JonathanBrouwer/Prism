@@ -8,13 +8,13 @@ pub mod from_action_result;
 pub mod rule_action;
 pub mod serde_leak;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct GrammarFile<'arn, 'grm> {
     #[serde(borrow, with = "leak_slice")]
     pub rules: &'arn [Rule<'arn, 'grm>],
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
@@ -25,7 +25,7 @@ pub struct Rule<'arn, 'grm> {
     pub return_type: &'grm str,
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct Block<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
@@ -33,7 +33,7 @@ pub struct Block<'arn, 'grm> {
     pub constructors: &'arn [AnnotatedRuleExpr<'arn, 'grm>],
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct AnnotatedRuleExpr<'arn, 'grm>(
     #[serde(borrow, with = "leak_slice")] pub &'arn [RuleAnnotation<'grm>],
     #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
@@ -52,7 +52,7 @@ impl CharClass<'_> {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation<'grm> {
     #[serde(borrow)]
     Error(EscapedString<'grm>),
@@ -62,7 +62,7 @@ pub enum RuleAnnotation<'grm> {
     EnableRecovery,
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {
     RunVar(
         &'grm str,
