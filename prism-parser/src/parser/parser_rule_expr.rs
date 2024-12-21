@@ -1,4 +1,4 @@
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -78,13 +78,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             }
                         }
                         VarMapValue::Value(value) => {
-                            if let ActionResult::RuleId(rule) = ActionResult::from_parsed(*value) {
-                                self.parse_rule(rules, *rule, &result_args, pos, context)
-                                    .map(PR::with_rtrn)
-                            } else {
-                                //TODO remove this code and replace with $value expressions
-                                PResult::new_empty(PR::with_rtrn(*value), pos)
-                            }
+                            let rule = *value.into_value::<RuleId>();
+                            self.parse_rule(rules, rule, &result_args, pos, context)
+                                .map(PR::with_rtrn)
                         }
                     };
                 }
@@ -173,7 +169,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             self.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
-                                self.alloc.alloc_extend([*ActionResult::from_parsed(next.rtrn), *rest]),
+                                self.alloc.alloc_extend([*next.rtrn.into_value::<ActionResult>(), *rest]),
                             ))
                         },
                     )
@@ -271,7 +267,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
 
                 // Parse it into a grammar
-                let gr = ActionResult::from_parsed(*gr);
+                let gr = gr.into_value::<ActionResult>();
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
                 let g = match parse_grammarfile(gr, self.input, self.alloc, |ar, _| {
@@ -307,12 +303,13 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
                 let rules: &'arn GrammarState = self.alloc.alloc(rules);
 
-                let rule = vars
+                let rule = *vars
                     .get(adapt_rule)
                     .or_else(|| vars.get(adapt_rule))
                     .unwrap()
-                    .as_rule_id()
-                    .expect("Adaptation rule exists");
+                    .as_value()
+                    .expect("Adapation rule is a value")
+                    .into_value::<RuleId>();
 
                 // Parse body
                 let mut res = self

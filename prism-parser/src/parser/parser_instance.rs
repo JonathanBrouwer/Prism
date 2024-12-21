@@ -1,4 +1,4 @@
-use crate::core::adaptive::{AdaptError, GrammarState};
+use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
@@ -63,12 +63,13 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         &'arn mut self,
         rule: &'grm str,
     ) -> Result<Parsed<'arn>, AggregatedParseError<'grm, E>> {
-        let rule = self
+        let rule = *self
             .rules
             .get(rule)
             .expect("Rule exists")
-            .as_rule_id()
-            .expect("Rule is a rule");
+            .as_value()
+            .expect("Rule is value")
+            .into_value::<RuleId>();
         let result = self.state.parse_rule(
             &self.grammar_state,
             rule,
@@ -102,7 +103,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     let bump = Bump::new();
     let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(|ar| ar_map(ActionResult::from_parsed(ar), allocs))
+    instance.run(rule).map(|ar| ar_map(ar.into_value::<ActionResult>(), allocs))
 }
 
 #[macro_export]

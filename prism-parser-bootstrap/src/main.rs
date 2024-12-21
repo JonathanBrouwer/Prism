@@ -9,6 +9,7 @@ use prism_parser::grammar::from_action_result::{parse_grammarfile, parse_rule_ac
 use prism_parser::grammar::GrammarFile;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
+use prism_parser::action::parsable::Parsable;
 
 fn main() {
     normal();
@@ -35,7 +36,7 @@ fn part1() {
     let input = include_str!("../resources/meta.pg");
 
     run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
-    let result = result.unwrap_or_eprint();
+    let result = result.unwrap_or_eprint().into_value::<ActionResult>();
 
     let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
     bincode::serialize_into(&mut file, &result).unwrap();

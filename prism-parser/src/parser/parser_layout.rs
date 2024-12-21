@@ -1,4 +1,4 @@
-use crate::core::adaptive::GrammarState;
+use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -23,7 +23,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         let Some(layout) = vars.get("layout") else {
             return sub(self, pos);
         };
-        let layout = layout.as_rule_id().expect("Layout is an expr");
+        let layout = *layout.as_value().expect("Layout is an expr").into_value::<RuleId>();
 
         let mut res = PResult::new_empty((), pos);
         loop {

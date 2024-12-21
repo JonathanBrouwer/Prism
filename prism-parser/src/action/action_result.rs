@@ -17,7 +17,6 @@ pub enum ActionResult<'arn, 'grm> {
         #[serde(with = "leak_slice")] &'arn [ActionResult<'arn, 'grm>],
     ),
     Guid(usize),
-    RuleId(RuleId),
     #[serde(skip)]
     WithEnv(VarMap<'arn, 'grm>, &'arn ActionResult<'arn, 'grm>),
 }
@@ -35,12 +34,8 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
         Self::Guid(guid)
     }
 
-    fn from_rule(rule: RuleId, _allocs: Allocs<'arn>) -> Self {
-        Self::RuleId(rule)
-    }
-
     fn from_construct(span: Span, constructor: &'grm str, args: &[Parsed<'arn>], allocs: Allocs<'arn>) -> Self {
-        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *ActionResult::from_parsed(*parsed))))
+        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *parsed.into_value::<ActionResult>())))
     }
 }
 
@@ -75,7 +70,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
                     .join(", ")
             ),
             ActionResult::Guid(r) => format!("Guid({r})"),
-            ActionResult::RuleId(rule) => format!("Rule({rule})"),
             ActionResult::WithEnv(_, ar) => format!("Env({})", ar.to_string(src)),
         }
     }

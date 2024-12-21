@@ -5,6 +5,7 @@ use prism_parser::action::action_result::ActionResult;
 use prism_parser::parser::var_map::{VarMap, VarMapValue};
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;
+use prism_parser::action::parsable::Parsable;
 
 #[derive(Clone, Debug)]
 enum ScopeValue<'arn, 'grm> {
@@ -55,7 +56,7 @@ impl<'arn, 'grm> Scope<'arn, 'grm> {
             match value {
                 VarMapValue::Expr(_) => continue,
                 VarMapValue::Value(ar) => {
-                    names.insert_mut(name, ScopeValue::FromGrammar(ar, vars.clone()));
+                    names.insert_mut(name, ScopeValue::FromGrammar(ar.into_value(), vars.clone()));
                 }
             }
         }

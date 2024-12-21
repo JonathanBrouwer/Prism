@@ -74,21 +74,21 @@ failing tests:
     "z"
 }
 
-parse_test! {
-name: run_value_as_rule
-syntax: r##"
-    rule start = Letters(v1, v2) <- v1:letter v2:id(v1);
-
-    rule letter = ['a'-'z'];
-    rule id(v3) = v4 <- v4:v3;
-    "##
-passing tests:
-    "x" => "Letters('x', 'x')"
-
-failing tests:
-    ""
-    "xy"
-}
+// parse_test! {
+// name: run_value_as_rule
+// syntax: r##"
+//     rule start = Letters(v1, v2) <- v1:letter v2:id(v1);
+//
+//     rule letter = ['a'-'z'];
+//     rule id(v3) = v3 <- "";
+//     "##
+// passing tests:
+//     "x" => "Letters('x', 'x')"
+//
+// failing tests:
+//     ""
+//     "xy"
+// }
 
 parse_test! {
 name: pass_value_twice

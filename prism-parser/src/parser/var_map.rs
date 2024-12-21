@@ -129,10 +129,6 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn new_rule(rule: RuleId, alloc: Allocs<'arn>) -> Self {
-        Self::Value(alloc.alloc(ActionResult::RuleId(rule)).to_parsed())
-    }
-
     pub fn as_value(&self) -> Option<Parsed<'arn>> {
         if let VarMapValue::Value(value) = self {
             Some(*value)
@@ -163,15 +159,5 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
             }
             VarMapValue::Value(v) => *v,
         })
-    }
-
-    pub fn as_rule_id(&self) -> Option<RuleId> {
-        let VarMapValue::Value(ar) = self else {
-            return None;
-        };
-        let ActionResult::RuleId(rule) = ActionResult::from_parsed(*ar) else {
-            return None;
-        };
-        Some(*rule)
     }
 }

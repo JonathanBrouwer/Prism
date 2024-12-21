@@ -65,6 +65,12 @@ pub struct Parsed<'arn> {
     phantom_data: PhantomData<&'arn ()>
 }
 
+impl<'arn> Parsed<'arn> {
+    pub fn into_value<'grm, P: Parsable<'arn, 'grm>>(self) -> &'arn P {
+        P::from_parsed(self)
+    }
+}
+
 unsafe impl<'arn> Sync for Parsed<'arn> {
 
 }
