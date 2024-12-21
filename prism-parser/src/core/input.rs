@@ -10,11 +10,10 @@ pub enum Input<'grm> {
 }
 
 impl<'grm> Input<'grm> {
-    pub fn as_cow(&self, src: &'grm str) -> std::borrow::Cow<'grm, str> {
+    pub fn as_cow(&self, src: &'grm str) -> Cow<'grm, str> {
         match self {
-            Self::Value(span) => std::borrow::Cow::Borrowed(&src[*span]),
+            Self::Value(span) => Cow::Borrowed(&src[*span]),
             Self::Literal(s) => s.to_cow(),
-            _ => panic!("Tried to get value of non-valued action result"),
         }
     }
 
