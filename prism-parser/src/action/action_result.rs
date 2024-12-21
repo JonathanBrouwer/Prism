@@ -1,7 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::parsable::{Parsable, Parsed};
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
 use crate::parser::var_map::VarMap;
 
 #[derive(Copy, Clone)]
@@ -25,9 +24,6 @@ impl<'arn, 'grm> ActionResult<'arn, 'grm> {
     pub fn iter_list(&self) -> ARListIterator<'arn, 'grm> {
         ARListIterator(*self, None)
     }
-
-    pub const VOID: &'static ActionResult<'static, 'static> =
-        &ActionResult::Construct(Span::invalid(), "#VOID#", &[]);
 }
 
 #[derive(Clone)]
