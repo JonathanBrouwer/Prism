@@ -17,7 +17,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         args: &[VarMapValue<'arn, 'grm>],
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));

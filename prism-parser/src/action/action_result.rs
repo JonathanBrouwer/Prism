@@ -34,7 +34,7 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
         Self::Guid(guid)
     }
 
-    fn from_construct(span: Span, constructor: &'grm str, args: &[Parsed<'arn>], allocs: Allocs<'arn>) -> Self {
+    fn from_construct(span: Span, constructor: &'grm str, args: &[Parsed<'arn, 'grm>], allocs: Allocs<'arn>) -> Self {
         Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *parsed.into_value::<ActionResult>())))
     }
 }

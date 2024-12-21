@@ -116,7 +116,7 @@ pub struct CapturedExpr<'arn, 'grm> {
 #[derive(Copy, Clone)]
 pub enum VarMapValue<'arn, 'grm> {
     Expr(CapturedExpr<'arn, 'grm>),
-    Value(Parsed<'arn>),
+    Value(Parsed<'arn, 'grm>),
 }
 
 impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
@@ -129,7 +129,7 @@ impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
 }
 
 impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn as_value(&self) -> Option<Parsed<'arn>> {
+    pub fn as_value(&self) -> Option<Parsed<'arn, 'grm>> {
         if let VarMapValue::Value(value) = self {
             Some(*value)
         } else {
@@ -142,7 +142,7 @@ impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
         rules: &'arn GrammarState<'arn, 'grm>,
         state: &mut ParserState<'arn, 'grm, E>,
         context: ParserContext,
-    ) -> Option<Parsed<'arn>> {
+    ) -> Option<Parsed<'arn, 'grm>> {
         Some(match self {
             VarMapValue::Expr(captured_expr) => {
                 state

@@ -62,7 +62,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
     pub fn run(
         &'arn mut self,
         rule: &'grm str,
-    ) -> Result<Parsed<'arn>, AggregatedParseError<'grm, E>> {
+    ) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = *self
             .rules
             .get(rule)

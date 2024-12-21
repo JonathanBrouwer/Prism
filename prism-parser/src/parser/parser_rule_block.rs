@@ -19,7 +19,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         block_ctx: BlockCtx<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         self.parse_cache_recurse(
             |state, pos| state.parse_sub_blocks(rules, block_ctx, pos, context),
             block_ctx,
@@ -35,7 +35,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         (block_state, rule_args): BlockCtx<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         match block_state {
             [] => unreachable!(),
             [b] => self.parse_sub_constructors(
@@ -70,7 +70,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         es: &'arn [Constructor<'arn, 'grm>],
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         match es {
             [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
             [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
@@ -113,7 +113,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res =

@@ -30,7 +30,7 @@ impl From<BlockCtx<'_, '_>> for BlockKey {
     }
 }
 
-pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn>, E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn, 'grm>, E>;
 
 #[derive(Copy, Clone)]
 pub struct Allocs<'arn> {
@@ -91,12 +91,12 @@ pub struct ParserCacheEntry<PR> {
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<Parsed<'arn>, E>,
+        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
         block_state: BlockCtx<'arn, 'grm>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         //Check if this result is cached
         let key = CacheKey {
             pos: pos_start,

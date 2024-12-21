@@ -17,7 +17,7 @@ pub struct GrammarState<'arn, 'grm> {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
-impl<'arn, 'grm> Parsable<'arn, 'grm> for RuleId {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleId {
     fn from_rule(rule: RuleId, _allocs: Allocs<'arn>) -> Self {
         rule
     }

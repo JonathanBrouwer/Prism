@@ -7,11 +7,11 @@ use crate::action::parsable::{Parsable, Parsed};
 #[derive(Clone)]
 pub struct PR<'arn, 'grm> {
     pub free: VarMap<'arn, 'grm>,
-    pub rtrn: Parsed<'arn>,
+    pub rtrn: Parsed<'arn, 'grm>,
 }
 
 impl<'arn, 'grm> PR<'arn, 'grm> {
-    pub fn with_rtrn(rtrn: Parsed<'arn>) -> Self {
+    pub fn with_rtrn(rtrn: Parsed<'arn, 'grm>) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,

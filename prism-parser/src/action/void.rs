@@ -7,7 +7,7 @@ use crate::grammar::escaped_string::EscapedString;
 
 pub struct Void;
 
-impl<'arn, 'grm> Parsable<'arn, 'grm> for Void {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
     fn from_span(_span: Span, _text: &'arn str, _allocs: Allocs<'arn>) -> Self {
         Self
     }
@@ -24,7 +24,7 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for Void {
         Self
     }
 
-    fn from_construct(_span: Span, constructor: &'grm str, _args: &[Parsed<'arn>], _allocs: Allocs<'arn>) -> Self {
+    fn from_construct(_span: Span, constructor: &'grm str, _args: &[Parsed<'arn, 'grm>], _allocs: Allocs<'arn>) -> Self {
         Self
     }
 }
