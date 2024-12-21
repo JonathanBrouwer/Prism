@@ -35,7 +35,7 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
     }
 
     fn from_construct(span: Span, constructor: &'grm str, args: &[Parsed<'arn, 'grm>], allocs: Allocs<'arn>) -> Self {
-        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *parsed.into_value::<ActionResult>())))
+        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().map(|parsed| *parsed.into_value::<ActionResult<'arn, 'grm>>())))
     }
 }
 

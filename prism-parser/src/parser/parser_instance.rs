@@ -103,7 +103,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     let bump = Bump::new();
     let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(|ar| ar_map(ar.into_value::<ActionResult>(), allocs))
+    instance.run(rule).map(|ar| ar_map(ar.into_value::<ActionResult<'_, 'grm>>(), allocs))
 }
 
 #[macro_export]

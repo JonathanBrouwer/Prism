@@ -168,7 +168,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             self.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
-                                self.alloc.alloc_extend([*next.rtrn.into_value::<ActionResult>(), *rest]),
+                                self.alloc.alloc_extend([*next.rtrn.into_value::<ActionResult<'arn, 'grm>>(), *rest]),
                             ))
                         },
                     )
@@ -266,7 +266,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
 
                 // Parse it into a grammar
-                let gr = gr.into_value::<ActionResult>();
+                let gr = gr.into_value::<ActionResult<'arn, 'grm>>();
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
                 let g = match parse_grammarfile(gr, self.input, self.alloc, |ar, _| {

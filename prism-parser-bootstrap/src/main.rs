@@ -36,7 +36,7 @@ fn part1() {
     let input = include_str!("../resources/meta.pg");
 
     run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
-    let result = result.unwrap_or_eprint().into_value::<ActionResult>();
+    let result = result.unwrap_or_eprint().into_value::<ActionResult<'arn, 'grm>>();
 
     let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
     bincode::serialize_into(&mut file, &result).unwrap();

@@ -15,7 +15,7 @@ pub fn apply_action<'arn, 'grm>(
         RuleAction::Name(name) => {
             if let Some(ar) = vars.get(name) {
                 if let VarMapValue::Value(v) = ar {
-                    *v.into_value::<ActionResult>()
+                    *v.into_value::<ActionResult<'arn, 'grm>>()
                 } else {
                     panic!("")
                 }
