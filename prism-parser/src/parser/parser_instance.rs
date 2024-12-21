@@ -1,17 +1,17 @@
+use crate::action::action_result::ActionResult;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
+use crate::core::parsable::{Parsable, Parsed};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
 use crate::grammar::GrammarFile;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
-use crate::core::parsable::{Parsable, Parsed};
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,
@@ -103,7 +103,9 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     let bump = Bump::new();
     let allocs: Allocs<'_> = Allocs::new(&bump);
     let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(|ar| ar_map(ar.into_value::<ActionResult<'_, 'grm>>(), allocs))
+    instance
+        .run(rule)
+        .map(|ar| ar_map(ar.into_value::<ActionResult<'_, 'grm>>(), allocs))
 }
 
 #[macro_export]

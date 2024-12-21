@@ -1,16 +1,16 @@
+use crate::action::action_result::ActionResult;
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
+use crate::core::parsable::{Parsable, Parsed};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
 use crate::grammar::RuleExpr;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
-use crate::core::parsable::{Parsable, Parsed};
 
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);

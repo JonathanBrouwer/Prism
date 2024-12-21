@@ -1,12 +1,12 @@
+use crate::action::action_result::ActionResult;
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::context::ParserContext;
+use crate::core::parsable::Parsed;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
-use crate::core::parsable::Parsed;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
@@ -24,7 +24,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
         assert_eq!(rule_state.args.len(), args.len());
         let rule_args = VarMap::from_iter(
-            rule_state.args.iter().map(|(_arg_type, arg_name)| *arg_name).zip(args.iter().cloned()),
+            rule_state
+                .args
+                .iter()
+                .map(|(_arg_type, arg_name)| *arg_name)
+                .zip(args.iter().cloned()),
             self.alloc,
         );
 

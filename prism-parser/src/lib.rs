@@ -10,11 +10,11 @@ use crate::grammar::from_action_result::parse_rule_action;
 use crate::grammar::GrammarFile;
 use crate::parser::parser_instance::run_parser_rule;
 
+pub mod action;
 pub mod core;
 pub mod error;
 pub mod grammar;
 pub mod parser;
-pub mod action;
 
 pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
     let meta_grammar = include_bytes!("../resources/bootstrap.bincode");

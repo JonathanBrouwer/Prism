@@ -1,12 +1,12 @@
-use std::any::type_name;
 use crate::core::cache::Allocs;
+use crate::core::parsable::Parsable;
 use crate::core::pos::Pos;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
+use std::any::type_name;
 use std::fmt::{Display, Formatter};
 use std::iter;
-use crate::core::parsable::Parsable;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -76,7 +76,10 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
                     let value = ctx.get(new_rule.name).expect("Name exists in context");
-                    *value.as_value().expect("Var map value is value").into_value::<RuleId>()
+                    *value
+                        .as_value()
+                        .expect("Var map value is value")
+                        .into_value::<RuleId>()
                 } else {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
@@ -84,7 +87,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                 new_ctx = new_ctx.insert(
                     new_rule.name,
                     VarMapValue::Value(alloc.alloc(rule).to_parsed()),
-                    alloc
+                    alloc,
                 );
                 (new_rule.name, rule)
             })

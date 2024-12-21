@@ -1,13 +1,13 @@
+use crate::action::action_result::ActionResult;
+use crate::action::apply_action::apply_action;
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
+use crate::core::parsable::{Parsable, Void};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
-use crate::action::apply_action::apply_action;
-use crate::core::parsable::{Parsable, Void};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
@@ -92,7 +92,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     pos,
                     context,
                 )
-                .map(|(span, _)| PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)).to_parsed())),
+                .map(|(span, _)| {
+                    PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)).to_parsed())
+                }),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
@@ -103,8 +105,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         res = res.merge_seq(new_res).map(|_| ());
                     }
                     let span = start_pos.span_to(res.end_pos());
-                    let mut res =
-                        res.map(|_| PR::with_rtrn(state.alloc.alloc(ActionResult::Value(span)).to_parsed()));
+                    let mut res = res.map(|_| {
+                        PR::with_rtrn(state.alloc.alloc(ActionResult::Value(span)).to_parsed())
+                    });
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
@@ -168,11 +171,15 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             self.alloc.alloc(ActionResult::Construct(
                                 span,
                                 "Cons",
-                                self.alloc.alloc_extend([*next.rtrn.into_value::<ActionResult<'arn, 'grm>>(), *rest]),
+                                self.alloc.alloc_extend([
+                                    *next.rtrn.into_value::<ActionResult<'arn, 'grm>>(),
+                                    *rest,
+                                ]),
                             ))
                         },
                     )
-                }).map(|ar| PR::with_rtrn(ar.to_parsed()))
+                })
+                    .map(|ar| PR::with_rtrn(ar.to_parsed()))
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);
@@ -214,7 +221,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     free: res
                         .free
                         .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
-                    rtrn: Void.to_parsed()
+                    rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Action(sub, action) => {
@@ -229,8 +236,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
                     PR {
                         free: res.free,
-                        //TODO ar specific
-                        rtrn: self.alloc.alloc(rtrn).to_parsed(),
+                        rtrn,
                     }
                 })
             }
