@@ -12,6 +12,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
         _constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
+        _src: &'grm str,
     ) -> Self {
         Self
     }

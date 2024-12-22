@@ -24,14 +24,14 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'arn_in, 'arn_out, 'grm: 'arn_in>(
-    r: Parsed<'arn_in, 'grm>,
+pub fn parse_grammarfile<'arn, 'grm: 'arn>(
+    r: Parsed<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
-) -> Option<GrammarFile<'arn_out, 'grm>> {
+    allocs: Allocs<'arn>,
+    parse_a: impl Fn(Parsed<'arn, 'grm>, &'grm str) -> Option<RuleAction<'arn, 'grm>>,
+) -> Option<GrammarFile<'arn, 'grm>> {
     result_match! {
-        match r.into_value::<ActionResult<'arn_in, 'grm>>() => Construct(_, "GrammarFile", rules),
+        match r.into_value::<ActionResult<'arn, 'grm>>() => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         create GrammarFile {
             rules: allocs.try_alloc_extend(rules.into_value::<ParsedList>().into_iter().map(|rule| parse_rule(rule.into_value::<ActionResult>(), src, allocs, &parse_a)))?,
@@ -49,9 +49,9 @@ fn parse_rule<'arn_in, 'arn_out, 'grm: 'arn_in>(
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, extend, args, blocks],
         create Rule {
-            name: parse_identifier(*name, src)?,
+            name: parse_identifier(*name, src),
             adapt: extend.into_value::<ParsedList>().into_iter().next().is_some(),
-            args: allocs.try_alloc_extend(args.into_value::<ParsedList>().into_iter().map(|n| parse_identifier(n, src).map(|name| ("ActionResult", name))))?,
+            args: allocs.alloc_extend(args.into_value::<ParsedList>().into_iter().map(|n| ("ActionResult", parse_identifier(n, src)))),
             blocks: allocs.try_alloc_extend(blocks.into_value::<ParsedList>().into_iter().map(|block| parse_block(block.into_value::<ActionResult>(), src, allocs, parse_a)))?,
         return_type: "ActionResult",}
     }
@@ -66,7 +66,7 @@ fn parse_block<'arn_in, 'arn_out, 'grm: 'arn_in>(
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, extend, cs],
-        create Block { name: parse_identifier(*name, src)?,
+        create Block { name: parse_identifier(*name, src),
             adapt: extend.into_value::<ParsedList>().into_iter().next().is_some(),
             constructors: parse_constructors(*cs, src, allocs, parse_a)? }
     }
@@ -101,7 +101,7 @@ fn parse_rule_annotation<'arn_in, 'grm>(
     src: &'grm str,
 ) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
-        Construct(_, "Error", b) => RuleAnnotation::Error(parse_string(b[0], src)?),
+        Construct(_, "Error", b) => RuleAnnotation::Error(parse_string(b[0], src)),
         Construct(_, "DisableLayout", _) => RuleAnnotation::DisableLayout,
         Construct(_, "EnableLayout", _) => RuleAnnotation::EnableLayout,
         Construct(_, "DisableRecovery", _) => RuleAnnotation::DisableRecovery,
@@ -133,7 +133,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
             create allocs.try_alloc_extend(b[0].into_value::<ParsedList>().into_iter().map(|sub| parse_rule_expr(sub.into_value::<ActionResult>(), src, allocs, parse_a)))?
         }?),
         Construct(_, "NameBind", b) => RuleExpr::NameBind(
-            parse_identifier(b[0], src)?,
+            parse_identifier(b[0], src),
             allocs.alloc(parse_rule_expr(
                 b[1].into_value::<ActionResult>(),
                 src,
@@ -157,7 +157,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
                 parse_a,
             )?),
         },
-        Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(b[0], src)?),
+        Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(b[0], src)),
         Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(
             b[0].into_value::<ActionResult>(),
             src,
@@ -185,7 +185,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
         Construct(_, "Next", _) => RuleExpr::Next,
         Construct(_, "Guid", _) => RuleExpr::Guid,
         Construct(_, "RunVar", b) => RuleExpr::RunVar(
-            parse_identifier(b[0], src)?,
+            parse_identifier(b[0], src),
             result_match! {
                 create allocs.try_alloc_extend(b[1].into_value::<ParsedList>().into_iter().map(|sub| {
                     parse_rule_expr(sub.into_value::<ActionResult>(), src, allocs, parse_a)
@@ -193,24 +193,24 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
             }?,
         ),
         Construct(_, "AtAdapt", b) => {
-            RuleExpr::AtAdapt(parse_identifier(b[0], src)?, parse_identifier(b[1], src)?)
+            RuleExpr::AtAdapt(parse_identifier(b[0], src), parse_identifier(b[1], src))
         }
         _ => return None,
     })
 }
 
-pub(crate) fn parse_identifier<'grm>(r: Parsed<'_, 'grm>, src: &'grm str) -> Option<&'grm str> {
-    Some(r.try_into_value::<Input<'grm>>()?.as_str(src))
+pub(crate) fn parse_identifier<'grm>(r: Parsed<'_, 'grm>, src: &'grm str) -> &'grm str {
+    r.into_value::<Input<'grm>>().as_str(src)
 }
 
 pub(crate) fn parse_string<'arn, 'grm>(
     r: Parsed<'arn, 'grm>,
     src: &'grm str,
-) -> Option<EscapedString<'grm>> {
-    result_match! {
-        match r.try_into_value::<Input<'grm>>()? => Input::Value(span),
-        create EscapedString::from_escaped(&src[*span])
-    }
+) -> EscapedString<'grm> {
+    let Input::Value(span) = r.into_value::<Input<'grm>>() else {
+        panic!()
+    };
+    EscapedString::from_escaped(&src[*span])
 }
 
 fn parse_string_char(r: Parsed, src: &str) -> Option<char> {
@@ -257,20 +257,9 @@ fn parse_u64(r: Parsed, src: &str) -> Option<u64> {
 }
 
 pub fn parse_rule_action<'arn, 'grm>(
-    r: &ActionResult<'_, 'grm>,
+    r: Parsed<'arn, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn>,
 ) -> Option<RuleAction<'arn, 'grm>> {
-    Some(match r {
-        Construct(_, "Construct", b) => RuleAction::Construct(
-            parse_identifier(b[0], src).unwrap(),
-            parse_identifier(b[1], src).unwrap(),
-            result_match! {
-                create allocs.try_alloc_extend(b[2].into_value::<ParsedList>().into_iter().map(|sub| parse_rule_action(sub.into_value::<ActionResult>(), src, allocs)))?
-            }?,
-        ),
-        Construct(_, "InputLiteral", b) => RuleAction::InputLiteral(parse_string(b[0], src)?),
-        Construct(_, "Name", b) => RuleAction::Name(parse_identifier(b[0], src)?),
-        _ => return None,
-    })
+    Some(*r.into_value::<RuleAction<'arn, 'grm>>())
 }

@@ -3069,7 +3069,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "Construct",
                       [
                         {
@@ -3128,7 +3128,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "Construct",
                       [
                         {
@@ -3211,7 +3211,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "Construct",
                       [
                         {
@@ -3276,7 +3276,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "Construct",
                       [
                         {
@@ -3311,7 +3311,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "InputLiteral",
                       [
                         {
@@ -3340,7 +3340,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAction",
                       "Name",
                       [
                         {

@@ -14,6 +14,7 @@ impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
+        _src: &'grm str,
     ) -> Self {
         Self::Construct(span, constructor, allocs.alloc_extend(args.iter().copied()))
     }

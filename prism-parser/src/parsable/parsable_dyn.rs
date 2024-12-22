@@ -9,6 +9,7 @@ pub struct ParsableDyn<'arn, 'grm> {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
+        src: &'grm str,
     ) -> Parsed<'arn, 'grm>,
 }
 

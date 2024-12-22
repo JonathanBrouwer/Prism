@@ -25,9 +25,9 @@ pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
     grammar: &'grm str,
     allocs: Allocs<'grm>,
 ) -> Result<GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar, |ar, _| {
-        parse_grammarfile(ar, grammar, allocs, |ar, src| {
-            parse_rule_action(ar.into_value(), src, allocs)
+    run_parser_rule(&META_GRAMMAR, "toplevel", grammar, allocs, |ar| {
+        parse_grammarfile::<'grm, 'grm>(ar, grammar, allocs, |ar, src| {
+            parse_rule_action(ar, src, allocs)
         })
         .expect("Grammars parsed by the meta grammar should have a legal AST.")
     })

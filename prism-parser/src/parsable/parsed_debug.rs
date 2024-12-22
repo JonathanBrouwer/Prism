@@ -1,4 +1,5 @@
 use crate::core::input::Input;
+use crate::grammar::rule_action::RuleAction;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::guid::Guid;
@@ -32,8 +33,11 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
             format!("Guid({})", guid.0)
         } else if let Some(input) = self.try_into_value::<Input>() {
             format!("\'{}\'", input.as_cow(src))
+        } else if let Some(input) = self.try_into_value::<RuleAction>() {
+            format!("{input:?}")
         } else {
-            panic!("Could not debug print unknown parsed")
+            format!("UNKNOWN")
+            // panic!("Could not debug print unknown parsed")
         }
     }
 }

@@ -17,6 +17,7 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
+        _src: &'grm str,
     ) -> Self {
         panic!(
             "Cannot parse a {} from a {constructor} constructor",
@@ -29,9 +30,10 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
+        src: &'grm str,
     ) -> Parsed<'arn, 'grm> {
         allocs
-            .alloc(Self::from_construct(span, constructor, args, allocs))
+            .alloc(Self::from_construct(span, constructor, args, allocs, src))
             .to_parsed()
     }
 

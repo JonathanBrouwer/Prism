@@ -1,4 +1,5 @@
 use crate::parsable::Parsable;
+use std::fmt::{Debug, Formatter};
 use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
 use std::ptr::NonNull;
@@ -8,6 +9,12 @@ pub struct Parsed<'arn, 'grm> {
     ptr: NonNull<()>,
     checksum: u64,
     phantom_data: PhantomData<(&'arn (), &'grm ())>,
+}
+
+impl<'arn, 'grm: 'arn> Debug for Parsed<'arn, 'grm> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Parsed(ANONYMOUS PARSED OBJECT)")
+    }
 }
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {

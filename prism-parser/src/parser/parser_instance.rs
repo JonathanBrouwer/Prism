@@ -6,6 +6,7 @@ use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::rule_action::RuleAction;
 use crate::grammar::GrammarFile;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
@@ -19,7 +20,7 @@ use std::collections::HashMap;
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,
 
-    grammar_state: GrammarState<'arn, 'grm>,
+    grammar_state: &'arn GrammarState<'arn, 'grm>,
     rules: VarMap<'arn, 'grm>,
 }
 
@@ -35,6 +36,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             ParsableDyn::new::<ActionResult<'arn, 'grm>>(),
         );
         parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn, 'grm>>());
+        parsables.insert("RuleAction", ParsableDyn::new::<RuleAction<'arn, 'grm>>());
 
         let state = ParserState::new(input, allocs, parsables);
 
@@ -62,7 +64,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 
         Ok(Self {
             state,
-            grammar_state,
+            grammar_state: allocs.alloc(grammar_state),
             rules,
         })
     }
@@ -70,7 +72,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
 
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn run(
-        &'arn mut self,
+        &mut self,
         rule: &'grm str,
     ) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = *self
@@ -108,12 +110,13 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
     input: &'grm str,
-    ar_map: impl for<'c> FnOnce(Parsed<'c, 'grm>, Allocs<'c>) -> T,
+    allocs: Allocs<'arn>,
+    ar_map: impl FnOnce(Parsed<'arn, 'grm>) -> T,
 ) -> Result<T, AggregatedParseError<'grm, E>> {
-    let bump = Bump::new();
-    let allocs: Allocs<'_> = Allocs::new(&bump);
-    let mut instance = ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(|value| ar_map(value, allocs))
+    let mut instance: ParserInstance<'arn, 'grm, E> =
+        ParserInstance::new(input, allocs, rules).unwrap();
+    let x = instance.run(rule).map(|value| ar_map(value))?;
+    Ok(x)
 }
 
 #[macro_export]

@@ -1,9 +1,14 @@
+use crate::core::cache::Allocs;
+use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::grammar::from_action_result::{parse_identifier, parse_string};
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::Parsable;
+use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
@@ -15,47 +20,29 @@ pub enum RuleAction<'arn, 'grm> {
     #[serde(skip)]
     Value(Parsed<'arn, 'grm>),
 }
-//
-// impl<'arn, 'grm> Debug for RuleAction<'arn, 'grm> {
-//     #[inline]
-//     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-//         match self {
-//             RuleAction::Name(name) => write!(f, "{name}"),
-//             RuleAction::Name(name) => write!(f, "{name}"),
-//
-//
-//             {
-//
-//
-//                 ::core::fmt::Formatter::debug_tuple_field1_finish(
-//                     f,
-//                     "Name",
-//                     &__self_0,
-//                 )
-//             }
-//             RuleAction::InputLiteral(__self_0) => {
-//                 ::core::fmt::Formatter::debug_tuple_field1_finish(
-//                     f,
-//                     "InputLiteral",
-//                     &__self_0,
-//                 )
-//             }
-//             RuleAction::Construct(__self_0, __self_1, __self_2) => {
-//                 ::core::fmt::Formatter::debug_tuple_field3_finish(
-//                     f,
-//                     "Construct",
-//                     __self_0,
-//                     __self_1,
-//                     &__self_2,
-//                 )
-//             }
-//             RuleAction::ActionResult(__self_0) => {
-//                 ::core::fmt::Formatter::debug_tuple_field1_finish(
-//                     f,
-//                     "ActionResult",
-//                     &__self_0,
-//                 )
-//             }
-//         }
-//     }
-// }
+
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleAction<'arn, 'grm> {
+    fn from_construct(
+        _span: Span,
+        constructor: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+    ) -> Self {
+        match constructor {
+            "Construct" => RuleAction::Construct(
+                parse_identifier(args[0], src),
+                parse_identifier(args[1], src),
+                allocs.alloc_extend(
+                    args[2]
+                        .into_value::<ParsedList>()
+                        .into_iter()
+                        .map(|sub| sub.into_value::<RuleAction<'arn, 'grm>>().clone()),
+                ),
+            ),
+            "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
+            "Name" => RuleAction::Name(parse_identifier(args[0], src)),
+            _ => unreachable!(),
+        }
+    }
+}
