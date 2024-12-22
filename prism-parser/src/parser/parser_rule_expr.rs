@@ -1,5 +1,4 @@
 use crate::action::action_result::ActionResult;
-use crate::action::apply_action::apply_action;
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
 use crate::core::input::Input;
@@ -174,7 +173,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         },
                     )
                 })
-                    .map(|ar| PR::with_rtrn(ar.to_parsed()))
+                .map(|ar| PR::with_rtrn(ar.to_parsed()))
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);
@@ -222,11 +221,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::Action(sub, action) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map_with_span(|res, span| {
-                    let rtrn = apply_action(
+                    let rtrn = self.apply_action(
                         action,
                         span,
                         res.free.extend(vars.iter_cloned(), self.alloc),
-                        &self.alloc,
                     );
 
                     PR {

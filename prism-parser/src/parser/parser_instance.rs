@@ -1,7 +1,8 @@
+use crate::action::action_result::ActionResult;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
-use crate::core::parsable::Parsed;
+use crate::core::parsable::{ParsableDyn, Parsed};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
@@ -11,6 +12,7 @@ use crate::grammar::GrammarFile;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
+use std::collections::HashMap;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,
@@ -22,12 +24,18 @@ pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>>
 impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn, 'grm, E> {
     pub fn new(
         input: &'grm str,
-        bump: Allocs<'arn>,
+        allocs: Allocs<'arn>,
         from: &'arn GrammarFile<'arn, 'grm>,
     ) -> Result<Self, AdaptError<'grm>> {
-        let state = ParserState::new(input, bump);
+        let mut parsables = HashMap::new();
+        parsables.insert(
+            "ActionResult",
+            ParsableDyn::new::<ActionResult<'arn, 'grm>>(),
+        );
 
-        let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, bump);
+        let state = ParserState::new(input, allocs, parsables);
+
+        let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, allocs);
         let visible_rules = VarMap::from_iter(
             [
                 (
@@ -43,7 +51,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
                         .expect("Meta grammar contains 'prule_action' rule"),
                 ),
             ],
-            bump,
+            allocs,
         );
 
         let (grammar_state, rules) =

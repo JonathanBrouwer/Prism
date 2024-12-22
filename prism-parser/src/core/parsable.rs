@@ -1,4 +1,3 @@
-use crate::core::adaptive::RuleId;
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use std::any::type_name;
@@ -6,11 +5,7 @@ use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
 use std::ptr::NonNull;
 
-pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
-    fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
-        panic!("Cannot parse a {} from a rule id", type_name::<Self>())
-    }
-
+pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -21,6 +16,17 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
             "Cannot parse a {} from a {constructor} constructor",
             type_name::<Self>()
         )
+    }
+
+    fn from_construct_dyn(
+        span: Span,
+        constructor: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+    ) -> Parsed<'arn, 'grm> {
+        allocs
+            .alloc(Self::from_construct(span, constructor, args, allocs))
+            .to_parsed()
     }
 
     fn to_parsed(&'arn self) -> Parsed<'arn, 'grm> {
@@ -39,11 +45,28 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + 'arn {
     }
 }
 
+pub struct ParsableDyn<'arn, 'grm> {
+    pub from_construct: fn(
+        span: Span,
+        constructor: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+    ) -> Parsed<'arn, 'grm>,
+}
+
+impl<'arn, 'grm: 'arn> ParsableDyn<'arn, 'grm> {
+    pub fn new<P: Parsable<'arn, 'grm>>() -> Self {
+        Self {
+            from_construct: P::from_construct_dyn,
+        }
+    }
+}
+
 fn checksum_parsable<'arn, 'grm: 'arn, P: Parsable<'arn, 'grm> + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
-    hash.write_usize(P::from_rule as usize);
     hash.write_usize(P::from_construct as usize);
+    hash.write_usize(P::from_construct_dyn as usize);
     hash.write_usize(P::to_parsed as usize);
     hash.write_usize(P::try_from_parsed as usize);
 
@@ -71,13 +94,10 @@ unsafe impl Sync for Parsed<'_, '_> {}
 
 unsafe impl Send for Parsed<'_, '_> {}
 
+#[derive(Copy, Clone)]
 pub struct Void;
 
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Void {
-    fn from_rule(_rule: RuleId, _allocs: Allocs<'arn>) -> Self {
-        Self
-    }
-
     fn from_construct(
         _span: Span,
         _constructor: &'grm str,
@@ -97,9 +117,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Guid {}
 mod tests {
     use crate::core::parsable::Parsable;
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     struct A;
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     struct B;
     impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for A {}
     impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for B {}
