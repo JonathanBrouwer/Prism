@@ -1,6 +1,7 @@
 use crate::core::cache::Allocs;
-use crate::core::parsable::{Parsable, Parsed};
 use crate::core::span::Span;
+use crate::parsable::parsed::Parsed;
+use crate::parsable::Parsable;
 
 #[derive(Copy, Clone)]
 pub struct ParsedList<'arn, 'grm>(Option<&'arn ParsedListNode<'arn, 'grm>>);

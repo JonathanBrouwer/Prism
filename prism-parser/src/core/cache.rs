@@ -1,6 +1,5 @@
 use crate::core::adaptive::GrammarStateId;
 use crate::core::context::ParserContext;
-use crate::core::parsable::Parsed;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
@@ -8,6 +7,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
+use crate::parsable::parsed::Parsed;
 use crate::parser::var_map::BlockCtx;
 use bumpalo::Bump;
 use bumpalo_try::BumpaloExtend;

@@ -1,8 +1,8 @@
 use crate::lang::error::TypeError;
 use crate::lang::{PartialExpr, TcEnv, UnionIndex, ValueOrigin};
-use prism_parser::action::action_result::ActionResult;
 use prism_parser::core::cache::Allocs;
-use prism_parser::core::parsable::Parsable;
+use prism_parser::core::r#mod::Parsable;
+use prism_parser::parsable::action_result::ActionResult;
 use prism_parser::parser::var_map::{VarMap, VarMapValue};
 use rpds::RedBlackTreeMap;
 use std::borrow::Cow;

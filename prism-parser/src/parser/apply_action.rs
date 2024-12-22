@@ -1,12 +1,12 @@
-use crate::action::action_result::ActionResult;
-use crate::core::cache::Allocs;
 use crate::core::input::Input;
-use crate::core::parsable::{Parsable, Parsed};
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
+use crate::parsable::action_result::ActionResult;
+use crate::parsable::parsed::Parsed;
+use crate::parsable::Parsable;
 use crate::parser::var_map::{VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {

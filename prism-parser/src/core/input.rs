@@ -1,6 +1,6 @@
-use crate::core::parsable::Parsable;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
+use crate::parsable::Parsable;
 use std::borrow::Cow;
 
 #[derive(Copy, Clone)]

@@ -1,7 +1,7 @@
 use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
-use crate::core::parsable::ParsableDyn;
 use crate::core::pos::Pos;
 use crate::error::ParseError;
+use crate::parsable::parsable_dyn::ParsableDyn;
 use std::collections::HashMap;
 
 pub struct ParserState<'arn, 'grm, E: ParseError> {

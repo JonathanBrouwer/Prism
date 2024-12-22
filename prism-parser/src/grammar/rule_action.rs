@@ -1,6 +1,6 @@
-use crate::core::parsable::Parsed;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::serde_leak::*;
+use crate::parsable::parsed::Parsed;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]

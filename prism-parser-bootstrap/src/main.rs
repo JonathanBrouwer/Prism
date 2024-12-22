@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
 use bumpalo::Bump;
-use prism_parser::action::action_result::ActionResult;
 use prism_parser::core::cache::Allocs;
-use prism_parser::core::parsable::Parsable;
+use prism_parser::core::r#mod::Parsable;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::from_action_result::{parse_grammarfile, parse_rule_action};
 use prism_parser::grammar::GrammarFile;
+use prism_parser::parsable::action_result::ActionResult;
 use prism_parser::{parse_grammar, run_parser_rule_here, META_GRAMMAR};
 use std::fs::{read, File};
 
