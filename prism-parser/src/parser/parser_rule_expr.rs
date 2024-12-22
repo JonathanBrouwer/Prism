@@ -12,6 +12,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::{GrammarFile, RuleExpr};
+use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
@@ -162,18 +163,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 }
 
                 res.map_with_span(|rtrn, span| {
-                    rtrn.iter().rfold(
-                        self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
-                        |rest, next| {
-                            self.alloc.alloc(ActionResult::Construct(
-                                span,
-                                "Cons",
-                                self.alloc.alloc_extend([next.rtrn, rest.to_parsed()]),
-                            ))
-                        },
-                    )
+                    rtrn.iter().rfold(ParsedList::new_empty(), |rest, next| {
+                        rest.cons(next.rtrn, self.alloc)
+                    })
                 })
-                .map(|ar| PR::with_rtrn(ar.to_parsed()))
+                .map(|ar| PR::with_rtrn(self.alloc.alloc(ar).to_parsed()))
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);

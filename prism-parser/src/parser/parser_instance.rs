@@ -9,6 +9,7 @@ use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::GrammarFile;
+use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use bumpalo::Bump;
@@ -32,6 +33,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             "ActionResult",
             ParsableDyn::new::<ActionResult<'arn, 'grm>>(),
         );
+        parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn, 'grm>>());
 
         let state = ParserState::new(input, allocs, parsables);
 

@@ -1,3 +1,4 @@
+pub mod parsed_list;
 pub mod parser_instance;
 pub mod parser_layout;
 pub mod parser_rule;
