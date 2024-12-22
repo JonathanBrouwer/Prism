@@ -1,9 +1,10 @@
 use crate::core::cache::Allocs;
 use crate::core::input::Input;
+use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
+use crate::grammar::RuleAnnotation;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
-use crate::grammar::{CharClass, RuleAnnotation};
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::*;
 use crate::parsable::parsed::Parsed;
@@ -39,12 +40,12 @@ pub fn parse_grammarfile<'arn, 'grm: 'arn>(
     }
 }
 
-fn parse_rule<'arn_in, 'arn_out, 'grm: 'arn_in>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+fn parse_rule<'arn, 'grm: 'arn>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
-) -> Option<Rule<'arn_out, 'grm>> {
+    allocs: Allocs<'arn>,
+    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
+) -> Option<Rule<'arn, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
         match &rule_body[..] => [name, extend, args, blocks],
@@ -57,12 +58,12 @@ fn parse_rule<'arn_in, 'arn_out, 'grm: 'arn_in>(
     }
 }
 
-fn parse_block<'arn_in, 'arn_out, 'grm: 'arn_in>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+fn parse_block<'arn, 'grm: 'arn>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
-) -> Option<Block<'arn_out, 'grm>> {
+    allocs: Allocs<'arn>,
+    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
+) -> Option<Block<'arn, 'grm>> {
     result_match! {
         match r => Construct(_, "Block", b),
         match &b[..] => [name, extend, cs],
@@ -72,23 +73,23 @@ fn parse_block<'arn_in, 'arn_out, 'grm: 'arn_in>(
     }
 }
 
-fn parse_constructors<'arn_in, 'arn_out, 'grm: 'arn_in>(
-    r: Parsed<'arn_in, 'grm>,
+fn parse_constructors<'arn, 'grm: 'arn>(
+    r: Parsed<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
-) -> Option<&'arn_out [AnnotatedRuleExpr<'arn_out, 'grm>]> {
+    allocs: Allocs<'arn>,
+    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
+) -> Option<&'arn [AnnotatedRuleExpr<'arn, 'grm>]> {
     result_match! {
-        create allocs.try_alloc_extend(r.into_value::<ParsedList>().into_iter().map(|c| parse_annotated_rule_expr(c.into_value::<ActionResult<'arn_in, 'grm>>(), src, allocs, parse_a)))?
+        create allocs.try_alloc_extend(r.into_value::<ParsedList>().into_iter().map(|c| parse_annotated_rule_expr(c.into_value::<ActionResult<'arn, 'grm>>(), src, allocs, parse_a)))?
     }
 }
 
-fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm: 'arn_in>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+fn parse_annotated_rule_expr<'arn, 'grm: 'arn>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
-) -> Option<AnnotatedRuleExpr<'arn_out, 'grm>> {
+    allocs: Allocs<'arn>,
+    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
+) -> Option<AnnotatedRuleExpr<'arn, 'grm>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
@@ -96,8 +97,8 @@ fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm: 'arn_in>(
     }
 }
 
-fn parse_rule_annotation<'arn_in, 'grm>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+fn parse_rule_annotation<'arn, 'grm>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
 ) -> Option<RuleAnnotation<'grm>> {
     Some(match r {
@@ -110,12 +111,12 @@ fn parse_rule_annotation<'arn_in, 'grm>(
     })
 }
 
-fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
-    r: &'arn_in ActionResult<'arn_in, 'grm>,
+fn parse_rule_expr<'arn, 'grm: 'arn>(
+    r: &'arn ActionResult<'arn, 'grm>,
     src: &'grm str,
-    allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
-) -> Option<RuleExpr<'arn_out, 'grm>> {
+    allocs: Allocs<'arn>,
+    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
+) -> Option<RuleExpr<'arn, 'grm>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
             allocs.alloc(parse_rule_expr(
@@ -158,11 +159,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
             )?),
         },
         Construct(_, "Literal", b) => RuleExpr::Literal(parse_string(b[0], src)),
-        Construct(_, "CharClass", b) => RuleExpr::CharClass(parse_charclass(
-            b[0].into_value::<ActionResult>(),
-            src,
-            allocs,
-        )?),
+        Construct(_, "CharClass", b) => RuleExpr::CharClass(*b[0].into_value::<CharClass>()),
         Construct(_, "SliceInput", b) => RuleExpr::SliceInput(allocs.alloc(parse_rule_expr(
             b[0].into_value::<ActionResult>(),
             src,
@@ -211,33 +208,6 @@ pub(crate) fn parse_string<'arn, 'grm>(
         panic!()
     };
     EscapedString::from_escaped(&src[*span])
-}
-
-fn parse_string_char(r: Parsed, src: &str) -> Option<char> {
-    Some(
-        r.try_into_value::<Input>()?
-            .as_cow(src)
-            .chars()
-            .next()
-            .unwrap(),
-    )
-}
-
-fn parse_charclass<'arn_out>(
-    r: &ActionResult<'_, '_>,
-    src: &str,
-    allocs: Allocs<'arn_out>,
-) -> Option<CharClass<'arn_out>> {
-    result_match! {
-        match r => Construct(_, "CharClass", b),
-        create CharClass {
-            neg: b[0].into_value::<ParsedList>().into_iter().next().is_some(),
-            ranges: allocs.try_alloc_extend(b[1].into_value::<ParsedList>().into_iter().map(|p| result_match! {
-                match p.into_value::<ActionResult>() => Construct(_, "Range", pb),
-                create (parse_string_char(pb[0], src)?, parse_string_char(pb[1], src)?)
-            }))?
-        }
-    }
 }
 
 fn parse_option<'arn, 'grm, T>(

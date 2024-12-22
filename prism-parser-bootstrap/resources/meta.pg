@@ -72,12 +72,12 @@ rule prule_expr(action) {
 }
 
 rule charclass {
-    CharClass(negate, ps) <- negate:"^"? ps:#repeat(charclass_part, "|", *);
+    CharClass::CharClass(negate, ps) <- negate:"^"? ps:#repeat(charclass_part, "|", *);
 }
 
 rule charclass_part {
-    Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'";
-    Range(c, c) <- "\'" c:charclass_char "\'";
+    CharClassRange::Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'";
+    CharClassRange::Range(c, c) <- "\'" c:charclass_char "\'";
 }
 
 rule charclass_char {

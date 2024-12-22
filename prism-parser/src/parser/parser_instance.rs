@@ -6,6 +6,7 @@ use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::GrammarFile;
 use crate::parsable::action_result::ActionResult;
@@ -36,6 +37,8 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         );
         parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn, 'grm>>());
         parsables.insert("RuleAction", ParsableDyn::new::<RuleAction<'arn, 'grm>>());
+        parsables.insert("CharClass", ParsableDyn::new::<CharClass>());
+        parsables.insert("CharClassRange", ParsableDyn::new::<CharClassRange>());
 
         let state = ParserState::new(input, allocs, parsables);
 

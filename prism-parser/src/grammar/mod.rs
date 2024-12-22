@@ -1,8 +1,10 @@
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
+use charclass::CharClass;
 use serde::{Deserialize, Serialize};
 
+pub mod charclass;
 pub mod escaped_string;
 pub mod from_action_result;
 pub mod rule_action;
@@ -38,19 +40,6 @@ pub struct AnnotatedRuleExpr<'arn, 'grm>(
     #[serde(borrow, with = "leak_slice")] pub &'arn [RuleAnnotation<'grm>],
     #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
 );
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub struct CharClass<'arn> {
-    pub neg: bool,
-    #[serde(borrow, with = "leak_slice")]
-    pub ranges: &'arn [(char, char)],
-}
-
-impl CharClass<'_> {
-    pub fn contains(&self, c: char) -> bool {
-        self.ranges.iter().any(|range| range.0 <= c && c <= range.1) ^ self.neg
-    }
-}
 
 #[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation<'grm> {

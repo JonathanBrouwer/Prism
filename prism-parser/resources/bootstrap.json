@@ -2357,7 +2357,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "CharClass",
                       "CharClass",
                       [
                         {
@@ -2433,7 +2433,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "CharClassRange",
                       "Range",
                       [
                         {
@@ -2475,7 +2475,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "CharClassRange",
                       "Range",
                       [
                         {
