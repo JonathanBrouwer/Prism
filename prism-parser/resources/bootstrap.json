@@ -3158,6 +3158,85 @@
                     "Sequence": [
                       {
                         "NameBind": [
+                          "ns",
+                          {
+                            "RunVar": [
+                              "identifier",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "::"
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "RunVar": [
+                              "identifier",
+                              []
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "as",
+                          {
+                            "Repeat": {
+                              "expr": {
+                                "RunVar": [
+                                  "prule_action",
+                                  []
+                                ]
+                              },
+                              "min": 0,
+                              "max": null,
+                              "delim": {
+                                "Literal": ","
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "ActionResult",
+                      "Construct",
+                      [
+                        {
+                          "Name": "ns"
+                        },
+                        {
+                          "Name": "n"
+                        },
+                        {
+                          "Name": "as"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
                           "n",
                           {
                             "RunVar": [
