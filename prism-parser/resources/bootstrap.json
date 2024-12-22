@@ -3057,7 +3057,7 @@
                         ]
                       },
                       {
-                        "Literal": "::"
+                        "Literal": ".."
                       },
                       {
                         "NameBind": [

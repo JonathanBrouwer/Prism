@@ -6,7 +6,7 @@ syntax: r#"
     rule start = block;
     rule block {
         b <- "grammar" "{" g:grammar(prule_action) "}" ";" b:#adapt(g, block);
-        s :: b <- s:stmt ";" b:block;
+        s .. b <- s:stmt ";" b:block;
         [] <- "";
     }
 

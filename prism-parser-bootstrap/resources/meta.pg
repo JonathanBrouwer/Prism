@@ -4,7 +4,7 @@ rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params {
@@ -14,7 +14,7 @@ rule prule_params {
 
 rule prule_body(action) {
     prule_block(action)+;
-    Block("", [], c) :: [] <- c:prule_constructors(action);
+    Block("", [], c) .. [] <- c:prule_constructors(action);
 }
 
 rule prule_block(action) {
@@ -137,7 +137,7 @@ rule reserved {
 
 rule prule_action {
     group cons {
-        Construct("ActionResult", "Cons", h :: t :: []) <- h:#next "::" t:#this;
+        Construct("ActionResult", "Cons", h .. t .. []) <- h:#next ".." t:#this;
     }
     group base {
         Construct("ActionResult", "Nil", []) <- "[]";
