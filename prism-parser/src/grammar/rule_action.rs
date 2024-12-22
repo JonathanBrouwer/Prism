@@ -37,7 +37,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleAction<'arn, 'grm> {
                     args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
-                        .map(|sub| sub.into_value::<RuleAction<'arn, 'grm>>().clone()),
+                        .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
             ),
             "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),

@@ -36,8 +36,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         } else if let Some(input) = self.try_into_value::<RuleAction>() {
             format!("{input:?}")
         } else {
-            format!("UNKNOWN")
-            // panic!("Could not debug print unknown parsed")
+            panic!("Could not debug print unknown parsed")
         }
     }
 }

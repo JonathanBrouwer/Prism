@@ -28,7 +28,7 @@ pub fn parse_grammarfile<'arn, 'grm: 'arn>(
     r: Parsed<'arn, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn>,
-    parse_a: impl Fn(Parsed<'arn, 'grm>, &'grm str) -> Option<RuleAction<'arn, 'grm>>,
+    parse_a: impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
 ) -> Option<GrammarFile<'arn, 'grm>> {
     result_match! {
         match r.into_value::<ActionResult<'arn, 'grm>>() => Construct(_, "GrammarFile", rules),
@@ -43,7 +43,7 @@ fn parse_rule<'arn_in, 'arn_out, 'grm: 'arn_in>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
 ) -> Option<Rule<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Rule", rule_body),
@@ -61,7 +61,7 @@ fn parse_block<'arn_in, 'arn_out, 'grm: 'arn_in>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
 ) -> Option<Block<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "Block", b),
@@ -76,7 +76,7 @@ fn parse_constructors<'arn_in, 'arn_out, 'grm: 'arn_in>(
     r: Parsed<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
 ) -> Option<&'arn_out [AnnotatedRuleExpr<'arn_out, 'grm>]> {
     result_match! {
         create allocs.try_alloc_extend(r.into_value::<ParsedList>().into_iter().map(|c| parse_annotated_rule_expr(c.into_value::<ActionResult<'arn_in, 'grm>>(), src, allocs, parse_a)))?
@@ -87,7 +87,7 @@ fn parse_annotated_rule_expr<'arn_in, 'arn_out, 'grm: 'arn_in>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
 ) -> Option<AnnotatedRuleExpr<'arn_out, 'grm>> {
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
@@ -114,7 +114,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
     r: &'arn_in ActionResult<'arn_in, 'grm>,
     src: &'grm str,
     allocs: Allocs<'arn_out>,
-    parse_a: &impl Fn(Parsed<'arn_in, 'grm>, &'grm str) -> Option<RuleAction<'arn_out, 'grm>>,
+    parse_a: &impl Fn(Parsed<'arn_in, 'grm>) -> RuleAction<'arn_out, 'grm>,
 ) -> Option<RuleExpr<'arn_out, 'grm>> {
     Some(match r {
         Construct(_, "Action", b) => RuleExpr::Action(
@@ -124,7 +124,7 @@ fn parse_rule_expr<'arn_in, 'arn_out, 'grm>(
                 allocs,
                 parse_a,
             )?),
-            parse_a(b[1], src)?,
+            parse_a(b[1]),
         ),
         Construct(_, "Choice", b) => RuleExpr::Choice(result_match! {
             create allocs.try_alloc_extend(b[0].into_value::<ParsedList>().into_iter().map(|sub| parse_rule_expr(sub.into_value::<ActionResult>(), src, allocs, parse_a)))?
@@ -254,12 +254,4 @@ fn parse_option<'arn, 'grm, T>(
 
 fn parse_u64(r: Parsed, src: &str) -> Option<u64> {
     r.try_into_value::<Input>()?.as_cow(src).parse().ok()
-}
-
-pub fn parse_rule_action<'arn, 'grm>(
-    r: Parsed<'arn, 'grm>,
-    src: &'grm str,
-    allocs: Allocs<'arn>,
-) -> Option<RuleAction<'arn, 'grm>> {
-    Some(*r.into_value::<RuleAction<'arn, 'grm>>())
 }

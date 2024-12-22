@@ -14,7 +14,6 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
-use bumpalo::Bump;
 use std::collections::HashMap;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
@@ -83,7 +82,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .expect("Rule is value")
             .into_value::<RuleId>();
         let result = self.state.parse_rule(
-            &self.grammar_state,
+            self.grammar_state,
             rule,
             &[],
             Pos::start(),
@@ -92,7 +91,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         let end_pos = result.end_pos();
         let result = result
             .merge_seq(self.state.parse_end_with_layout(
-                &self.grammar_state,
+                self.grammar_state,
                 self.rules,
                 end_pos,
                 ParserContext::new(),
@@ -115,8 +114,7 @@ pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
 ) -> Result<T, AggregatedParseError<'grm, E>> {
     let mut instance: ParserInstance<'arn, 'grm, E> =
         ParserInstance::new(input, allocs, rules).unwrap();
-    let x = instance.run(rule).map(|value| ar_map(value))?;
-    Ok(x)
+    instance.run(rule).map(ar_map)
 }
 
 #[macro_export]

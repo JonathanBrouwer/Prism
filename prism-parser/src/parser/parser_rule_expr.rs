@@ -262,8 +262,8 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 // Parse it into a grammar
                 //TODO performance: We should have a cache for grammar files
                 //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, self.input, self.alloc, |parsed, _| {
-                    Some(RuleAction::Value(parsed))
+                let g = match parse_grammarfile(gr, self.input, self.alloc, |parsed| {
+                    RuleAction::Value(parsed)
                 }) {
                     Some(g) => g,
                     None => {
