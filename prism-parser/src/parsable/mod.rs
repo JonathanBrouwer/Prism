@@ -2,9 +2,9 @@ use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use parsed::Parsed;
 use std::any::type_name;
-use std::hash::Hasher;
 
 pub mod action_result;
+pub mod env_capture;
 pub mod guid;
 pub mod parsable_dyn;
 pub mod parsed;

@@ -2,12 +2,10 @@ use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
-use crate::parser::var_map::VarMap;
 
 #[derive(Copy, Clone)]
 pub enum ActionResult<'arn, 'grm> {
     Construct(Span, &'grm str, &'arn [Parsed<'arn, 'grm>]),
-    WithEnv(VarMap<'arn, 'grm>, Parsed<'arn, 'grm>),
 }
 
 impl<'arn, 'grm> Parsable<'arn, 'grm> for ActionResult<'arn, 'grm> {

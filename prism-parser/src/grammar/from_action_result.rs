@@ -7,7 +7,7 @@ use crate::grammar::{CharClass, RuleAnnotation};
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::*;
 use crate::parsable::parsed::Parsed;
-use crate::parser::parsed_list::{ParsedList, ParsedListIterator};
+use crate::parser::parsed_list::ParsedList;
 
 #[macro_export]
 macro_rules! result_match {

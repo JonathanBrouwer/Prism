@@ -4,7 +4,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
-use crate::parsable::action_result::ActionResult;
+use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
 use crate::parser::var_map::{VarMap, VarMapValue};
@@ -39,9 +39,12 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     .expect("Namespace exists")
                     .from_construct)(span, name, args_vals, self.alloc)
             }
-            RuleAction::Value(ar) => self
+            RuleAction::Value(parsed) => self
                 .alloc
-                .alloc(ActionResult::WithEnv(vars, *ar))
+                .alloc(EnvCapture {
+                    env: vars,
+                    value: *parsed,
+                })
                 .to_parsed(),
         }
     }

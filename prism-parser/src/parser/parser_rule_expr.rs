@@ -163,7 +163,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     }
                 }
 
-                res.map_with_span(|rtrn, span| {
+                res.map(|rtrn| {
                     rtrn.iter().rfold(ParsedList::new_empty(), |rest, next| {
                         rest.cons(next.rtrn, self.alloc)
                     })
