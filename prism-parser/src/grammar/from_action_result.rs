@@ -1,9 +1,9 @@
 use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::rule_action::RuleAction;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule::Rule;
+use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;

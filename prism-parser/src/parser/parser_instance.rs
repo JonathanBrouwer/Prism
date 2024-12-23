@@ -6,10 +6,14 @@ use crate::core::state::ParserState;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::charclass::{CharClass, CharClassRange};
+use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule::Rule;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_annotation::RuleAnnotation;
-use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule_block::RuleBlock;
+use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
@@ -17,10 +21,6 @@ use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use std::collections::HashMap;
-use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
-use crate::grammar::rule::Rule;
-use crate::grammar::rule_block::RuleBlock;
-use crate::grammar::rule_expr::RuleExpr;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, E>,

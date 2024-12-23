@@ -5,8 +5,8 @@ use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
-use grammar::grammar_file::GrammarFile;
 use crate::parser::parser_instance::run_parser_rule;
+use grammar::grammar_file::GrammarFile;
 
 pub mod core;
 pub mod error;

@@ -3,8 +3,8 @@ use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::{parse_identifier, parse_option, parse_string, parse_u64};
-use crate::grammar::serde_leak::*;
 use crate::grammar::rule_action::RuleAction;
+use crate::grammar::serde_leak::*;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::Construct;
 use crate::parsable::parsed::Parsed;
@@ -19,7 +19,7 @@ pub enum RuleExpr<'arn, 'grm> {
         &'grm str,
         #[serde(with = "leak_slice")] &'arn [RuleExpr<'arn, 'grm>],
     ),
-    CharClass(#[serde(with="leak")] &'arn CharClass<'arn>),
+    CharClass(#[serde(with = "leak")] &'arn CharClass<'arn>),
     Literal(EscapedString<'grm>),
     Repeat {
         #[serde(with = "leak")]
@@ -74,31 +74,37 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleExpr<'arn, 'grm> {
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
-                "NameBind" => RuleExpr::NameBind(
-                    parse_identifier(args[0], src),
-                    args[1].into_value::<RuleExpr>(),
+            "NameBind" => RuleExpr::NameBind(
+                parse_identifier(args[0], src),
+                args[1].into_value::<RuleExpr>(),
+            ),
+            "Repeat" => RuleExpr::Repeat {
+                expr: args[0].into_value::<RuleExpr>(),
+                min: parse_u64(args[1], src),
+                max: parse_option(args[2].into_value::<ActionResult>(), src, parse_u64),
+                delim: args[3].into_value::<RuleExpr>(),
+            },
+            "Literal" => RuleExpr::Literal(parse_string(args[0], src)),
+            "CharClass" => RuleExpr::CharClass(args[0].into_value::<CharClass>()),
+            "SliceInput" => RuleExpr::SliceInput(args[0].into_value::<RuleExpr>()),
+            "PosLookahead" => RuleExpr::PosLookahead(args[0].into_value::<RuleExpr>()),
+            "NegLookahead" => RuleExpr::NegLookahead(args[0].into_value::<RuleExpr>()),
+            "This" => RuleExpr::This,
+            "Next" => RuleExpr::Next,
+            "Guid" => RuleExpr::Guid,
+            "RunVar" => RuleExpr::RunVar(
+                parse_identifier(args[0], src),
+                allocs.alloc_extend(
+                    args[1]
+                        .into_value::<ParsedList>()
+                        .into_iter()
+                        .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
-                "Repeat" => RuleExpr::Repeat {
-                    expr: args[0].into_value::<RuleExpr>(),
-                    min: parse_u64(args[1], src),
-                    max: parse_option(args[2].into_value::<ActionResult>(), src, parse_u64),
-                    delim: args[3].into_value::<RuleExpr>(),
-                },
-                "Literal" => RuleExpr::Literal(parse_string(args[0], src)),
-                "CharClass" => RuleExpr::CharClass(args[0].into_value::<CharClass>()),
-                "SliceInput" => RuleExpr::SliceInput(args[0].into_value::<RuleExpr>()),
-                "PosLookahead" => RuleExpr::PosLookahead(args[0].into_value::<RuleExpr>()),
-                "NegLookahead" => RuleExpr::NegLookahead(args[0].into_value::<RuleExpr>()),
-                "This" => RuleExpr::This,
-                "Next" => RuleExpr::Next,
-                "Guid" => RuleExpr::Guid,
-                "RunVar" => RuleExpr::RunVar(
-                    parse_identifier(args[0], src),
-                    allocs.alloc_extend(args[1].into_value::<ParsedList>().into_iter().map(|sub| *sub.into_value::<RuleExpr>()))
-                ),
-                "AtAdapt" => {
-                    RuleExpr::AtAdapt(parse_identifier(args[0], src), parse_identifier(args[1], src))
-                }
+            ),
+            "AtAdapt" => RuleExpr::AtAdapt(
+                parse_identifier(args[0], src),
+                parse_identifier(args[1], src),
+            ),
             _ => unreachable!(),
         }
     }
