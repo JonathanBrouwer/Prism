@@ -39,7 +39,7 @@ passing tests:
         }
     };
     let z;
-    "### => r#"[Let(Env(Construct("ActionResult", "Z", [])))]"#
+    "### => r#"[Let(Z())]"#
     // Add to base redundant specification
     r###"
     grammar {
@@ -53,7 +53,7 @@ passing tests:
         }
     };
     let z;
-    "### => r#"[Let(Env(Construct("ActionResult", "Z", [])))]"#
+    "### => r#"[Let(Z())]"#
     // Add minus
     r###"
     grammar {
@@ -64,7 +64,7 @@ passing tests:
         }
     };
     let x + y - x + x + y - x;
-    "### => r#"[Let(Add(X(), Env(Construct("ActionResult", "Sub", [Name("x"), Name("y")]))))]"#
+    "### => r#"[Let(Add(X(), Sub(Y(), Add(X(), Add(X(), Sub(Y(), X()))))))]"#
     // Add mul + minus
     r###"
     grammar {
@@ -79,7 +79,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => r#"[Let(Add(X(), Env(Construct("ActionResult", "Sub", [Name("x"), Name("y")]))))]"#
+    "### => r#"[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"#
     // Add mul + minus seperately (1)
     r###"
     grammar {
@@ -99,7 +99,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => r#"[Let(Add(X(), Env(Construct("ActionResult", "Sub", [Name("x"), Name("y")]))))]"#
+    "### => r#"[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"#
     // Add mul + minus seperately (2)
     r###"
     grammar {
@@ -119,7 +119,7 @@ passing tests:
         }
     };
     let x + y * y - x * x + y * x;
-    "### => r#"[Let(Add(X(), Env(Construct("ActionResult", "Sub", [Name("x"), Name("y")]))))]"#
+    "### => r#"[Let(Add(X(), Sub(Mul(Y(), Y()), Add(Mul(X(), X()), Mul(Y(), X())))))]"#
 
 failing tests:
     // Turns order around
@@ -185,7 +185,7 @@ passing tests:
         }
     }
     y
-    "### => r#"Env(Construct("ActionResult", "Y", []))"#
+    "### => r#"Y()"#
     r###"
     {
         adapt rule sub {
@@ -223,7 +223,7 @@ passing tests:
     r###"{
     adapt rule sub {
         Y() <- "y";
-    }}y"### => r#"Env(Construct("ActionResult", "Y", []))"#
+    }}y"### => r#"Y()"#
 
 failing tests:
 

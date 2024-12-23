@@ -42,6 +42,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleAction<'arn, 'grm> {
             ),
             "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
             "Name" => RuleAction::Name(parse_identifier(args[0], src)),
+            "Value" => RuleAction::Value(args[0]),
             _ => unreachable!(),
         }
     }
