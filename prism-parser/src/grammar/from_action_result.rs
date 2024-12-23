@@ -3,7 +3,7 @@ use crate::core::input::Input;
 use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
-use crate::grammar::RuleAnnotation;
+use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule, RuleExpr};
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::*;
@@ -93,22 +93,8 @@ fn parse_annotated_rule_expr<'arn, 'grm: 'arn>(
     result_match! {
         match r => Construct(_, "AnnotatedExpr", body),
         match &body[..] => [annots, e],
-        create AnnotatedRuleExpr(allocs.try_alloc_extend(annots.into_value::<ParsedList>().into_iter().map(|annot| parse_rule_annotation(annot.into_value::<ActionResult>(), src)))?, parse_rule_expr(e.into_value::<ActionResult>(), src, allocs, parse_a)?)
+        create AnnotatedRuleExpr(allocs.alloc_extend(annots.into_value::<ParsedList>().into_iter().map(|annot| *annot.into_value::<RuleAnnotation>())), parse_rule_expr(e.into_value::<ActionResult>(), src, allocs, parse_a)?)
     }
-}
-
-fn parse_rule_annotation<'arn, 'grm>(
-    r: &'arn ActionResult<'arn, 'grm>,
-    src: &'grm str,
-) -> Option<RuleAnnotation<'grm>> {
-    Some(match r {
-        Construct(_, "Error", b) => RuleAnnotation::Error(parse_string(b[0], src)),
-        Construct(_, "DisableLayout", _) => RuleAnnotation::DisableLayout,
-        Construct(_, "EnableLayout", _) => RuleAnnotation::EnableLayout,
-        Construct(_, "DisableRecovery", _) => RuleAnnotation::DisableRecovery,
-        Construct(_, "EnableRecovery", _) => RuleAnnotation::EnableRecovery,
-        _ => return None,
-    })
 }
 
 fn parse_rule_expr<'arn, 'grm: 'arn>(

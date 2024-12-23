@@ -26,11 +26,11 @@ rule prule_constructors(action) = prule_annotated_expr(action)*;
 rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
 
 rule prule_annotation {
-    Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
-    DisableLayout() <- "#" "[" "disable_layout" "]";
-    EnableLayout() <- "#" "[" "enable_layout" "]";
-    DisableRecovery() <- "#" "[" "disable_recovery" "]";
-    EnableRecovery() <- "#" "[" "enable_recovery" "]";
+    RuleAnnotation::Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
+    RuleAnnotation::DisableLayout() <- "#" "[" "disable_layout" "]";
+    RuleAnnotation::EnableLayout() <- "#" "[" "enable_layout" "]";
+    RuleAnnotation::DisableRecovery() <- "#" "[" "disable_recovery" "]";
+    RuleAnnotation::EnableRecovery() <- "#" "[" "enable_recovery" "]";
 }
 
 rule prule_expr(action) {

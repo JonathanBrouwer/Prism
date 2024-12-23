@@ -3,12 +3,14 @@ use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
 use charclass::CharClass;
 use serde::{Deserialize, Serialize};
+use rule_annotation::RuleAnnotation;
 
 pub mod charclass;
 pub mod escaped_string;
 pub mod from_action_result;
 pub mod rule_action;
 pub mod serde_leak;
+pub mod rule_annotation;
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct GrammarFile<'arn, 'grm> {
@@ -40,16 +42,6 @@ pub struct AnnotatedRuleExpr<'arn, 'grm>(
     #[serde(borrow, with = "leak_slice")] pub &'arn [RuleAnnotation<'grm>],
     #[serde(borrow)] pub RuleExpr<'arn, 'grm>,
 );
-
-#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
-pub enum RuleAnnotation<'grm> {
-    #[serde(borrow)]
-    Error(EscapedString<'grm>),
-    DisableLayout,
-    EnableLayout,
-    DisableRecovery,
-    EnableRecovery,
-}
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {

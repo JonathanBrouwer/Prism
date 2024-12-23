@@ -912,7 +912,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAnnotation",
                       "Error",
                       [
                         {
@@ -946,7 +946,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAnnotation",
                       "DisableLayout",
                       []
                     ]
@@ -976,7 +976,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAnnotation",
                       "EnableLayout",
                       []
                     ]
@@ -1006,7 +1006,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAnnotation",
                       "DisableRecovery",
                       []
                     ]
@@ -1036,7 +1036,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleAnnotation",
                       "EnableRecovery",
                       []
                     ]
