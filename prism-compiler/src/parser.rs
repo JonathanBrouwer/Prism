@@ -8,7 +8,7 @@ use prism_parser::parser::parser_instance::run_parser_rule;
 use std::sync::LazyLock;
 
 pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
-    parse_grammar::<SetError>(include_str!("../resources/prism.pg"), Allocs::new_leaking())
+    *parse_grammar::<SetError>(include_str!("../resources/prism.pg"), Allocs::new_leaking())
         .unwrap_or_eprint()
 });
 
@@ -16,9 +16,10 @@ pub fn parse_prism_in_env<'p>(
     program: &'p str,
     env: &mut TcEnv,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
-    run_parser_rule::<SetError, _>(&GRAMMAR, "expr", program, |r, allocs| {
-        env.insert_from_action_result(r, program, allocs)
-    })
+    todo!()
+    // run_parser_rule::<_, SetError>(&GRAMMAR, "expr", program, |r, allocs| {
+    //     // env.insert_from_action_result(r, program, allocs)
+    // })
 }
 
 pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {

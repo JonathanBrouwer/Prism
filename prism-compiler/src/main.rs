@@ -26,39 +26,40 @@ fn main() {
         Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
     };
 
-    let mut tc_env = TcEnv::default();
-    let root = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
-        // println!(
-        //     "> Action result\n====================\n{}\n\n",
-        //     r.to_string(&program)
-        // );
-        tc_env.insert_from_action_result(r, &program, allocs)
-    }) {
-        Ok(idx) => idx,
-        Err(e) => {
-            e.eprint().unwrap();
-            return;
-        }
-    };
-
-    println!(
-        "> Program\n====================\n{}\n\n",
-        tc_env.index_to_string(root),
-    );
-
-    match tc_env.type_check(root) {
-        Ok(i) => println!(
-            "> Type of program\n====================\n{}\n\n",
-            tc_env.index_to_br_string(i)
-        ),
-        Err(e) => {
-            e.eprint(&mut tc_env, &program).unwrap();
-            return;
-        }
-    }
-
-    println!(
-        "> Evaluated\n====================\n{}\n\n",
-        tc_env.index_to_br_string(root)
-    );
+    todo!()
+    // let mut tc_env = TcEnv::default();
+    // let root = match run_parser_rule::<SetError, _>(&GRAMMAR, "expr", &program, |r, allocs| {
+    //     // println!(
+    //     //     "> Action result\n====================\n{}\n\n",
+    //     //     r.to_string(&program)
+    //     // );
+    //     tc_env.insert_from_action_result(r, &program, allocs)
+    // }) {
+    //     Ok(idx) => idx,
+    //     Err(e) => {
+    //         e.eprint().unwrap();
+    //         return;
+    //     }
+    // };
+    //
+    // println!(
+    //     "> Program\n====================\n{}\n\n",
+    //     tc_env.index_to_string(root),
+    // );
+    //
+    // match tc_env.type_check(root) {
+    //     Ok(i) => println!(
+    //         "> Type of program\n====================\n{}\n\n",
+    //         tc_env.index_to_br_string(i)
+    //     ),
+    //     Err(e) => {
+    //         e.eprint(&mut tc_env, &program).unwrap();
+    //         return;
+    //     }
+    // }
+    //
+    // println!(
+    //     "> Evaluated\n====================\n{}\n\n",
+    //     tc_env.index_to_br_string(root)
+    // );
 }
