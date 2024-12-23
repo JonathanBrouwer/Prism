@@ -1093,7 +1093,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Action",
                       [
                         {
@@ -1135,7 +1135,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Choice",
                       [
                         {
@@ -1177,7 +1177,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Sequence",
                       [
                         {
@@ -1225,7 +1225,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "NameBind",
                       [
                         {
@@ -1265,7 +1265,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -1283,7 +1283,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "RuleExpr",
                             "Sequence",
                             [
                               {
@@ -1321,7 +1321,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -1339,7 +1339,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "RuleExpr",
                             "Sequence",
                             [
                               {
@@ -1377,7 +1377,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -1399,7 +1399,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "RuleExpr",
                             "Sequence",
                             [
                               {
@@ -1441,7 +1441,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Literal",
                       [
                         {
@@ -1480,7 +1480,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "CharClass",
                       [
                         {
@@ -1529,7 +1529,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "SliceInput",
                       [
                         {
@@ -1578,7 +1578,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "PosLookahead",
                       [
                         {
@@ -1627,7 +1627,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "NegLookahead",
                       [
                         {
@@ -1686,7 +1686,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "This",
                       []
                     ]
@@ -1703,7 +1703,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Next",
                       []
                     ]
@@ -1720,7 +1720,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Guid",
                       []
                     ]
@@ -1772,7 +1772,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "AtAdapt",
                       [
                         {
@@ -1849,7 +1849,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "RunVar",
                       [
                         {
@@ -1881,7 +1881,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "RunVar",
                       [
                         {
@@ -1964,7 +1964,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -2053,7 +2053,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -2156,7 +2156,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {
@@ -2267,7 +2267,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleExpr",
                       "Repeat",
                       [
                         {

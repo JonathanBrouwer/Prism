@@ -1,12 +1,12 @@
-use serde::{Deserialize, Serialize};
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_string;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::action_result::ActionResult::Construct;
-use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::Parsable;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum RuleAnnotation<'grm> {
