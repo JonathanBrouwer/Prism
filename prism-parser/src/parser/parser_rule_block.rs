@@ -7,6 +7,7 @@ use crate::core::adaptive::{Constructor, GrammarState};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
+use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
@@ -73,7 +74,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match es {
             [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
-            [(crate::grammar::AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
+            [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
                 let rule_ctx = rule_ctx.iter_cloned();
                 let rule_args_iter = rule_args.iter_cloned();
                 let vars: VarMap<'arn, 'grm> =

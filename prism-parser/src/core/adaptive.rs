@@ -1,10 +1,11 @@
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
+use crate::grammar::{Block, GrammarFile, Rule};
 use crate::parsable::Parsable;
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {

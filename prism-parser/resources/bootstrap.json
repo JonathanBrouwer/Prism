@@ -307,7 +307,7 @@
                                         [
                                           {
                                             "Construct": [
-                                              "ActionResult",
+                                              "AnnotatedRuleExpr",
                                               "AnnotatedExpr",
                                               [
                                                 {
@@ -844,7 +844,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "AnnotatedRuleExpr",
                       "AnnotatedExpr",
                       [
                         {

@@ -4,7 +4,7 @@ rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+    Rule(name, [], params, Block("", [], AnnotatedRuleExpr::AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params {
@@ -23,7 +23,7 @@ rule prule_block(action) {
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;
-rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
+rule prule_annotated_expr(action) = AnnotatedRuleExpr::AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
 
 rule prule_annotation {
     RuleAnnotation::Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
