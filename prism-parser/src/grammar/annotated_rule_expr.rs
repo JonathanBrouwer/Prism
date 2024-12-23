@@ -3,11 +3,9 @@ use crate::core::span::Span;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::grammar::serde_leak::*;
-use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
-use crate::result_match;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
@@ -22,7 +20,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for AnnotatedRuleExpr<'arn, 'grm> {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
-        src: &'grm str,
+        _src: &'grm str,
     ) -> Self {
         assert_eq!("AnnotatedExpr", constructor);
         Self(

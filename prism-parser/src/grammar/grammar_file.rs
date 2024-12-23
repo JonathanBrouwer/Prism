@@ -5,7 +5,6 @@ use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
-use crate::result_match;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
@@ -20,7 +19,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for GrammarFile<'arn, 'grm> {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
-        src: &'grm str,
+        _src: &'grm str,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
         GrammarFile {
