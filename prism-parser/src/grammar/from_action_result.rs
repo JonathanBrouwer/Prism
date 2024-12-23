@@ -2,10 +2,9 @@ use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
-use crate::grammar::rule_annotation::RuleAnnotation;
-use crate::grammar::rule_expr::RuleExpr;
-use crate::grammar::{Block, GrammarFile, Rule};
+use crate::grammar::{GrammarFile, Rule};
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::*;
 use crate::parsable::parsed::Parsed;
@@ -54,34 +53,8 @@ fn parse_rule<'arn, 'grm: 'arn>(
             name: parse_identifier(*name, src),
             adapt: extend.into_value::<ParsedList>().into_iter().next().is_some(),
             args: allocs.alloc_extend(args.into_value::<ParsedList>().into_iter().map(|n| ("ActionResult", parse_identifier(n, src)))),
-            blocks: allocs.try_alloc_extend(blocks.into_value::<ParsedList>().into_iter().map(|block| parse_block(block.into_value::<ActionResult>(), src, allocs, parse_a)))?,
+            blocks: allocs.alloc_extend(blocks.into_value::<ParsedList>().into_iter().map(|block| *block.into_value::<RuleBlock>())),
         return_type: "ActionResult",}
-    }
-}
-
-fn parse_block<'arn, 'grm: 'arn>(
-    r: &'arn ActionResult<'arn, 'grm>,
-    src: &'grm str,
-    allocs: Allocs<'arn>,
-    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
-) -> Option<Block<'arn, 'grm>> {
-    result_match! {
-        match r => Construct(_, "Block", b),
-        match &b[..] => [name, extend, cs],
-        create Block { name: parse_identifier(*name, src),
-            adapt: extend.into_value::<ParsedList>().into_iter().next().is_some(),
-            constructors: parse_constructors(*cs, src, allocs, parse_a)? }
-    }
-}
-
-fn parse_constructors<'arn, 'grm: 'arn>(
-    r: Parsed<'arn, 'grm>,
-    src: &'grm str,
-    allocs: Allocs<'arn>,
-    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
-) -> Option<&'arn [AnnotatedRuleExpr<'arn, 'grm>]> {
-    result_match! {
-        create allocs.alloc_extend(r.into_value::<ParsedList>().into_iter().map(|c| *c.into_value::<AnnotatedRuleExpr>()))
     }
 }
 

@@ -1,11 +1,12 @@
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
-use crate::grammar::{Block, GrammarFile, Rule};
+use crate::grammar::{GrammarFile, Rule};
 use crate::parsable::Parsable;
 use crate::parser::var_map::{VarMap, VarMapValue};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::rule_block::RuleBlock;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -207,7 +208,7 @@ pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
     pub fn new(
-        block: &'arn Block<'arn, 'grm>,
+        block: &'arn RuleBlock<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {
@@ -220,7 +221,7 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
     #[must_use]
     pub fn update(
         &self,
-        b: &'arn Block<'arn, 'grm>,
+        b: &'arn RuleBlock<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {

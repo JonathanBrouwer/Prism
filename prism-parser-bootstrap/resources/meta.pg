@@ -4,7 +4,7 @@ rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", [], AnnotatedRuleExpr::AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+    Rule(name, [], params, RuleBlock::Block("", [], AnnotatedRuleExpr::AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params {
@@ -14,12 +14,12 @@ rule prule_params {
 
 rule prule_body(action) {
     prule_block(action)+;
-    Block("", [], c) .. [] <- c:prule_constructors(action);
+    RuleBlock::Block("", [], c) .. [] <- c:prule_constructors(action);
 }
 
 rule prule_block(action) {
-    Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
-    Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
+    RuleBlock::Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
+    RuleBlock::Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;

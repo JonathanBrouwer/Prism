@@ -287,7 +287,7 @@
                             [
                               {
                                 "Construct": [
-                                  "ActionResult",
+                                  "RuleBlock",
                                   "Block",
                                   [
                                     {
@@ -496,7 +496,7 @@
                       [
                         {
                           "Construct": [
-                            "ActionResult",
+                            "RuleBlock",
                             "Block",
                             [
                               {
@@ -623,7 +623,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleBlock",
                       "Block",
                       [
                         {
@@ -696,7 +696,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "RuleBlock",
                       "Block",
                       [
                         {

@@ -18,6 +18,7 @@ use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use std::collections::HashMap;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> {
@@ -45,6 +46,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         parsables.insert("RuleAnnotation", ParsableDyn::new::<RuleAnnotation>());
         parsables.insert("RuleExpr", ParsableDyn::new::<RuleExpr>());
         parsables.insert("AnnotatedRuleExpr", ParsableDyn::new::<AnnotatedRuleExpr>());
+        parsables.insert("RuleBlock", ParsableDyn::new::<RuleBlock>());
 
         let state = ParserState::new(input, allocs, parsables);
 
