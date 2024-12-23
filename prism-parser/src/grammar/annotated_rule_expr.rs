@@ -8,8 +8,7 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use crate::result_match;
-use crate::grammar::leak_slice;
-use crate::grammar::leak;
+use crate::grammar::serde_leak::*;
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct AnnotatedRuleExpr<'arn, 'grm>(

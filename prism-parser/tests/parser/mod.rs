@@ -21,7 +21,7 @@ macro_rules! parse_test {
         fn $name() {
             use prism_parser::parser::parser_instance::run_parser_rule;
             use prism_parser::parse_grammar;
-            use prism_parser::grammar::GrammarFile;
+            use prism_parser::grammar::grammar_file::GrammarFile;
             use prism_parser::grammar;
             use prism_parser::error::empty_error::EmptyError;
             use prism_parser::core::presult::PResult;

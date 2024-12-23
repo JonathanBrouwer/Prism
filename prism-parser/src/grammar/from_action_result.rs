@@ -2,9 +2,10 @@ use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_action::RuleAction;
-use crate::grammar::{GrammarFile, Rule};
-use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
+use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::action_result::ActionResult::*;
 use crate::parsable::parsed::Parsed;
@@ -35,26 +36,8 @@ pub fn parse_grammarfile<'arn, 'grm: 'arn>(
         match r.into_value::<ActionResult<'arn, 'grm>>() => Construct(_, "GrammarFile", rules),
         match &rules[..] => [rules],
         create GrammarFile {
-            rules: allocs.try_alloc_extend(rules.into_value::<ParsedList>().into_iter().map(|rule| parse_rule(rule.into_value::<ActionResult>(), src, allocs, &parse_a)))?,
+            rules: allocs.alloc_extend(rules.into_value::<ParsedList>().into_iter().map(|rule| *rule.into_value::<Rule>())),
         }
-    }
-}
-
-fn parse_rule<'arn, 'grm: 'arn>(
-    r: &'arn ActionResult<'arn, 'grm>,
-    src: &'grm str,
-    allocs: Allocs<'arn>,
-    parse_a: &impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
-) -> Option<Rule<'arn, 'grm>> {
-    result_match! {
-        match r => Construct(_, "Rule", rule_body),
-        match &rule_body[..] => [name, extend, args, blocks],
-        create Rule {
-            name: parse_identifier(*name, src),
-            adapt: extend.into_value::<ParsedList>().into_iter().next().is_some(),
-            args: allocs.alloc_extend(args.into_value::<ParsedList>().into_iter().map(|n| ("ActionResult", parse_identifier(n, src)))),
-            blocks: allocs.alloc_extend(blocks.into_value::<ParsedList>().into_iter().map(|block| *block.into_value::<RuleBlock>())),
-        return_type: "ActionResult",}
     }
 }
 

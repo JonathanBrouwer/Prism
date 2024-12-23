@@ -10,7 +10,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_expr::RuleExpr;
-use crate::grammar::GrammarFile;
+use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::guid::Guid;
 use crate::parsable::void::Void;
 use crate::parsable::Parsable;

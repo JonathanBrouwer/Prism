@@ -184,7 +184,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "Rule",
                       "Rule",
                       [
                         {
@@ -264,7 +264,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "Rule",
                       "Rule",
                       [
                         {

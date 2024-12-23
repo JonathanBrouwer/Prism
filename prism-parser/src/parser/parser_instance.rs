@@ -9,7 +9,7 @@ use crate::error::ParseError;
 use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_annotation::RuleAnnotation;
-use crate::grammar::GrammarFile;
+use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
@@ -18,6 +18,7 @@ use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use std::collections::HashMap;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
 
@@ -47,6 +48,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         parsables.insert("RuleExpr", ParsableDyn::new::<RuleExpr>());
         parsables.insert("AnnotatedRuleExpr", ParsableDyn::new::<AnnotatedRuleExpr>());
         parsables.insert("RuleBlock", ParsableDyn::new::<RuleBlock>());
+        parsables.insert("Rule", ParsableDyn::new::<Rule>());
 
         let state = ParserState::new(input, allocs, parsables);
 
