@@ -49,6 +49,7 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
         parsables.insert("AnnotatedRuleExpr", ParsableDyn::new::<AnnotatedRuleExpr>());
         parsables.insert("RuleBlock", ParsableDyn::new::<RuleBlock>());
         parsables.insert("Rule", ParsableDyn::new::<Rule>());
+        parsables.insert("GrammarFile", ParsableDyn::new::<GrammarFile>());
 
         let state = ParserState::new(input, allocs, parsables);
 

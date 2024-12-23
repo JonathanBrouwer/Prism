@@ -77,7 +77,7 @@
                   },
                   {
                     "Construct": [
-                      "ActionResult",
+                      "GrammarFile",
                       "GrammarFile",
                       [
                         {

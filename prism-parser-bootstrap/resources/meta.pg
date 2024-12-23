@@ -1,6 +1,6 @@
 rule toplevel = grammar(prule_action);
 
-rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
+rule grammar(action) = GrammarFile::GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
     Rule::Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";

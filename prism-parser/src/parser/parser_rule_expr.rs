@@ -7,7 +7,6 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
@@ -250,7 +249,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 // First, get the grammar actionresult
-                let gr = if let Some(ar) = vars.get(ga) {
+                let grammar = if let Some(ar) = vars.get(ga) {
                     if let VarMapValue::Value(v) = ar {
                         *v
                     } else {
@@ -261,27 +260,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
 
                 // Parse it into a grammar
-                //TODO performance: We should have a cache for grammar files
-                //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, self.input, self.alloc, |parsed| {
-                    RuleAction::Value(parsed)
-                }) {
-                    Some(g) => g,
-                    None => {
-                        let mut e = E::new(pos.span_to(pos));
-                        e.add_label_implicit(ErrorLabel::Explicit(
-                            pos.span_to(pos),
-                            EscapedString::from_escaped(
-                                "language grammar to be correct, but adaptation AST was malformed.",
-                            ),
-                        ));
-                        return PResult::new_err(e, pos);
-                    }
-                };
-                let g: &'arn GrammarFile<'arn, 'grm> = self.alloc.alloc(g);
+                let grammar = grammar.into_value::<GrammarFile>();
 
                 // Create new grammarstate
-                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), self.alloc) {
+                //TODO performance: we shoud cache grammar states
+                let (rules, _) = match rules.adapt_with(grammar, vars, Some(pos), self.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(pos.span_to(pos));

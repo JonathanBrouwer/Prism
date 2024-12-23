@@ -26,21 +26,6 @@ macro_rules! result_match {
     };
 }
 
-pub fn parse_grammarfile<'arn, 'grm: 'arn>(
-    r: Parsed<'arn, 'grm>,
-    src: &'grm str,
-    allocs: Allocs<'arn>,
-    parse_a: impl Fn(Parsed<'arn, 'grm>) -> RuleAction<'arn, 'grm>,
-) -> Option<GrammarFile<'arn, 'grm>> {
-    result_match! {
-        match r.into_value::<ActionResult<'arn, 'grm>>() => Construct(_, "GrammarFile", rules),
-        match &rules[..] => [rules],
-        create GrammarFile {
-            rules: allocs.alloc_extend(rules.into_value::<ParsedList>().into_iter().map(|rule| *rule.into_value::<Rule>())),
-        }
-    }
-}
-
 pub(crate) fn parse_identifier<'grm>(r: Parsed<'_, 'grm>, src: &'grm str) -> &'grm str {
     r.into_value::<Input<'grm>>().as_str(src)
 }
