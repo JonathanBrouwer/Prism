@@ -21,8 +21,6 @@ pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
     grammar: &'grm str,
     allocs: Allocs<'grm>,
-) -> Result<GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
-    run_parser_rule(&META_GRAMMAR, "toplevel", grammar, allocs, |grammar| {
-        *grammar.into_value::<GrammarFile>()
-    })
+) -> Result<&'grm GrammarFile<'grm, 'grm>, AggregatedParseError<'grm, E>> {
+    run_parser_rule::<GrammarFile<'grm, 'grm>, E>(&META_GRAMMAR, "toplevel", grammar, allocs)
 }

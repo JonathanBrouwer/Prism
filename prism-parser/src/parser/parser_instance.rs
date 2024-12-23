@@ -17,6 +17,7 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
@@ -119,16 +120,24 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
     }
 }
 
-pub fn run_parser_rule<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>, T>(
+pub fn run_parser_rule_raw<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
     input: &'grm str,
     allocs: Allocs<'arn>,
-    ar_map: impl FnOnce(Parsed<'arn, 'grm>) -> T,
-) -> Result<T, AggregatedParseError<'grm, E>> {
+) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
     let mut instance: ParserInstance<'arn, 'grm, E> =
         ParserInstance::new(input, allocs, rules).unwrap();
-    instance.run(rule).map(ar_map)
+    instance.run(rule)
+}
+
+pub fn run_parser_rule<'arn, 'grm, P: Parsable<'arn, 'grm>, E: ParseError<L = ErrorLabel<'grm>>>(
+    rules: &'arn GrammarFile<'arn, 'grm>,
+    rule: &'grm str,
+    input: &'grm str,
+    allocs: Allocs<'arn>,
+) -> Result<&'arn P, AggregatedParseError<'grm, E>> {
+    run_parser_rule_raw(rules, rule, input, allocs).map(|parsed| parsed.into_value::<P>())
 }
 
 #[macro_export]

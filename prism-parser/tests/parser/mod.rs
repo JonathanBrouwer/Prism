@@ -19,7 +19,7 @@ macro_rules! parse_test {
         #[allow(unused_variables)]
         #[test]
         fn $name() {
-            use prism_parser::parser::parser_instance::run_parser_rule;
+            use prism_parser::parser::parser_instance::run_parser_rule_raw;
             use prism_parser::parse_grammar;
             use prism_parser::grammar::grammar_file::GrammarFile;
             use prism_parser::grammar;
@@ -35,17 +35,19 @@ macro_rules! parse_test {
             use prism_parser::error::aggregate_error::ParseResultExt;
             use bumpalo::Bump;
             use prism_parser::core::cache::Allocs;
+            use prism_parser::parsable::parsed::Parsed;
 
             let syntax: &'static str = $syntax;
             let bump = Bump::new();
             let alloc = Allocs::new(&bump);
-            let grammar: GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
+            let grammar: &GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
 
             $({
             let input: &'static str = $input_pass;
             println!("== Parsing (should be ok): {}", input);
 
-            let got = run_parser_rule::<SetError, _>(&grammar, "start", input, alloc, |v| v.to_debug_string(input)).unwrap_or_eprint();
+            let got = run_parser_rule_raw::<SetError>(&grammar, "start", input, alloc).unwrap_or_eprint();
+            let got = got.to_debug_string(input);
             assert_eq!($expected, got);
             })*
 
@@ -53,8 +55,9 @@ macro_rules! parse_test {
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            match run_parser_rule::<SetError, _>(&grammar, "start", input, alloc, |v| v.to_debug_string(input)) {
+            match run_parser_rule_raw::<SetError>(&grammar, "start", input, alloc) {
                 Ok(got) => {
+                    let got = got.to_debug_string(input);
                     println!("Got: {:?}", got);
                     panic!();
                 }
