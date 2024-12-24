@@ -1,3 +1,4 @@
+use crate::lang::from_action_result::ScopeEnter;
 use crate::lang::{TcEnv, UnionIndex};
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
@@ -23,6 +24,7 @@ pub fn parse_prism_in_env<'p>(
     let allocs = Allocs::new(&bump);
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
+    parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule::<_, SetError>(&GRAMMAR, "expr", program, allocs, parsables).map(|v| *v)
 }

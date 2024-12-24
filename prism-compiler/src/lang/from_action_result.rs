@@ -24,9 +24,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input>().as_str(src);
-                let v = *args[1].into_value::<UnionIndex>();
-                let b = *args[2].into_value::<UnionIndex>();
+                let name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let v = *reduce(args[1]).into_value::<UnionIndex>();
+                let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
 
                 // let v = self.insert_from_action_result_rec(&args[1], program, vars);
@@ -40,9 +40,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input>().as_str(src);
-                let v = *args[1].into_value::<UnionIndex>();
-                let b = *args[2].into_value::<UnionIndex>();
+                let name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let v = *reduce(args[1]).into_value::<UnionIndex>();
+                let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::FnType(v, b)
 
                 // let name = Self::parse_name(&args[0], program);
@@ -58,8 +58,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = args[0].into_value::<Input>().as_str(src);
-                let b = *args[1].into_value::<UnionIndex>();
+                let name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let b = *reduce(args[1]).into_value::<UnionIndex>();
                 PartialExpr::FnConstruct(b)
 
                 // let name = Self::parse_name(&args[0], program);
@@ -74,8 +74,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
-                let f = *args[0].into_value::<UnionIndex>();
-                let v = *args[1].into_value::<UnionIndex>();
+                let f = *reduce(args[0]).into_value::<UnionIndex>();
+                let v = *reduce(args[1]).into_value::<UnionIndex>();
                 PartialExpr::FnDestruct(f, v)
 
                 // let f = self.insert_from_action_result_rec(&args[0], program, vars);
@@ -85,11 +85,11 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "GrammarDefine" => {
                 assert_eq!(args.len(), 4);
-                let guid = *args[1].into_value::<Guid>();
-                let _id = args[2].into_value::<Input>().as_str(src);
-                let _grammar = args[3];
+                let guid = *reduce(args[1]).into_value::<Guid>();
+                let _id = reduce(args[2]).into_value::<Input>().as_str(src);
+                let _grammar = reduce(args[3]);
 
-                return *args[0].into_value::<UnionIndex>();
+                return *reduce(args[0]).into_value::<UnionIndex>();
 
                 // let guid = Self::parse_guid(&args[1]);
                 // let _id = Self::parse_name(&args[2], program);
@@ -104,8 +104,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
 
-                let e = *args[0].into_value::<UnionIndex>();
-                let typ = *args[1].into_value::<UnionIndex>();
+                let e = *reduce(args[0]).into_value::<UnionIndex>();
+                let typ = *reduce(args[1]).into_value::<UnionIndex>();
                 PartialExpr::TypeAssert(e, typ)
 
                 // let e = self.insert_from_action_result_rec(&args[0], program, vars);
@@ -114,7 +114,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
                 // PartialExpr::TypeAssert(e, typ)
             }
             "Name" => {
-                let name = args[0].into_value::<Input>().as_str(src);
+                let name = reduce(args[0]).into_value::<Input>().as_str(src);
                 PartialExpr::DeBruijnIndex(0)
 
                 //     //             let e = if name == "_" {
@@ -175,11 +175,17 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
 }
 
 fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm> {
-    if let Some(v) = parsed.try_into_value::<EnvCapture>() {}
+    if let Some(v) = parsed.try_into_value::<EnvCapture>() {
+        let v = v.value.into_value::<ScopeEnter>();
+        reduce(v.0)
+    } else {
+        parsed
+    }
 }
 
+#[derive(Copy, Clone)]
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -187,6 +193,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
         allocs: Allocs<'arn>,
         src: &'grm str,
     ) -> Self {
+        ScopeEnter(args[0], *args[1].into_value::<Guid>())
     }
 }
 
