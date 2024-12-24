@@ -11,7 +11,7 @@ fn test_ok([test]: [&str; 1]) {
     let (_eval, expected_typ) = rest.split_once("### Type\n").unwrap();
 
     let mut env = TcEnv::default();
-    let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
+    let _input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
 }
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test_ok }
 

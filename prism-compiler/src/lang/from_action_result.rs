@@ -2,7 +2,6 @@ use crate::lang::{PartialExpr, UnionIndex};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
-use prism_parser::parsable::action_result::ActionResult;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
