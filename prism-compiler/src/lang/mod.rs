@@ -13,8 +13,8 @@ pub mod env;
 pub mod error;
 mod expect_beq;
 mod expect_beq_internal;
-pub mod from_action_result;
 pub mod is_beta_equal;
+pub mod parsable;
 pub mod simplify;
 pub mod type_check;
 

@@ -1,4 +1,4 @@
-use crate::lang::from_action_result::ScopeEnter;
+use crate::lang::parsable::ScopeEnter;
 use crate::lang::{TcEnv, UnionIndex};
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
