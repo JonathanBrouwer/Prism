@@ -1,38 +1,38 @@
-rule wrapped_expr(guid2) = ScopeEnter(e, guid3) <- guid3:guid2 e:expr;
+rule wrapped_expr(guid2) = RuleAction::Value(ScopeEnter::ScopeEnter(e, guid3)) <- guid3:guid2 e:expr;
 
 rule expr {
     group statement {
-        GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
-        GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
+        Expr::GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
+        Expr::GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
         b <- "adapt" n:identifier ";" b:#adapt(n, expr);
-        Let(n, v, b) <- "let" n:identifier "=" v:#next ";" b:#this;
-        Let(n, TypeAssert(v, t), b) <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
+        Expr::Let(n, v, b) <- "let" n:identifier "=" v:#next ";" b:#this;
+        Expr::Let(n, Expr::TypeAssert(v, t), b) <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
     }
     group fnconstruct {
         fnconstruct(#this, #next);
     }
     group fntype {
-        FnType(n, at, bt) <- "(" n:identifier ":" at:#this ")" "->" bt:#this;
-        FnType("_", at, bt) <- at:#next "->" bt:#this;
+        Expr::FnType(n, at, bt) <- "(" n:identifier ":" at:#this ")" "->" bt:#this;
+        Expr::FnType("_", at, bt) <- at:#next "->" bt:#this;
     }
     group assert {
-        TypeAssert(e, typ) <- e:#next ":" typ:#next;
+        Expr::TypeAssert(e, typ) <- e:#next ":" typ:#next;
     }
     group fndestruct {
-        FnDestruct(f, a) <- f:#this " " a:#next;
+        Expr::FnDestruct(f, a) <- f:#this " " a:#next;
     }
     group base {
         t <- "(" t:expr ")";
-        Type() <- "Type";
-        identifier;
+        Expr::Type() <- "Type";
+        Expr::Name(n) <- n:identifier;
     }
 }
 
 rule fnconstruct(this, next) {
-    FnConstruct(n, Let("_", TypeAssert(n, t), r)) <- "(" n:identifier ":" t:next ")" r:#this;
-    FnConstruct(n, r) <- n:identifier r:#this;
-    FnConstruct(n, Let("_", TypeAssert(n, t), r)) <- "(" n:identifier ":" t:next ")" "=>" r:this;
-    FnConstruct(n, r) <- n:identifier "=>" r:this;
+    Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r)) <- "(" n:identifier ":" t:next ")" r:#this;
+    Expr::FnConstruct(n, r) <- n:identifier r:#this;
+    Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r)) <- "(" n:identifier ":" t:next ")" "=>" r:this;
+    Expr::FnConstruct(n, r) <- n:identifier "=>" r:this;
 }
 
 rule layout {

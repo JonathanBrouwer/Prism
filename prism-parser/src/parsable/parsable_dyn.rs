@@ -3,6 +3,7 @@ use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
 
+#[derive(Copy, Clone)]
 pub struct ParsableDyn<'arn, 'grm> {
     pub from_construct: fn(
         span: Span,

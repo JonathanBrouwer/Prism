@@ -36,7 +36,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 (self
                     .parsables
                     .get(namespace)
-                    .expect("Namespace exists")
+                    .expect(&format!("Namespace '{namespace}' exists"))
                     .from_construct)(span, name, args_vals, self.alloc, self.input)
             }
             RuleAction::Value(parsed) => self

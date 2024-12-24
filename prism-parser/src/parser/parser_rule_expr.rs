@@ -78,9 +78,12 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                             }
                         }
                         VarMapValue::Value(value) => {
-                            let rule = *value.into_value::<RuleId>();
-                            self.parse_rule(rules, rule, &result_args, pos, context)
-                                .map(PR::with_rtrn)
+                            if let Some(rule) = value.try_into_value::<RuleId>() {
+                                self.parse_rule(rules, *rule, &result_args, pos, context)
+                                    .map(PR::with_rtrn)
+                            } else {
+                                PResult::new_empty(PR::with_rtrn(*value), pos)
+                            }
                         }
                     };
                 }

@@ -3280,7 +3280,7 @@
                       "Construct",
                       [
                         {
-                          "InputLiteral": "ActionResult"
+                          "InputLiteral": ""
                         },
                         {
                           "Name": "n"

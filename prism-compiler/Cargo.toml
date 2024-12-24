@@ -11,6 +11,7 @@ clap.workspace = true
 prism-parser.workspace = true
 rpds.workspace = true
 ariadne.workspace = true
+bumpalo.workspace = true
 
 [dev-dependencies]
 test_each_file.workspace = true

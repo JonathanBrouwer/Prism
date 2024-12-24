@@ -1,4 +1,5 @@
 use crate::parsable::Parsable;
+use std::any::type_name;
 use std::fmt::{Debug, Formatter};
 use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
@@ -8,6 +9,7 @@ use std::ptr::NonNull;
 pub struct Parsed<'arn, 'grm> {
     ptr: NonNull<()>,
     checksum: u64,
+    name: &'static str,
     phantom_data: PhantomData<(&'arn (), &'grm ())>,
 }
 
@@ -22,13 +24,17 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         Parsed {
             ptr: NonNull::from(p).cast(),
             checksum: checksum_parsable::<P>(),
+            name: type_name::<P>(),
             phantom_data: Default::default(),
         }
     }
 
     pub fn into_value<P: Parsable<'arn, 'grm>>(self) -> &'arn P {
-        self.try_into_value()
-            .expect("Expected wrong king of Parsable")
+        self.try_into_value().expect(&format!(
+            "Expected wrong king of Parsable. Expected {}, got {}",
+            type_name::<P>(),
+            self.name
+        ))
     }
 
     pub fn try_into_value<P: Parsable<'arn, 'grm>>(self) -> Option<&'arn P> {
