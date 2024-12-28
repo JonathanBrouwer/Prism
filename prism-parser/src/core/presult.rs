@@ -163,25 +163,22 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_seq(other(pos))
     }
 
-    // pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
-    //     self,
-    //     other: &P2,
-    //     state: &mut ParserState<'arn, 'grm, E>,
-    //     context: ParserContext,
-    // ) -> (PResult<(O, Option<O2>), E>, bool)
-    // where
-    //     'grm: 'arn,
-    // {
-    //     //Quick out
-    //     if self.is_err() {
-    //         return (self.map(|_| unreachable!()), false);
-    //     }
-    //
-    //     let pos = self.end_pos();
-    //     let other_res = other.parse(pos, state, context);
-    //     let should_continue = other_res.is_ok();
-    //     (self.merge_seq_opt(other_res), should_continue)
-    // }
+    pub fn merge_seq_chain2<'arn, 'grm, O2>(
+        self,
+        mut other: impl FnMut(Pos, O) -> PResult<O2, E>,
+    ) -> PResult<O2, E>
+    where
+        'grm: 'arn,
+    {
+        //Quick out
+        let (o, res) = match self {
+            POk(o, start, end, best) => (o, POk((), start, end, best)),
+            PErr(_, _) => return self.map(|_| unreachable!()),
+        };
+
+        let pos = res.end_pos();
+        res.merge_seq(other(pos, o)).map(|((), o)| o)
+    }
 
     pub fn ok(self) -> Option<O> {
         match self {

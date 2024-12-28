@@ -26,7 +26,7 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
-    run_parser_rule::<_, SetError>(&GRAMMAR, "expr", program, allocs, parsables).map(|v| *v)
+    run_parser_rule::<_, SetError>(&GRAMMAR, "start", program, allocs, parsables).map(|v| *v)
 }
 
 pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {

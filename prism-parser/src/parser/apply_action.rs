@@ -19,11 +19,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         match rule {
             RuleAction::Name(name) => {
                 if let Some(ar) = vars.get(name) {
-                    if let VarMapValue::Value(v) = ar {
-                        *v
-                    } else {
-                        panic!("")
-                    }
+                    *ar
                 } else {
                     panic!("Name '{name}' not in context")
                 }

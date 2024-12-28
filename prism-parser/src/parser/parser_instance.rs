@@ -93,8 +93,6 @@ impl<'arn, 'grm: 'arn, E: ParseError<L = ErrorLabel<'grm>>> ParserInstance<'arn,
             .rules
             .get(rule)
             .expect("Rule exists")
-            .as_value()
-            .expect("Rule is value")
             .into_value::<RuleId>();
         let result = self.state.parse_rule(
             self.grammar_state,

@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use std::collections::HashMap;
 use std::sync::LazyLock;
 

@@ -29,22 +29,22 @@ fn main() {
         None => (read_from_stdin().unwrap(), "stdin"),
         Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
     };
-
-    let bump = Bump::new();
-    let allocs = Allocs::new(&bump);
-    let mut tc_env = TcEnv::default();
-    let mut parsables = HashMap::new();
-    parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
-
-    let root = match run_parser_rule::<UnionIndex, SetError>(
-        &GRAMMAR, "expr", &program, allocs, parsables,
-    ) {
-        Ok(idx) => idx,
-        Err(e) => {
-            e.eprint().unwrap();
-            return;
-        }
-    };
+    //
+    // let bump = Bump::new();
+    // let allocs = Allocs::new(&bump);
+    // let mut tc_env = TcEnv::default();
+    // let mut parsables = HashMap::new();
+    // parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
+    //
+    // let root = match run_parser_rule::<UnionIndex, SetError>(
+    //     &GRAMMAR, "expr", &program, allocs, parsables,
+    // ) {
+    //     Ok(idx) => idx,
+    //     Err(e) => {
+    //         e.eprint().unwrap();
+    //         return;
+    //     }
+    // };
 
     // println!(
     //     "> Program\n====================\n{}\n\n",

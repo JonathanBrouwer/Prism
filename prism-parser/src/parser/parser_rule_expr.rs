@@ -27,66 +27,34 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar(mut rule_str, args) => {
-                let mut result_args = vec![];
-                let mut args = args;
-                let mut block_ctx = block_ctx;
-                let mut vars = vars;
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = vars.get(rule_str) else {
+                    panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
+                };
+                let rule = *rule.into_value::<RuleId>();
 
-                loop {
-                    // Figure out which rule the variable `rule` refers to
-                    let Some(rule) = vars.get(rule_str) else {
-                        panic!(
-                            "Tried to run variable `{rule_str}` as a rule, but it was not defined."
-                        );
-                    };
-
-                    result_args.splice(
-                        0..0,
-                        args.iter().map(|arg| {
-                            VarMapValue::Expr(CapturedExpr {
-                                expr: arg,
-                                block_ctx,
-                                vars,
-                            })
-                        }),
-                    );
-
-                    return match rule {
-                        VarMapValue::Expr(captured) => {
-                            // If the `Expr` we call is a rule, we might be using it as a higher-order rule
-                            // We process this rule in a loop, using the context of the captured expression
-                            if let RuleExpr::RunVar(sub_rule, sub_args) = captured.expr {
-                                rule_str = sub_rule;
-                                args = sub_args;
-                                block_ctx = captured.block_ctx;
-                                vars = captured.vars;
-                                continue;
-                            } else {
-                                assert_eq!(
-                                    result_args.len(),
-                                    0,
-                                    "Tried to apply an argument to a non-rule expr"
-                                );
-                                self.parse_expr(
-                                    rules,
-                                    captured.block_ctx,
-                                    captured.expr,
-                                    captured.vars,
-                                    pos,
-                                    context,
-                                )
-                            }
-                        }
-                        VarMapValue::Value(value) => {
-                            if let Some(rule) = value.try_into_value::<RuleId>() {
-                                self.parse_rule(rules, *rule, &result_args, pos, context)
-                                    .map(PR::with_rtrn)
-                            } else {
-                                PResult::new_empty(PR::with_rtrn(*value), pos)
-                            }
-                        }
-                    };
+                let mut res = PResult::new_empty(Vec::new(), pos);
+                for arg in *args {
+                    if let RuleExpr::RunVar(r, args) = arg {
+                        assert_eq!(args.len(), 0);
+                        res = res.map(|mut v| {
+                            v.push(*vars.get(r).unwrap());
+                            v
+                        });
+                    } else {
+                        res = res
+                            .merge_seq(self.parse_expr(rules, block_ctx, arg, vars, pos, context))
+                            .map(|(mut v, r)| {
+                                v.push(r.rtrn);
+                                v
+                            });
+                    }
                 }
+
+                res.merge_seq_chain2(|pos, args| {
+                    self.parse_rule(rules, rule, &args, pos, context)
+                        .map(PR::with_rtrn)
+                })
             }
             RuleExpr::CharClass(cc) => self
                 .parse_with_layout(
@@ -209,9 +177,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::NameBind(name, sub) => {
                 let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
                 res.map(|res| PR {
-                    free: res
-                        .free
-                        .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
+                    free: res.free.insert(name, res.rtrn, self.alloc),
                     rtrn: Void.to_parsed(),
                 })
             }
@@ -252,11 +218,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             RuleExpr::AtAdapt(ga, adapt_rule) => {
                 // First, get the grammar actionresult
                 let grammar = if let Some(ar) = vars.get(ga) {
-                    if let VarMapValue::Value(v) = ar {
-                        *v
-                    } else {
-                        panic!("")
-                    }
+                    *ar
                 } else {
                     panic!("Name '{ga}' not in context")
                 };
@@ -285,8 +247,6 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     .get(adapt_rule)
                     .or_else(|| vars.get(adapt_rule))
                     .unwrap()
-                    .as_value()
-                    .expect("Adapation rule is a value")
                     .into_value::<RuleId>();
 
                 // Parse body

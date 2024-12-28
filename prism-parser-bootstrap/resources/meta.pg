@@ -47,9 +47,9 @@ rule prule_expr(action) {
         RuleExpr::NameBind(n, e) <- n:identifier ":" e:#next;
     }
     group repeat {
-        RuleExpr::Repeat(r, "0", None(), RuleExpr::Sequence([])) <- r:#this "*";
-        RuleExpr::Repeat(r, "1", None(), RuleExpr::Sequence([])) <- r:#this "+";
-        RuleExpr::Repeat(r, "0", Some("1"), RuleExpr::Sequence([])) <- r:#this "?";
+        RuleExpr::Repeat(r, "0", ActionResult::None(), RuleExpr::Sequence([])) <- r:#this "*";
+        RuleExpr::Repeat(r, "1", ActionResult::None(), RuleExpr::Sequence([])) <- r:#this "+";
+        RuleExpr::Repeat(r, "0", ActionResult::Some("1"), RuleExpr::Sequence([])) <- r:#this "?";
     }
     group base {
         RuleExpr::Literal(s) <- s:pstring;
@@ -64,10 +64,10 @@ rule prule_expr(action) {
         RuleExpr::AtAdapt(a, n) <- "#adapt" "(" a:identifier "," n:identifier ")";
         RuleExpr::RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
         RuleExpr::RunVar(n, []) <- n:identifier;
-        RuleExpr::Repeat(e, "0", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
-        RuleExpr::Repeat(e, "1", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
-        RuleExpr::Repeat(e, min, None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
-        RuleExpr::Repeat(e, min, Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
+        RuleExpr::Repeat(e, "0", ActionResult::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
+        RuleExpr::Repeat(e, "1", ActionResult::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
+        RuleExpr::Repeat(e, min, ActionResult::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
+        RuleExpr::Repeat(e, min, ActionResult::Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
     }
 }
 

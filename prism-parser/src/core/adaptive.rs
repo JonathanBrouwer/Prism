@@ -73,19 +73,12 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
                     let value = ctx.get(new_rule.name).expect("Name exists in context");
-                    *value
-                        .as_value()
-                        .expect("Var map value is value")
-                        .into_value::<RuleId>()
+                    *value.into_value::<RuleId>()
                 } else {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.insert(
-                    new_rule.name,
-                    VarMapValue::Value(alloc.alloc(rule).to_parsed()),
-                    alloc,
-                );
+                new_ctx = new_ctx.insert(new_rule.name, alloc.alloc(rule).to_parsed(), alloc);
                 (new_rule.name, rule)
             })
             .collect();
