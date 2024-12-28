@@ -29,11 +29,11 @@ rule fntype(env) {
     assert(env);
 }
 rule assert(env) {
-    //Expr::TypeAssert(env, e, typ) <- e:fndestruct(env) ":" typ:fndestruct(env);
+    Expr::TypeAssert(env, e, typ) <- e:fndestruct(env) ":" typ:fndestruct(env);
     fndestruct(env);
 }
 rule fndestruct(env) {
-    //Expr::FnDestruct(env, f, a) <- f:fndestruct(env) " " a:base(env);
+    Expr::FnDestruct(env, f, a) <- f:fndestruct(env) " " a:base(env);
     base(env);
 }
 
