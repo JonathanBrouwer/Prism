@@ -6,6 +6,7 @@ use std::any::type_name;
 pub mod action_result;
 pub mod env_capture;
 pub mod guid;
+pub mod option;
 pub mod parsable_dyn;
 pub mod parsed;
 pub mod parsed_debug;

@@ -1276,7 +1276,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "None",
                             []
                           ]
@@ -1332,7 +1332,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "None",
                             []
                           ]
@@ -1388,7 +1388,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "Some",
                             [
                               {
@@ -1975,7 +1975,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "None",
                             []
                           ]
@@ -2064,7 +2064,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "None",
                             []
                           ]
@@ -2167,7 +2167,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "None",
                             []
                           ]
@@ -2278,7 +2278,7 @@
                         },
                         {
                           "Construct": [
-                            "ActionResult",
+                            "OptionU64",
                             "Some",
                             [
                               {

@@ -2,7 +2,7 @@ use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::{parse_identifier, parse_option, parse_string, parse_u64};
+use crate::grammar::from_action_result::{parse_identifier, parse_string, parse_u64};
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
 use crate::parsable::action_result::ActionResult;
@@ -79,7 +79,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleExpr<'arn, 'grm> {
             "Repeat" => RuleExpr::Repeat {
                 expr: args[0].into_value::<RuleExpr>(),
                 min: parse_u64(args[1], src),
-                max: parse_option(args[2].into_value::<ActionResult>(), src, parse_u64),
+                max: *args[2].into_value::<Option<u64>>(),
                 delim: args[3].into_value::<RuleExpr>(),
             },
             "Literal" => RuleExpr::Literal(parse_string(args[0], src)),
