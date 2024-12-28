@@ -28,6 +28,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             "Name" => {
                 assert_eq!(args.len(), 1);
                 let name = reduce(args[0]).into_value::<Input>().as_str(src);
+
                 let (idx, _) = env.get(name).unwrap();
 
                 PartialExpr::DeBruijnIndex(idx)
@@ -38,15 +39,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
                 let v = *reduce(args[1]).into_value::<UnionIndex>();
                 let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
-
-                // let v = self.insert_from_action_result_rec(&args[1], program, vars);
-                // let b = self.insert_from_action_result_rec(
-                //     &args[2],
-                //     program,
-                //     &vars.insert_name(name, program),
-                // );
-                //
-                // PartialExpr::Let(v, b)
             }
             // "FnType" => {
             //     assert_eq!(args.len(), 3);
