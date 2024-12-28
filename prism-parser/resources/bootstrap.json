@@ -1798,7 +1798,7 @@
                           "n",
                           {
                             "RunVar": [
-                              "identifier",
+                              "prule_runnable",
                               []
                             ]
                           }
@@ -1873,7 +1873,7 @@
                       "n",
                       {
                         "RunVar": [
-                          "identifier",
+                          "prule_runnable",
                           []
                         ]
                       }
@@ -2343,6 +2343,39 @@
                         }
                       ]
                     ]
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "return_type": "ActionResult"
+    },
+    {
+      "name": "prule_runnable",
+      "adapt": false,
+      "args": [],
+      "blocks": [
+        {
+          "name": "",
+          "adapt": false,
+          "constructors": [
+            [
+              [],
+              {
+                "Choice": [
+                  {
+                    "RunVar": [
+                      "identifier",
+                      []
+                    ]
+                  },
+                  {
+                    "Literal": "#this"
+                  },
+                  {
+                    "Literal": "#next"
                   }
                 ]
               }

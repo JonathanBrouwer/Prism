@@ -35,7 +35,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
                 let v = *reduce(args[1]).into_value::<UnionIndex>();
                 let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
