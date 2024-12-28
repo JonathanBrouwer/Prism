@@ -16,10 +16,9 @@ rule fnconstruct(env) {
     fntype(env);
 }
 rule fnconstruct_sub(env) {
-    //TODO Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(env, n), t), r)) <- "(" n:identifier ":" t:fntype(env) ")" r:fnconstruct_sub($Env::Type(n, env));
-    Expr::FnConstruct(env, n, r) <- "(" n:identifier ":" t:fntype(env) ")" r:fnconstruct_sub($Env::Type(n, env));
+    Expr::FnConstruct(env, n, Expr::Let(env, "_", Expr::TypeAssert(env, Expr::Name(env, n), t), r)) <- "(" n:identifier ":" t:fntype(env) ")" r:fnconstruct_sub($Env::Type(n, env));
     Expr::FnConstruct(env, n, r) <- n:identifier r:fnconstruct_sub($Env::Type(n, env));
-    Expr::FnConstruct(env, n, r) <- "(" n:identifier ":" t:fntype(env) ")" "=>" r:fnconstruct($Env::Type(n, env));
+    Expr::FnConstruct(env, n, Expr::Let(env, "_", Expr::TypeAssert(env, Expr::Name(env, n), t), r)) <- "(" n:identifier ":" t:fntype(env) ")" "=>" r:fnconstruct($Env::Type(n, env));
     Expr::FnConstruct(env, n, r) <- n:identifier "=>" r:fnconstruct($Env::Type(n, env));
 }
 
