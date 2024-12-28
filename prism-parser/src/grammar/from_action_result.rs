@@ -17,7 +17,3 @@ pub(crate) fn parse_string<'arn, 'grm>(
     };
     EscapedString::from_escaped(&src[*span])
 }
-
-pub fn parse_u64(r: Parsed, src: &str) -> u64 {
-    r.into_value::<Input>().as_cow(src).parse().unwrap()
-}
