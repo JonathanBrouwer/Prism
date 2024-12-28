@@ -1,4 +1,4 @@
-use crate::core::adaptive::GrammarStateId;
+use crate::core::adaptive::{BlockState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -8,27 +8,19 @@ use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{err_combine_opt, ParseError};
 use crate::parsable::parsed::Parsed;
-use crate::parser::var_map::BlockCtx;
+use crate::parser::var_map::VarMap;
 use bumpalo::Bump;
 use bumpalo_try::BumpaloExtend;
+use std::hash::{DefaultHasher, Hasher};
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
     pos: Pos,
-    block_state: BlockKey,
+    block: usize,     // Start of blocks ptr to usize
+    rule_args: usize, //TODO
     ctx: ParserContext,
     state: GrammarStateId,
 }
-
-#[derive(Eq, PartialEq, Hash, Clone)]
-pub struct BlockKey(usize, usize);
-
-impl From<BlockCtx<'_, '_>> for BlockKey {
-    fn from(value: BlockCtx) -> Self {
-        BlockKey(value.0.as_ptr() as usize, value.1.as_ptr() as usize)
-    }
-}
-
 pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn, 'grm>, E>;
 
 #[derive(Copy, Clone)]
@@ -91,15 +83,23 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
     pub fn parse_cache_recurse(
         &mut self,
         sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
-        block_state: BlockCtx<'arn, 'grm>,
+        blocks: &'arn [BlockState<'arn, 'grm>],
+        rule_args: VarMap<'arn, 'grm>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         //Check if this result is cached
+        let mut args_hash = DefaultHasher::new();
+        for (name, value) in rule_args.iter_cloned() {
+            args_hash.write(name.as_bytes());
+            args_hash.write_usize(value.as_ptr().as_ptr() as usize);
+        }
+
         let key = CacheKey {
             pos: pos_start,
-            block_state: block_state.into(),
+            block: blocks.as_ptr() as usize,
+            rule_args: args_hash.finish() as usize,
             ctx: context,
             state: grammar_state,
         };

@@ -103,13 +103,4 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 }
 
-pub type BlockCtx<'arn, 'grm> = (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>);
-
-#[derive(Copy, Clone)]
-pub struct CapturedExpr<'arn, 'grm> {
-    pub expr: &'arn RuleExpr<'arn, 'grm>,
-    pub block_ctx: BlockCtx<'arn, 'grm>,
-    pub vars: VarMap<'arn, 'grm>,
-}
-
 pub type VarMapValue<'arn, 'grm> = Parsed<'arn, 'grm>;

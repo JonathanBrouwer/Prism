@@ -40,51 +40,25 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
                 let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
             }
-            // "FnType" => {
-            //     assert_eq!(args.len(), 3);
-            //     let name = reduce(args[0]).into_value::<Input>().as_str(src);
-            //     let v = *reduce(args[1]).into_value::<UnionIndex>();
-            //     let b = *reduce(args[2]).into_value::<UnionIndex>();
-            //     PartialExpr::FnType(v, b)
-            //
-            //     // let name = Self::parse_name(&args[0], program);
-            //     //
-            //     // let v = self.insert_from_action_result_rec(&args[1], program, vars);
-            //     // let b = self.insert_from_action_result_rec(
-            //     //     &args[2],
-            //     //     program,
-            //     //     &vars.insert_name(name, program),
-            //     // );
-            //     //
-            //     // PartialExpr::FnType(v, b)
-            // }
-            // "FnConstruct" => {
-            //     assert_eq!(args.len(), 2);
-            //     let name = reduce(args[0]).into_value::<Input>().as_str(src);
-            //     let b = *reduce(args[1]).into_value::<UnionIndex>();
-            //     PartialExpr::FnConstruct(b)
-            //
-            //     // let name = Self::parse_name(&args[0], program);
-            //     //
-            //     // let b = self.insert_from_action_result_rec(
-            //     //     &args[1],
-            //     //     program,
-            //     //     &vars.insert_name(name, program),
-            //     // );
-            //     //
-            //     // PartialExpr::FnConstruct(b)
-            // }
-            // "FnDestruct" => {
-            //     assert_eq!(args.len(), 2);
-            //     let f = *reduce(args[0]).into_value::<UnionIndex>();
-            //     let v = *reduce(args[1]).into_value::<UnionIndex>();
-            //     PartialExpr::FnDestruct(f, v)
-            //
-            //     // let f = self.insert_from_action_result_rec(&args[0], program, vars);
-            //     // let v = self.insert_from_action_result_rec(&args[1], program, vars);
-            //     //
-            //     // PartialExpr::FnDestruct(f, v)
-            // }
+            "FnType" => {
+                assert_eq!(args.len(), 3);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let v = *reduce(args[1]).into_value::<UnionIndex>();
+                let b = *reduce(args[2]).into_value::<UnionIndex>();
+                PartialExpr::FnType(v, b)
+            }
+            "FnConstruct" => {
+                assert_eq!(args.len(), 2);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let b = *reduce(args[1]).into_value::<UnionIndex>();
+                PartialExpr::FnConstruct(b)
+            }
+            "FnDestruct" => {
+                assert_eq!(args.len(), 2);
+                let f = *reduce(args[0]).into_value::<UnionIndex>();
+                let v = *reduce(args[1]).into_value::<UnionIndex>();
+                PartialExpr::FnDestruct(f, v)
+            }
             // "GrammarDefine" => {
             //     assert_eq!(args.len(), 4);
             //     let guid = *reduce(args[1]).into_value::<Guid>();
@@ -93,10 +67,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             //
             //     return *reduce(args[0]).into_value::<UnionIndex>();
             //
-            //     // let guid = Self::parse_guid(&args[1]);
-            //     // let _id = Self::parse_name(&args[2], program);
-            //     // let _grammar = &args[3];
-            //     //
             //     // return self.insert_from_action_result_rec(
             //     //     &args[0],
             //     //     program,

@@ -1,4 +1,4 @@
-use crate::core::adaptive::{GrammarState, RuleId};
+use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::context::{ParserContext, PR};
 use crate::core::input::Input;
 use crate::core::pos::Pos;
@@ -13,13 +13,14 @@ use crate::parsable::guid::Guid;
 use crate::parsable::void::Void;
 use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
-use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
+use crate::parser::var_map::{VarMap, VarMapValue};
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_expr(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,
-        block_ctx: BlockCtx<'arn, 'grm>,
+        blocks: &'arn [BlockState<'arn, 'grm>],
+        rule_args: VarMap<'arn, 'grm>,
         expr: &'arn RuleExpr<'arn, 'grm>,
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
@@ -43,7 +44,9 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         });
                     } else {
                         res = res
-                            .merge_seq(self.parse_expr(rules, block_ctx, arg, vars, pos, context))
+                            .merge_seq(
+                                self.parse_expr(rules, blocks, rule_args, arg, vars, pos, context),
+                            )
                             .map(|(mut v, r)| {
                                 v.push(r.rtrn);
                                 v
@@ -94,11 +97,11 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 for i in 0..max.unwrap_or(u64::MAX) {
                     let pos = res.end_pos();
                     let part = if i == 0 {
-                        self.parse_expr(rules, block_ctx, expr, vars, pos, context)
+                        self.parse_expr(rules, blocks, rule_args, expr, vars, pos, context)
                     } else {
-                        self.parse_expr(rules, block_ctx, delim, vars, pos, context)
+                        self.parse_expr(rules, blocks, rule_args, delim, vars, pos, context)
                             .merge_seq_chain(|pos| {
-                                self.parse_expr(rules, block_ctx, expr, vars, pos, context)
+                                self.parse_expr(rules, blocks, rule_args, expr, vars, pos, context)
                             })
                             .map(|x| x.1)
                     };
@@ -147,7 +150,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 for sub in *subs {
                     res = res
                         .merge_seq_chain(|pos| {
-                            self.parse_expr(rules, block_ctx, sub, res_vars, pos, context)
+                            self.parse_expr(rules, blocks, rule_args, sub, res_vars, pos, context)
                         })
                         .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
                     match &res.ok_ref() {
@@ -166,7 +169,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
                 for sub in *subs {
                     res = res.merge_choice_chain(|| {
-                        self.parse_expr(rules, block_ctx, sub, vars, pos, context)
+                        self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context)
                     });
                     if res.is_ok() {
                         break;
@@ -175,14 +178,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context);
                 res.map(|res| PR {
                     free: res.free.insert(name, res.rtrn, self.alloc),
                     rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context);
                 res.map_with_span(|res, span| {
                     let rtrn = self.apply_action(
                         action,
@@ -197,22 +200,22 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context);
                 res.map_with_span(|_, span| {
                     PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
                 })
             }
             RuleExpr::This => self
-                .parse_rule_block(rules, block_ctx, pos, context)
+                .parse_rule_block(rules, blocks, rule_args, pos, context)
                 .map(PR::with_rtrn),
             RuleExpr::Next => self
-                .parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
+                .parse_rule_block(rules, &blocks[1..], rule_args, pos, context)
                 .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => self
-                .parse_expr(rules, block_ctx, sub, vars, pos, context)
+                .parse_expr(rules, blocks, rule_args, sub, vars, pos, context)
                 .positive_lookahead(pos),
             RuleExpr::NegLookahead(sub) => self
-                .parse_expr(rules, block_ctx, sub, vars, pos, context)
+                .parse_expr(rules, blocks, rule_args, sub, vars, pos, context)
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
             RuleExpr::AtAdapt(ga, adapt_rule) => {

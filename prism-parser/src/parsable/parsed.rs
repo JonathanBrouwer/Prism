@@ -43,6 +43,10 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         }
         Some(unsafe { self.ptr.cast::<P>().as_ref() })
     }
+
+    pub fn as_ptr(self) -> NonNull<()> {
+        self.ptr
+    }
 }
 
 fn checksum_parsable<'arn, 'grm: 'arn, P: Parsable<'arn, 'grm> + 'arn>() -> u64 {

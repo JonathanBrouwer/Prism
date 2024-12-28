@@ -31,7 +31,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             self.alloc,
         );
 
-        let mut res = self.parse_rule_block(rules, (rule_state.blocks, rule_args), pos, context);
+        let mut res = self.parse_rule_block(rules, rule_state.blocks, rule_args, pos, context);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),
             rule_state.name,
