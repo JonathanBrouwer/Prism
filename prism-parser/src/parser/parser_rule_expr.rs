@@ -27,7 +27,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         context: ParserContext,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::RunVar(mut rule_str, args) => {
+            RuleExpr::RunVar(rule_str, args) => {
                 // Figure out which rule the variable `rule` refers to
                 let Some(rule) = vars.get(rule_str) else {
                     panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
