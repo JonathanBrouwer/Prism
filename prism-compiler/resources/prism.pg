@@ -6,8 +6,34 @@ rule statement(env) {
     //GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
     //GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
     //b <- "adapt" n:identifier ";" b:#adapt(n, expr);
-    Expr::Let(env, n, v, b) <- "let" n:identifier "=" v:base(env) ";" b:statement($Env::Substitute(n, v, env, env));
-    //Expr::Let(env, n, Expr::TypeAssert(v, t), b) <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
+    Expr::Let(env, n, v, b) <- "let" n:identifier "=" v:fnconstruct(env) ";" b:statement($Env::Substitute(n, v, env, env));
+    Expr::Let(env, n, Expr::TypeAssert(env, v, t), b) <- "let" n:identifier ":" t:fnconstruct(env) "=" v:fnconstruct(env) ";" b:statement($Env::Substitute(n, v, env, env));
+    fnconstruct(env);
+}
+
+rule fnconstruct(env) {
+    fnconstruct_sub(env);
+    fntype(env);
+}
+rule fnconstruct_sub(env) {
+    //Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(env, n), t), r)) <- "(" n:identifier ":" t:fntype(env) ")" r:fnconstruct_sub($Env::Type(n, env));
+    Expr::FnConstruct(n, r) <- "(" n:identifier ":" t:fntype(env) ")" r:fnconstruct_sub($Env::Type(n, env));
+    Expr::FnConstruct(n, r) <- n:identifier r:fnconstruct_sub($Env::Type(n, env));
+    Expr::FnConstruct(n, r) <- "(" n:identifier ":" t:fntype(env) ")" "=>" r:fnconstruct($Env::Type(n, env));
+    Expr::FnConstruct(n, r) <- n:identifier "=>" r:fnconstruct($Env::Type(n, env));
+}
+
+rule fntype(env) {
+    //FnType(n, at, bt) <- "(" n:identifier ":" at:#this ")" "->" bt:#this;
+    //FnType("_", at, bt) <- at:#next "->" bt:#this;
+    assert(env);
+}
+rule assert(env) {
+    Expr::TypeAssert(env, e, typ) <- e:fndestruct(env) ":" typ:fndestruct(env);
+    fndestruct(env);
+}
+rule fndestruct(env) {
+    //FnDestruct(f, a) <- f:#this " " a:#next;
     base(env);
 }
 

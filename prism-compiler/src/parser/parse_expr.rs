@@ -103,18 +103,13 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
             //     //     &vars.insert_jump(guid),
             //     // );
             // }
-            // "TypeAssert" => {
-            //     assert_eq!(args.len(), 2);
-            //
-            //     let e = *reduce(args[0]).into_value::<UnionIndex>();
-            //     let typ = *reduce(args[1]).into_value::<UnionIndex>();
-            //     PartialExpr::TypeAssert(e, typ)
-            //
-            //     // let e = self.insert_from_action_result_rec(&args[0], program, vars);
-            //     // let typ = self.insert_from_action_result_rec(&args[1], program, vars);
-            //     //
-            //     // PartialExpr::TypeAssert(e, typ)
-            // }
+            "TypeAssert" => {
+                assert_eq!(args.len(), 2);
+
+                let e = *reduce(args[0]).into_value::<UnionIndex>();
+                let typ = *reduce(args[1]).into_value::<UnionIndex>();
+                PartialExpr::TypeAssert(e, typ)
+            }
             // "Name" => {
             //     let name = reduce(args[0]).into_value::<Input>().as_str(src);
             //     PartialExpr::DeBruijnIndex(0)
