@@ -1,10 +1,20 @@
 rule start = expr($Env::Nil());
 
-rule expr(env) {
-    group base {
-        t <- "(" t:expr(env) ")";
-        Expr::Type(env) <- "Type";
-    }
+rule expr(env) = statement(env);
+
+rule statement(env) {
+    //GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
+    //GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
+    //b <- "adapt" n:identifier ";" b:#adapt(n, expr);
+    Expr::Let(env, n, v, b) <- "let" n:identifier "=" v:base(env) ";" b:statement($Env::Substitute(n, v, env, env));
+    //Expr::Let(env, n, Expr::TypeAssert(v, t), b) <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
+    base(env);
+}
+
+rule base(env) {
+    t <- "(" t:expr(env) ")";
+    Expr::Type(env) <- "Type";
+    Expr::Name(env, n) <- n:identifier;
 }
 
 rule layout {
