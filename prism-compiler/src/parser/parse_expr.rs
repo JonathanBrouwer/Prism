@@ -29,9 +29,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
                 assert_eq!(args.len(), 1);
                 let name = reduce(args[0]).into_value::<Input>().as_str(src);
 
-                let (idx, _) = env.get(name).unwrap();
+                // let (idx, _) = env.get(name).unwrap();
 
-                PartialExpr::DeBruijnIndex(idx)
+                PartialExpr::DeBruijnIndex(0)
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
