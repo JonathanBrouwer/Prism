@@ -39,7 +39,7 @@ impl Display for ErrorLabel<'_> {
 }
 
 pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
-    Report::build(ReportKind::Error, (), 0)
+    Report::build(ReportKind::Error, span)
         //Config
         .with_config(Config::default().with_label_attach(LabelAttach::Start))
         //Header

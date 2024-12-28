@@ -1,6 +1,7 @@
 use crate::lang::UnionIndex;
 use crate::lang::{TcEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
+use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use std::io;
 
@@ -31,7 +32,7 @@ pub enum TypeError {
 
 impl TcEnv {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
-        let report = Report::build(ReportKind::Error, (), 0);
+        let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
