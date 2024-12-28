@@ -24,8 +24,8 @@ fn normal() {
 
     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();
     serde_json::to_writer_pretty(&mut file, &grammar2).unwrap();
-    let mut file = File::create("prism-parser/resources/bootstrap.bincode").unwrap();
-    bincode::serialize_into(&mut file, &grammar2).unwrap();
+    let mut file = File::create("prism-parser/resources/bootstrap.msgpack").unwrap();
+    rmp_serde::encode::write(&mut file, &grammar2).unwrap();
 }
 
 // fn part1() {

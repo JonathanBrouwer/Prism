@@ -17,8 +17,8 @@ pub mod parsable;
 pub mod parser;
 
 pub static META_GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
-    let meta_grammar = include_bytes!("../resources/bootstrap.bincode");
-    bincode::deserialize(meta_grammar).unwrap()
+    let meta_grammar = include_bytes!("../resources/bootstrap.msgpack");
+    rmp_serde::decode::from_slice(meta_grammar).unwrap()
 });
 
 pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
