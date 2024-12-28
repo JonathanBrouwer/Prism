@@ -1,10 +1,9 @@
-rule start = expr([]);
+rule start = expr();
 
 rule expr(env) {
     group base {
         t <- "(" t:expr(env) ")";
         Expr::Type(env) <- "Type";
-        //Expr::Name(env, n) <- n:identifier;
     }
 }
 

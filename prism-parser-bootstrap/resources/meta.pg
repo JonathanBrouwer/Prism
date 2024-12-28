@@ -68,6 +68,7 @@ rule prule_expr(action) {
         RuleExpr::Repeat(e, "1", OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
         RuleExpr::Repeat(e, min, OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
         RuleExpr::Repeat(e, min, OptionU64::Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
+        RuleExpr::Action(a, RuleExpr::Sequence([])) <- "$" a:action;
     }
 }
 

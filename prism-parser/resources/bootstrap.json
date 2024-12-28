@@ -2295,6 +2295,57 @@
                   }
                 ]
               }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "$"
+                      },
+                      {
+                        "NameBind": [
+                          "a",
+                          {
+                            "RunVar": [
+                              "action",
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "RuleExpr",
+                      "Action",
+                      [
+                        {
+                          "Name": "a"
+                        },
+                        {
+                          "Construct": [
+                            "RuleExpr",
+                            "Sequence",
+                            [
+                              {
+                                "Construct": [
+                                  "ParsedList",
+                                  "Nil",
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
             ]
           ]
         }

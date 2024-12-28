@@ -27,7 +27,7 @@ impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p, T> ParseResultExt<T>
     fn unwrap_or_eprint(self) -> T {
         self.unwrap_or_else(|es| {
             es.eprint().unwrap();
-            panic!("Failed to parse grammar")
+            panic!("Failed to parse")
         })
     }
 }
