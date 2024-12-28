@@ -1,4 +1,5 @@
 use crate::lang::{TcEnv, UnionIndex};
+use crate::parser::parse_env::ParsedEnv;
 use bumpalo::Bump;
 use parse_expr::ScopeEnter;
 use prism_parser::core::cache::Allocs;
@@ -15,8 +16,11 @@ mod parse_env;
 pub mod parse_expr;
 
 pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
-    *parse_grammar::<SetError>(include_str!("../resources/prism.pg"), Allocs::new_leaking())
-        .unwrap_or_eprint()
+    *parse_grammar::<SetError>(
+        include_str!("../../resources/prism.pg"),
+        Allocs::new_leaking(),
+    )
+    .unwrap_or_eprint()
 });
 
 pub fn parse_prism_in_env<'p>(
@@ -27,8 +31,8 @@ pub fn parse_prism_in_env<'p>(
     let allocs = Allocs::new(&bump);
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
-    parsables.insert("Env", ParsableDyn::new::<UnionIndex>());
-    // parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
+    parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
+    parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule::<_, SetError>(&GRAMMAR, "start", program, allocs, parsables).map(|v| *v)
 }

@@ -1,4 +1,5 @@
 use crate::lang::{PartialExpr, UnionIndex};
+use crate::parser::parse_env::ParsedEnv;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
@@ -15,7 +16,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
         allocs: Allocs<'arn>,
         src: &'grm str,
     ) -> Self {
-        let env = args[0];
+        let env = args[0].into_value::<ParsedEnv<'arn>>();
         let args = &args[1..];
 
         let expr = match constructor {
@@ -172,7 +173,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
         //     //             return self.insert_from_action_result_rec(&args[0], program, &vars);
         //     //         }
 
-        UnionIndex(0)
+        UnionIndex(usize::MAX)
     }
 }
 
@@ -185,17 +186,16 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
 //     }
 // }
 //
-// #[derive(Copy, Clone)]
-// pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
-// impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for ScopeEnter<'arn, 'grm> {
-//     fn from_construct(
-//         span: Span,
-//         constructor: &'grm str,
-//         args: &[Parsed<'arn, 'grm>],
-//         allocs: Allocs<'arn>,
-//         src: &'grm str,
-//     ) -> Self {
-//         ScopeEnter(args[0], *args[1].into_value::<Guid>())
-//     }
-// }
-//
+#[derive(Copy, Clone)]
+pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for ScopeEnter<'arn, 'grm> {
+    fn from_construct(
+        span: Span,
+        constructor: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+    ) -> Self {
+        ScopeEnter(args[0], *args[1].into_value::<Guid>())
+    }
+}

@@ -1,4 +1,4 @@
-rule start = expr();
+rule start = expr($Env::Nil());
 
 rule expr(env) {
     group base {

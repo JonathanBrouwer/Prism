@@ -50,7 +50,7 @@ pub enum ValueOrigin {
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct UnionIndex(usize);
+pub struct UnionIndex(pub usize);
 
 impl Display for UnionIndex {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
