@@ -141,15 +141,14 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
     }
 }
 
-fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm> {
-    //TODO
-    parsed
-    // if let Some(v) = parsed.try_into_value::<EnvCapture>() {
-    //     let v = v.value.into_value::<ScopeEnter>();
-    //     reduce(v.0)
-    // } else {
-    //     parsed
-    // }
+pub fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm> {
+    if let Some(v) = parsed.try_into_value::<EnvCapture>() {
+        reduce(v.value)
+        // let v = v.value.into_value::<ScopeEnter>();
+        // reduce(v.0)
+    } else {
+        parsed
+    }
 }
 
 #[derive(Copy, Clone)]

@@ -240,7 +240,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 .parse_expr(rules, blocks, rule_args, sub, vars, pos, context)
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
-            RuleExpr::AtAdapt(ga, adapt_rule) => {
+            RuleExpr::AtAdapt(ga, body) => {
                 // First, get the grammar actionresult
                 let grammar = if let Some(ar) = vars.get(ga) {
                     *ar
@@ -268,16 +268,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
                 let rules: &'arn GrammarState = self.alloc.alloc(rules);
 
-                let rule = *vars
-                    .get(adapt_rule)
-                    .or_else(|| vars.get(adapt_rule))
-                    .unwrap()
-                    .into_value::<RuleId>();
-
-                // Parse body
-                let mut res = self
-                    .parse_rule(rules, rule, &[], pos, context)
-                    .map(PR::with_rtrn);
+                let mut res = self.parse_expr(rules, blocks, rule_args, body, vars, pos, context);
                 res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res
             }

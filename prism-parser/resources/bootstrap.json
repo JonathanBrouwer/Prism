@@ -1759,8 +1759,15 @@
                           "n",
                           {
                             "RunVar": {
-                              "rule": "identifier",
-                              "args": []
+                              "rule": "prule_expr",
+                              "args": [
+                                {
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]

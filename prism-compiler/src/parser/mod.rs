@@ -1,5 +1,6 @@
 use crate::lang::{TcEnv, UnionIndex};
 use crate::parser::parse_env::ParsedEnv;
+use crate::parser::parse_expr::reduce;
 use bumpalo::Bump;
 use parse_expr::ScopeEnter;
 use prism_parser::core::cache::Allocs;
@@ -8,7 +9,7 @@ use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
-use prism_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::parser::parser_instance::{run_parser_rule, run_parser_rule_raw};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
@@ -34,7 +35,8 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
-    run_parser_rule::<_, SetError>(&GRAMMAR, "start", program, allocs, parsables).map(|v| *v)
+    run_parser_rule_raw::<SetError>(&GRAMMAR, "start", program, allocs, parsables)
+        .map(|v| *reduce(v).into_value())
 }
 
 pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {

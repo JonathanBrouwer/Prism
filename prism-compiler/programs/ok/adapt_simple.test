@@ -1,9 +1,7 @@
 ### Input
 grammar {
-    adapt rule expr {
-        adapt group base {
-            Type <- "%";
-        }
+    adapt rule base(env) {
+        Type <- "%";
     }
 }
 %

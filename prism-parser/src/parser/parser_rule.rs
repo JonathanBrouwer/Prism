@@ -21,7 +21,14 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
-        assert_eq!(rule_state.args.len(), args.len());
+        assert_eq!(
+            rule_state.args.len(),
+            args.len(),
+            "Invalid arguments to rule {}, expected {}, got {}",
+            rule_state.name,
+            rule_state.args.len(),
+            args.len()
+        );
         let rule_args = VarMap::from_iter(
             rule_state
                 .args

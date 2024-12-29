@@ -41,7 +41,7 @@ pub enum RuleExpr<'arn, 'grm> {
     NegLookahead(#[serde(with = "leak")] &'arn Self),
     This,
     Next,
-    AtAdapt(&'grm str, &'grm str),
+    AtAdapt(&'grm str, #[serde(with = "leak")] &'arn Self),
     Guid,
 }
 
@@ -103,7 +103,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleExpr<'arn, 'grm> {
             },
             "AtAdapt" => RuleExpr::AtAdapt(
                 parse_identifier(args[0], src),
-                parse_identifier(args[1], src),
+                args[1].into_value::<RuleExpr>(),
             ),
             _ => unreachable!(),
         }
