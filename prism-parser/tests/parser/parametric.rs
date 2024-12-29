@@ -76,10 +76,10 @@ failing tests:
 parse_test! {
 name: pass_value_twice
 syntax: r##"
-    rule start = id(id(letter));
+    rule start = v <- r1:id(letter) r2:id(r1) v:r2;
 
     rule letter = ['a'-'z'];
-    rule id(v) = v;
+    rule id(v) = $v;
     "##
 passing tests:
     "x" => "'x'"

@@ -13,7 +13,8 @@ use crate::parsable::guid::Guid;
 use crate::parsable::void::Void;
 use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::parser::rule_closure::RuleClosure;
+use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_expr(
@@ -32,25 +33,43 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
-                let rule = *rule.into_value::<RuleId>();
 
-                let mut res = PResult::new_empty(Vec::new(), pos);
+                let mut arg_values = Vec::new();
                 for arg in *args {
                     if let RuleExpr::RunVar { rule: r, args } = arg {
                         assert_eq!(args.len(), 0);
-                        res = res.map(|mut v| {
-                            v.push(*vars.get(r).unwrap());
-                            v
-                        });
+                        arg_values.push(*vars.get(r).unwrap());
                     } else {
-                        todo!()
+                        arg_values.push(
+                            self.alloc
+                                .alloc(RuleClosure {
+                                    expr: arg,
+                                    blocks,
+                                    rule_args,
+                                    vars,
+                                })
+                                .to_parsed(),
+                        );
                     }
                 }
 
-                res.merge_seq_chain2(|pos, args| {
-                    self.parse_rule(rules, rule, &args, pos, context)
+                if let Some(rule) = rule.try_into_value::<RuleId>() {
+                    self.parse_rule(rules, *rule, &arg_values, pos, context)
                         .map(PR::with_rtrn)
-                })
+                } else if let Some(closure) = rule.try_into_value::<RuleClosure>() {
+                    assert_eq!(arg_values.len(), 0);
+                    self.parse_expr(
+                        rules,
+                        closure.blocks,
+                        closure.rule_args,
+                        closure.expr,
+                        closure.vars,
+                        pos,
+                        context,
+                    )
+                } else {
+                    unreachable!()
+                }
             }
             RuleExpr::CharClass(cc) => self
                 .parse_with_layout(

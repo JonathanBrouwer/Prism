@@ -6,14 +6,14 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 use crate::parsable::parsed::Parsed;
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn parse_rule(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,
         rule: RuleId,
-        args: &[VarMapValue<'arn, 'grm>],
+        args: &[Parsed<'arn, 'grm>],
         pos: Pos,
         context: ParserContext,
     ) -> PResult<Parsed<'arn, 'grm>, E> {

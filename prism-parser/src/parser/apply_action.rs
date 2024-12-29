@@ -7,7 +7,7 @@ use crate::grammar::rule_action::RuleAction;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::Parsable;
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
     pub fn apply_action(

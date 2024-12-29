@@ -28,7 +28,7 @@ impl Debug for VarMap<'_, '_> {
 pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
     key: &'arn str,
-    value: VarMapValue<'arn, 'grm>,
+    value: Parsed<'arn, 'grm>,
 }
 
 pub struct VarMapIterator<'arn, 'grm> {
@@ -36,7 +36,7 @@ pub struct VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
-    type Item = (&'arn str, VarMapValue<'arn, 'grm>);
+    type Item = (&'arn str, Parsed<'arn, 'grm>);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.current {
@@ -50,7 +50,7 @@ impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> VarMap<'arn, 'grm> {
-    pub fn get<'a>(&'a self, k: &str) -> Option<&'a VarMapValue<'arn, 'grm>> {
+    pub fn get<'a>(&'a self, k: &str) -> Option<&'a Parsed<'arn, 'grm>> {
         let mut node = self.0?;
         loop {
             if node.key == k {
@@ -60,22 +60,17 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         }
     }
 
-    pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)> {
+    pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, Parsed<'arn, 'grm>)> {
         VarMapIterator { current: self.0 }
     }
 
     #[must_use]
-    pub fn insert(
-        self,
-        key: &'arn str,
-        value: VarMapValue<'arn, 'grm>,
-        alloc: Allocs<'arn>,
-    ) -> Self {
+    pub fn insert(self, key: &'arn str, value: Parsed<'arn, 'grm>, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
 
     #[must_use]
-    pub fn extend<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
+    pub fn extend<T: IntoIterator<Item = (&'arn str, Parsed<'arn, 'grm>)>>(
         mut self,
         iter: T,
         alloc: Allocs<'arn>,
@@ -90,7 +85,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self
     }
 
-    pub fn from_iter<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
+    pub fn from_iter<T: IntoIterator<Item = (&'arn str, Parsed<'arn, 'grm>)>>(
         iter: T,
         alloc: Allocs<'arn>,
     ) -> Self {
@@ -102,5 +97,3 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self.0.map(|r| r as *const VarMapNode).unwrap_or(null())
     }
 }
-
-pub type VarMapValue<'arn, 'grm> = Parsed<'arn, 'grm>;
