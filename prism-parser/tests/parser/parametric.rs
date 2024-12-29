@@ -163,6 +163,19 @@ failing tests:
     "yx"
 }
 
+parse_test! {
+name: val_param1
+syntax: r##"
+    rule start = do($X());
+    rule do(f) = f <- "";
+    "##
+passing tests:
+    "" => "X()"
+
+failing tests:
+    "x"
+}
+
 //TODO simple currying
 // parse_test! {
 // name: curried

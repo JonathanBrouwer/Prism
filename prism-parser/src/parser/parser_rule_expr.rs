@@ -36,23 +36,10 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
                 let mut arg_values = Vec::new();
                 for arg in *args {
-                    if let RuleExpr::RunVar { rule: r, args } = arg {
+                    arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
                         if args.len() == 0 {
-                            arg_values.push(*vars.get(r).unwrap());
+                            *vars.get(r).unwrap()
                         } else {
-                            arg_values.push(
-                                self.alloc
-                                    .alloc(RuleClosure {
-                                        expr: arg,
-                                        blocks,
-                                        rule_args,
-                                        vars,
-                                    })
-                                    .to_parsed(),
-                            );
-                        }
-                    } else {
-                        arg_values.push(
                             self.alloc
                                 .alloc(RuleClosure {
                                     expr: arg,
@@ -60,9 +47,20 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                                     rule_args,
                                     vars,
                                 })
-                                .to_parsed(),
-                        );
-                    }
+                                .to_parsed()
+                        }
+                    } else if let RuleExpr::Action(RuleExpr::Sequence([]), action) = arg {
+                        self.apply_action(action, pos.span_to(pos), vars)
+                    } else {
+                        self.alloc
+                            .alloc(RuleClosure {
+                                expr: arg,
+                                blocks,
+                                rule_args,
+                                vars,
+                            })
+                            .to_parsed()
+                    })
                 }
 
                 if let Some(rule) = rule.try_into_value::<RuleId>() {
@@ -80,7 +78,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                         context,
                     )
                 } else {
-                    unreachable!()
+                    panic!("Tried to run a rule of value type: {}", rule.name)
                 }
             }
             RuleExpr::CharClass(cc) => self

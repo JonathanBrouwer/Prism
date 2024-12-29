@@ -3,7 +3,7 @@ rule start = expr($Env::Nil());
 rule expr(env) = statement(env);
 
 rule statement(env) {
-    b <- "grammar" "{" g:grammar(expr(env)) "}" b:#adapt(g, expr);
+    //b <- "grammar" "{" g:grammar(expr(env)) "}" b:#adapt(g, expr);
     //GrammarDefine(b, guid, "_", g) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
     //GrammarDefine(b, guid, n, g) <- guid:#guid "grammar" n:identifier "{" g:grammar(wrapped_expr(guid)) "}" b:expr;
     //b <- "adapt" n:identifier ";" b:#adapt(n, expr);

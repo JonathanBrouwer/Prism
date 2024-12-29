@@ -9,7 +9,7 @@ use std::ptr::NonNull;
 pub struct Parsed<'arn, 'grm> {
     ptr: NonNull<()>,
     checksum: u64,
-    name: &'static str,
+    pub(crate) name: &'static str,
     phantom_data: PhantomData<(&'arn (), &'grm ())>,
 }
 
