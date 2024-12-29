@@ -27,30 +27,23 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
         context: ParserContext,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::RunVar(rule_str, args) => {
+            RuleExpr::RunVar { rule, args } => {
                 // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get(rule_str) else {
-                    panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
+                let Some(rule) = vars.get(rule) else {
+                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
                 };
                 let rule = *rule.into_value::<RuleId>();
 
                 let mut res = PResult::new_empty(Vec::new(), pos);
                 for arg in *args {
-                    if let RuleExpr::RunVar(r, args) = arg {
+                    if let RuleExpr::RunVar { rule: r, args } = arg {
                         assert_eq!(args.len(), 0);
                         res = res.map(|mut v| {
                             v.push(*vars.get(r).unwrap());
                             v
                         });
                     } else {
-                        res = res
-                            .merge_seq(
-                                self.parse_expr(rules, blocks, rule_args, arg, vars, pos, context),
-                            )
-                            .map(|(mut v, r)| {
-                                v.push(r.rtrn);
-                                v
-                            });
+                        todo!()
                     }
                 }
 

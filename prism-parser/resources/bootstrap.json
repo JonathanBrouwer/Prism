@@ -12,17 +12,17 @@
             [
               [],
               {
-                "RunVar": [
-                  "grammar",
-                  [
+                "RunVar": {
+                  "rule": "grammar",
+                  "args": [
                     {
-                      "RunVar": [
-                        "prule_action",
-                        []
-                      ]
+                      "RunVar": {
+                        "rule": "prule_action",
+                        "args": []
+                      }
                     }
                   ]
-                ]
+                }
               }
             ]
           ]
@@ -54,17 +54,17 @@
                       {
                         "Repeat": {
                           "expr": {
-                            "RunVar": [
-                              "prule",
-                              [
+                            "RunVar": {
+                              "rule": "prule",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           },
                           "min": 0,
                           "max": null,
@@ -138,10 +138,10 @@
                         "NameBind": [
                           "name",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -149,10 +149,10 @@
                         "NameBind": [
                           "params",
                           {
-                            "RunVar": [
-                              "prule_params",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "prule_params",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -163,17 +163,17 @@
                         "NameBind": [
                           "blocks",
                           {
-                            "RunVar": [
-                              "prule_body",
-                              [
+                            "RunVar": {
+                              "rule": "prule_body",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -218,10 +218,10 @@
                         "NameBind": [
                           "name",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -229,10 +229,10 @@
                         "NameBind": [
                           "params",
                           {
-                            "RunVar": [
-                              "prule_params",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "prule_params",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -243,17 +243,17 @@
                         "NameBind": [
                           "expr",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -381,10 +381,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "RunVar": [
-                                  "identifier",
-                                  []
-                                ]
+                                "RunVar": {
+                                  "rule": "identifier",
+                                  "args": []
+                                }
                               },
                               "min": 0,
                               "max": null,
@@ -447,17 +447,17 @@
               {
                 "Repeat": {
                   "expr": {
-                    "RunVar": [
-                      "prule_block",
-                      [
+                    "RunVar": {
+                      "rule": "prule_block",
+                      "args": [
                         {
-                          "RunVar": [
-                            "action",
-                            []
-                          ]
+                          "RunVar": {
+                            "rule": "action",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   },
                   "min": 1,
                   "max": null,
@@ -475,17 +475,17 @@
                     "NameBind": [
                       "c",
                       {
-                        "RunVar": [
-                          "prule_constructors",
-                          [
+                        "RunVar": {
+                          "rule": "prule_constructors",
+                          "args": [
                             {
-                              "RunVar": [
-                                "action",
-                                []
-                              ]
+                              "RunVar": {
+                                "rule": "action",
+                                "args": []
+                              }
                             }
                           ]
-                        ]
+                        }
                       }
                     ]
                   },
@@ -580,10 +580,10 @@
                             "SliceInput": {
                               "Repeat": {
                                 "expr": {
-                                  "RunVar": [
-                                    "identifier",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "identifier",
+                                    "args": []
+                                  }
                                 },
                                 "min": 0,
                                 "max": 1,
@@ -602,17 +602,17 @@
                         "NameBind": [
                           "c",
                           {
-                            "RunVar": [
-                              "prule_constructors",
-                              [
+                            "RunVar": {
+                              "rule": "prule_constructors",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -674,10 +674,10 @@
                             "SliceInput": {
                               "Repeat": {
                                 "expr": {
-                                  "RunVar": [
-                                    "identifier",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "identifier",
+                                    "args": []
+                                  }
                                 },
                                 "min": 0,
                                 "max": 1,
@@ -742,17 +742,17 @@
               {
                 "Repeat": {
                   "expr": {
-                    "RunVar": [
-                      "prule_annotated_expr",
-                      [
+                    "RunVar": {
+                      "rule": "prule_annotated_expr",
+                      "args": [
                         {
-                          "RunVar": [
-                            "action",
-                            []
-                          ]
+                          "RunVar": {
+                            "rule": "action",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   },
                   "min": 0,
                   "max": null,
@@ -798,10 +798,10 @@
                                     "NameBind": [
                                       "a",
                                       {
-                                        "RunVar": [
-                                          "prule_annotation",
-                                          []
-                                        ]
+                                        "RunVar": {
+                                          "rule": "prule_annotation",
+                                          "args": []
+                                        }
                                       }
                                     ]
                                   },
@@ -823,17 +823,17 @@
                         "NameBind": [
                           "e",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -895,10 +895,10 @@
                         "NameBind": [
                           "err",
                           {
-                            "RunVar": [
-                              "pstring",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "pstring",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1073,10 +1073,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "RunVar": [
-                              "action",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "action",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1166,10 +1166,10 @@
                           "min": 2,
                           "max": null,
                           "delim": {
-                            "RunVar": [
-                              "layout",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "layout",
+                              "args": []
+                            }
                           }
                         }
                       }
@@ -1205,10 +1205,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1432,10 +1432,10 @@
                     "NameBind": [
                       "s",
                       {
-                        "RunVar": [
-                          "pstring",
-                          []
-                        ]
+                        "RunVar": {
+                          "rule": "pstring",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -1466,10 +1466,10 @@
                         "NameBind": [
                           "c",
                           {
-                            "RunVar": [
-                              "charclass",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "charclass",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1508,17 +1508,17 @@
                         "NameBind": [
                           "r",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -1557,17 +1557,17 @@
                         "NameBind": [
                           "r",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -1606,17 +1606,17 @@
                         "NameBind": [
                           "r",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -1652,17 +1652,17 @@
                         "NameBind": [
                           "r",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -1744,10 +1744,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1758,10 +1758,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -1797,19 +1797,19 @@
                         "NameBind": [
                           "n",
                           {
-                            "RunVar": [
-                              "prule_runnable",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "prule_runnable",
+                              "args": []
+                            }
                           }
                         ]
                       },
                       {
                         "NegLookahead": {
-                          "RunVar": [
-                            "layout",
-                            []
-                          ]
+                          "RunVar": {
+                            "rule": "layout",
+                            "args": []
+                          }
                         }
                       },
                       {
@@ -1821,17 +1821,17 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "RunVar": [
-                                  "prule_expr",
-                                  [
+                                "RunVar": {
+                                  "rule": "prule_expr",
+                                  "args": [
                                     {
-                                      "RunVar": [
-                                        "action",
-                                        []
-                                      ]
+                                      "RunVar": {
+                                        "rule": "action",
+                                        "args": []
+                                      }
                                     }
                                   ]
-                                ]
+                                }
                               },
                               "min": 0,
                               "max": null,
@@ -1872,10 +1872,10 @@
                     "NameBind": [
                       "n",
                       {
-                        "RunVar": [
-                          "prule_runnable",
-                          []
-                        ]
+                        "RunVar": {
+                          "rule": "prule_runnable",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -1916,17 +1916,17 @@
                         "NameBind": [
                           "e",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -1937,17 +1937,17 @@
                         "NameBind": [
                           "d",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2005,17 +2005,17 @@
                         "NameBind": [
                           "e",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2026,17 +2026,17 @@
                         "NameBind": [
                           "d",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2094,17 +2094,17 @@
                         "NameBind": [
                           "e",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2115,17 +2115,17 @@
                         "NameBind": [
                           "d",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2136,10 +2136,10 @@
                         "NameBind": [
                           "min",
                           {
-                            "RunVar": [
-                              "integer",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "integer",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2197,17 +2197,17 @@
                         "NameBind": [
                           "e",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2218,17 +2218,17 @@
                         "NameBind": [
                           "d",
                           {
-                            "RunVar": [
-                              "prule_expr",
-                              [
+                            "RunVar": {
+                              "rule": "prule_expr",
+                              "args": [
                                 {
-                                  "RunVar": [
-                                    "action",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
                                 }
                               ]
-                            ]
+                            }
                           }
                         ]
                       },
@@ -2239,10 +2239,10 @@
                         "NameBind": [
                           "min",
                           {
-                            "RunVar": [
-                              "integer",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "integer",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2253,10 +2253,10 @@
                         "NameBind": [
                           "max",
                           {
-                            "RunVar": [
-                              "integer",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "integer",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2309,10 +2309,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "RunVar": [
-                              "action",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "action",
+                              "args": []
+                            }
                           }
                         ]
                       }
@@ -2366,10 +2366,10 @@
               {
                 "Choice": [
                   {
-                    "RunVar": [
-                      "identifier",
-                      []
-                    ]
+                    "RunVar": {
+                      "rule": "identifier",
+                      "args": []
+                    }
                   },
                   {
                     "Literal": "#this"
@@ -2423,10 +2423,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "RunVar": [
-                                  "charclass_part",
-                                  []
-                                ]
+                                "RunVar": {
+                                  "rule": "charclass_part",
+                                  "args": []
+                                }
                               },
                               "min": 0,
                               "max": null,
@@ -2483,10 +2483,10 @@
                         "NameBind": [
                           "c1",
                           {
-                            "RunVar": [
-                              "charclass_char",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "charclass_char",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2503,10 +2503,10 @@
                         "NameBind": [
                           "c2",
                           {
-                            "RunVar": [
-                              "charclass_char",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "charclass_char",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2545,10 +2545,10 @@
                         "NameBind": [
                           "c",
                           {
-                            "RunVar": [
-                              "charclass_char",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "charclass_char",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -2613,10 +2613,10 @@
             [
               [],
               {
-                "RunVar": [
-                  "char_escapes",
-                  []
-                ]
+                "RunVar": {
+                  "rule": "char_escapes",
+                  "args": []
+                }
               }
             ]
           ]
@@ -2655,10 +2655,10 @@
                             "SliceInput": {
                               "Repeat": {
                                 "expr": {
-                                  "RunVar": [
-                                    "str_char",
-                                    []
-                                  ]
+                                  "RunVar": {
+                                    "rule": "str_char",
+                                    "args": []
+                                  }
                                 },
                                 "min": 0,
                                 "max": null,
@@ -2720,10 +2720,10 @@
             [
               [],
               {
-                "RunVar": [
-                  "char_escapes",
-                  []
-                ]
+                "RunVar": {
+                  "rule": "char_escapes",
+                  "args": []
+                }
               }
             ]
           ]
@@ -2949,10 +2949,10 @@
                         "NegLookahead": {
                           "Sequence": [
                             {
-                              "RunVar": [
-                                "reserved",
-                                []
-                              ]
+                              "RunVar": {
+                                "rule": "reserved",
+                                "args": []
+                              }
                             },
                             {
                               "NegLookahead": {
@@ -3244,10 +3244,10 @@
                         "NameBind": [
                           "ns",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -3258,10 +3258,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -3274,10 +3274,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "RunVar": [
-                                  "prule_action",
-                                  []
-                                ]
+                                "RunVar": {
+                                  "rule": "prule_action",
+                                  "args": []
+                                }
                               },
                               "min": 0,
                               "max": null,
@@ -3323,10 +3323,10 @@
                         "NameBind": [
                           "n",
                           {
-                            "RunVar": [
-                              "identifier",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
                           }
                         ]
                       },
@@ -3339,10 +3339,10 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "RunVar": [
-                                  "prule_action",
-                                  []
-                                ]
+                                "RunVar": {
+                                  "rule": "prule_action",
+                                  "args": []
+                                }
                               },
                               "min": 0,
                               "max": null,
@@ -3386,10 +3386,10 @@
                     "NameBind": [
                       "s",
                       {
-                        "RunVar": [
-                          "pstring",
-                          []
-                        ]
+                        "RunVar": {
+                          "rule": "pstring",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -3415,10 +3415,10 @@
                     "NameBind": [
                       "n",
                       {
-                        "RunVar": [
-                          "identifier",
-                          []
-                        ]
+                        "RunVar": {
+                          "rule": "identifier",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -3449,10 +3449,10 @@
                         "NameBind": [
                           "a",
                           {
-                            "RunVar": [
-                              "prule_action",
-                              []
-                            ]
+                            "RunVar": {
+                              "rule": "prule_action",
+                              "args": []
+                            }
                           }
                         ]
                       },

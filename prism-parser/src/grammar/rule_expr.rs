@@ -14,10 +14,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum RuleExpr<'arn, 'grm> {
-    RunVar(
-        &'grm str,
-        #[serde(with = "leak_slice")] &'arn [RuleExpr<'arn, 'grm>],
-    ),
+    RunVar {
+        rule: &'grm str,
+        #[serde(with = "leak_slice")]
+        args: &'arn [RuleExpr<'arn, 'grm>],
+    },
     CharClass(#[serde(with = "leak")] &'arn CharClass<'arn>),
     Literal(EscapedString<'grm>),
     Repeat {
@@ -91,15 +92,15 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleExpr<'arn, 'grm> {
             "This" => RuleExpr::This,
             "Next" => RuleExpr::Next,
             "Guid" => RuleExpr::Guid,
-            "RunVar" => RuleExpr::RunVar(
-                parse_identifier(args[0], src),
-                allocs.alloc_extend(
+            "RunVar" => RuleExpr::RunVar {
+                rule: parse_identifier(args[0], src),
+                args: allocs.alloc_extend(
                     args[1]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
-            ),
+            },
             "AtAdapt" => RuleExpr::AtAdapt(
                 parse_identifier(args[0], src),
                 parse_identifier(args[1], src),
