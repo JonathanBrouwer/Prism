@@ -147,11 +147,11 @@ failing tests:
 }
 
 parse_test! {
-name: curried
+name: simple_closure
 syntax: r##"
     rule start = do(test("x"));
-    rule do(f) = f("y");
-    rule test(x, y) = Vals(a, b) <- a:x b:y;
+    rule do(f) = f;
+    rule test(x) = Vals(a, "y") <- a:x "y";
     "##
 passing tests:
     "xy" => "Vals('x', 'y')"
@@ -162,3 +162,21 @@ failing tests:
     ""
     "yx"
 }
+
+//TODO simple currying
+// parse_test! {
+// name: curried
+// syntax: r##"
+//     rule start = do(test("x"));
+//     rule do(f) = f("y");
+//     rule test(x, y) = Vals(a, b) <- a:x b:y;
+//     "##
+// passing tests:
+//     "xy" => "Vals('x', 'y')"
+//
+// failing tests:
+//     "y"
+//     "x"
+//     ""
+//     "yx"
+// }

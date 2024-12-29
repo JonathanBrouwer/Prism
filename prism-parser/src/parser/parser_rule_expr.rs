@@ -37,8 +37,20 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 let mut arg_values = Vec::new();
                 for arg in *args {
                     if let RuleExpr::RunVar { rule: r, args } = arg {
-                        assert_eq!(args.len(), 0);
-                        arg_values.push(*vars.get(r).unwrap());
+                        if args.len() == 0 {
+                            arg_values.push(*vars.get(r).unwrap());
+                        } else {
+                            arg_values.push(
+                                self.alloc
+                                    .alloc(RuleClosure {
+                                        expr: arg,
+                                        blocks,
+                                        rule_args,
+                                        vars,
+                                    })
+                                    .to_parsed(),
+                            );
+                        }
                     } else {
                         arg_values.push(
                             self.alloc
