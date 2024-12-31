@@ -98,8 +98,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     panic!("Tried to run a rule of value type: {}", rule.name)
                 }
             }
-            RuleExpr::This => unreachable!(),
-            RuleExpr::Next => unreachable!(),
             RuleExpr::CharClass(cc) => self
                 .parse_with_layout(
                     rules,
