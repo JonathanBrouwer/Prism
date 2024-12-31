@@ -57,15 +57,17 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
         Ok(match constructor {
             "Nil" => ParsedEnv::new_empty(),
             "Substitute" => {
-                assert_eq!(_args.len(), 4);
+                assert_eq!(_args.len(), 3);
                 let name = _args[0].into_value::<Input>().as_str(_src);
                 let subst = *_args[1].into_value::<UnionIndex>();
-                let subst_env = *_args[2].into_value::<ParsedEnv<'arn>>();
-                let next = *_args[3].into_value::<ParsedEnv<'arn>>();
+                let next = *_args[2].into_value::<ParsedEnv<'arn>>();
                 ParsedEnv(Some(_allocs.alloc(ParsedEnvNode {
                     name,
                     next: next.0,
-                    value: ParsedEnvNodeValue::Substitute { subst, subst_env },
+                    value: ParsedEnvNodeValue::Substitute {
+                        subst,
+                        subst_env: next,
+                    },
                 })))
             }
             "Type" => {
