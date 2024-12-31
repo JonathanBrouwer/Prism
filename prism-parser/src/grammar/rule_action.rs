@@ -26,24 +26,25 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleAction<'arn, 'grm
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         match constructor {
             "Construct" => RuleAction::Construct(
-                parse_identifier(args[0], src),
-                parse_identifier(args[1], src),
-                allocs.alloc_extend(
-                    args[2]
+                parse_identifier(_args[0], _src),
+                parse_identifier(_args[1], _src),
+                _allocs.alloc_extend(
+                    _args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
             ),
-            "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
-            "Name" => RuleAction::Name(parse_identifier(args[0], src)),
-            "Value" => RuleAction::Value(args[0]),
+            "InputLiteral" => RuleAction::InputLiteral(parse_string(_args[0], _src)),
+            "Name" => RuleAction::Name(parse_identifier(_args[0], _src)),
+            "Value" => RuleAction::Value(_args[0]),
             _ => unreachable!(),
         }
     }

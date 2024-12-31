@@ -93,6 +93,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
     pub fn run(
         &mut self,
         rule: &'grm str,
+        penv: &mut Env,
     ) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
         let rule = *self
             .rules
@@ -105,6 +106,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             &[],
             Pos::start(),
             ParserContext::new(),
+            penv,
         );
         let end_pos = result.end_pos();
         let result = result
@@ -113,6 +115,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
                 self.rules,
                 end_pos,
                 ParserContext::new(),
+                penv,
             ))
             .map(|(o, ())| o);
 
@@ -129,10 +132,11 @@ pub fn run_parser_rule_raw<'arn, 'grm, Env, E: ParseError<L = ErrorLabel<'grm>>>
     input: &'grm str,
     allocs: Allocs<'arn>,
     parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
+    penv: &mut Env,
 ) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
     let mut instance: ParserInstance<'arn, 'grm, Env, E> =
         ParserInstance::new(input, allocs, rules, parsables).unwrap();
-    instance.run(rule)
+    instance.run(rule, penv)
 }
 
 pub fn run_parser_rule<
@@ -147,8 +151,9 @@ pub fn run_parser_rule<
     input: &'grm str,
     allocs: Allocs<'arn>,
     parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
+    penv: &mut Env,
 ) -> Result<&'arn P, AggregatedParseError<'grm, E>> {
-    run_parser_rule_raw(rules, rule, input, allocs, parsables)
+    run_parser_rule_raw(rules, rule, input, allocs, parsables, penv)
         .map(|parsed| parsed.into_value::<P>())
 }
 

@@ -82,7 +82,7 @@ pub struct ParserCacheEntry<PR> {
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        sub: impl Fn(&mut ParserState<'arn, 'grm, Env, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
+        mut sub: impl FnMut(&mut ParserState<'arn, 'grm, Env, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
         blocks: &'arn [BlockState<'arn, 'grm>],
         rule_args: VarMap<'arn, 'grm>,
         grammar_state: GrammarStateId,

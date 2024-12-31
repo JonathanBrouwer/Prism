@@ -59,16 +59,17 @@ impl<'arn, 'grm, Env> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
         _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         match constructor {
             "Cons" => {
-                assert_eq!(args.len(), 2);
-                args[1]
+                assert_eq!(_args.len(), 2);
+                _args[1]
                     .into_value::<ParsedList<'arn, 'grm>>()
-                    .cons(args[0], allocs)
+                    .cons(_args[0], _allocs)
             }
             "Nil" => ParsedList::new_empty(),
             _ => unreachable!(),

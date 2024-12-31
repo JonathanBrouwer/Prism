@@ -19,19 +19,20 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for AnnotatedRuleExpr<'ar
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
         _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!("AnnotatedExpr", constructor);
         Self(
-            allocs.alloc_extend(
-                args[0]
+            _allocs.alloc_extend(
+                _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|annot| *annot.into_value::<RuleAnnotation>()),
             ),
-            args[1].into_value::<RuleExpr<'arn, 'grm>>(),
+            _args[1].into_value::<RuleExpr<'arn, 'grm>>(),
         )
     }
 }

@@ -21,20 +21,21 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleBlock<'arn, 'grm>
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Block");
         RuleBlock {
-            name: parse_identifier(args[0], src),
-            adapt: args[1]
+            name: parse_identifier(_args[0], _src),
+            adapt: _args[1]
                 .into_value::<ParsedList>()
                 .into_iter()
                 .next()
                 .is_some(),
-            constructors: allocs.alloc_extend(
-                args[2]
+            constructors: _allocs.alloc_extend(
+                _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|c| *c.into_value::<AnnotatedRuleExpr>()),

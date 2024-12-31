@@ -26,19 +26,20 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
         _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "CharClass");
         CharClass {
-            neg: args[0]
+            neg: _args[0]
                 .into_value::<ParsedList>()
                 .into_iter()
                 .next()
                 .is_some(),
-            ranges: allocs.alloc_extend(
-                args[1]
+            ranges: _allocs.alloc_extend(
+                _args[1]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|p| *p.into_value::<CharClassRange>()),
@@ -55,14 +56,15 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClassRange {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        src: &'grm str,
+        _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Range");
         CharClassRange(
-            parse_string_char(args[0], src),
-            parse_string_char(args[1], src),
+            parse_string_char(_args[0], _src),
+            parse_string_char(_args[1], _src),
         )
     }
 }

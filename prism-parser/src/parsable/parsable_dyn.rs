@@ -12,6 +12,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         src: &'grm str,
+        env: &mut Env,
     ) -> Parsed<'arn, 'grm>,
     phantom_data: PhantomData<Env>,
 }

@@ -21,12 +21,13 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleAnnotation<'grm> 
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        src: &'grm str,
+        _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Error" => RuleAnnotation::Error(parse_string(args[0], src)),
+            "Error" => RuleAnnotation::Error(parse_string(_args[0], _src)),
             "DisableLayout" => RuleAnnotation::DisableLayout,
             "EnableLayout" => RuleAnnotation::EnableLayout,
             "DisableRecovery" => RuleAnnotation::DisableRecovery,

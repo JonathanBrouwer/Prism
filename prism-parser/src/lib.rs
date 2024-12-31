@@ -31,5 +31,6 @@ pub fn parse_grammar<'grm, E: ParseError<L = ErrorLabel<'grm>>>(
         grammar,
         allocs,
         HashMap::new(),
+        &mut (),
     )
 }

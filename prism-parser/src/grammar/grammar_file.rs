@@ -19,14 +19,15 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for GrammarFile<'arn, 'gr
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
         _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
         GrammarFile {
-            rules: allocs.alloc_extend(
-                args[0]
+            rules: _allocs.alloc_extend(
+                _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|rule| *rule.into_value::<Rule>()),

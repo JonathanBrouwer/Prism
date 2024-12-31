@@ -15,6 +15,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         rule: &RuleAction<'arn, 'grm>,
         span: Span,
         vars: VarMap<'arn, 'grm>,
+        penv: &mut Env,
     ) -> Parsed<'arn, 'grm> {
         match rule {
             RuleAction::Name(name) => {
@@ -28,12 +29,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleAction::Construct(namespace, name, args) => {
                 let args_vals = self
                     .alloc
-                    .alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars)));
+                    .alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
                 (self
                     .parsables
                     .get(namespace)
                     .expect(&format!("Namespace '{namespace}' exists"))
-                    .from_construct)(span, name, args_vals, self.alloc, self.input)
+                    .from_construct)(
+                    span, name, args_vals, self.alloc, self.input, penv
+                )
             }
             RuleAction::Value(parsed) => self
                 .alloc

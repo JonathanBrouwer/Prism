@@ -33,7 +33,7 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
 
-    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables)
+    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables, env)
         .map(|v| *reduce(v).into_value())
 }
 

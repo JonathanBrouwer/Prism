@@ -50,30 +50,31 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut TcEnv,
     ) -> Self {
         match constructor {
             "Nil" => ParsedEnv::new_empty(),
             "Substitute" => {
-                assert_eq!(args.len(), 4);
-                let name = args[0].into_value::<Input>().as_str(src);
-                let subst = *args[1].into_value::<UnionIndex>();
-                let subst_env = *args[2].into_value::<ParsedEnv<'arn>>();
-                let next = *args[3].into_value::<ParsedEnv<'arn>>();
-                ParsedEnv(Some(allocs.alloc(ParsedEnvNode {
+                assert_eq!(_args.len(), 4);
+                let name = _args[0].into_value::<Input>().as_str(_src);
+                let subst = *_args[1].into_value::<UnionIndex>();
+                let subst_env = *_args[2].into_value::<ParsedEnv<'arn>>();
+                let next = *_args[3].into_value::<ParsedEnv<'arn>>();
+                ParsedEnv(Some(_allocs.alloc(ParsedEnvNode {
                     name,
                     next: next.0,
                     value: ParsedEnvNodeValue::Substitute { subst, subst_env },
                 })))
             }
             "Type" => {
-                assert_eq!(args.len(), 2);
+                assert_eq!(_args.len(), 2);
 
-                let name = args[0].into_value::<Input>().as_str(src);
-                let next = *args[1].into_value::<ParsedEnv<'arn>>();
-                ParsedEnv(Some(allocs.alloc(ParsedEnvNode {
+                let name = _args[0].into_value::<Input>().as_str(_src);
+                let next = *_args[1].into_value::<ParsedEnv<'arn>>();
+                ParsedEnv(Some(_allocs.alloc(ParsedEnvNode {
                     name,
                     next: next.0,
                     value: ParsedEnvNodeValue::Type,

@@ -16,6 +16,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         args: &[Parsed<'arn, 'grm>],
         pos: Pos,
         context: ParserContext,
+        penv: &mut Env,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         let rule_state: &'arn RuleState<'arn, 'grm> = rules
             .get(rule)
@@ -38,7 +39,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             self.alloc,
         );
 
-        let mut res = self.parse_rule_block(rules, rule_state.blocks, rule_args, pos, context);
+        let mut res =
+            self.parse_rule_block(rules, rule_state.blocks, rule_args, pos, context, penv);
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),
             rule_state.name,

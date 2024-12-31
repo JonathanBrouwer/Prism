@@ -11,14 +11,15 @@ use prism_parser::parsable::{Parsable2, ParseResult};
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
 impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     fn from_construct(
-        span: Span,
+        _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut TcEnv,
     ) -> Self {
-        let env = args[0].into_value::<ParsedEnv<'arn>>();
-        let args = &args[1..];
+        let env = _args[0].into_value::<ParsedEnv<'arn>>();
+        let args = &_args[1..];
 
         let expr = match constructor {
             "Type" => {
@@ -28,7 +29,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let name = reduce(args[0]).into_value::<Input>().as_str(_src);
 
                 // let (idx, _) = env.get(name).unwrap();
 
@@ -36,21 +37,21 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
                 let v = *reduce(args[1]).into_value::<UnionIndex>();
                 let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
                 let v = *reduce(args[1]).into_value::<UnionIndex>();
                 let b = *reduce(args[2]).into_value::<UnionIndex>();
                 PartialExpr::FnType(v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(src);
+                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
                 let b = *reduce(args[1]).into_value::<UnionIndex>();
                 PartialExpr::FnConstruct(b)
             }

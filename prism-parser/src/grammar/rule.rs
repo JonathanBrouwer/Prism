@@ -24,27 +24,28 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Rule<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
+        _args: &[Parsed<'arn, 'grm>],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Rule");
 
         Rule {
-            name: parse_identifier(args[0], src),
-            adapt: args[1]
+            name: parse_identifier(_args[0], _src),
+            adapt: _args[1]
                 .into_value::<ParsedList>()
                 .into_iter()
                 .next()
                 .is_some(),
-            args: allocs.alloc_extend(
-                args[2]
+            args: _allocs.alloc_extend(
+                _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
-                    .map(|n| ("ActionResult", parse_identifier(n, src))),
+                    .map(|n| ("ActionResult", parse_identifier(n, _src))),
             ),
-            blocks: allocs.alloc_extend(
-                args[3]
+            blocks: _allocs.alloc_extend(
+                _args[3]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|block| *block.into_value::<RuleBlock>()),

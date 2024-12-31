@@ -27,6 +27,7 @@ pub trait Parsable2<'arn, 'grm: 'arn, Env>:
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
         _src: &'grm str,
+        _env: &mut Env,
     ) -> Self {
         panic!(
             "Cannot parse a {} from a {constructor} constructor",
@@ -40,9 +41,17 @@ pub trait Parsable2<'arn, 'grm: 'arn, Env>:
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         src: &'grm str,
+        env: &mut Env,
     ) -> Parsed<'arn, 'grm> {
         allocs
-            .alloc(Self::from_construct(span, constructor, args, allocs, src))
+            .alloc(Self::from_construct(
+                span,
+                constructor,
+                args,
+                allocs,
+                src,
+                env,
+            ))
             .to_parsed()
     }
 }
