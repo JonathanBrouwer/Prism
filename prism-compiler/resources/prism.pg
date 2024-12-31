@@ -11,11 +11,10 @@ rule expr(env) {
             <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this($Env::Substitute(n, v, env));
     }
     group fnconstruct {
-        Expr::FnConstruct(env, n, r)
-            <- "(" n:identifier ":" at:#next ")" "=>" r:#this($Env::Type(n, env));
+        Expr::FnConstruct(env, n, Expr::Let(Env::Type(n, env), "_", Expr::TypeAssert(env, Expr::Name(Env::Type(n, env), n), t), r))
+            <- "(" n:identifier ":" t:#next($Env::Type("_", env)) ")" "=>" r:#this($Env::Type("_", Env::Type(n, env)));
         Expr::FnConstruct(env, n, r)
             <- n:identifier "=>" r:#this($Env::Type(n, env));
-        //fnconstruct(#this, #next);
     }
     group fntype {
         Expr::FnType(env, n, at, bt)
