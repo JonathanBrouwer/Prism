@@ -6,10 +6,12 @@ use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::var_map::VarMap;
 
-impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
+    ParserState<'arn, 'grm, Env, E>
+{
     pub fn apply_action(
         &self,
         rule: &RuleAction<'arn, 'grm>,

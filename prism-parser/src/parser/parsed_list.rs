@@ -1,7 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 
 #[derive(Copy, Clone)]
 pub struct ParsedList<'arn, 'grm>(Option<&'arn ParsedListNode<'arn, 'grm>>);
@@ -54,7 +54,8 @@ impl<'arn, 'grm: 'arn> Iterator for ParsedListIterator<'arn, 'grm> {
 
 impl ExactSizeIterator for ParsedListIterator<'_, '_> {}
 
-impl<'arn, 'grm> Parsable<'arn, 'grm> for ParsedList<'arn, 'grm> {
+impl<'arn, 'grm> ParseResult<'arn, 'grm> for ParsedList<'arn, 'grm> {}
+impl<'arn, 'grm, Env: Copy> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

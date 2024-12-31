@@ -3,7 +3,7 @@ use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_string;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -16,7 +16,8 @@ pub enum RuleAnnotation<'grm> {
     EnableRecovery,
 }
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleAnnotation<'grm> {
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAnnotation<'grm> {}
+impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for RuleAnnotation<'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

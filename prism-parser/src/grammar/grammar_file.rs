@@ -1,9 +1,10 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
+use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::rule::Rule;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +14,8 @@ pub struct GrammarFile<'arn, 'grm> {
     pub rules: &'arn [Rule<'arn, 'grm>],
 }
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for GrammarFile<'arn, 'grm> {
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for GrammarFile<'arn, 'grm> {}
+impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

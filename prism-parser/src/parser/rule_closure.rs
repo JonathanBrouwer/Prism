@@ -1,6 +1,6 @@
 use crate::core::adaptive::BlockState;
 use crate::grammar::rule_expr::RuleExpr;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::var_map::VarMap;
 
 #[derive(Copy, Clone)]
@@ -11,4 +11,4 @@ pub struct RuleClosure<'arn, 'grm> {
     pub vars: VarMap<'arn, 'grm>,
 }
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleClosure<'arn, 'grm> {}
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleClosure<'arn, 'grm> {}

@@ -1,4 +1,4 @@
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use std::any::type_name;
 use std::fmt::{Debug, Formatter};
 use std::hash::{DefaultHasher, Hasher};
@@ -20,7 +20,7 @@ impl<'arn, 'grm: 'arn> Debug for Parsed<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
-    pub fn from_value<P: Parsable<'arn, 'grm>>(p: &'arn P) -> Self {
+    pub fn from_value<P: ParseResult<'arn, 'grm>>(p: &'arn P) -> Self {
         Parsed {
             ptr: NonNull::from(p).cast(),
             checksum: checksum_parsable::<P>(),
@@ -29,7 +29,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         }
     }
 
-    pub fn into_value<P: Parsable<'arn, 'grm>>(self) -> &'arn P {
+    pub fn into_value<P: ParseResult<'arn, 'grm>>(self) -> &'arn P {
         self.try_into_value().expect(&format!(
             "Expected wrong king of Parsable. Expected {}, got {}",
             type_name::<P>(),
@@ -37,7 +37,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         ))
     }
 
-    pub fn try_into_value<P: Parsable<'arn, 'grm>>(self) -> Option<&'arn P> {
+    pub fn try_into_value<P: ParseResult<'arn, 'grm>>(self) -> Option<&'arn P> {
         if self.checksum != checksum_parsable::<P>() {
             return None;
         }
@@ -49,7 +49,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     }
 }
 
-fn checksum_parsable<'arn, 'grm: 'arn, P: Parsable<'arn, 'grm> + 'arn>() -> u64 {
+fn checksum_parsable<'arn, 'grm: 'arn, P: ParseResult<'arn, 'grm> + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
     hash.write(type_name::<P>().as_bytes());

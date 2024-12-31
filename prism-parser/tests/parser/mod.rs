@@ -55,7 +55,7 @@ macro_rules! parse_test {
             println!("== Parsing (should be ok): {}", input);
 
 
-            let got = run_parser_rule_raw::<SetError>(&grammar, "start", input, alloc, parsables.clone()).unwrap_or_eprint();
+            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input, alloc, parsables.clone()).unwrap_or_eprint();
             let got = got.to_debug_string(input);
             assert_eq!($expected, got);
             })*
@@ -64,7 +64,7 @@ macro_rules! parse_test {
             let input: &'static str = $input_fail;
             println!("== Parsing (should be fail): {}", input);
 
-            match run_parser_rule_raw::<SetError>(&grammar, "start", input, alloc, parsables.clone()) {
+            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input, alloc, parsables.clone()) {
                 Ok(got) => {
                     let got = got.to_debug_string(input);
                     println!("Got: {:?}", got);

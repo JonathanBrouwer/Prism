@@ -4,7 +4,7 @@ use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -18,7 +18,7 @@ pub struct GrammarState<'arn, 'grm> {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for RuleId {}
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleId {}
 
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

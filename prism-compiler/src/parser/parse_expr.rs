@@ -6,9 +6,12 @@ use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parsable::Parsable;
+use prism_parser::parsable::{Parsable2, ParseResult};
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for UnionIndex {
+pub type ParseEnv = ();
+
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, ParseEnv> for UnionIndex {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -150,17 +153,17 @@ pub fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm
         parsed
     }
 }
-
-#[derive(Copy, Clone)]
-pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for ScopeEnter<'arn, 'grm> {
-    fn from_construct(
-        span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
-    ) -> Self {
-        ScopeEnter(args[0], *args[1].into_value::<Guid>())
-    }
-}
+//
+// #[derive(Copy, Clone)]
+// pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
+// impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for ScopeEnter<'arn, 'grm> {
+//     fn from_construct(
+//         span: Span,
+//         constructor: &'grm str,
+//         args: &[Parsed<'arn, 'grm>],
+//         allocs: Allocs<'arn>,
+//         src: &'grm str,
+//     ) -> Self {
+//         ScopeEnter(args[0], *args[1].into_value::<Guid>())
+//     }
+// }

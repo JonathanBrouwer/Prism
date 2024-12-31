@@ -11,12 +11,14 @@ use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::guid::Guid;
 use crate::parsable::void::Void;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
 
-impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
+    ParserState<'arn, 'grm, Env, E>
+{
     pub fn parse_expr(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,

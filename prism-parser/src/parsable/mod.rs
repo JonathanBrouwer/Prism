@@ -12,7 +12,15 @@ pub mod parsed;
 pub mod parsed_debug;
 pub mod void;
 
-pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
+pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
+    fn to_parsed(&'arn self) -> Parsed<'arn, 'grm> {
+        Parsed::from_value(self)
+    }
+}
+
+pub trait Parsable2<'arn, 'grm: 'arn, Env: Copy>:
+    ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
+{
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -37,22 +45,18 @@ pub trait Parsable<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
             .alloc(Self::from_construct(span, constructor, args, allocs, src))
             .to_parsed()
     }
-
-    fn to_parsed(&'arn self) -> Parsed<'arn, 'grm> {
-        Parsed::from_value(self)
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parsable::Parsable;
+    use crate::parsable::{Parsable2, ParseResult};
 
     #[derive(Debug, Copy, Clone)]
     struct A;
     #[derive(Debug, Copy, Clone)]
     struct B;
-    impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for A {}
-    impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for B {}
+    impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for A {}
+    impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for B {}
 
     #[test]
     fn a_a_same() {

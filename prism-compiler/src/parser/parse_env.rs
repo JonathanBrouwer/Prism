@@ -1,10 +1,11 @@
 use crate::lang::env::Env;
 use crate::lang::UnionIndex;
+use crate::parser::parse_expr::ParseEnv;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parsable::Parsable;
+use prism_parser::parsable::{Parsable2, ParseResult};
 
 #[derive(Copy, Clone)]
 pub struct ParsedEnv<'arn>(Option<&'arn ParsedEnvNode<'arn>>);
@@ -45,7 +46,8 @@ pub enum ParsedEnvNodeValue<'arn> {
     Type,
 }
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for ParsedEnv<'arn> {
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedEnv<'arn> {}
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, ParseEnv> for ParsedEnv<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

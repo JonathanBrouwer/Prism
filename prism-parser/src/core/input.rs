@@ -1,6 +1,6 @@
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
-use crate::parsable::Parsable;
+use crate::parsable::{Parsable2, ParseResult};
 use std::borrow::Cow;
 
 #[derive(Copy, Clone)]
@@ -28,4 +28,4 @@ impl<'grm> Input<'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm> for Input<'grm> {}
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Input<'grm> {}
