@@ -52,10 +52,6 @@ impl<'grm> ParseError for SetError<'grm> {
         }
     }
 
-    fn set_end(&mut self, end: Pos) {
-        self.span.end = end;
-    }
-
     fn report(&self, enable_debug: bool) -> Report<'static, Span> {
         let mut report = base_report(self.span);
 

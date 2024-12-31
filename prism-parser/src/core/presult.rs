@@ -165,19 +165,18 @@ impl<O, E: ParseError> PResult<O, E> {
 
     pub fn merge_seq_chain2<'arn, 'grm, O2>(
         self,
-        mut other: impl FnMut(Pos, O) -> PResult<O2, E>,
+        mut other: impl FnMut(Pos, Span, O) -> PResult<O2, E>,
     ) -> PResult<O2, E>
     where
         'grm: 'arn,
     {
         //Quick out
-        let (o, res) = match self {
-            POk(o, start, end, best) => (o, POk((), start, end, best)),
-            PErr(_, _) => return self.map(|_| unreachable!()),
-        };
-
-        let pos = res.end_pos();
-        res.merge_seq(other(pos, o)).map(|((), o)| o)
+        match self {
+            POk(o, start, end, best) => POk((), start, end, best)
+                .merge_seq(other(end, start.span_to(end), o))
+                .map(|((), o)| o),
+            PErr(_, _) => self.map(|_| unreachable!()),
+        }
     }
 
     pub fn ok(self) -> Option<O> {

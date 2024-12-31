@@ -13,8 +13,8 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Option<u64> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    ) -> Result<Self, String> {
+        Ok(match constructor {
             "None" => {
                 assert_eq!(_args.len(), 0);
                 Option::None
@@ -24,6 +24,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Option<u64> {
                 Option::Some(_args[0].into_value::<Input>().as_str(_src).parse().unwrap())
             }
             _ => unreachable!(),
-        }
+        })
     }
 }

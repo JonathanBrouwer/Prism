@@ -63,8 +63,8 @@ impl<'arn, 'grm, Env> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    ) -> Result<Self, String> {
+        Ok(match constructor {
             "Cons" => {
                 assert_eq!(_args.len(), 2);
                 _args[1]
@@ -73,6 +73,6 @@ impl<'arn, 'grm, Env> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
             }
             "Nil" => ParsedList::new_empty(),
             _ => unreachable!(),
-        }
+        })
     }
 }

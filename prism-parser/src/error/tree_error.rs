@@ -90,10 +90,6 @@ impl<'grm> ParseError for TreeError<'grm> {
         }
     }
 
-    fn set_end(&mut self, end: Pos) {
-        self.span.end = end;
-    }
-
     fn report(&self, enable_debug: bool) -> Report<'static, Span> {
         let mut report: ReportBuilder<Span> = base_report(self.span);
 

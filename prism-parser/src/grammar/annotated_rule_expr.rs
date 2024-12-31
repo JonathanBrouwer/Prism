@@ -23,9 +23,9 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for AnnotatedRuleExpr<'ar
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
+    ) -> Result<Self, String> {
         assert_eq!("AnnotatedExpr", constructor);
-        Self(
+        Ok(Self(
             _allocs.alloc_extend(
                 _args[0]
                     .into_value::<ParsedList>()
@@ -33,6 +33,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for AnnotatedRuleExpr<'ar
                     .map(|annot| *annot.into_value::<RuleAnnotation>()),
             ),
             _args[1].into_value::<RuleExpr<'arn, 'grm>>(),
-        )
+        ))
     }
 }

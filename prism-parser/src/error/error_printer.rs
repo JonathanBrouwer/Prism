@@ -8,6 +8,7 @@ pub enum ErrorLabel<'grm> {
     Explicit(Span, EscapedString<'grm>),
     Literal(Span, EscapedString<'grm>),
     Debug(Span, &'grm str),
+    FromConstruct(Span, String),
 }
 
 impl ErrorLabel<'_> {
@@ -16,6 +17,7 @@ impl ErrorLabel<'_> {
             ErrorLabel::Explicit(s, _) => *s,
             ErrorLabel::Literal(s, _) => *s,
             ErrorLabel::Debug(s, _) => *s,
+            ErrorLabel::FromConstruct(s, _) => *s,
         }
     }
 
@@ -24,6 +26,7 @@ impl ErrorLabel<'_> {
             ErrorLabel::Explicit(_, _) => false,
             ErrorLabel::Literal(_, _) => false,
             ErrorLabel::Debug(_, _) => true,
+            ErrorLabel::FromConstruct(_, _) => false,
         }
     }
 }
@@ -31,9 +34,10 @@ impl ErrorLabel<'_> {
 impl Display for ErrorLabel<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ErrorLabel::Explicit(_, s) => write!(f, "{}", s),
-            ErrorLabel::Literal(_, s) => write!(f, "'{}'", s),
-            ErrorLabel::Debug(_, s) => write!(f, "[{}]", s),
+            ErrorLabel::Explicit(_, s) => write!(f, "{s}"),
+            ErrorLabel::Literal(_, s) => write!(f, "'{s}'"),
+            ErrorLabel::Debug(_, s) => write!(f, "[{s}]"),
+            ErrorLabel::FromConstruct(_, s) => write!(f, "{s}"),
         }
     }
 }

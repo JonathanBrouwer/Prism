@@ -53,8 +53,8 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> 
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    ) -> Result<Self, String> {
+        Ok(match constructor {
             "Action" => RuleExpr::Action(
                 _allocs.alloc(_args[0].into_value()),
                 _allocs.alloc(_args[1].into_value()),
@@ -107,6 +107,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> 
                 _args[1].into_value::<RuleExpr>(),
             ),
             _ => unreachable!(),
-        }
+        })
     }
 }

@@ -22,15 +22,15 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for GrammarFile<'arn, 'gr
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
+    ) -> Result<Self, String> {
         assert_eq!(constructor, "GrammarFile");
-        GrammarFile {
+        Ok(GrammarFile {
             rules: _allocs.alloc_extend(
                 _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|rule| *rule.into_value::<Rule>()),
             ),
-        }
+        })
     }
 }

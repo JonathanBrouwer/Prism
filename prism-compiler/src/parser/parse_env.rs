@@ -53,8 +53,8 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut TcEnv,
-    ) -> Self {
-        match constructor {
+    ) -> Result<Self, String> {
+        Ok(match constructor {
             "Nil" => ParsedEnv::new_empty(),
             "Substitute" => {
                 assert_eq!(_args.len(), 4);
@@ -80,6 +80,6 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
                 })))
             }
             _ => unreachable!(),
-        }
+        })
     }
 }

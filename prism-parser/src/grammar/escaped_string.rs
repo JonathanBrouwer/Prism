@@ -22,10 +22,6 @@ impl<'grm> EscapedString<'grm> {
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         EscapedStringIter(self.0.chars())
     }
-
-    pub fn parse<F: FromStr>(&self) -> Result<F, F::Err> {
-        self.0.parse()
-    }
 }
 
 impl Display for EscapedString<'_> {

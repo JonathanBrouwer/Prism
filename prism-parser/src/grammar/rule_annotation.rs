@@ -25,14 +25,14 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleAnnotation<'grm> 
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    ) -> Result<Self, String> {
+        Ok(match constructor {
             "Error" => RuleAnnotation::Error(parse_string(_args[0], _src)),
             "DisableLayout" => RuleAnnotation::DisableLayout,
             "EnableLayout" => RuleAnnotation::EnableLayout,
             "DisableRecovery" => RuleAnnotation::DisableRecovery,
             "EnableRecovery" => RuleAnnotation::EnableRecovery,
             _ => unreachable!(),
-        }
+        })
     }
 }

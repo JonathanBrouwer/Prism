@@ -63,7 +63,7 @@ impl<'arn> Allocs<'arn> {
         slice
     }
 
-    pub fn try_alloc_extend<
+    pub fn try_alloc_extend_option<
         T: Copy,
         I: IntoIterator<Item = Option<T>, IntoIter: ExactSizeIterator>,
     >(
@@ -71,6 +71,17 @@ impl<'arn> Allocs<'arn> {
         iter: I,
     ) -> Option<&'arn mut [T]> {
         self.bump.alloc_slice_fill_iter_option(iter)
+    }
+
+    pub fn try_alloc_extend_result<
+        T: Copy,
+        E,
+        I: IntoIterator<Item = Result<T, E>, IntoIter: ExactSizeIterator>,
+    >(
+        &self,
+        iter: I,
+    ) -> Result<&'arn mut [T], E> {
+        self.bump.alloc_slice_fill_iter_result(iter)
     }
 }
 

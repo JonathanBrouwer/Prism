@@ -29,9 +29,9 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
+    ) -> Result<Self, String> {
         assert_eq!(constructor, "CharClass");
-        CharClass {
+        Ok(CharClass {
             neg: _args[0]
                 .into_value::<ParsedList>()
                 .into_iter()
@@ -43,7 +43,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
                     .into_iter()
                     .map(|p| *p.into_value::<CharClassRange>()),
             ),
-        }
+        })
     }
 }
 
@@ -59,12 +59,12 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClassRange {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Self {
+    ) -> Result<Self, String> {
         assert_eq!(constructor, "Range");
-        CharClassRange(
+        Ok(CharClassRange(
             parse_string_char(_args[0], _src),
             parse_string_char(_args[1], _src),
-        )
+        ))
     }
 }
 

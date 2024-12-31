@@ -10,13 +10,13 @@ use prism_parser::parsable::{Parsable2, ParseResult};
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
 impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     fn from_construct(
-        span: Span,
+        _span: Span,
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         tc_env: &mut TcEnv,
-    ) -> Self {
+    ) -> Result<Self, String> {
         let env = _args[0].into_value::<ParsedEnv<'arn>>();
         let args = &_args[1..];
 
@@ -34,7 +34,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 } else {
                     let (idx, _) = env
                         .get(name)
-                        .unwrap_or_else(|| panic!("Failed to find {name} in scope"));
+                        .ok_or_else(|| format!("Failed to find {name} in scope"))?;
                     PartialExpr::DeBruijnIndex(idx)
                 }
             }
@@ -142,7 +142,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
         //     //             return self.insert_from_action_result_rec(&args[0], program, &vars);
         //     //         }
 
-        tc_env.store_from_source(expr, span)
+        Ok(tc_env.store_from_source(expr, _span))
     }
 }
 

@@ -13,15 +13,13 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut Env,
-    ) -> Parsed<'arn, 'grm>,
-    phantom_data: PhantomData<Env>,
+    ) -> Result<Parsed<'arn, 'grm>, String>,
 }
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
     pub fn new<P: Parsable2<'arn, 'grm, Env>>() -> Self {
         Self {
             from_construct: P::from_construct_dyn,
-            phantom_data: PhantomData,
         }
     }
 }

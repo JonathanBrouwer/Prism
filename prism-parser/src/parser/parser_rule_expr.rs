@@ -10,6 +10,7 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::guid::Guid;
+use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::ParseResult;
 use crate::parser::parsed_list::ParsedList;
@@ -51,7 +52,10 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                                 .to_parsed()
                         }
                     } else if let RuleExpr::Action(RuleExpr::Sequence([]), action) = arg {
-                        self.apply_action(action, pos.span_to(pos), vars, penv)
+                        match self.apply_action(action, pos.span_to(pos), vars, penv) {
+                            Ok(v) => v,
+                            Err(e) => return PResult::new_err(e, pos),
+                        }
                     } else {
                         self.alloc
                             .alloc(RuleClosure {
@@ -216,17 +220,21 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             }
             RuleExpr::Action(sub, action) => {
                 let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv);
-                res.map_with_span(|res, span| {
-                    let rtrn = self.apply_action(
+                res.merge_seq_chain2(|pos, span, res| {
+                    match self.apply_action(
                         action,
                         span,
                         res.free.extend(vars.iter_cloned(), self.alloc),
                         penv,
-                    );
-
-                    PR {
-                        free: res.free,
-                        rtrn,
+                    ) {
+                        Ok(rtrn) => PResult::new_empty(
+                            PR {
+                                free: res.free,
+                                rtrn,
+                            },
+                            pos,
+                        ),
+                        Err(e) => return PResult::PErr(e, pos),
                     }
                 })
             }
