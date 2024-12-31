@@ -161,9 +161,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     // We break out with an infinite loop error
                     // The i != 0 check is to make sure to take the delim into account
                     if i != 0 && res.end_pos() <= pos {
-                        let span = pos.span_to(pos);
-                        let mut e = E::new(span);
-                        e.add_label_explicit(ErrorLabel::Debug(span, "INFLOOP"));
+                        let mut e = E::new(pos);
+                        e.add_label_explicit(ErrorLabel::Debug(pos.span_to(pos), "INFLOOP"));
                         return PResult::new_err(e, pos);
                     }
                 }
@@ -200,7 +199,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 })
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
+                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos), pos);
                 for sub in *subs {
                     res = res.merge_choice_chain(|| {
                         self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv)
@@ -273,7 +272,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 let (rules, _) = match rules.adapt_with(grammar, vars, Some(pos), self.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
-                        let mut e = E::new(pos.span_to(pos));
+                        let mut e = E::new(pos);
                         e.add_label_implicit(ErrorLabel::Explicit(
                             pos.span_to(pos),
                             EscapedString::from_escaped(

@@ -73,7 +73,7 @@ macro_rules! parse_test {
                 Err(es) => {
                     $(
                     let got = es.errors.iter()
-                        .map(|e| format!("{}..{}", e.span.start, e.span.end))
+                        .map(|e| format!("{}..{}", e.pos.start, e.pos.end))
                         .collect::<Vec<_>>()
                         .join(" ");
                     assert_eq!(got, $errors);

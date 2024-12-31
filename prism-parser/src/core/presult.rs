@@ -202,7 +202,7 @@ impl<O, E: ParseError> PResult<O, E> {
 
     pub fn negative_lookahead(self, start_pos: Pos) -> PResult<(), E> {
         match self {
-            POk(_, _, _, _) => PResult::new_err(E::new(start_pos.span_to(start_pos)), start_pos),
+            POk(_, _, _, _) => PResult::new_err(E::new(start_pos), start_pos),
             PErr(_, _) => PResult::new_empty((), start_pos),
         }
     }

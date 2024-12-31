@@ -120,7 +120,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
-        let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
+        let mut res_recursive = PResult::new_err(E::new(pos_start), pos_start);
         res_recursive.add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = self.cache_state_get();

@@ -50,7 +50,7 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone)]
 pub struct TreeError<'grm> {
-    pub span: Span,
+    pub pos: Pos,
     pub labels: ErrorTree<ErrorLabel<'grm>>,
 }
 
@@ -66,9 +66,9 @@ impl<'grm> TreeError<'grm> {
 impl<'grm> ParseError for TreeError<'grm> {
     type L = ErrorLabel<'grm>;
 
-    fn new(span: Span) -> Self {
+    fn new(pos: Pos) -> Self {
         Self {
-            span,
+            pos: pos,
             labels: ErrorTree(None, vec![]),
         }
     }
@@ -82,16 +82,16 @@ impl<'grm> ParseError for TreeError<'grm> {
     }
 
     fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.span.start, other.span.start);
+        assert_eq!(self.pos, other.pos);
         self.labels = self.labels.merge(other.labels);
         Self {
-            span: Span::new(self.span.start, max(self.span.end, other.span.end)),
+            pos: self.pos,
             labels: self.labels,
         }
     }
 
     fn report(&self, enable_debug: bool) -> Report<'static, Span> {
-        let mut report: ReportBuilder<Span> = base_report(self.span);
+        let mut report: ReportBuilder<Span> = base_report(self.pos.span_to(self.pos));
 
         //Add labels
         for path in self.labels.into_paths() {

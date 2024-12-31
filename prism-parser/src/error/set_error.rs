@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, HashSet};
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]
 pub struct SetError<'grm> {
-    pub span: Span,
+    pub pos: Pos,
     pub labels: HashSet<ErrorLabel<'grm>>,
     pub explicit: bool,
 }
@@ -17,9 +17,9 @@ pub struct SetError<'grm> {
 impl<'grm> ParseError for SetError<'grm> {
     type L = ErrorLabel<'grm>;
 
-    fn new(span: Span) -> Self {
+    fn new(span: Pos) -> Self {
         Self {
-            span,
+            pos: span,
             labels: HashSet::new(),
             explicit: false,
         }
@@ -41,19 +41,19 @@ impl<'grm> ParseError for SetError<'grm> {
     }
 
     fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.span.start, other.span.start);
+        assert_eq!(self.pos, other.pos);
         for e in other.labels {
             self.labels.insert(e);
         }
         Self {
-            span: Span::new(self.span.start, max(self.span.end, other.span.end)),
+            pos: self.pos,
             labels: self.labels,
             explicit: self.explicit || other.explicit,
         }
     }
 
     fn report(&self, enable_debug: bool) -> Report<'static, Span> {
-        let mut report = base_report(self.span);
+        let mut report = base_report(self.pos.span_to(self.pos));
 
         let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
         for l in self.labels.iter().filter(|l| enable_debug || !l.is_debug()) {

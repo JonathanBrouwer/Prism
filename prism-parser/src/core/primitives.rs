@@ -11,13 +11,13 @@ impl<'grm, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'_, 'grm, Env, 
             // We can parse the character
             (pos_new, Some((span, e))) if f(&e) => PResult::new_ok((span, e), pos, pos_new),
             // Error
-            (pos_new, _) => PResult::new_err(E::new(pos.span_to(pos_new)), pos),
+            (_, _) => PResult::new_err(E::new(pos), pos),
         }
     }
 
     pub fn parse_end(&mut self, pos: Pos) -> PResult<(), E> {
         match pos.next(self.input) {
-            (s, Some(_)) => PResult::new_err(E::new(pos.span_to(s)), pos),
+            (_, Some(_)) => PResult::new_err(E::new(pos), pos),
             (s, None) => PResult::new_empty((), s),
         }
     }

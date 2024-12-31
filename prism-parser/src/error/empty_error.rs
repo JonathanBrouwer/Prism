@@ -12,7 +12,7 @@ pub struct EmptyError<'grm>(PhantomData<&'grm str>);
 impl<'grm> ParseError for EmptyError<'grm> {
     type L = ErrorLabel<'grm>;
 
-    fn new(_: Span) -> Self {
+    fn new(_: Pos) -> Self {
         Self(PhantomData)
     }
 

@@ -84,7 +84,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         penv: &mut Env,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match es {
-            [] => PResult::new_err(E::new(pos.span_to(pos)), pos),
+            [] => PResult::new_err(E::new(pos), pos),
             [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
                 let rule_ctx = rule_ctx.iter_cloned();
                 let rule_args_iter = rule_args.iter_cloned();
