@@ -31,11 +31,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
-                // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get(rule) else {
-                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
-                };
-
                 let mut arg_values = Vec::new();
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
@@ -68,6 +63,22 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     })
                 }
 
+                if *rule == "#this" || *rule == "#next" {
+                    assert_eq!(arg_values.len(), 0);
+                    let blocks = match *rule {
+                        "#this" => blocks,
+                        "#next" => &blocks[1..],
+                        _ => unreachable!(),
+                    };
+                    return self
+                        .parse_rule_block(rules, blocks, rule_args, pos, context, penv)
+                        .map(PR::with_rtrn);
+                }
+
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = vars.get(rule) else {
+                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
+                };
                 if let Some(rule) = rule.try_into_value::<RuleId>() {
                     self.parse_rule(rules, *rule, &arg_values, pos, context, penv)
                         .map(PR::with_rtrn)
@@ -87,6 +98,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     panic!("Tried to run a rule of value type: {}", rule.name)
                 }
             }
+            RuleExpr::This => unreachable!(),
+            RuleExpr::Next => unreachable!(),
             RuleExpr::CharClass(cc) => self
                 .parse_with_layout(
                     rules,
@@ -243,12 +256,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
                 })
             }
-            RuleExpr::This => self
-                .parse_rule_block(rules, blocks, rule_args, pos, context, penv)
-                .map(PR::with_rtrn),
-            RuleExpr::Next => self
-                .parse_rule_block(rules, &blocks[1..], rule_args, pos, context, penv)
-                .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => self
                 .parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv)
                 .positive_lookahead(pos),

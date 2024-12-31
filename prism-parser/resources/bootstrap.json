@@ -1086,7 +1086,12 @@
                       {
                         "NameBind": [
                           "r",
-                          "This"
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
                         ]
                       }
                     ]
@@ -1123,7 +1128,12 @@
                       "es",
                       {
                         "Repeat": {
-                          "expr": "Next",
+                          "expr": {
+                            "RunVar": {
+                              "rule": "#next",
+                              "args": []
+                            }
+                          },
                           "min": 2,
                           "max": null,
                           "delim": {
@@ -1162,7 +1172,12 @@
                       "es",
                       {
                         "Repeat": {
-                          "expr": "Next",
+                          "expr": {
+                            "RunVar": {
+                              "rule": "#next",
+                              "args": []
+                            }
+                          },
                           "min": 2,
                           "max": null,
                           "delim": {
@@ -1218,7 +1233,12 @@
                       {
                         "NameBind": [
                           "e",
-                          "Next"
+                          {
+                            "RunVar": {
+                              "rule": "#next",
+                              "args": []
+                            }
+                          }
                         ]
                       }
                     ]
@@ -1255,7 +1275,12 @@
                       {
                         "NameBind": [
                           "r",
-                          "This"
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
                         ]
                       },
                       {
@@ -1311,7 +1336,12 @@
                       {
                         "NameBind": [
                           "r",
-                          "This"
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
                         ]
                       },
                       {
@@ -1367,7 +1397,12 @@
                       {
                         "NameBind": [
                           "r",
-                          "This"
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
                         ]
                       },
                       {
@@ -1673,40 +1708,6 @@
                   },
                   {
                     "Name": "r"
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Literal": "#this"
-                  },
-                  {
-                    "Construct": [
-                      "RuleExpr",
-                      "This",
-                      []
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Literal": "#next"
-                  },
-                  {
-                    "Construct": [
-                      "RuleExpr",
-                      "Next",
-                      []
-                    ]
                   }
                 ]
               }
@@ -3144,7 +3145,12 @@
                       {
                         "NameBind": [
                           "h",
-                          "Next"
+                          {
+                            "RunVar": {
+                              "rule": "#next",
+                              "args": []
+                            }
+                          }
                         ]
                       },
                       {
@@ -3153,7 +3159,12 @@
                       {
                         "NameBind": [
                           "t",
-                          "This"
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
                         ]
                       }
                     ]
