@@ -220,6 +220,26 @@ failing tests:
     "yyx"
 }
 
+parse_test! {
+name: parametric_this2
+syntax: r##"
+    rule start = do($A(), $C());
+    rule do(v, w) {
+        v <- "x";
+        y <- "y" y:#this($B(v), w);
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+    "yyx" => "B(B(A()))"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+}
+
 //TODO simple currying
 // parse_test! {
 // name: curried

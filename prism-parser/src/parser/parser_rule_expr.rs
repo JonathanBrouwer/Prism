@@ -77,6 +77,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                         VarMap::from_iter(
                             rule_args
                                 .iter_cloned()
+                                .collect::<Vec<_>>()
+                                .into_iter()
+                                .rev()
                                 .zip(arg_values)
                                 .map(|((n, _), v)| (n, v)),
                             self.alloc,
