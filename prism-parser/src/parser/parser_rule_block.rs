@@ -105,7 +105,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn parse_sub_annotations(
         &mut self,
         rules: &'arn GrammarState<'arn, 'grm>,

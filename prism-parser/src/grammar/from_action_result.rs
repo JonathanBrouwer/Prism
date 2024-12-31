@@ -1,7 +1,5 @@
 use crate::core::input::Input;
 use crate::grammar::escaped_string::EscapedString;
-use crate::parsable::action_result::ActionResult;
-use crate::parsable::action_result::ActionResult::*;
 use crate::parsable::parsed::Parsed;
 
 pub(crate) fn parse_identifier<'grm>(r: Parsed<'_, 'grm>, src: &'grm str) -> &'grm str {

@@ -1,7 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::core::span::Span;
-use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable2, ParseResult};

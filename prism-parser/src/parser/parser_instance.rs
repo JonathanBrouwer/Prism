@@ -17,7 +17,7 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::Parsable2;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;

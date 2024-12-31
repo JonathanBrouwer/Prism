@@ -1,4 +1,4 @@
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::ParseResult;
 use std::any::type_name;
 use std::fmt::{Debug, Formatter};
 use std::hash::{DefaultHasher, Hasher};
@@ -30,11 +30,13 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     }
 
     pub fn into_value<P: ParseResult<'arn, 'grm>>(self) -> &'arn P {
-        self.try_into_value().expect(&format!(
-            "Expected wrong king of Parsable. Expected {}, got {}",
-            type_name::<P>(),
-            self.name
-        ))
+        self.try_into_value().unwrap_or_else(|| {
+            panic!(
+                "Expected wrong king of Parsable. Expected {}, got {}",
+                type_name::<P>(),
+                self.name
+            )
+        })
     }
 
     pub fn try_into_value<P: ParseResult<'arn, 'grm>>(self) -> Option<&'arn P> {

@@ -6,7 +6,7 @@ use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::ParseResult;
 use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
@@ -33,7 +33,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 (self
                     .parsables
                     .get(namespace)
-                    .expect(&format!("Namespace '{namespace}' exists"))
+                    .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"))
                     .from_construct)(
                     span, name, args_vals, self.alloc, self.input, penv
                 )

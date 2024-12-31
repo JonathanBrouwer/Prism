@@ -1,4 +1,3 @@
-use crate::lang::env::Env;
 use crate::lang::{TcEnv, UnionIndex};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;

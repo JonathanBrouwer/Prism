@@ -1,6 +1,6 @@
 use crate::core::adaptive::BlockState;
 use crate::grammar::rule_expr::RuleExpr;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::ParseResult;
 use crate::parser::var_map::VarMap;
 
 #[derive(Copy, Clone)]

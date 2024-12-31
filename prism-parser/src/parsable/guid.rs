@@ -1,4 +1,4 @@
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::ParseResult;
 
 #[derive(Default, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub struct Guid(pub usize);

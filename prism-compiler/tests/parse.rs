@@ -1,4 +1,3 @@
-use prism_compiler::lang::env::Env;
 use prism_compiler::lang::error::TypeResultExt;
 use prism_compiler::lang::TcEnv;
 use prism_compiler::parser::parse_prism_in_env;

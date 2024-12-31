@@ -11,7 +11,7 @@ use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::guid::Guid;
 use crate::parsable::void::Void;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::ParseResult;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
@@ -38,7 +38,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 let mut arg_values = Vec::new();
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
-                        if args.len() == 0 {
+                        if args.is_empty() {
                             *vars.get(r).unwrap()
                         } else {
                             self.alloc

@@ -1,7 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::Parsable2;
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone)]

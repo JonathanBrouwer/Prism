@@ -58,7 +58,7 @@ pub trait Parsable2<'arn, 'grm: 'arn, Env>:
 
 #[cfg(test)]
 mod tests {
-    use crate::parsable::{Parsable2, ParseResult};
+    use crate::parsable::ParseResult;
 
     #[derive(Debug, Copy, Clone)]
     struct A;

@@ -1,4 +1,4 @@
-#![feature(let_chains)]
+#![allow(clippy::too_many_arguments)]
 
 use std::collections::HashMap;
 use std::sync::LazyLock;

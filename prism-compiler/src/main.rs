@@ -1,12 +1,4 @@
-use bumpalo::Bump;
 use clap::Parser;
-use prism_compiler::lang::{TcEnv, UnionIndex};
-use prism_compiler::parser::GRAMMAR;
-use prism_parser::core::cache::Allocs;
-use prism_parser::error::set_error::SetError;
-use prism_parser::parsable::parsable_dyn::ParsableDyn;
-use prism_parser::parser::parser_instance::run_parser_rule;
-use std::collections::HashMap;
 use std::io::Read;
 
 #[derive(Parser, Debug)]
