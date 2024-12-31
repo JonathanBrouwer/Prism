@@ -55,7 +55,7 @@ impl<'arn, 'grm: 'arn> Iterator for ParsedListIterator<'arn, 'grm> {
 impl ExactSizeIterator for ParsedListIterator<'_, '_> {}
 
 impl<'arn, 'grm> ParseResult<'arn, 'grm> for ParsedList<'arn, 'grm> {}
-impl<'arn, 'grm, Env: Copy> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
+impl<'arn, 'grm, Env> Parsable2<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

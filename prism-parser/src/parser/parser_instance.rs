@@ -23,14 +23,14 @@ use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
 use std::collections::HashMap;
 
-pub struct ParserInstance<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>> {
+pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, Env, E>,
 
     grammar_state: &'arn GrammarState<'arn, 'grm>,
     rules: VarMap<'arn, 'grm>,
 }
 
-impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
     ParserInstance<'arn, 'grm, Env, E>
 {
     pub fn new(
@@ -87,7 +87,7 @@ impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
     }
 }
 
-impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
     ParserInstance<'arn, 'grm, Env, E>
 {
     pub fn run(
@@ -123,7 +123,7 @@ impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
     }
 }
 
-pub fn run_parser_rule_raw<'arn, 'grm, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>(
+pub fn run_parser_rule_raw<'arn, 'grm, Env, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
     input: &'grm str,
@@ -138,7 +138,7 @@ pub fn run_parser_rule_raw<'arn, 'grm, Env: Copy, E: ParseError<L = ErrorLabel<'
 pub fn run_parser_rule<
     'arn,
     'grm,
-    Env: Copy,
+    Env,
     P: Parsable2<'arn, 'grm, Env>,
     E: ParseError<L = ErrorLabel<'grm>>,
 >(

@@ -20,7 +20,7 @@ pub struct Rule<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Rule<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for Rule<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Rule<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

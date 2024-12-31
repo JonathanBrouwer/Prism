@@ -9,9 +9,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable2, ParseResult};
 use crate::parser::var_map::VarMap;
 
-impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
-    ParserState<'arn, 'grm, Env, E>
-{
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn apply_action(
         &self,
         rule: &RuleAction<'arn, 'grm>,

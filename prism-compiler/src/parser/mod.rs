@@ -1,6 +1,6 @@
 use crate::lang::{TcEnv, UnionIndex};
 use crate::parser::parse_env::ParsedEnv;
-use crate::parser::parse_expr::{reduce, ParseEnv};
+use crate::parser::parse_expr::reduce;
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
@@ -33,7 +33,7 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
 
-    run_parser_rule_raw::<ParseEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables)
+    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables)
         .map(|v| *reduce(v).into_value())
 }
 

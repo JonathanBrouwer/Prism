@@ -5,7 +5,7 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
 
-impl<'grm, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'_, 'grm, Env, E> {
+impl<'grm, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'_, 'grm, Env, E> {
     pub fn parse_char(&mut self, f: impl Fn(&char) -> bool, pos: Pos) -> PResult<(Span, char), E> {
         match pos.next(self.input) {
             // We can parse the character

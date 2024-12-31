@@ -9,7 +9,7 @@ pub enum ActionResult<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ActionResult<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for ActionResult<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for ActionResult<'arn, 'grm> {
     fn from_construct(
         span: Span,
         constructor: &'grm str,

@@ -5,7 +5,7 @@ use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::{Parsable2, ParseResult};
 use std::collections::HashMap;
 
-pub struct ParserState<'arn, 'grm, Env: Copy, E: ParseError> {
+pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     // Cache for parser_cache_recurse
     cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
     cache_stack: Vec<CacheKey>,
@@ -20,7 +20,7 @@ pub struct ParserState<'arn, 'grm, Env: Copy, E: ParseError> {
     pub parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
 }
 
-impl<'arn, 'grm, Env: Copy, E: ParseError> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
     pub fn new(
         input: &'grm str,
         alloc: Allocs<'arn>,

@@ -17,7 +17,7 @@ pub enum RuleAnnotation<'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAnnotation<'grm> {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for RuleAnnotation<'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for RuleAnnotation<'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

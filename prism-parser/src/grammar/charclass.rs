@@ -22,7 +22,7 @@ impl CharClass<'_> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClass<'arn> {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for CharClass<'arn>
 pub struct CharClassRange(char, char);
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClassRange {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for CharClassRange {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClassRange {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

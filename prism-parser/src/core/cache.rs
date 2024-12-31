@@ -79,9 +79,7 @@ pub struct ParserCacheEntry<PR> {
     pub value: PR,
 }
 
-impl<'arn, 'grm: 'arn, Env: Copy, E: ParseError<L = ErrorLabel<'grm>>>
-    ParserState<'arn, 'grm, Env, E>
-{
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_cache_recurse(
         &mut self,
         sub: impl Fn(&mut ParserState<'arn, 'grm, Env, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,

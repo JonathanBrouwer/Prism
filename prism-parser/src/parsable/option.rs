@@ -7,7 +7,7 @@ use std::any::type_name;
 use std::str::FromStr;
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Option<u64> {}
-impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for Option<u64> {
+impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Option<u64> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

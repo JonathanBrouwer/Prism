@@ -1,6 +1,5 @@
 use crate::lang::env::Env;
-use crate::lang::UnionIndex;
-use crate::parser::parse_expr::ParseEnv;
+use crate::lang::{TcEnv, UnionIndex};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
@@ -47,7 +46,7 @@ pub enum ParsedEnvNodeValue<'arn> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedEnv<'arn> {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, ParseEnv> for ParsedEnv<'arn> {
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

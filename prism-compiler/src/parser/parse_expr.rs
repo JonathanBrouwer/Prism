@@ -1,4 +1,4 @@
-use crate::lang::{PartialExpr, UnionIndex};
+use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 use crate::parser::parse_env::ParsedEnv;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
@@ -8,10 +8,8 @@ use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable2, ParseResult};
 
-pub type ParseEnv = ();
-
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, ParseEnv> for UnionIndex {
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -156,7 +154,7 @@ pub fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm
 //
 // #[derive(Copy, Clone)]
 // pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
-// impl<'arn, 'grm: 'arn, Env: Copy> Parsable2<'arn, 'grm, Env> for ScopeEnter<'arn, 'grm> {
+// impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for ScopeEnter<'arn, 'grm> {
 //     fn from_construct(
 //         span: Span,
 //         constructor: &'grm str,
