@@ -63,15 +63,27 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     })
                 }
 
+                // Handle #this and #next logic
                 if *rule == "#this" || *rule == "#next" {
-                    assert_eq!(arg_values.len(), 0);
                     let blocks = match *rule {
                         "#this" => blocks,
                         "#next" => &blocks[1..],
                         _ => unreachable!(),
                     };
+                    let arg_values = if arg_values.len() == 0 {
+                        rule_args
+                    } else {
+                        assert_eq!(arg_values.len(), rule_args.iter_cloned().count());
+                        VarMap::from_iter(
+                            rule_args
+                                .iter_cloned()
+                                .zip(arg_values)
+                                .map(|((n, _), v)| (n, v)),
+                            self.alloc,
+                        )
+                    };
                     return self
-                        .parse_rule_block(rules, blocks, rule_args, pos, context, penv)
+                        .parse_rule_block(rules, blocks, arg_values, pos, context, penv)
                         .map(PR::with_rtrn);
                 }
 

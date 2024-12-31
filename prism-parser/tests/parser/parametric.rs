@@ -176,6 +176,50 @@ failing tests:
     "x"
 }
 
+parse_test! {
+name: parametric_this
+syntax: r##"
+    rule start = do($A());
+    rule do(v) {
+        v <- "x";
+        w <- "y" w:#this($B(v));
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+    "yyx" => "B(B(A()))"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+}
+
+parse_test! {
+name: parametric_next
+syntax: r##"
+    rule start = do($A());
+    rule do(v) {
+        group a {
+            w <- "y" w:#next($B(v));
+        }
+        group b {
+            v <- "x";
+        }
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+    "yyx"
+}
+
 //TODO simple currying
 // parse_test! {
 // name: curried
