@@ -1,6 +1,6 @@
 ### Input
 grammar {
-    adapt rule expr {
+    adapt rule expr(env) {
         adapt group statement {
             let n = Type; n <- "tel" n:identifier;
         }
