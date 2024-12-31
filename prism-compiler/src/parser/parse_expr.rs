@@ -10,12 +10,12 @@ use prism_parser::parsable::{Parsable2, ParseResult};
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
 impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     fn from_construct(
-        _span: Span,
+        span: Span,
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
         _src: &'grm str,
-        _env: &mut TcEnv,
+        tc_env: &mut TcEnv,
     ) -> Self {
         let env = _args[0].into_value::<ParsedEnv<'arn>>();
         let args = &_args[1..];
@@ -29,10 +29,14 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             "Name" => {
                 assert_eq!(args.len(), 1);
                 let name = reduce(args[0]).into_value::<Input>().as_str(_src);
-
-                // let (idx, _) = env.get(name).unwrap();
-
-                PartialExpr::DeBruijnIndex(0)
+                if name == "_" {
+                    PartialExpr::Free
+                } else {
+                    let (idx, _) = env
+                        .get(name)
+                        .unwrap_or_else(|| panic!("Failed to find {name} in scope"));
+                    PartialExpr::DeBruijnIndex(idx)
+                }
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
@@ -138,7 +142,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
         //     //             return self.insert_from_action_result_rec(&args[0], program, &vars);
         //     //         }
 
-        UnionIndex(usize::MAX)
+        tc_env.store_from_source(expr, span)
     }
 }
 
