@@ -18,6 +18,17 @@ pub enum EnvEntry<'grm> {
     RSubst(UnionIndex, Env<'grm>),
 }
 
+impl<'grm> EnvEntry<'grm> {
+    pub fn get_name(&self) -> &'grm str {
+        match self {
+            EnvEntry::CType(_, _, n) => n,
+            EnvEntry::CSubst(_, _, n) => n,
+            EnvEntry::RType(_) => unreachable!(),
+            EnvEntry::RSubst(_, _) => unreachable!(),
+        }
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct GenericEnv<T>(Vector<T>);
 

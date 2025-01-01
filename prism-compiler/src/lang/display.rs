@@ -81,7 +81,9 @@ impl<'grm> TcEnv<'grm> {
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            PartialExpr::Name(n) => unimplemented!(),
+            PartialExpr::Name(n) => {
+                write!(w, "([NAME {n}])")?;
+            }
         }
 
         if e.precedence_level() < max_precedence {

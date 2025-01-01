@@ -46,6 +46,17 @@ impl<'grm> TcEnv<'grm> {
                     return self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
             },
+            PartialExpr::Name(n) => {
+                let Some((db_index, _)) = s
+                    .iter()
+                    .enumerate()
+                    .find(|(_, entry)| entry.get_name() == n)
+                else {
+                    todo!()
+                };
+                self.values[*i] = PartialExpr::DeBruijnIndex(db_index);
+                return self._type_check(i, s);
+            }
             PartialExpr::FnType(n, mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
@@ -111,7 +122,6 @@ impl<'grm> TcEnv<'grm> {
 
                 return et;
             }
-            PartialExpr::Name(_) => unimplemented!(),
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);

@@ -63,7 +63,7 @@ impl<'grm> TcEnv<'grm> {
                 let typ = self.simplify_inner(typ, s, var_map);
                 PartialExpr::TypeAssert(e, typ)
             }
-            PartialExpr::Name(_) => unimplemented!(),
+            PartialExpr::Name(_) => unreachable!("Should not occur in typechecked terms"),
         };
         self.store(e_new, self.value_origins[*i])
     }

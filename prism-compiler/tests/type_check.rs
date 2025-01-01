@@ -15,6 +15,8 @@ fn test_ok([test]: [&str; 1]) {
     let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
 
     let expected_typ = parse_prism_in_env(expected_typ, &mut env).unwrap_or_eprint();
+    env.type_check(expected_typ)
+        .unwrap_or_eprint(&mut env, input_str);
 
     assert!(
         env.is_beta_equal(typ, &Env::new(), expected_typ, &Env::new()),
