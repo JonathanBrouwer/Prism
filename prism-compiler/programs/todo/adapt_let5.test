@@ -1,8 +1,8 @@
 ### Input
 grammar {
-    adapt rule expr {
+    adapt rule expr(env) {
         adapt group statement {
-            let x = Type; e <- "tle" x:identifier "in" e:expr;
+            let x = Type; e <- "tle" x:identifier "in" e:#this;
         }
     }
     adapt rule keyword {

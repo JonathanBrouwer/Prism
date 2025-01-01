@@ -76,6 +76,7 @@ impl TcEnv {
                 PartialExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
+                PartialExpr::Name(_) => unimplemented!(),
             }
         }
     }

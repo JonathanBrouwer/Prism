@@ -63,6 +63,7 @@ impl TcEnv {
                 let typ = self.simplify_inner(typ, s, var_map);
                 PartialExpr::TypeAssert(e, typ)
             }
+            PartialExpr::Name(_) => unimplemented!(),
         };
         self.store(e_new, self.value_origins[*i])
     }

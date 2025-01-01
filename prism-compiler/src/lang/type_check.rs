@@ -110,6 +110,7 @@ impl TcEnv {
 
                 return et;
             }
+            PartialExpr::Name(_) => unimplemented!(),
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);

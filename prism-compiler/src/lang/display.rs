@@ -27,6 +27,7 @@ impl PartialExpr {
             PartialExpr::Shift(_, _) => PrecedenceLevel::Base,
             PartialExpr::Type => PrecedenceLevel::Base,
             PartialExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
+            PartialExpr::Name(_) => PrecedenceLevel::Base,
         }
     }
 }
@@ -78,6 +79,7 @@ impl TcEnv {
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
+            PartialExpr::Name(n) => unimplemented!(),
         }
 
         if e.precedence_level() < max_precedence {

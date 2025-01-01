@@ -302,6 +302,7 @@ impl TcEnv {
             PartialExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
+            PartialExpr::Name(_) => unimplemented!(),
         }
     }
 

@@ -71,7 +71,10 @@ pub enum PartialExpr {
     Free,
     Type,
     Let(UnionIndex, UnionIndex),
+
     DeBruijnIndex(usize),
+    Name(Span),
+
     FnType(UnionIndex, UnionIndex),
     FnConstruct(UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),

@@ -35,9 +35,8 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 if name == "_" {
                     PartialExpr::Free
                 } else {
-                    let (idx, _) = env
-                        .get(name)
-                        .ok_or_else(|| format!("Failed to find {name} in scope"))?;
+                    let (idx, _) = env.get(name).unwrap();
+                    // .ok_or_else(|| format!("Failed to find {name} in scope"))?;
                     PartialExpr::DeBruijnIndex(idx)
                 }
             }
@@ -73,20 +72,6 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::FnDestruct(f, v)
             }
-            // "GrammarDefine" => {
-            //     assert_eq!(args.len(), 4);
-            //     let guid = *reduce(args[1]).into_value::<Guid>();
-            //     let _id = reduce(args[2]).into_value::<Input>().as_str(src);
-            //     let _grammar = reduce(args[3]);
-            //
-            //     return *reduce(args[0]).into_value::<UnionIndex>();
-            //
-            //     // return self.insert_from_action_result_rec(
-            //     //     &args[0],
-            //     //     program,
-            //     //     &vars.insert_jump(guid),
-            //     // );
-            // }
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
 
@@ -94,62 +79,8 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 let typ = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::TypeAssert(e, typ)
             }
-            // "Name" => {
-            //     let name = reduce(args[0]).into_value::<Input>().as_str(src);
-            //     PartialExpr::DeBruijnIndex(0)
-            //
-            //     //     //             let e = if name == "_" {
-            //     //     //                 PartialExpr::Free
-            //     //     //             } else {
-            //     //     //                 match vars.get(name) {
-            //     //     //                     None => {
-            //     //     //                         self.errors.push(TypeError::UnknownName(*span));
-            //     //     //                         PartialExpr::Free
-            //     //     //                     }
-            //     //     //                     Some(ScopeValue::FromGrammar(ar, scope_vars)) => {
-            //     //     //                         // Create a new scope based on the current depth and `scope_vars`
-            //     //     //                         let mut scope_vars_with_hygienic_decls = Scope {
-            //     //     //                             depth: vars.depth,
-            //     //     //                             ..scope_vars.clone()
-            //     //     //                         };
-            //     //     //
-            //     //     //                         // Insert hygienically declared variables into the scope
-            //     //     //                         for (k, v) in &vars.hygienic_decls {
-            //     //     //                             scope_vars_with_hygienic_decls =
-            //     //     //                                 scope_vars_with_hygienic_decls.insert_name_at(k, *v, program);
-            //     //     //                         }
-            //     //     //
-            //     //     //                         // Parse the value in the new scope
-            //     //     //                         return self.insert_from_action_result_rec(
-            //     //     //                             ar,
-            //     //     //                             program,
-            //     //     //                             &scope_vars_with_hygienic_decls,
-            //     //     //                         );
-            //     //     //                     }
-            //     //     //                     Some(ScopeValue::FromEnv(ix)) => {
-            //     //     //                         PartialExpr::DeBruijnIndex(vars.depth - ix - 1)
-            //     //     //                     }
-            //     //     //                 }
-            //     //     //             };
-            //     //     //             (e, *span)
-            // }
             _ => unreachable!(),
         };
-
-        //     //         ActionResult::Value(span) => {
-        //     //             let name = Self::parse_name(value, program);
-        //     //
-
-        //     //         }
-        //     //         ActionResult::WithEnv(new_vars, ar) => {
-        //     //             let ActionResult::Construct(_span, "ScopeEnter", args) = ar else {
-        //     //                 unreachable!()
-        //     //             };
-        //     //             let guid = Self::parse_guid(&args[1]);
-        //     //             let vars = vars.jump(guid).extend_with_ars(new_vars, vars);
-        //     //
-        //     //             return self.insert_from_action_result_rec(&args[0], program, &vars);
-        //     //         }
 
         Ok(tc_env.store_from_source(expr, _span))
     }
