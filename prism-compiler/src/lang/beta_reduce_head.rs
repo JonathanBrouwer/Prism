@@ -7,9 +7,9 @@ impl<'grm> TcEnv<'grm> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: UnionIndex,
-        mut start_env: Env,
-    ) -> (UnionIndex, Env) {
-        let mut args: Vec<(UnionIndex, Env)> = Vec::new();
+        mut start_env: Env<'grm>,
+    ) -> (UnionIndex, Env<'grm>) {
+        let mut args: Vec<(UnionIndex, Env<'grm>)> = Vec::new();
 
         let mut e: UnionIndex = start_expr;
         let mut s: Env = start_env.clone();
@@ -25,14 +25,14 @@ impl<'grm> TcEnv<'grm> {
                     s = s.cons(RSubst(v, s.clone()))
                 }
                 PartialExpr::DeBruijnIndex(i) => match s[i] {
-                    CType(_, _) | RType(_) => {
+                    CType(_, _, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
                         } else {
                             (start_expr, start_env)
                         }
                     }
-                    CSubst(v, _) => {
+                    CSubst(v, _, _) => {
                         e = v;
                         s = s.shift(i + 1);
                     }

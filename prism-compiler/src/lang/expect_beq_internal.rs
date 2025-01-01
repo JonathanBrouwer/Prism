@@ -13,8 +13,16 @@ impl<'grm> TcEnv<'grm> {
         &mut self,
         // io is the UnionIndex that lives in a certain `s`
         // The var_map is a map for each `UniqueVariableId`, its depth in the scope
-        (i1o, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2o, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1o, s1, var_map1): (
+            UnionIndex,
+            &Env<'grm>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
+        (i2o, s2, var_map2): (
+            UnionIndex,
+            &Env<'grm>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
@@ -31,12 +39,12 @@ impl<'grm> TcEnv<'grm> {
             (PartialExpr::DeBruijnIndex(index1), PartialExpr::DeBruijnIndex(index2)) => {
                 // Get the UniqueVariableId that `index1` refers to
                 let id1 = match s1[index1] {
-                    CType(id, _) | RType(id) => id,
+                    CType(id, _, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 // Get the UniqueVariableId that `index2` refers to
                 let id2 = match s2[index2] {
-                    CType(id, _) | RType(id) => id,
+                    CType(id, _, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 // Check if the unique variable indices (not the de bruijn indices) are equal
@@ -96,9 +104,13 @@ impl<'grm> TcEnv<'grm> {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: UnionIndex,
-        s1: &Env,
+        s1: &Env<'grm>,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
-        (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (
+            UnionIndex,
+            &Env<'grm>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         assert!(matches!(
@@ -121,8 +133,16 @@ impl<'grm> TcEnv<'grm> {
     #[must_use]
     pub fn expect_beq_free(
         &mut self,
-        (i1, s1, var_map1): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2, s2, var_map2): (UnionIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1, s1, var_map1): (
+            UnionIndex,
+            &Env<'grm>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
+        (i2, s2, var_map2): (
+            UnionIndex,
+            &Env<'grm>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         assert!(matches!(self.values[*i2], PartialExpr::Free));
 
@@ -159,7 +179,7 @@ impl<'grm> TcEnv<'grm> {
             }
             PartialExpr::DeBruijnIndex(v1) => {
                 let subst_equal = match &s1[v1] {
-                    &CType(id, _) => {
+                    &CType(id, _, _) => {
                         // We may have shifted away part of the env that we need during this beq
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
                             self.errors.push(TypeError::BadInfer {
@@ -168,7 +188,7 @@ impl<'grm> TcEnv<'grm> {
                             });
                             return true;
                         };
-                        let CType(id2, _) = s2[v2] else {
+                        let CType(id2, _, _) = s2[v2] else {
                             self.errors.push(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
@@ -181,7 +201,7 @@ impl<'grm> TcEnv<'grm> {
                         self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
                         true
                     }
-                    &CSubst(_, _) => {
+                    &CSubst(_, _, _) => {
                         // Same story as above, except we don't have the `id` to double check with here.
                         // The logic should still hold even without the sanity check though
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
@@ -191,7 +211,7 @@ impl<'grm> TcEnv<'grm> {
                             });
                             return true;
                         };
-                        let CSubst(_, _) = s2[v2] else {
+                        let CSubst(_, _, _) = s2[v2] else {
                             self.errors.push(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,

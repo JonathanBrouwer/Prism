@@ -1,5 +1,4 @@
 use crate::lang::{PartialExpr, TcEnv, UnionIndex};
-use crate::parser::parse_env::ParsedEnv;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::pos::Pos;
@@ -87,25 +86,26 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
     allocs: Allocs<'arn>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
-        let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
-        let from_env = value.1;
-        let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
-
-        let shift = to_env.find_shift_to(from_env);
-        let inner = *reduce_expr(value.0, tc_env, allocs).into_value::<UnionIndex>();
-
-        let expr = tc_env.store_from_source(
-            PartialExpr::Shift(inner, shift),
-            Span::new(Pos::invalid(), Pos::invalid()),
-        );
-        Parsed::from_value(allocs.alloc(expr))
+        todo!()
+        // let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
+        // let from_env = value.1;
+        // let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
+        //
+        // let shift = to_env.find_shift_to(from_env);
+        // let inner = *reduce_expr(value.0, tc_env, allocs).into_value::<UnionIndex>();
+        //
+        // let expr = tc_env.store_from_source(
+        //     PartialExpr::Shift(inner, shift),
+        //     Span::new(Pos::invalid(), Pos::invalid()),
+        // );
+        // Parsed::from_value(allocs.alloc(expr))
     } else {
         parsed
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, &'arn ParsedEnv<'arn>);
+pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
@@ -117,6 +117,6 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, '
         tc_env: &mut TcEnv,
     ) -> Result<Self, String> {
         assert_eq!(constructor, "Enter");
-        Ok(ScopeEnter(args[0], args[1].into_value::<ParsedEnv<'arn>>()))
+        Ok(ScopeEnter(args[0]))
     }
 }

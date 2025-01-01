@@ -25,7 +25,7 @@ impl<'grm> TcEnv<'grm> {
                 PartialExpr::Let(n, v, b)
             }
             PartialExpr::DeBruijnIndex(v) => match s.get(v) {
-                Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
+                Some(EnvEntry::CType(_, _, _)) | Some(EnvEntry::CSubst(_, _, _)) => unreachable!(),
                 Some(EnvEntry::RType(id)) => {
                     PartialExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
                 }

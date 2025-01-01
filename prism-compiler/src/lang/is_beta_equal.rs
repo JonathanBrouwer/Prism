@@ -13,11 +13,11 @@ impl<'grm> TcEnv<'grm> {
             (PartialExpr::Type, PartialExpr::Type) => {}
             (PartialExpr::DeBruijnIndex(i1), PartialExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
-                    CType(id, _) | RType(id) => id,
+                    CType(id, _, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 let id2 = match s2[i2] {
-                    CType(id, _) | RType(id) => id,
+                    CType(id, _, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 if id1 != id2 {

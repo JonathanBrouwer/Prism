@@ -1,5 +1,4 @@
 use crate::lang::{TcEnv, UnionIndex};
-use crate::parser::parse_env::ParsedEnv;
 use crate::parser::parse_expr::{reduce_expr, ScopeEnter};
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
@@ -12,7 +11,6 @@ use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-mod parse_env;
 pub mod parse_expr;
 
 pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
@@ -31,7 +29,6 @@ pub fn parse_prism_in_env<'p>(
     let allocs = Allocs::new(&bump);
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
-    parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule_raw::<TcEnv<'p>, SetError>(&GRAMMAR, "expr", program, allocs, parsables, env)

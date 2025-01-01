@@ -6,16 +6,16 @@ use rpds::Vector;
 pub struct UniqueVariableId(usize);
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub enum EnvEntry {
+pub enum EnvEntry<'grm> {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
-    CType(UniqueVariableId, UnionIndex),
+    CType(UniqueVariableId, UnionIndex, &'grm str),
 
-    CSubst(UnionIndex, UnionIndex),
+    CSubst(UnionIndex, UnionIndex, &'grm str),
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(UnionIndex, Env),
+    RSubst(UnionIndex, Env<'grm>),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -27,7 +27,7 @@ impl<T> Default for GenericEnv<T> {
     }
 }
 
-pub type Env = GenericEnv<EnvEntry>;
+pub type Env<'grm> = GenericEnv<EnvEntry<'grm>>;
 
 impl<T> GenericEnv<T> {
     pub fn new() -> Self {

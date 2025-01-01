@@ -17,9 +17,9 @@ pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
 
-type QueuedConstraint = (
-    (Env, HashMap<UniqueVariableId, usize>),
-    (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
+type QueuedConstraint<'grm> = (
+    (Env<'grm>, HashMap<UniqueVariableId, usize>),
+    (UnionIndex, Env<'grm>, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Default)]
@@ -33,7 +33,7 @@ pub struct TcEnv<'grm> {
     toxic_values: HashSet<UnionIndex>,
 
     // Queues
-    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint>>,
+    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'grm>>>,
     // queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 

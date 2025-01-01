@@ -21,7 +21,7 @@ impl<'grm> TcEnv<'grm> {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: UnionIndex, s: &Env) -> UnionIndex {
+    fn _type_check(&mut self, i: UnionIndex, s: &Env<'grm>) -> UnionIndex {
         // We should only type check values from the source code
         assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
 
@@ -35,18 +35,18 @@ impl<'grm> TcEnv<'grm> {
                     v = self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
 
-                let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
+                let bt = self._type_check(b, &s.cons(CSubst(v, vt, n)));
                 PartialExpr::Let(n, v, bt)
             }
             PartialExpr::DeBruijnIndex(index) => match s.get(index) {
-                Some(&CType(_, t) | &CSubst(_, t)) => PartialExpr::Shift(t, index + 1),
+                Some(&CType(_, t, _) | &CSubst(_, t, _)) => PartialExpr::Shift(t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
                     self.errors.push(TypeError::IndexOutOfBound(i));
                     return self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
             },
-            PartialExpr::FnType(_, mut a, b) => {
+            PartialExpr::FnType(n, mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
@@ -55,7 +55,7 @@ impl<'grm> TcEnv<'grm> {
                 }
 
                 let err_count = self.errors.len();
-                let bs = s.cons(CType(self.new_tc_id(), a));
+                let bs = s.cons(CType(self.new_tc_id(), a, n));
                 let bt = self._type_check(b, &bs);
 
                 // Check if `b` typechecked without errors.
@@ -67,7 +67,7 @@ impl<'grm> TcEnv<'grm> {
             }
             PartialExpr::FnConstruct(n, b) => {
                 let a = self.store(PartialExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = s.cons(CType(self.new_tc_id(), a));
+                let bs = s.cons(CType(self.new_tc_id(), a, n));
                 let bt = self._type_check(b, &bs);
                 PartialExpr::FnType(n, a, bt)
             }
