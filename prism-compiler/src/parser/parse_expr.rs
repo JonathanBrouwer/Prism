@@ -2,6 +2,7 @@ use crate::lang::{PartialExpr, TcEnv, UnionIndex};
 use crate::parser::parse_env::ParsedEnv;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
+use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::parsed::Parsed;
@@ -13,7 +14,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
         _span: Span,
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
-        _allocs: Allocs<'arn>,
+        allocs: Allocs<'arn>,
         _src: &'grm str,
         tc_env: &mut TcEnv,
     ) -> Result<Self, String> {
@@ -28,7 +29,9 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = reduce(args[0]).into_value::<Input>().as_str(_src);
+                let name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input>()
+                    .as_str(_src);
                 if name == "_" {
                     PartialExpr::Free
                 } else {
@@ -40,28 +43,34 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
-                let v = *reduce(args[1]).into_value::<UnionIndex>();
-                let b = *reduce(args[2]).into_value::<UnionIndex>();
+                let _name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input>()
+                    .as_str(_src);
+                let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
+                let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::Let(v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
-                let v = *reduce(args[1]).into_value::<UnionIndex>();
-                let b = *reduce(args[2]).into_value::<UnionIndex>();
+                let _name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input>()
+                    .as_str(_src);
+                let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
+                let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::FnType(v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let _name = reduce(args[0]).into_value::<Input>().as_str(_src);
-                let b = *reduce(args[1]).into_value::<UnionIndex>();
+                let _name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input>()
+                    .as_str(_src);
+                let b = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::FnConstruct(b)
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
-                let f = *reduce(args[0]).into_value::<UnionIndex>();
-                let v = *reduce(args[1]).into_value::<UnionIndex>();
+                let f = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
+                let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::FnDestruct(f, v)
             }
             // "GrammarDefine" => {
@@ -81,8 +90,8 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
 
-                let e = *reduce(args[0]).into_value::<UnionIndex>();
-                let typ = *reduce(args[1]).into_value::<UnionIndex>();
+                let e = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
+                let typ = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::TypeAssert(e, typ)
             }
             // "Name" => {
@@ -146,26 +155,42 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     }
 }
 
-pub fn reduce<'arn, 'grm: 'arn>(parsed: Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm> {
+pub fn reduce_expr<'arn, 'grm: 'arn>(
+    parsed: Parsed<'arn, 'grm>,
+    tc_env: &mut TcEnv,
+    allocs: Allocs<'arn>,
+) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
-        reduce(v.value)
-        // let v = v.value.into_value::<ScopeEnter>();
-        // reduce(v.0)
+        let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
+        let from_env = value.1;
+        let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
+
+        let shift = to_env.find_shift_to(from_env);
+        let inner = *reduce_expr(value.0, tc_env, allocs).into_value::<UnionIndex>();
+
+        let expr = tc_env.store_from_source(
+            PartialExpr::Shift(inner, shift),
+            Span::new(Pos::invalid(), Pos::invalid()),
+        );
+        Parsed::from_value(allocs.alloc(expr))
     } else {
         parsed
     }
 }
-//
-// #[derive(Copy, Clone)]
-// pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
-// impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for ScopeEnter<'arn, 'grm> {
-//     fn from_construct(
-//         span: Span,
-//         constructor: &'grm str,
-//         args: &[Parsed<'arn, 'grm>],
-//         allocs: Allocs<'arn>,
-//         src: &'grm str,
-//     ) -> Self {
-//         ScopeEnter(args[0], *args[1].into_value::<Guid>())
-//     }
-// }
+
+#[derive(Copy, Clone)]
+pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, &'arn ParsedEnv<'arn>);
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ScopeEnter<'arn, 'grm> {
+    fn from_construct(
+        span: Span,
+        constructor: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+        tc_env: &mut TcEnv,
+    ) -> Result<Self, String> {
+        assert_eq!(constructor, "Enter");
+        Ok(ScopeEnter(args[0], args[1].into_value::<ParsedEnv<'arn>>()))
+    }
+}

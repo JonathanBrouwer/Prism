@@ -1,6 +1,6 @@
 use crate::lang::{TcEnv, UnionIndex};
 use crate::parser::parse_env::ParsedEnv;
-use crate::parser::parse_expr::reduce;
+use crate::parser::parse_expr::{reduce_expr, ScopeEnter};
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
@@ -32,9 +32,10 @@ pub fn parse_prism_in_env<'p>(
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
+    parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables, env)
-        .map(|v| *reduce(v).into_value())
+        .map(|v| *reduce_expr(v, env, allocs).into_value())
 }
 
 pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {

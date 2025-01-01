@@ -1,6 +1,6 @@
 rule start = expr($Env::Nil());
 
-rule wrapped_expr(env) = RuleAction::Value(e) <- e:expr(env);
+rule wrapped_expr(env) = RuleAction::Value(ScopeEnter::Enter(e, env)) <- e:expr(env);
 
 rule expr(env) {
     group statement {

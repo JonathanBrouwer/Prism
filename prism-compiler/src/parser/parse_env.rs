@@ -4,6 +4,7 @@ use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable2, ParseResult};
+use std::fmt::{Debug, Formatter};
 
 #[derive(Copy, Clone)]
 pub struct ParsedEnv<'arn>(Option<&'arn ParsedEnvNode<'arn>>);
@@ -26,6 +27,23 @@ impl<'arn> ParsedEnv<'arn> {
         }
         None
     }
+
+    pub fn find_shift_to(&self, other: &Self) -> usize {
+        let mut current = self.0;
+        let target = other.0;
+        let mut i = 0;
+        loop {
+            // If the current is the target, exit
+            if current.map(|r| r as *const _) == target.map(|r| r as *const _) {
+                return i;
+            }
+            i += 1;
+            let Some(next) = current else {
+                panic!("Ran out of nodes to consider");
+            };
+            current = next.next;
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -42,6 +60,15 @@ pub enum ParsedEnvNodeValue<'arn> {
         subst_env: ParsedEnv<'arn>,
     },
     Type,
+}
+
+impl<'arn> Debug for ParsedEnvNodeValue<'arn> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParsedEnvNodeValue::Substitute { subst, .. } => write!(f, "SUBST {subst}"),
+            ParsedEnvNodeValue::Type => write!(f, "TYPE"),
+        }
+    }
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedEnv<'arn> {}
