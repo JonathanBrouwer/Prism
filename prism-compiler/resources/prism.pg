@@ -1,39 +1,37 @@
-rule start = expr($Env::Nil());
+//rule wrapped_expr = RuleAction::Value(ScopeEnter::Enter(e)) <- e:expr;
 
-rule wrapped_expr(env) = RuleAction::Value(ScopeEnter::Enter(e, env)) <- e:expr(env);
-
-rule expr(env) {
+rule expr {
     group statement {
-        b <- "grammar" "{" g:grammar(wrapped_expr(env)) "}" b:#adapt(g, expr(env));
-        Expr::Let(env, n, v, b)
-            <- "let" n:identifier "=" v:#next ";" b:#this($Env::Substitute(n, v, env));
-        Expr::Let(env, n, Expr::TypeAssert(env, v, t), b)
-            <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this($Env::Substitute(n, v, env));
+        //b <- "grammar" "{" g:grammar(wrapped_expr) "}" b:#adapt(g, expr);
+        Expr::Let(n, v, b)
+            <- "let" n:identifier "=" v:#next ";" b:#this;
+        Expr::Let(n, Expr::TypeAssert(v, t), b)
+            <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
     }
     group fnconstruct {
-        Expr::FnConstruct(env, n, Expr::Let(Env::Type(n, env), "_", Expr::TypeAssert(env, Expr::Name(Env::Type(n, env), n), t), r))
-            <- "(" n:identifier ":" t:#next($Env::Type("_", env)) ")" "=>" r:#this($Env::Type("_", Env::Type(n, env)));
-        Expr::FnConstruct(env, n, r)
-            <- n:identifier "=>" r:#this($Env::Type(n, env));
+        Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r))
+            <- "(" n:identifier ":" t:#next ")" "=>" r:#this;
+        Expr::FnConstruct(n, r)
+            <- n:identifier "=>" r:#this;
     }
     group fntype {
-        Expr::FnType(env, n, at, bt)
-            <- "(" n:identifier ":" at:#this ")" "->" bt:#this($Env::Type(n, env));
-        Expr::FnType(env, "_", at, bt)
-            <- at:#next "->" bt:#this($Env::Type("_", env));
+        Expr::FnType(n, at, bt)
+            <- "(" n:identifier ":" at:#this ")" "->" bt:#this;
+        Expr::FnType("_", at, bt)
+            <- at:#next "->" bt:#this;
     }
     group assert {
-        Expr::TypeAssert(env, e, typ)
+        Expr::TypeAssert(e, typ)
             <- e:#next ":" typ:#next;
     }
     group fndestruct {
-        Expr::FnDestruct(env, f, a)
+        Expr::FnDestruct(f, a)
             <- f:#this " " a:#next;
     }
     group base {
-        t <- "(" t:expr(env) ")";
-        Expr::Type(env) <- "Type";
-        Expr::Name(env, n) <- n:identifier;
+        t <- "(" t:expr ")";
+        Expr::Type() <- "Type";
+        Expr::Name(n) <- n:identifier;
     }
 }
 

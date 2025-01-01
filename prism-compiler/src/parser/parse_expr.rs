@@ -13,14 +13,11 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         _src: &'grm str,
         tc_env: &mut TcEnv,
     ) -> Result<Self, String> {
-        let env = _args[0].into_value::<ParsedEnv<'arn>>();
-        let args = &_args[1..];
-
         let expr = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
@@ -35,9 +32,8 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 if name == "_" {
                     PartialExpr::Free
                 } else {
-                    let (idx, _) = env.get(name).unwrap();
-                    // .ok_or_else(|| format!("Failed to find {name} in scope"))?;
-                    PartialExpr::DeBruijnIndex(idx)
+                    // PartialExpr::Name()
+                    PartialExpr::DeBruijnIndex(0)
                 }
             }
             "Let" => {

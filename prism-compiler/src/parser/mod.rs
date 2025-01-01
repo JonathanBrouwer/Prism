@@ -34,7 +34,7 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
-    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "start", program, allocs, parsables, env)
+    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "expr", program, allocs, parsables, env)
         .map(|v| *reduce_expr(v, env, allocs).into_value())
 }
 
