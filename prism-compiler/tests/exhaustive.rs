@@ -58,19 +58,20 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
                     env_size.push(env_size[*i]);
                     env_size.push(env_size[*i] + 1);
                     PartialExpr::Let(
+                        "",
                         env.store_test(PartialExpr::Free),
                         env.store_test(PartialExpr::Free),
                     )
                 }
             }
-            PartialExpr::Let(e1, e2) => PartialExpr::FnType(e1, e2),
-            PartialExpr::FnType(e1, _) => {
+            PartialExpr::Let(_, e1, e2) => PartialExpr::FnType("", e1, e2),
+            PartialExpr::FnType(_, e1, _) => {
                 env.values.pop().unwrap();
                 env_size.pop().unwrap();
                 env_size[*e1] += 1;
-                PartialExpr::FnConstruct(e1)
+                PartialExpr::FnConstruct("", e1)
             }
-            PartialExpr::FnConstruct(e1) => {
+            PartialExpr::FnConstruct(_, e1) => {
                 env_size[*e1] -= 1;
                 env_size.push(env_size[*i]);
                 PartialExpr::FnDestruct(e1, env.store_test(PartialExpr::Free))

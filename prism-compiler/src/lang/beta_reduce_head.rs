@@ -3,7 +3,7 @@ use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: UnionIndex,
@@ -20,7 +20,7 @@ impl TcEnv {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PartialExpr::Let(v, b) => {
+                PartialExpr::Let(_n, v, b) => {
                     e = b;
                     s = s.cons(RSubst(v, s.clone()))
                 }
@@ -41,11 +41,11 @@ impl TcEnv {
                         s = vs.clone();
                     }
                 },
-                PartialExpr::FnType(_, _) => {
+                PartialExpr::FnType(_n, _, _) => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PartialExpr::FnConstruct(b) => match args.pop() {
+                PartialExpr::FnConstruct(_n, b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;

@@ -9,16 +9,16 @@ use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable2, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
     fn from_construct(
-        _span: Span,
+        span: Span,
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         _src: &'grm str,
-        tc_env: &mut TcEnv,
+        tc_env: &mut TcEnv<'grm>,
     ) -> Result<Self, String> {
-        let expr = match constructor {
+        let expr: PartialExpr<'grm> = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -32,35 +32,34 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
                 if name == "_" {
                     PartialExpr::Free
                 } else {
-                    // PartialExpr::Name()
-                    PartialExpr::DeBruijnIndex(0)
+                    PartialExpr::Name(name)
                 }
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce_expr(args[0], tc_env, allocs)
-                    .into_value::<Input>()
+                let name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input<'grm>>()
                     .as_str(_src);
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::Let(v, b)
+                PartialExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let _name = reduce_expr(args[0], tc_env, allocs)
-                    .into_value::<Input>()
+                let name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input<'grm>>()
                     .as_str(_src);
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::FnType(v, b)
+                PartialExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let _name = reduce_expr(args[0], tc_env, allocs)
-                    .into_value::<Input>()
+                let name = reduce_expr(args[0], tc_env, allocs)
+                    .into_value::<Input<'grm>>()
                     .as_str(_src);
                 let b = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::FnConstruct(b)
+                PartialExpr::FnConstruct(name, b)
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
@@ -78,7 +77,7 @@ impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for UnionIndex {
             _ => unreachable!(),
         };
 
-        Ok(tc_env.store_from_source(expr, _span))
+        Ok(tc_env.store_from_source(expr, span))
     }
 }
 
@@ -108,7 +107,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 #[derive(Copy, Clone)]
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, &'arn ParsedEnv<'arn>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ScopeEnter<'arn, 'grm> {
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
         span: Span,
         constructor: &'grm str,

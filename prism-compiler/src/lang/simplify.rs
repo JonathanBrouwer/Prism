@@ -3,7 +3,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     pub fn simplify(&mut self, i: UnionIndex) -> UnionIndex {
         self.simplify_inner(i, &Env::new(), &mut HashMap::new())
     }
@@ -16,13 +16,13 @@ impl TcEnv {
     ) -> UnionIndex {
         let e_new = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(v, b) => {
+            PartialExpr::Let(n, v, b) => {
                 let v = self.simplify_inner(v, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::Let(v, b)
+                PartialExpr::Let(n, v, b)
             }
             PartialExpr::DeBruijnIndex(v) => match s.get(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
@@ -34,20 +34,20 @@ impl TcEnv {
                 }
                 None => PartialExpr::DeBruijnIndex(v),
             },
-            PartialExpr::FnType(a, b) => {
+            PartialExpr::FnType(n, a, b) => {
                 let a = self.simplify_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnType(a, b)
+                PartialExpr::FnType(n, a, b)
             }
-            PartialExpr::FnConstruct(b) => {
+            PartialExpr::FnConstruct(n, b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnConstruct(b)
+                PartialExpr::FnConstruct(n, b)
             }
             PartialExpr::FnDestruct(a, b) => {
                 let a = self.simplify_inner(a, s, var_map);

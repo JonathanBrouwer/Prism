@@ -3,7 +3,7 @@ use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     pub fn is_beta_equal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
@@ -24,7 +24,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (PartialExpr::FnType(a1, b1), PartialExpr::FnType(a2, b2)) => {
+            (PartialExpr::FnType(_, a1, b1), PartialExpr::FnType(_, a2, b2)) => {
                 if !self.is_beta_equal(a1, &s1, a2, &s2) {
                     return false;
                 }
@@ -33,7 +33,7 @@ impl TcEnv {
                     return false;
                 }
             }
-            (PartialExpr::FnConstruct(b1), PartialExpr::FnConstruct(b2)) => {
+            (PartialExpr::FnConstruct(_, b1), PartialExpr::FnConstruct(_, b2)) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;

@@ -25,7 +25,7 @@ pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
 
 pub fn parse_prism_in_env<'p>(
     program: &'p str,
-    env: &mut TcEnv,
+    env: &mut TcEnv<'p>,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
     let bump = Bump::new();
     let allocs = Allocs::new(&bump);
@@ -34,7 +34,7 @@ pub fn parse_prism_in_env<'p>(
     parsables.insert("Env", ParsableDyn::new::<ParsedEnv>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
-    run_parser_rule_raw::<TcEnv, SetError>(&GRAMMAR, "expr", program, allocs, parsables, env)
+    run_parser_rule_raw::<TcEnv<'p>, SetError>(&GRAMMAR, "expr", program, allocs, parsables, env)
         .map(|v| *reduce_expr(v, env, allocs).into_value())
 }
 

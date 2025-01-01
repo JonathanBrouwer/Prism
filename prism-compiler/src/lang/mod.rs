@@ -23,8 +23,8 @@ type QueuedConstraint = (
 );
 
 #[derive(Default)]
-pub struct TcEnv {
-    pub values: Vec<PartialExpr>,
+pub struct TcEnv<'grm> {
+    pub values: Vec<PartialExpr<'grm>>,
     pub value_origins: Vec<ValueOrigin>,
     value_types: HashMap<UnionIndex, UnionIndex>,
 
@@ -67,34 +67,34 @@ impl Deref for UnionIndex {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum PartialExpr {
+pub enum PartialExpr<'grm> {
     Free,
     Type,
-    Let(UnionIndex, UnionIndex),
+    Let(&'grm str, UnionIndex, UnionIndex),
 
     DeBruijnIndex(usize),
-    Name(Span),
+    Name(&'grm str),
 
-    FnType(UnionIndex, UnionIndex),
-    FnConstruct(UnionIndex),
+    FnType(&'grm str, UnionIndex, UnionIndex),
+    FnConstruct(&'grm str, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),
 }
 
-impl TcEnv {
-    pub fn store_from_source(&mut self, e: PartialExpr, span: Span) -> UnionIndex {
+impl<'grm> TcEnv<'grm> {
+    pub fn store_from_source(&mut self, e: PartialExpr<'grm>, span: Span) -> UnionIndex {
         self.store(e, ValueOrigin::SourceCode(span))
     }
 
-    pub fn store_test(&mut self, e: PartialExpr) -> UnionIndex {
+    pub fn store_test(&mut self, e: PartialExpr<'grm>) -> UnionIndex {
         self.store(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
     }
 
-    fn store(&mut self, e: PartialExpr, origin: ValueOrigin) -> UnionIndex {
+    fn store(&mut self, e: PartialExpr<'grm>, origin: ValueOrigin) -> UnionIndex {
         self.values.push(e);
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)

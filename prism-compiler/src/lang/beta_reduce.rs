@@ -3,7 +3,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     pub fn beta_reduce(&mut self, i: UnionIndex) -> UnionIndex {
         self.beta_reduce_inner(i, &Env::new(), &mut HashMap::new())
     }
@@ -18,27 +18,27 @@ impl TcEnv {
 
         let e_new = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(_, _) => unreachable!(),
+            PartialExpr::Let(_, _, _) => unreachable!(),
             PartialExpr::DeBruijnIndex(v) => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
                 };
                 PartialExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
             }
-            PartialExpr::FnType(a, b) => {
+            PartialExpr::FnType(n, a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnType(a, b)
+                PartialExpr::FnType(n, a, b)
             }
-            PartialExpr::FnConstruct(b) => {
+            PartialExpr::FnConstruct(n, b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnConstruct(b)
+                PartialExpr::FnConstruct(n, b)
             }
             PartialExpr::FnDestruct(a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);

@@ -14,13 +14,13 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl PartialExpr {
+impl<'grm> PartialExpr<'grm> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
-            PartialExpr::Let(_, _) => PrecedenceLevel::Let,
-            PartialExpr::FnConstruct(_) => PrecedenceLevel::Construct,
-            PartialExpr::FnType(_, _) => PrecedenceLevel::FnType,
+            PartialExpr::Let(_, _, _) => PrecedenceLevel::Let,
+            PartialExpr::FnConstruct(_, _) => PrecedenceLevel::Construct,
+            PartialExpr::FnType(_, _, _) => PrecedenceLevel::FnType,
             PartialExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
             PartialExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
             PartialExpr::Free => PrecedenceLevel::Base,
@@ -32,7 +32,7 @@ impl PartialExpr {
     }
 }
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     fn display(
         &self,
         i: UnionIndex,
@@ -47,19 +47,21 @@ impl TcEnv {
 
         match e {
             PartialExpr::Type => write!(w, "Type")?,
-            PartialExpr::Let(v, b) => {
-                write!(w, "let ")?;
+            PartialExpr::Let(n, v, b) => {
+                write!(w, "let ({n} =) ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
             }
             PartialExpr::DeBruijnIndex(i) => write!(w, "#{i}")?,
-            PartialExpr::FnType(a, b) => {
+            PartialExpr::FnType(n, a, b) => {
+                write!(w, "({n}: ")?;
                 self.display(a, w, PrecedenceLevel::TypeAssert)?;
-                write!(w, " -> ")?;
+                write!(w, ") -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            PartialExpr::FnConstruct(b) => {
+            PartialExpr::FnConstruct(n, b) => {
+                write!(w, "{n}")?;
                 write!(w, "=> ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }

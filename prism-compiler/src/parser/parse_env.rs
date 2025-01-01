@@ -72,7 +72,7 @@ impl<'arn> Debug for ParsedEnvNodeValue<'arn> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedEnv<'arn> {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv> for ParsedEnv<'arn> {
+impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for ParsedEnv<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

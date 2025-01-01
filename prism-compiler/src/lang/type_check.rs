@@ -1,12 +1,13 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{AggregatedTypeError, TypeError};
+use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
 use crate::lang::{PartialExpr, TcEnv};
 use std::mem;
 
-impl TcEnv {
+impl<'grm> TcEnv<'grm> {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
         let ti = self._type_check(root, &Env::new());
 
@@ -26,7 +27,7 @@ impl TcEnv {
 
         let t = match self.values[*i] {
             PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(mut v, b) => {
+            PartialExpr::Let(n, mut v, b) => {
                 // Check `v`
                 let err_count = self.errors.len();
                 let vt = self._type_check(v, s);
@@ -35,7 +36,7 @@ impl TcEnv {
                 }
 
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt)));
-                PartialExpr::Let(v, bt)
+                PartialExpr::Let(n, v, bt)
             }
             PartialExpr::DeBruijnIndex(index) => match s.get(index) {
                 Some(&CType(_, t) | &CSubst(_, t)) => PartialExpr::Shift(t, index + 1),
@@ -45,7 +46,7 @@ impl TcEnv {
                     return self.store(PartialExpr::Free, ValueOrigin::Failure);
                 }
             },
-            PartialExpr::FnType(mut a, b) => {
+            PartialExpr::FnType(_, mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
@@ -64,11 +65,11 @@ impl TcEnv {
 
                 PartialExpr::Type
             }
-            PartialExpr::FnConstruct(b) => {
+            PartialExpr::FnConstruct(n, b) => {
                 let a = self.store(PartialExpr::Free, ValueOrigin::FreeSub(i));
                 let bs = s.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
-                PartialExpr::FnType(a, bt)
+                PartialExpr::FnType(n, a, bt)
             }
             PartialExpr::FnDestruct(f, mut a) => {
                 let err_count = self.errors.len();
@@ -85,7 +86,7 @@ impl TcEnv {
                     self.expect_beq_fn_type(ft, at, rt, s)
                 }
 
-                PartialExpr::Let(a, rt)
+                PartialExpr::Let(GENERATED_NAME, a, rt)
             }
             PartialExpr::Free => {
                 // TODO self.queued_tc.insert(i, (s.clone(), t));

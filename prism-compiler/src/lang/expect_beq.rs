@@ -6,7 +6,9 @@ use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
-impl TcEnv {
+pub const GENERATED_NAME: &str = "GENERATED";
+
+impl<'grm> TcEnv<'grm> {
     /// Expect `i1` to be equal to `i2` in `s`
     pub fn expect_beq_assert(
         &mut self,
@@ -51,7 +53,7 @@ impl TcEnv {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 
         match self.values[*fr] {
-            PartialExpr::FnType(f_at, f_rt) => {
+            PartialExpr::FnType(_, f_at, f_rt) => {
                 // Check
                 if !self.expect_beq_internal(
                     (f_at, &sr, &mut HashMap::new()),
@@ -79,7 +81,7 @@ impl TcEnv {
             PartialExpr::Free => {
                 let f_at = self.store(PartialExpr::Free, FreeSub(fr));
                 let f_rt = self.store(PartialExpr::Free, FreeSub(fr));
-                self.values[*fr] = PartialExpr::FnType(f_at, f_rt);
+                self.values[*fr] = PartialExpr::FnType(GENERATED_NAME, f_at, f_rt);
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
