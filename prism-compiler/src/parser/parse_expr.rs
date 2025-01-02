@@ -5,10 +5,10 @@ use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parsable::{Parsable2, ParseResult};
+use prism_parser::parsable::{Parsable, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -107,7 +107,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 #[derive(Copy, Clone)]
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn> Parsable2<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
         span: Span,
         constructor: &'grm str,

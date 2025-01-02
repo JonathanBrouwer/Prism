@@ -3,7 +3,7 @@ use crate::core::span::Span;
 use crate::grammar::rule::Rule;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +14,7 @@ pub struct GrammarFile<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for GrammarFile<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

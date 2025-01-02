@@ -3,7 +3,7 @@ use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ impl CharClass<'_> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClass<'arn> {}
-impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClass<'arn> {
 pub struct CharClassRange(char, char);
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClassRange {}
-impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for CharClassRange {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClassRange {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

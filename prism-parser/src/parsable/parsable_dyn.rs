@@ -1,7 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable2;
+use crate::parsable::Parsable;
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone)]
@@ -17,7 +17,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
 }
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
-    pub fn new<P: Parsable2<'arn, 'grm, Env>>() -> Self {
+    pub fn new<P: Parsable<'arn, 'grm, Env>>() -> Self {
         Self {
             from_construct: P::from_construct_dyn,
         }

@@ -18,7 +18,7 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
     }
 }
 
-pub trait Parsable2<'arn, 'grm: 'arn, Env>:
+pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
     fn from_construct(

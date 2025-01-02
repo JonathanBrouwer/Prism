@@ -2,10 +2,10 @@ use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable2, ParseResult};
+use crate::parsable::{Parsable, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Option<u64> {}
-impl<'arn, 'grm: 'arn, Env> Parsable2<'arn, 'grm, Env> for Option<u64> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Option<u64> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
