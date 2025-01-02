@@ -1,8 +1,9 @@
 ### Input
+let x = Type -> Type;
 grammar {
-    adapt rule expr(env) {
+    adapt rule expr {
         adapt group statement {
-            let x = Type; x <- "tel" x:identifier;
+            let n = Type; x <- "tel" n:identifier;
         }
     }
     adapt rule keyword {
@@ -10,11 +11,11 @@ grammar {
     }
 }
 
-tel y
+tel x
 
 
 ### Eval
-Type
+Type -> Type
 
 ### Type
 Type

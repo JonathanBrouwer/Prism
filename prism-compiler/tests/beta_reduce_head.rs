@@ -13,6 +13,9 @@ fn test([test]: [&str; 1]) {
     let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
     let expected_eval = parse_prism_in_env(eval, &mut env).unwrap_or_eprint();
 
+    let _ = env.type_check(input);
+    let _ = env.type_check(expected_eval);
+
     assert!(
         env.is_beta_equal(input, &Env::new(), expected_eval, &Env::new()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",

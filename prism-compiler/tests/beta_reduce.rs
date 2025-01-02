@@ -17,6 +17,7 @@ fn test([test]: [&str; 1]) {
 fn check(input: &str) {
     let mut env = TcEnv::default();
     let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
+    let _ = env.type_check(input);
     let sm = env.beta_reduce(input);
 
     assert!(
