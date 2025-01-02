@@ -1,8 +1,9 @@
-//rule wrapped_expr = RuleAction::Value(ScopeEnter::Enter(e)) <- e:expr;
+//rule wrapped_expr(g) = RuleAction::Value(ScopeEnter::Enter(e, g)) <- e:expr;
 
 rule expr {
     group statement {
-        //b <- "grammar" "{" g:grammar(wrapped_expr) "}" b:#adapt(g, expr);
+        //Expr::GrammarDefine(g, b) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
+        b <- "grammar" "{" g:grammar(wrapped_expr) "}" b:#adapt(g, expr);
         Expr::Let(n, v, b)
             <- "let" n:identifier "=" v:#next ";" b:#this;
         Expr::Let(n, Expr::TypeAssert(v, t), b)
