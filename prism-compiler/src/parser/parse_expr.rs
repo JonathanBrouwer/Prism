@@ -16,7 +16,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
         allocs: Allocs<'arn>,
         _src: &'grm str,
         tc_env: &mut TcEnv<'grm>,
-    ) -> Result<Self, String> {
+    ) -> Self {
         let expr: PartialExpr<'grm> = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
@@ -76,7 +76,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
             _ => unreachable!(),
         };
 
-        Ok(tc_env.store_from_source(expr, span))
+        tc_env.store_from_source(expr, span)
     }
 }
 
@@ -115,8 +115,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'g
         allocs: Allocs<'arn>,
         src: &'grm str,
         tc_env: &mut TcEnv,
-    ) -> Result<Self, String> {
+    ) -> Self {
         assert_eq!(constructor, "Enter");
-        Ok(ScopeEnter(args[0]))
+        ScopeEnter(args[0])
     }
 }

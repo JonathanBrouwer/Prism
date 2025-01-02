@@ -28,10 +28,10 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Result<Self, String> {
+    ) -> Self {
         assert_eq!(constructor, "Rule");
 
-        Ok(Rule {
+        Rule {
             name: parse_identifier(_args[0], _src),
             adapt: _args[1]
                 .into_value::<ParsedList>()
@@ -51,6 +51,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
                     .map(|block| *block.into_value::<RuleBlock>()),
             ),
             return_type: "ActionResult",
-        })
+        }
     }
 }

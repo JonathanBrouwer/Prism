@@ -40,11 +40,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .from_construct)(
                     span, name, args_vals, self.alloc, self.input, penv
                 )
-                .map_err(|msg| {
-                    let mut e = E::new(span.end);
-                    e.add_label_explicit(ErrorLabel::FromConstruct(span, msg));
-                    e
-                })?
             }
             RuleAction::Value(parsed) => self
                 .alloc

@@ -25,9 +25,9 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleBlock<'arn, 'grm> 
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Result<Self, String> {
+    ) -> Self {
         assert_eq!(constructor, "Block");
-        Ok(RuleBlock {
+        RuleBlock {
             name: parse_identifier(_args[0], _src),
             adapt: _args[1]
                 .into_value::<ParsedList>()
@@ -40,6 +40,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleBlock<'arn, 'grm> 
                     .into_iter()
                     .map(|c| *c.into_value::<AnnotatedRuleExpr>()),
             ),
-        })
+        }
     }
 }

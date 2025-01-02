@@ -30,8 +30,8 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Result<Self, String> {
-        Ok(match constructor {
+    ) -> Self {
+        match constructor {
             "Construct" => RuleAction::Construct(
                 parse_identifier(_args[0], _src),
                 parse_identifier(_args[1], _src),
@@ -46,6 +46,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
             "Name" => RuleAction::Name(parse_identifier(_args[0], _src)),
             "Value" => RuleAction::Value(_args[0]),
             _ => unreachable!(),
-        })
+        }
     }
 }

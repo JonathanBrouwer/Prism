@@ -17,11 +17,11 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for ActionResult<'arn, 'gr
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Result<Self, String> {
-        Ok(Self::Construct(
+    ) -> Self {
+        Self::Construct(
             _span,
             constructor,
             _allocs.alloc_extend(_args.iter().copied()),
-        ))
+        )
     }
 }

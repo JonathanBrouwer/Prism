@@ -13,7 +13,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut Env,
-    ) -> Result<Parsed<'arn, 'grm>, String>,
+    ) -> Parsed<'arn, 'grm>,
 }
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
