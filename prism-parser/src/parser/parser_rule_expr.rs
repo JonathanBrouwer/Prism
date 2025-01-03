@@ -13,21 +13,24 @@ use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::ParseResult;
+use crate::parser::apply_action::ActionEntry;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
+use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_expr(
         &mut self,
+        expr: &'arn RuleExpr<'arn, 'grm>,
         rules: &'arn GrammarState<'arn, 'grm>,
         blocks: &'arn [BlockState<'arn, 'grm>],
         rule_args: VarMap<'arn, 'grm>,
-        expr: &'arn RuleExpr<'arn, 'grm>,
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
+        bind_map: &mut HashMap<&'grm str, ActionEntry<'arn, 'grm, Env>>,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
@@ -97,14 +100,15 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 } else if let Some(closure) = rule.try_into_value::<RuleClosure>() {
                     assert_eq!(arg_values.len(), 0);
                     self.parse_expr(
+                        closure.expr,
                         rules,
                         closure.blocks,
                         closure.rule_args,
-                        closure.expr,
                         closure.vars,
                         pos,
                         context,
                         penv,
+                        &mut HashMap::new(),
                     )
                 } else {
                     panic!("Tried to run a rule of value type: {}", rule.name)
@@ -150,15 +154,43 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 for i in 0..max.unwrap_or(u64::MAX) {
                     let pos = res.end_pos();
                     let part = if i == 0 {
-                        self.parse_expr(rules, blocks, rule_args, expr, vars, pos, context, penv)
+                        self.parse_expr(
+                            expr,
+                            rules,
+                            blocks,
+                            rule_args,
+                            vars,
+                            pos,
+                            context,
+                            penv,
+                            &mut HashMap::new(),
+                        )
                     } else {
-                        self.parse_expr(rules, blocks, rule_args, delim, vars, pos, context, penv)
-                            .merge_seq_chain(|pos| {
-                                self.parse_expr(
-                                    rules, blocks, rule_args, expr, vars, pos, context, penv,
-                                )
-                            })
-                            .map(|x| x.1)
+                        self.parse_expr(
+                            delim,
+                            rules,
+                            blocks,
+                            rule_args,
+                            vars,
+                            pos,
+                            context,
+                            penv,
+                            &mut HashMap::new(),
+                        )
+                        .merge_seq_chain(|pos| {
+                            self.parse_expr(
+                                expr,
+                                rules,
+                                blocks,
+                                rule_args,
+                                vars,
+                                pos,
+                                context,
+                                penv,
+                                &mut HashMap::new(),
+                            )
+                        })
+                        .map(|x| x.1)
                     };
                     let should_continue = part.is_ok();
 
@@ -205,7 +237,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     res = res
                         .merge_seq_chain(|pos| {
                             self.parse_expr(
-                                rules, blocks, rule_args, sub, res_vars, pos, context, penv,
+                                sub, rules, blocks, rule_args, res_vars, pos, context, penv,
+                                bind_map,
                             )
                         })
                         .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
@@ -225,7 +258,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 let mut res: PResult<PR, E> = PResult::PErr(E::new(pos), pos);
                 for sub in *subs {
                     res = res.merge_choice_chain(|| {
-                        self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv)
+                        self.parse_expr(
+                            sub, rules, blocks, rule_args, vars, pos, context, penv, bind_map,
+                        )
                     });
                     if res.is_ok() {
                         break;
@@ -234,41 +269,60 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv);
+                let res = self.parse_expr(
+                    sub, rules, blocks, rule_args, vars, pos, context, penv, bind_map,
+                );
                 res.map(|res| PR {
                     free: res.free.insert(name, res.rtrn, self.alloc),
                     rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv);
-                res.merge_seq_chain2(|pos, span, res| {
-                    let rtrn = self.apply_action(
+                let res = self.parse_expr(
+                    sub,
+                    rules,
+                    blocks,
+                    rule_args,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    &mut HashMap::new(),
+                );
+                res.map_with_span(|res, span| {
+                    PR::with_rtrn(self.apply_action(
                         action,
                         span,
                         res.free.extend(vars.iter_cloned(), self.alloc),
                         penv,
-                    );
-                    PResult::new_empty(
-                        PR {
-                            free: res.free,
-                            rtrn,
-                        },
-                        pos,
-                    )
+                    ))
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = self.parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv);
+                let res = self.parse_expr(
+                    sub, rules, blocks, rule_args, vars, pos, context, penv, bind_map,
+                );
                 res.map_with_span(|_, span| {
                     PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
                 })
             }
             RuleExpr::PosLookahead(sub) => self
-                .parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv)
+                .parse_expr(
+                    sub, rules, blocks, rule_args, vars, pos, context, penv, bind_map,
+                )
                 .positive_lookahead(pos),
             RuleExpr::NegLookahead(sub) => self
-                .parse_expr(rules, blocks, rule_args, sub, vars, pos, context, penv)
+                .parse_expr(
+                    sub,
+                    rules,
+                    blocks,
+                    rule_args,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    &mut HashMap::new(),
+                )
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
             RuleExpr::AtAdapt(ga, body) => {
@@ -299,8 +353,17 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 };
                 let rules: &'arn GrammarState = self.alloc.alloc(rules);
 
-                let mut res =
-                    self.parse_expr(rules, blocks, rule_args, body, vars, pos, context, penv);
+                let mut res = self.parse_expr(
+                    body,
+                    rules,
+                    blocks,
+                    rule_args,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    &mut HashMap::new(),
+                );
                 res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res
             }

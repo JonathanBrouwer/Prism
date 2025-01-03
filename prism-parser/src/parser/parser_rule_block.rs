@@ -1,6 +1,7 @@
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use std::collections::HashMap;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 
@@ -181,7 +182,17 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     penv,
                 ),
             &[] => self
-                .parse_expr(rules, blocks, rule_args, expr, vars, pos, context, penv)
+                .parse_expr(
+                    expr,
+                    rules,
+                    blocks,
+                    rule_args,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    &mut HashMap::new(),
+                )
                 .map(|pr| pr.rtrn),
         }
     }
