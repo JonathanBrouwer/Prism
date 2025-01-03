@@ -278,6 +278,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 })
             }
             RuleExpr::Action(sub, action) => {
+                let mut bind_map = HashMap::new();
+                self.apply_action_before(None, &mut bind_map, action, penv);
+
                 let res = self.parse_expr(
                     sub,
                     rules,
@@ -287,7 +290,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     pos,
                     context,
                     penv,
-                    &mut HashMap::new(),
+                    &mut bind_map,
                 );
                 res.map_with_span(|res, span| {
                     PR::with_rtrn(self.apply_action(

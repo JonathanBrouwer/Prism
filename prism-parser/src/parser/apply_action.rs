@@ -37,7 +37,7 @@ impl<'arn, 'grm, Env> ActionEntry<'arn, 'grm, Env> {
 }
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
-    fn apply_action_before(
+    pub fn apply_action_before(
         &self,
         bind: Option<ActionEntry<'arn, 'grm, Env>>,
         bind_map: &mut HashMap<&'grm str, ActionEntry<'arn, 'grm, Env>>,
