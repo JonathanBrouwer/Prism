@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     }
 }
 
-fn checksum_parsable<'arn, 'grm: 'arn, P: ParseResult<'arn, 'grm> + 'arn>() -> u64 {
+pub fn checksum_parsable<'arn, 'grm: 'arn, P: ParseResult<'arn, 'grm> + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
     hash.write(type_name::<P>().as_bytes());

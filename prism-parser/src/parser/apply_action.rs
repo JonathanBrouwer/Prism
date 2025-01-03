@@ -19,8 +19,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         span: Span,
         vars: VarMap<'arn, 'grm>,
         penv: &mut Env,
-    ) -> Result<Parsed<'arn, 'grm>, E> {
-        Ok(match rule {
+    ) -> Parsed<'arn, 'grm> {
+        match rule {
             RuleAction::Name(name) => {
                 if let Some(ar) = vars.get(name) {
                     *ar
@@ -30,16 +30,17 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             }
             RuleAction::InputLiteral(lit) => self.alloc.alloc(Input::Literal(*lit)).to_parsed(),
             RuleAction::Construct(namespace, name, args) => {
-                let args_vals = self.alloc.try_alloc_extend_result(
-                    args.iter().map(|a| self.apply_action(a, span, vars, penv)),
-                )?;
-                (self
+                let ns = self
                     .parsables
                     .get(namespace)
-                    .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"))
-                    .from_construct)(
-                    span, name, args_vals, self.alloc, self.input, penv
-                )
+                    .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
+
+                let mut builder = (ns.build)(name, self.alloc, self.input, penv);
+                for (i, arg) in args.iter().enumerate() {
+                    let arg = self.apply_action(arg, span, vars, penv);
+                    (ns.arg)(&mut builder, i, arg, self.alloc, self.input, penv);
+                }
+                (ns.finish)(&mut builder, span, self.alloc, self.input, penv)
             }
             RuleAction::Value(parsed) => self
                 .alloc
@@ -48,6 +49,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     value: *parsed,
                 })
                 .to_parsed(),
-        })
+        }
     }
 }

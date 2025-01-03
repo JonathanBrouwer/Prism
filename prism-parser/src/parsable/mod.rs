@@ -11,6 +11,7 @@ pub mod option;
 pub mod parsable_dyn;
 pub mod parsed;
 pub mod parsed_debug;
+pub mod parsed_mut;
 pub mod void;
 
 pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
@@ -40,7 +41,7 @@ pub trait SimpleParsable<'arn, 'grm: 'arn, Env>:
 pub trait ComplexParsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
-    type Builder;
+    type Builder: ParseResult<'arn, 'grm>;
 
     fn build(
         constructor: &'grm str,
@@ -67,11 +68,14 @@ pub trait ComplexParsable<'arn, 'grm: 'arn, Env>:
     ) -> Self;
 }
 
+#[derive(Copy, Clone)]
 pub struct ComplexStore<'arn, 'grm: 'arn> {
     constructor: &'grm str,
-    args: &'arn mut [Parsed<'arn, 'grm>; 8],
+    args: [Parsed<'arn, 'grm>; 8],
     args_len: usize,
 }
+
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ComplexStore<'arn, 'grm> {}
 
 impl<'arn, 'grm: 'arn, Env, T: SimpleParsable<'arn, 'grm, Env>> ComplexParsable<'arn, 'grm, Env>
     for T
@@ -86,7 +90,7 @@ impl<'arn, 'grm: 'arn, Env, T: SimpleParsable<'arn, 'grm, Env>> ComplexParsable<
     ) -> Self::Builder {
         ComplexStore {
             constructor,
-            args: allocs.alloc([(&Void).to_parsed(); 8]),
+            args: [(&Void).to_parsed(); 8],
             args_len: 0,
         }
     }

@@ -1,15 +1,31 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::SimpleParsable;
+use crate::parsable::parsed_mut::ParsedMut;
+use crate::parsable::{ComplexParsable, SimpleParsable};
 use std::marker::PhantomData;
 
 #[derive(Copy, Clone)]
 pub struct ParsableDyn<'arn, 'grm, Env> {
-    pub from_construct: fn(
-        span: Span,
+    pub build: fn(
         constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+        env: &mut Env,
+    ) -> ParsedMut<'arn, 'grm>,
+
+    pub arg: fn(
+        s: &mut ParsedMut<'arn, 'grm>,
+        arg: usize,
+        value: Parsed<'arn, 'grm>,
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+        env: &mut Env,
+    ),
+
+    pub finish: fn(
+        s: &mut ParsedMut<'arn, 'grm>,
+        span: Span,
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut Env,
@@ -17,22 +33,44 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
 }
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
-    pub fn new<P: SimpleParsable<'arn, 'grm, Env>>() -> Self {
+    pub fn new<P: ComplexParsable<'arn, 'grm, Env>>() -> Self {
         Self {
-            from_construct: from_construct_dyn::<Env, P>,
+            build: build_dyn::<Env, P>,
+            arg: arg_dyn::<Env, P>,
+            finish: finish_dyn::<Env, P>,
         }
     }
 }
 
-fn from_construct_dyn<'arn, 'grm: 'arn, Env, P: SimpleParsable<'arn, 'grm, Env>>(
-    span: Span,
+fn build_dyn<'arn, 'grm: 'arn, Env, P: ComplexParsable<'arn, 'grm, Env>>(
     constructor: &'grm str,
-    args: &[Parsed<'arn, 'grm>],
+    allocs: Allocs<'arn>,
+    src: &'grm str,
+    env: &mut Env,
+) -> ParsedMut<'arn, 'grm> {
+    ParsedMut::from_value(allocs.alloc(P::build(constructor, allocs, src, env)))
+}
+
+fn arg_dyn<'arn, 'grm: 'arn, Env, P: ComplexParsable<'arn, 'grm, Env>>(
+    s: &mut ParsedMut<'arn, 'grm>,
+    arg: usize,
+    value: Parsed<'arn, 'grm>,
+    allocs: Allocs<'arn>,
+    src: &'grm str,
+    env: &mut Env,
+) {
+    let builder = s.into_value_mut::<P::Builder>();
+    P::arg(builder, arg, value, allocs, src, env);
+}
+
+fn finish_dyn<'arn, 'grm: 'arn, Env, P: ComplexParsable<'arn, 'grm, Env>>(
+    s: &mut ParsedMut<'arn, 'grm>,
+    span: Span,
     allocs: Allocs<'arn>,
     src: &'grm str,
     env: &mut Env,
 ) -> Parsed<'arn, 'grm> {
-    allocs
-        .alloc(P::from_construct(span, constructor, args, allocs, src, env))
-        .to_parsed()
+    let builder = s.into_value_mut::<P::Builder>();
+    let s = P::finish(builder, span, allocs, src, env);
+    Parsed::from_value(allocs.alloc(s))
 }

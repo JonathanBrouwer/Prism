@@ -10,8 +10,8 @@ pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
 impl Debug for VarMap<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
-        for (name, value) in self.iter_cloned() {
-            writeln!(f, "- {name}: {value:?}")?;
+        for (name, _value) in self.iter_cloned() {
+            writeln!(f, "- {name}")?;
         }
         Ok(())
     }
