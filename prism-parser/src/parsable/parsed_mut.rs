@@ -7,7 +7,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ptr::NonNull;
 
-#[derive(Clone)] //TODO unsound
 pub struct ParsedMut<'arn, 'grm> {
     ptr: NonNull<()>,
     checksum: u64,

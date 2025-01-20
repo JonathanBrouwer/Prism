@@ -4,7 +4,7 @@ use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{ParseResult, SimpleParsable};
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +15,7 @@ pub struct AnnotatedRuleExpr<'arn, 'grm>(
 );
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for AnnotatedRuleExpr<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> SimpleParsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

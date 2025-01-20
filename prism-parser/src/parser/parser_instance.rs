@@ -17,7 +17,7 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::SimpleParsable;
+use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use crate::META_GRAMMAR;
@@ -143,7 +143,7 @@ pub fn run_parser_rule<
     'arn,
     'grm,
     Env,
-    P: SimpleParsable<'arn, 'grm, Env>,
+    P: Parsable<'arn, 'grm, Env>,
     E: ParseError<L = ErrorLabel<'grm>>,
 >(
     rules: &'arn GrammarFile<'arn, 'grm>,

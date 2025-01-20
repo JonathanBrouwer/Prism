@@ -7,7 +7,7 @@ use crate::grammar::from_action_result::{parse_identifier, parse_string};
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{ParseResult, SimpleParsable};
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ pub enum RuleExpr<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleExpr<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> SimpleParsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

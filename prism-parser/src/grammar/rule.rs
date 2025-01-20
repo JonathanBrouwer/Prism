@@ -4,7 +4,7 @@ use crate::grammar::from_action_result::parse_identifier;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{ParseResult, SimpleParsable};
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ pub struct Rule<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Rule<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> SimpleParsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
+impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

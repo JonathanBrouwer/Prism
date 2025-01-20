@@ -182,17 +182,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     penv,
                 ),
             &[] => self
-                .parse_expr(
-                    expr,
-                    rules,
-                    blocks,
-                    rule_args,
-                    vars,
-                    pos,
-                    context,
-                    penv,
-                    &mut HashMap::new(),
-                )
+                .parse_expr(expr, rules, blocks, rule_args, vars, pos, context, penv)
                 .map(|pr| pr.rtrn),
         }
     }
