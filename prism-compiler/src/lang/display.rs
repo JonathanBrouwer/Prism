@@ -14,7 +14,7 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl<'grm> PartialExpr<'grm> {
+impl PartialExpr<'_> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -32,7 +32,7 @@ impl<'grm> PartialExpr<'grm> {
     }
 }
 
-impl<'grm> TcEnv<'grm> {
+impl TcEnv<'_> {
     fn display(
         &self,
         i: UnionIndex,

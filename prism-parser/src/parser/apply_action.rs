@@ -1,4 +1,3 @@
-use crate::core::cache::Allocs;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
@@ -7,10 +6,8 @@ use crate::error::ParseError;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::parsed_mut::ParsedMut;
 use crate::parsable::ParseResult;
 use crate::parser::var_map::VarMap;
-use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn apply_action(

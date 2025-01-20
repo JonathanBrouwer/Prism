@@ -3,7 +3,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
-impl<'grm> TcEnv<'grm> {
+impl TcEnv<'_> {
     pub fn simplify(&mut self, i: UnionIndex) -> UnionIndex {
         self.simplify_inner(i, &Env::new(), &mut HashMap::new())
     }

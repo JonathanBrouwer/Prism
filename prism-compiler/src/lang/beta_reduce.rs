@@ -3,7 +3,7 @@ use crate::lang::UnionIndex;
 use crate::lang::{PartialExpr, TcEnv};
 use std::collections::HashMap;
 
-impl<'grm> TcEnv<'grm> {
+impl TcEnv<'_> {
     pub fn beta_reduce(&mut self, i: UnionIndex) -> UnionIndex {
         self.beta_reduce_inner(i, &Env::new(), &mut HashMap::new())
     }

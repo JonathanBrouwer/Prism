@@ -37,15 +37,6 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct ComplexStore<'arn, 'grm: 'arn> {
-    constructor: &'grm str,
-    args: [Parsed<'arn, 'grm>; 8],
-    args_len: usize,
-}
-
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ComplexStore<'arn, 'grm> {}
-
 #[cfg(test)]
 mod tests {
     use crate::parsable::ParseResult;

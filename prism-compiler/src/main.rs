@@ -17,7 +17,7 @@ fn read_from_stdin() -> Result<String, std::io::Error> {
 fn main() {
     let args = Args::parse();
 
-    let (program, _filename) = match args.input.as_ref() {
+    let (_program, _filename) = match args.input.as_ref() {
         None => (read_from_stdin().unwrap(), "stdin"),
         Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
     };

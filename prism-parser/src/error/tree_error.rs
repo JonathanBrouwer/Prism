@@ -3,7 +3,6 @@ use crate::core::span::Span;
 use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
 use ariadne::{Label, Report, ReportBuilder};
-use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
 
@@ -68,7 +67,7 @@ impl<'grm> ParseError for TreeError<'grm> {
 
     fn new(pos: Pos) -> Self {
         Self {
-            pos: pos,
+            pos,
             labels: ErrorTree(None, vec![]),
         }
     }

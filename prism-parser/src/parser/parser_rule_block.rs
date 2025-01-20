@@ -1,7 +1,6 @@
 use crate::core::presult::PResult;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use std::collections::HashMap;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 

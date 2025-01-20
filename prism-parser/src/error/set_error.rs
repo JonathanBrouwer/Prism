@@ -3,7 +3,6 @@ use crate::core::span::Span;
 use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
 use ariadne::{Label, Report};
-use std::cmp::max;
 use std::collections::{BTreeMap, HashSet};
 
 /// Set error keeps track of the set of labels at the furthest position.

@@ -1,8 +1,6 @@
 use crate::parsable::parsed::checksum_parsable;
 use crate::parsable::ParseResult;
 use std::any::type_name;
-use std::fmt::{Debug, Formatter};
-use std::hash::{DefaultHasher, Hasher};
 use std::marker::PhantomData;
 use std::mem;
 use std::ptr::NonNull;

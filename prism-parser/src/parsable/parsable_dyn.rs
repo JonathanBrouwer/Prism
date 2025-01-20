@@ -1,7 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::parsed_mut::ParsedMut;
 use crate::parsable::Parsable;
 
 #[derive(Copy, Clone)]

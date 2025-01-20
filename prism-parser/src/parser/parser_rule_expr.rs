@@ -10,13 +10,11 @@ use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::guid::Guid;
-use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::ParseResult;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
-use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_expr(
@@ -68,7 +66,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                         "#next" => &blocks[1..],
                         _ => unreachable!(),
                     };
-                    let arg_values = if arg_values.len() == 0 {
+                    let arg_values = if arg_values.is_empty() {
                         rule_args
                     } else {
                         assert_eq!(arg_values.len(), rule_args.iter_cloned().count());

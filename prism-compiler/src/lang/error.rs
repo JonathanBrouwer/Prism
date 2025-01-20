@@ -30,7 +30,7 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl<'grm> TcEnv<'grm> {
+impl TcEnv<'_> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
