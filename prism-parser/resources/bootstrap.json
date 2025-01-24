@@ -2881,6 +2881,39 @@
                   }
                 ]
               }
+            ],
+            [
+              [],
+              {
+                "Sequence": [
+                  {
+                    "Literal": "/*"
+                  },
+                  {
+                    "Repeat": {
+                      "expr": {
+                        "CharClass": {
+                          "neg": true,
+                          "ranges": [
+                            [
+                              "*",
+                              "*"
+                            ]
+                          ]
+                        }
+                      },
+                      "min": 0,
+                      "max": null,
+                      "delim": {
+                        "Sequence": []
+                      }
+                    }
+                  },
+                  {
+                    "Literal": "*/"
+                  }
+                ]
+              }
             ]
           ]
         }

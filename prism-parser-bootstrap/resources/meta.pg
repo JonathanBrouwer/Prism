@@ -107,8 +107,12 @@ rule char_escapes {
 }
 
 rule layout {
+    // Whitespace
     [' ' | '\r' | '\n'];
+    // Line comments
     "//" [^'\n']* "\n";
+    /* Block comments */
+    "/*" [^'*']* "*/";
 }
 
 rule integer {
