@@ -1,9 +1,9 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 
-impl<'grm> TcEnv<'grm> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: UnionIndex,

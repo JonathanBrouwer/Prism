@@ -1,4 +1,4 @@
-use crate::lang::{TcEnv, UnionIndex};
+use crate::lang::{PrismEnv, UnionIndex};
 use crate::parser::parse_expr::{reduce_expr, ScopeEnter};
 use bumpalo::Bump;
 use prism_parser::core::cache::Allocs;
@@ -23,19 +23,14 @@ pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
 
 pub fn parse_prism_in_env<'p>(
     program: &'p str,
-    env: &mut TcEnv<'p>,
+    env: &mut PrismEnv<'_, 'p>,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
-    let bump = Bump::new();
-    let allocs = Allocs::new(&bump);
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
-    run_parser_rule_raw::<TcEnv<'p>, SetError>(&GRAMMAR, "expr", program, allocs, parsables, env)
-        .map(|v| *reduce_expr(v, env, allocs).into_value())
-}
-
-pub fn parse_prism(program: &str) -> Result<(TcEnv, UnionIndex), AggregatedParseError<SetError>> {
-    let mut env = TcEnv::default();
-    parse_prism_in_env(program, &mut env).map(|i| (env, i))
+    run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
+        &GRAMMAR, "expr", program, env.allocs, parsables, env,
+    )
+    .map(|v| *reduce_expr(v, env, env.allocs).into_value())
 }

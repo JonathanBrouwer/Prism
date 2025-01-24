@@ -3,12 +3,12 @@ use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::FreeSub;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 
 pub const GENERATED_NAME: &str = "GENERATED";
 
-impl<'grm> TcEnv<'grm> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     /// Expect `i1` to be equal to `i2` in `s`
     pub fn expect_beq_assert(
         &mut self,

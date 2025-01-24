@@ -1,5 +1,6 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
+use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::guid::Guid;
@@ -22,21 +23,6 @@ type QueuedConstraint<'grm> = (
     (Env<'grm>, HashMap<UniqueVariableId, usize>),
     (UnionIndex, Env<'grm>, HashMap<UniqueVariableId, usize>),
 );
-
-#[derive(Default)]
-pub struct TcEnv<'grm> {
-    // Value store
-    pub values: Vec<PrismExpr<'grm>>,
-    pub value_origins: Vec<ValueOrigin>,
-    value_types: HashMap<UnionIndex, UnionIndex>,
-
-    // State during type checking
-    guid_shifts: HashMap<Guid, usize>,
-    tc_id: usize,
-    pub errors: Vec<TypeError>,
-    toxic_values: HashSet<UnionIndex>,
-    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'grm>>>,
-}
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
@@ -77,7 +63,7 @@ impl Deref for UnionIndex {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum PrismExpr<'grm> {
+pub enum PrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
     Type,
@@ -90,24 +76,56 @@ pub enum PrismExpr<'grm> {
     TypeAssert(UnionIndex, UnionIndex),
 
     // Temporary expressions after parsing
-    Name(&'grm str),
+    Name(&'arn str),
     ShiftPoint(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid),
 }
 
-impl<'grm> TcEnv<'grm> {
-    pub fn store_from_source(&mut self, e: PrismExpr<'grm>, span: Span) -> UnionIndex {
+pub struct PrismEnv<'arn, 'grm: 'arn> {
+    // Allocs
+    pub allocs: Allocs<'arn>,
+
+    // Value store
+    pub values: Vec<PrismExpr<'arn, 'grm>>,
+    pub value_origins: Vec<ValueOrigin>,
+    value_types: HashMap<UnionIndex, UnionIndex>,
+
+    // State during type checking
+    guid_shifts: HashMap<Guid, usize>,
+    tc_id: usize,
+    pub errors: Vec<TypeError>,
+    toxic_values: HashSet<UnionIndex>,
+    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'grm>>>,
+}
+
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+    pub fn new(allocs: Allocs<'arn>) -> Self {
+        Self {
+            allocs,
+
+            values: Default::default(),
+            value_origins: Default::default(),
+            value_types: Default::default(),
+            guid_shifts: Default::default(),
+            tc_id: Default::default(),
+            errors: Default::default(),
+            toxic_values: Default::default(),
+            queued_beq_free: Default::default(),
+        }
+    }
+
+    pub fn store_from_source(&mut self, e: PrismExpr<'arn, 'grm>, span: Span) -> UnionIndex {
         self.store(e, ValueOrigin::SourceCode(span))
     }
 
-    pub fn store_test(&mut self, e: PrismExpr<'grm>) -> UnionIndex {
+    pub fn store_test(&mut self, e: PrismExpr<'arn, 'grm>) -> UnionIndex {
         self.store(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
     }
 
-    fn store(&mut self, e: PrismExpr<'grm>, origin: ValueOrigin) -> UnionIndex {
+    fn store(&mut self, e: PrismExpr<'arn, 'grm>, origin: ValueOrigin) -> UnionIndex {
         self.values.push(e);
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)
@@ -118,5 +136,9 @@ impl<'grm> TcEnv<'grm> {
         self.errors.clear();
         self.toxic_values.clear();
         self.tc_id = 0;
+    }
+
+    pub fn erase_arena(self) -> PrismEnv<'grm, 'grm> {
+        todo!()
     }
 }

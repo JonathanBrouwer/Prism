@@ -4,10 +4,10 @@ use crate::lang::error::TypeError;
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::FreeSub;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 
-impl<'grm> TcEnv<'grm> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     #[must_use]
     pub fn expect_beq_internal(
         &mut self,

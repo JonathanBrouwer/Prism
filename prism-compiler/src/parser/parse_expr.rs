@@ -1,4 +1,4 @@
-use crate::lang::{PrismExpr, TcEnv, UnionIndex};
+use crate::lang::{PrismEnv, PrismExpr, UnionIndex};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
@@ -8,16 +8,16 @@ use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for UnionIndex {}
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for UnionIndex {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         _src: &'grm str,
-        tc_env: &mut TcEnv<'grm>,
+        tc_env: &mut PrismEnv<'arn, 'grm>,
     ) -> Self {
-        let expr: PrismExpr<'grm> = match constructor {
+        let expr: PrismExpr<'arn, 'grm> = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -89,7 +89,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
 
 pub fn reduce_expr<'arn, 'grm: 'arn>(
     parsed: Parsed<'arn, 'grm>,
-    tc_env: &mut TcEnv,
+    tc_env: &mut PrismEnv,
     allocs: Allocs<'arn>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
@@ -111,14 +111,14 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 #[derive(Copy, Clone)]
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
+impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
         span: Span,
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         src: &'grm str,
-        tc_env: &mut TcEnv,
+        tc_env: &mut PrismEnv,
     ) -> Self {
         assert_eq!(constructor, "Enter");
         ScopeEnter(args[0], *args[1].into_value())

@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use crate::lang::UnionIndex;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -14,7 +14,7 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl PrismExpr<'_> {
+impl<'arn, 'grm: 'arn> PrismExpr<'arn, 'grm> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -34,7 +34,7 @@ impl PrismExpr<'_> {
     }
 }
 
-impl TcEnv<'_> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     fn display(
         &self,
         i: UnionIndex,

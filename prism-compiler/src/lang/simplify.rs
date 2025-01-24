@@ -1,9 +1,9 @@
 use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::UnionIndex;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 
-impl TcEnv<'_> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn simplify(&mut self, i: UnionIndex) -> UnionIndex {
         self.simplify_inner(i, &Env::new(), &mut HashMap::new())
     }

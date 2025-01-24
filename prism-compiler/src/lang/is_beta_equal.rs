@@ -1,9 +1,9 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 
-impl TcEnv<'_> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn is_beta_equal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());

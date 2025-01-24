@@ -1,4 +1,6 @@
-use prism_compiler::lang::{PrismExpr, TcEnv, UnionIndex};
+use bumpalo::Bump;
+use prism_compiler::lang::{PrismEnv, PrismExpr, UnionIndex};
+use prism_parser::core::cache::Allocs;
 
 #[test]
 fn test_exhaustive() {
@@ -8,9 +10,10 @@ fn test_exhaustive() {
 fn iter_exhaustive(
     max_depth: usize,
     continue_when_fail: bool,
-    mut f: impl FnMut(&mut TcEnv, UnionIndex) -> bool,
+    mut f: impl FnMut(&mut PrismEnv, UnionIndex) -> bool,
 ) {
-    let mut env = TcEnv::default();
+    let bump = Bump::new();
+    let mut env = PrismEnv::new(Allocs::new(&bump));
     let root = env.store_test(PrismExpr::Free);
     let mut env_size = vec![0];
 
@@ -46,7 +49,7 @@ fn iter_exhaustive(
     }
 }
 
-fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
+fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
     loop {
         env.values[*i] = match env.values[*i] {
             PrismExpr::Free => PrismExpr::Type,

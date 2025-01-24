@@ -1,4 +1,4 @@
-use crate::lang::TcEnv;
+use crate::lang::PrismEnv;
 use crate::lang::UnionIndex;
 use rpds::Vector;
 
@@ -90,7 +90,7 @@ impl<T> std::ops::Index<usize> for GenericEnv<T> {
     }
 }
 
-impl TcEnv<'_> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new_tc_id(&mut self) -> UniqueVariableId {
         let id = UniqueVariableId(self.tc_id);
         self.tc_id += 1;

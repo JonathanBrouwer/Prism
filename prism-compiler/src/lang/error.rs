@@ -1,5 +1,5 @@
 use crate::lang::UnionIndex;
-use crate::lang::{TcEnv, ValueOrigin};
+use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
@@ -30,7 +30,7 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl TcEnv<'_> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
@@ -184,7 +184,7 @@ pub struct AggregatedTypeError {
 }
 
 impl AggregatedTypeError {
-    pub fn eprint(&self, env: &mut TcEnv, input: &str) -> io::Result<()> {
+    pub fn eprint(&self, env: &mut PrismEnv, input: &str) -> io::Result<()> {
         let mut input = Source::from(input);
         for report in self.errors.iter().flat_map(|err| env.report(err)) {
             report.eprint(&mut input)?;
@@ -194,11 +194,11 @@ impl AggregatedTypeError {
 }
 
 pub trait TypeResultExt<T> {
-    fn unwrap_or_eprint(self, env: &mut TcEnv, input: &str) -> T;
+    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T;
 }
 
 impl<T> TypeResultExt<T> for Result<T, AggregatedTypeError> {
-    fn unwrap_or_eprint(self, env: &mut TcEnv, input: &str) -> T {
+    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T {
         self.unwrap_or_else(|es| {
             es.eprint(env, input).unwrap();
             panic!("Failed to type check")

@@ -4,10 +4,10 @@ use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
-use crate::lang::{PrismExpr, TcEnv};
+use crate::lang::{PrismEnv, PrismExpr};
 use std::mem;
 
-impl<'grm> TcEnv<'grm> {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
         let ti = self._type_check(root, &Env::new());
 
