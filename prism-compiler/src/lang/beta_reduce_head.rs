@@ -1,7 +1,7 @@
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::UnionIndex;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{PrismExpr, TcEnv};
 
 impl<'grm> TcEnv<'grm> {
     pub fn beta_reduce_head(
@@ -16,15 +16,15 @@ impl<'grm> TcEnv<'grm> {
 
         loop {
             match self.values[*e] {
-                PartialExpr::Type => {
+                PrismExpr::Type => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PartialExpr::Let(_n, v, b) => {
+                PrismExpr::Let(_n, v, b) => {
                     e = b;
                     s = s.cons(RSubst(v, s.clone()))
                 }
-                PartialExpr::DeBruijnIndex(i) => match s[i] {
+                PrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
@@ -41,18 +41,18 @@ impl<'grm> TcEnv<'grm> {
                         s = vs.clone();
                     }
                 },
-                PartialExpr::FnType(_n, _, _) => {
+                PrismExpr::FnType(_n, _, _) => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PartialExpr::FnConstruct(_n, b) => match args.pop() {
+                PrismExpr::FnConstruct(_n, b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;
                         s = s.cons(RSubst(arg, arg_env));
                     }
                 },
-                PartialExpr::FnDestruct(f, a) => {
+                PrismExpr::FnDestruct(f, a) => {
                     // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
                     if args.is_empty() {
                         start_expr = e;
@@ -62,23 +62,21 @@ impl<'grm> TcEnv<'grm> {
                     e = f;
                     args.push((a, s.clone()));
                 }
-                PartialExpr::Free => {
+                PrismExpr::Free => {
                     return if args.is_empty() {
                         (e, s)
                     } else {
                         (start_expr, start_env)
                     };
                 }
-                PartialExpr::Shift(b, i) => {
+                PrismExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
                 }
-                PartialExpr::TypeAssert(new_e, _) => {
+                PrismExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
-                PartialExpr::Name(_)
-                | PartialExpr::ShiftPoint(_, _)
-                | PartialExpr::ShiftTo(_, _) => {
+                PrismExpr::Name(_) | PrismExpr::ShiftPoint(_, _) | PrismExpr::ShiftTo(_, _) => {
                     unreachable!("Should not occur in typechecked terms")
                 }
             }

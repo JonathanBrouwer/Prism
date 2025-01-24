@@ -4,7 +4,7 @@ use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{PrismExpr, TcEnv};
 use std::mem;
 
 impl<'grm> TcEnv<'grm> {
@@ -26,47 +26,47 @@ impl<'grm> TcEnv<'grm> {
         assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
 
         let t = match self.values[*i] {
-            PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(n, mut v, b) => {
+            PrismExpr::Type => PrismExpr::Type,
+            PrismExpr::Let(n, mut v, b) => {
                 // Check `v`
                 let err_count = self.errors.len();
                 let vt = self._type_check(v, s);
                 if self.errors.len() > err_count {
-                    v = self.store(PartialExpr::Free, ValueOrigin::Failure);
+                    v = self.store(PrismExpr::Free, ValueOrigin::Failure);
                 }
 
                 let bt = self._type_check(b, &s.cons(CSubst(v, vt, n)));
-                PartialExpr::Let(n, v, bt)
+                PrismExpr::Let(n, v, bt)
             }
-            PartialExpr::DeBruijnIndex(index) => match s.get(index) {
-                Some(&CType(_, t, _) | &CSubst(_, t, _)) => PartialExpr::Shift(t, index + 1),
+            PrismExpr::DeBruijnIndex(index) => match s.get(index) {
+                Some(&CType(_, t, _) | &CSubst(_, t, _)) => PrismExpr::Shift(t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
                     self.errors.push(TypeError::IndexOutOfBound(i));
-                    return self.store(PartialExpr::Free, ValueOrigin::Failure);
+                    return self.store(PrismExpr::Free, ValueOrigin::Failure);
                 }
             },
-            PartialExpr::Name(n) => {
+            PrismExpr::Name(n) => {
                 return if let Some((db_index, _)) = s
                     .iter()
                     .enumerate()
                     .find(|(_, entry)| entry.get_name() == n)
                 {
-                    self.values[*i] = PartialExpr::DeBruijnIndex(db_index);
+                    self.values[*i] = PrismExpr::DeBruijnIndex(db_index);
                     self._type_check(i, s)
                 } else {
                     self.errors.push(TypeError::UnknownName(
                         self.value_origins[*i].to_source_span(),
                     ));
-                    self.store(PartialExpr::Free, ValueOrigin::Failure)
+                    self.store(PrismExpr::Free, ValueOrigin::Failure)
                 }
             }
-            PartialExpr::FnType(n, mut a, b) => {
+            PrismExpr::FnType(n, mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
                 if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
+                    a = self.store(PrismExpr::Free, ValueOrigin::Failure);
                 }
 
                 let err_count = self.errors.len();
@@ -78,22 +78,22 @@ impl<'grm> TcEnv<'grm> {
                     self.expect_beq_type(bt, &bs);
                 }
 
-                PartialExpr::Type
+                PrismExpr::Type
             }
-            PartialExpr::FnConstruct(n, b) => {
-                let a = self.store(PartialExpr::Free, ValueOrigin::FreeSub(i));
+            PrismExpr::FnConstruct(n, b) => {
+                let a = self.store(PrismExpr::Free, ValueOrigin::FreeSub(i));
                 let bs = s.cons(CType(self.new_tc_id(), a, n));
                 let bt = self._type_check(b, &bs);
-                PartialExpr::FnType(n, a, bt)
+                PrismExpr::FnType(n, a, bt)
             }
-            PartialExpr::FnDestruct(f, mut a) => {
+            PrismExpr::FnDestruct(f, mut a) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 if self.errors.len() > err_count {
-                    a = self.store(PartialExpr::Free, ValueOrigin::Failure);
+                    a = self.store(PrismExpr::Free, ValueOrigin::Failure);
                 };
 
-                let rt = self.store(PartialExpr::Free, ValueOrigin::TypeOf(i));
+                let rt = self.store(PrismExpr::Free, ValueOrigin::TypeOf(i));
 
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, s);
@@ -101,26 +101,26 @@ impl<'grm> TcEnv<'grm> {
                     self.expect_beq_fn_type(ft, at, rt, s)
                 }
 
-                PartialExpr::Let(GENERATED_NAME, a, rt)
+                PrismExpr::Let(GENERATED_NAME, a, rt)
             }
-            PartialExpr::Free => {
+            PrismExpr::Free => {
                 // TODO self.queued_tc.insert(i, (s.clone(), t));
-                PartialExpr::Free
+                PrismExpr::Free
             }
-            PartialExpr::Shift(v, shift) => {
-                PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
+            PrismExpr::Shift(v, shift) => {
+                PrismExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
             }
-            PartialExpr::ShiftPoint(b, guid) => {
-                self.values[*i] = PartialExpr::Shift(b, 0);
+            PrismExpr::ShiftPoint(b, guid) => {
+                self.values[*i] = PrismExpr::Shift(b, 0);
                 self.guid_shifts.insert(guid, s.len());
                 return self._type_check(i, s);
             }
-            PartialExpr::ShiftTo(b, guid) => {
+            PrismExpr::ShiftTo(b, guid) => {
                 let prev_len = self.guid_shifts[&guid];
-                self.values[*i] = PartialExpr::Shift(b, s.len() - prev_len);
+                self.values[*i] = PrismExpr::Shift(b, s.len() - prev_len);
                 return self._type_check(i, s);
             }
-            PartialExpr::TypeAssert(e, typ) => {
+            PrismExpr::TypeAssert(e, typ) => {
                 let err_count1 = self.errors.len();
                 let et = self._type_check(e, s);
 

@@ -1,6 +1,6 @@
 use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::UnionIndex;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{PrismExpr, TcEnv};
 use std::collections::HashMap;
 
 impl TcEnv<'_> {
@@ -17,38 +17,38 @@ impl TcEnv<'_> {
         let (i, s) = self.beta_reduce_head(i, s.clone());
 
         let e_new = match self.values[*i] {
-            PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(_, _, _) => unreachable!(),
-            PartialExpr::DeBruijnIndex(v) => {
+            PrismExpr::Type => PrismExpr::Type,
+            PrismExpr::Let(_, _, _) => unreachable!(),
+            PrismExpr::DeBruijnIndex(v) => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
                 };
-                PartialExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
+                PrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
             }
-            PartialExpr::FnType(n, a, b) => {
+            PrismExpr::FnType(n, a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnType(n, a, b)
+                PrismExpr::FnType(n, a, b)
             }
-            PartialExpr::FnConstruct(n, b) => {
+            PrismExpr::FnConstruct(n, b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnConstruct(n, b)
+                PrismExpr::FnConstruct(n, b)
             }
-            PartialExpr::FnDestruct(a, b) => {
+            PrismExpr::FnDestruct(a, b) => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
                 let b = self.beta_reduce_inner(b, &s, var_map);
-                PartialExpr::FnDestruct(a, b)
+                PrismExpr::FnDestruct(a, b)
             }
-            PartialExpr::Free => PartialExpr::Free,
-            PartialExpr::Shift(_, _) => unreachable!(),
-            PartialExpr::TypeAssert(_, _) => unreachable!(),
-            PartialExpr::Name(_) | PartialExpr::ShiftPoint(_, _) | PartialExpr::ShiftTo(_, _) => {
+            PrismExpr::Free => PrismExpr::Free,
+            PrismExpr::Shift(_, _) => unreachable!(),
+            PrismExpr::TypeAssert(_, _) => unreachable!(),
+            PrismExpr::Name(_) | PrismExpr::ShiftPoint(_, _) | PrismExpr::ShiftTo(_, _) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         };

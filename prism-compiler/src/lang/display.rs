@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use crate::lang::UnionIndex;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{PrismExpr, TcEnv};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -14,22 +14,22 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl PartialExpr<'_> {
+impl PrismExpr<'_> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
-            PartialExpr::Let(_, _, _) => PrecedenceLevel::Let,
-            PartialExpr::FnConstruct(_, _) => PrecedenceLevel::Construct,
-            PartialExpr::FnType(_, _, _) => PrecedenceLevel::FnType,
-            PartialExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
-            PartialExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
-            PartialExpr::Free => PrecedenceLevel::Base,
-            PartialExpr::Shift(_, _) => PrecedenceLevel::Base,
-            PartialExpr::Type => PrecedenceLevel::Base,
-            PartialExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
-            PartialExpr::Name(_) => PrecedenceLevel::Base,
-            PartialExpr::ShiftPoint(_, _) => PrecedenceLevel::Base,
-            PartialExpr::ShiftTo(_, _) => PrecedenceLevel::Base,
+            PrismExpr::Let(_, _, _) => PrecedenceLevel::Let,
+            PrismExpr::FnConstruct(_, _) => PrecedenceLevel::Construct,
+            PrismExpr::FnType(_, _, _) => PrecedenceLevel::FnType,
+            PrismExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
+            PrismExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
+            PrismExpr::Free => PrecedenceLevel::Base,
+            PrismExpr::Shift(_, _) => PrecedenceLevel::Base,
+            PrismExpr::Type => PrecedenceLevel::Base,
+            PrismExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
+            PrismExpr::Name(_) => PrecedenceLevel::Base,
+            PrismExpr::ShiftPoint(_, _) => PrecedenceLevel::Base,
+            PrismExpr::ShiftTo(_, _) => PrecedenceLevel::Base,
         }
     }
 }
@@ -48,50 +48,50 @@ impl TcEnv<'_> {
         }
 
         match e {
-            PartialExpr::Type => write!(w, "Type")?,
-            PartialExpr::Let(n, v, b) => {
+            PrismExpr::Type => write!(w, "Type")?,
+            PrismExpr::Let(n, v, b) => {
                 write!(w, "let ({n} =) ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
             }
-            PartialExpr::DeBruijnIndex(i) => write!(w, "#{i}")?,
-            PartialExpr::FnType(n, a, b) => {
+            PrismExpr::DeBruijnIndex(i) => write!(w, "#{i}")?,
+            PrismExpr::FnType(n, a, b) => {
                 write!(w, "({n}: ")?;
                 self.display(a, w, PrecedenceLevel::TypeAssert)?;
                 write!(w, ") -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            PartialExpr::FnConstruct(n, b) => {
+            PrismExpr::FnConstruct(n, b) => {
                 write!(w, "{n}")?;
                 write!(w, "=> ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
-            PartialExpr::FnDestruct(a, b) => {
+            PrismExpr::FnDestruct(a, b) => {
                 self.display(a, w, PrecedenceLevel::Destruct)?;
                 write!(w, " ")?;
                 self.display(b, w, PrecedenceLevel::Base)?;
             }
-            PartialExpr::Free => write!(w, "{{{}}}", i.0)?,
-            PartialExpr::Shift(v, i) => {
+            PrismExpr::Free => write!(w, "{{{}}}", i.0)?,
+            PrismExpr::Shift(v, i) => {
                 write!(w, "([SHIFT {i}] ")?;
                 self.display(v, w, PrecedenceLevel::default())?;
                 write!(w, ")")?;
             }
-            PartialExpr::TypeAssert(e, typ) => {
+            PrismExpr::TypeAssert(e, typ) => {
                 self.display(e, w, PrecedenceLevel::Destruct)?;
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            PartialExpr::Name(n) => {
+            PrismExpr::Name(n) => {
                 write!(w, "{n}")?;
             }
-            PartialExpr::ShiftPoint(v, g) => {
+            PrismExpr::ShiftPoint(v, g) => {
                 write!(w, "([SHIFT POINT {g:?}] ")?;
                 self.display(v, w, max_precedence)?;
                 write!(w, ")")?;
             }
-            PartialExpr::ShiftTo(v, g) => {
+            PrismExpr::ShiftTo(v, g) => {
                 write!(w, "([SHIFT TO {g:?}] ")?;
                 self.display(v, w, max_precedence)?;
                 write!(w, ")")?;

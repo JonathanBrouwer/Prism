@@ -4,7 +4,7 @@ use crate::lang::error::TypeError;
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
 use crate::lang::ValueOrigin::FreeSub;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{PrismExpr, TcEnv};
 use std::collections::HashMap;
 
 impl<'grm> TcEnv<'grm> {
@@ -30,13 +30,13 @@ impl<'grm> TcEnv<'grm> {
 
         match (self.values[*i1], self.values[*i2]) {
             // Type is always equal to Type
-            (PartialExpr::Type, PartialExpr::Type) => {
+            (PrismExpr::Type, PrismExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
             // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
             // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
-            (PartialExpr::DeBruijnIndex(index1), PartialExpr::DeBruijnIndex(index2)) => {
+            (PrismExpr::DeBruijnIndex(index1), PrismExpr::DeBruijnIndex(index2)) => {
                 // Get the UniqueVariableId that `index1` refers to
                 let id1 = match s1[index1] {
                     CType(id, _, _) | RType(id) => id,
@@ -51,7 +51,7 @@ impl<'grm> TcEnv<'grm> {
                 id1 == id2
             }
             // Two function types are equal if their argument types and body types are equal
-            (PartialExpr::FnType(_, a1, b1), PartialExpr::FnType(_, a2, b2)) => {
+            (PrismExpr::FnType(_, a1, b1), PrismExpr::FnType(_, a2, b2)) => {
                 // Check that the argument types are equal
                 let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
 
@@ -68,7 +68,7 @@ impl<'grm> TcEnv<'grm> {
                 a_equal && b_equal
             }
             // Function construct works the same as above
-            (PartialExpr::FnConstruct(_, b1), PartialExpr::FnConstruct(_, b2)) => {
+            (PrismExpr::FnConstruct(_, b1), PrismExpr::FnConstruct(_, b2)) => {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -80,21 +80,17 @@ impl<'grm> TcEnv<'grm> {
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
-            (PartialExpr::FnDestruct(f1, a1), PartialExpr::FnDestruct(f2, a2)) => {
+            (PrismExpr::FnDestruct(f1, a1), PrismExpr::FnDestruct(f2, a2)) => {
                 let f_equal = self.expect_beq_internal((f1, &s1, var_map1), (f2, &s2, var_map2));
                 let b_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
                 f_equal && b_equal
             }
-            (_, PartialExpr::Free) => {
-                self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2))
-            }
-            (PartialExpr::Free, _) => {
-                self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
-            }
-            (PartialExpr::FnDestruct(f, _), _) => {
+            (_, PrismExpr::Free) => self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2)),
+            (PrismExpr::Free, _) => self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1)),
+            (PrismExpr::FnDestruct(f, _), _) => {
                 self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2))
             }
-            (_, PartialExpr::FnDestruct(f, _)) => {
+            (_, PrismExpr::FnDestruct(f, _)) => {
                 self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1))
             }
             _ => false,
@@ -115,17 +111,17 @@ impl<'grm> TcEnv<'grm> {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         assert!(matches!(
             self.values[*i2],
-            PartialExpr::Type
-                | PartialExpr::FnType(_, _, _)
-                | PartialExpr::FnConstruct(_, _)
-                | PartialExpr::DeBruijnIndex(_)
+            PrismExpr::Type
+                | PrismExpr::FnType(_, _, _)
+                | PrismExpr::FnConstruct(_, _)
+                | PrismExpr::DeBruijnIndex(_)
         ));
 
         // We are in the case `f1 a1 = i2`
         // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
         // We construct a value in scope 2 and set them equal
-        let b = self.store(PartialExpr::Shift(i2, 1), FreeSub(i2));
-        let f = self.store(PartialExpr::FnConstruct(GENERATED_NAME, b), FreeSub(i2));
+        let b = self.store(PrismExpr::Shift(i2, 1), FreeSub(i2));
+        let f = self.store(PrismExpr::FnConstruct(GENERATED_NAME, b), FreeSub(i2));
         self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2))
     }
 
@@ -144,7 +140,7 @@ impl<'grm> TcEnv<'grm> {
             &mut HashMap<UniqueVariableId, usize>,
         ),
     ) -> bool {
-        assert!(matches!(self.values[*i2], PartialExpr::Free));
+        assert!(matches!(self.values[*i2], PrismExpr::Free));
 
         if self.toxic_values.contains(&i1) {
             self.errors.push(TypeError::InfiniteType(i1, i2));
@@ -153,14 +149,14 @@ impl<'grm> TcEnv<'grm> {
 
         // We deliberately don't beta-reduce i1 here since we want to keep the inferred value small
         match self.values[*i1] {
-            PartialExpr::Type => {
-                self.values[*i2] = PartialExpr::Type;
+            PrismExpr::Type => {
+                self.values[*i2] = PrismExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            PartialExpr::Let(_n, v1, b1) => {
-                let v2 = self.store(PartialExpr::Free, FreeSub(i2));
-                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[*i2] = PartialExpr::Let(GENERATED_NAME, v2, b2);
+            PrismExpr::Let(_n, v1, b1) => {
+                let v2 = self.store(PrismExpr::Free, FreeSub(i2));
+                let b2 = self.store(PrismExpr::Free, FreeSub(i2));
+                self.values[*i2] = PrismExpr::Let(GENERATED_NAME, v2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -177,7 +173,7 @@ impl<'grm> TcEnv<'grm> {
 
                 constraints_eq && a_eq && b_eq
             }
-            PartialExpr::DeBruijnIndex(v1) => {
+            PrismExpr::DeBruijnIndex(v1) => {
                 let subst_equal = match &s1[v1] {
                     &CType(id, _, _) => {
                         // We may have shifted away part of the env that we need during this beq
@@ -198,7 +194,7 @@ impl<'grm> TcEnv<'grm> {
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
                         assert_eq!(id, id2);
 
-                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     &CSubst(_, _, _) => {
@@ -219,7 +215,7 @@ impl<'grm> TcEnv<'grm> {
                             return true;
                         };
 
-                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     &RType(id) => {
@@ -249,7 +245,7 @@ impl<'grm> TcEnv<'grm> {
                             // TODO return true;
                         }
 
-                        self.values[*i2] = PartialExpr::DeBruijnIndex(v2);
+                        self.values[*i2] = PrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     RSubst(i1, s1) => self.expect_beq_free((*i1, s1, var_map1), (i2, s2, var_map2)),
@@ -257,10 +253,10 @@ impl<'grm> TcEnv<'grm> {
                 let constraints_eq = self.handle_constraints(i2, s2);
                 subst_equal && constraints_eq
             }
-            PartialExpr::FnType(_, a1, b1) => {
-                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
-                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[*i2] = PartialExpr::FnType(GENERATED_NAME, a2, b2);
+            PrismExpr::FnType(_, a1, b1) => {
+                let a2 = self.store(PrismExpr::Free, FreeSub(i2));
+                let b2 = self.store(PrismExpr::Free, FreeSub(i2));
+                self.values[*i2] = PrismExpr::FnType(GENERATED_NAME, a2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -276,9 +272,9 @@ impl<'grm> TcEnv<'grm> {
 
                 constraints_eq && a_eq && b_eq
             }
-            PartialExpr::FnConstruct(_, b1) => {
-                let b2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[*i2] = PartialExpr::FnConstruct(GENERATED_NAME, b2);
+            PrismExpr::FnConstruct(_, b1) => {
+                let b2 = self.store(PrismExpr::Free, FreeSub(i2));
+                self.values[*i2] = PrismExpr::FnConstruct(GENERATED_NAME, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -294,10 +290,10 @@ impl<'grm> TcEnv<'grm> {
 
                 constraints_eq && b_eq
             }
-            PartialExpr::FnDestruct(f1, a1) => {
-                let f2 = self.store(PartialExpr::Free, FreeSub(i2));
-                let a2 = self.store(PartialExpr::Free, FreeSub(i2));
-                self.values[*i2] = PartialExpr::FnDestruct(f2, a2);
+            PrismExpr::FnDestruct(f1, a1) => {
+                let f2 = self.store(PrismExpr::Free, FreeSub(i2));
+                let a2 = self.store(PrismExpr::Free, FreeSub(i2));
+                self.values[*i2] = PrismExpr::FnDestruct(f2, a2);
 
                 let constraints_eq = self.handle_constraints(i2, s2);
 
@@ -306,7 +302,7 @@ impl<'grm> TcEnv<'grm> {
                 let a_eq = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
                 constraints_eq && f_eq && a_eq
             }
-            PartialExpr::Free => {
+            PrismExpr::Free => {
                 self.queued_beq_free.entry(i1).or_default().push((
                     (s1.clone(), var_map1.clone()),
                     (i2, s2.clone(), var_map2.clone()),
@@ -317,13 +313,13 @@ impl<'grm> TcEnv<'grm> {
                 ));
                 true
             }
-            PartialExpr::Shift(v1, i) => {
+            PrismExpr::Shift(v1, i) => {
                 self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, s2, var_map2))
             }
-            PartialExpr::TypeAssert(v, _t) => {
+            PrismExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
-            PartialExpr::Name(_) | PartialExpr::ShiftPoint(_, _) | PartialExpr::ShiftTo(_, _) => {
+            PrismExpr::Name(_) | PrismExpr::ShiftPoint(_, _) | PrismExpr::ShiftTo(_, _) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         }

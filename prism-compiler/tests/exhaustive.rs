@@ -1,4 +1,4 @@
-use prism_compiler::lang::{PartialExpr, TcEnv, UnionIndex};
+use prism_compiler::lang::{PrismExpr, TcEnv, UnionIndex};
 
 #[test]
 fn test_exhaustive() {
@@ -11,7 +11,7 @@ fn iter_exhaustive(
     mut f: impl FnMut(&mut TcEnv, UnionIndex) -> bool,
 ) {
     let mut env = TcEnv::default();
-    let root = env.store_test(PartialExpr::Free);
+    let root = env.store_test(PrismExpr::Free);
     let mut env_size = vec![0];
 
     // Invariant: env.values[i+1..] is free
@@ -31,7 +31,7 @@ fn iter_exhaustive(
         // Reset free variables
         env.values.truncate(len);
         env.value_origins.truncate(len);
-        env.values[i + 1..].fill(PartialExpr::Free);
+        env.values[i + 1..].fill(PrismExpr::Free);
         env.reset();
 
         // Keep this partial expr if the result is ok
@@ -49,36 +49,36 @@ fn iter_exhaustive(
 fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
     loop {
         env.values[*i] = match env.values[*i] {
-            PartialExpr::Free => PartialExpr::Type,
-            PartialExpr::Type => PartialExpr::DeBruijnIndex(0),
-            PartialExpr::DeBruijnIndex(idx) => {
+            PrismExpr::Free => PrismExpr::Type,
+            PrismExpr::Type => PrismExpr::DeBruijnIndex(0),
+            PrismExpr::DeBruijnIndex(idx) => {
                 if idx + 1 < env_size[*i] {
-                    PartialExpr::DeBruijnIndex(idx + 1)
+                    PrismExpr::DeBruijnIndex(idx + 1)
                 } else {
                     env_size.push(env_size[*i]);
                     env_size.push(env_size[*i] + 1);
-                    PartialExpr::Let(
+                    PrismExpr::Let(
                         "",
-                        env.store_test(PartialExpr::Free),
-                        env.store_test(PartialExpr::Free),
+                        env.store_test(PrismExpr::Free),
+                        env.store_test(PrismExpr::Free),
                     )
                 }
             }
-            PartialExpr::Let(_, e1, e2) => PartialExpr::FnType("", e1, e2),
-            PartialExpr::FnType(_, e1, _) => {
+            PrismExpr::Let(_, e1, e2) => PrismExpr::FnType("", e1, e2),
+            PrismExpr::FnType(_, e1, _) => {
                 env.values.pop().unwrap();
                 env_size.pop().unwrap();
                 env_size[*e1] += 1;
-                PartialExpr::FnConstruct("", e1)
+                PrismExpr::FnConstruct("", e1)
             }
-            PartialExpr::FnConstruct(_, e1) => {
+            PrismExpr::FnConstruct(_, e1) => {
                 env_size[*e1] -= 1;
                 env_size.push(env_size[*i]);
-                PartialExpr::FnDestruct(e1, env.store_test(PartialExpr::Free))
+                PrismExpr::FnDestruct(e1, env.store_test(PrismExpr::Free))
             }
-            PartialExpr::FnDestruct(e1, e2) => PartialExpr::TypeAssert(e1, e2),
-            PartialExpr::TypeAssert(_, _) => {
-                env.values[*i] = PartialExpr::Free;
+            PrismExpr::FnDestruct(e1, e2) => PrismExpr::TypeAssert(e1, e2),
+            PrismExpr::TypeAssert(_, _) => {
+                env.values[*i] = PrismExpr::Free;
                 env.values.pop().unwrap();
                 env.values.pop().unwrap();
                 env_size.pop().unwrap();
@@ -89,10 +89,10 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
                 *i -= 1;
                 continue;
             }
-            PartialExpr::Shift(_, _) => unreachable!(),
-            PartialExpr::Name(_) => unimplemented!(),
-            PartialExpr::ShiftPoint(_, _) => unimplemented!(),
-            PartialExpr::ShiftTo(_, _) => unimplemented!(),
+            PrismExpr::Shift(_, _) => unreachable!(),
+            PrismExpr::Name(_) => unimplemented!(),
+            PrismExpr::ShiftPoint(_, _) => unimplemented!(),
+            PrismExpr::ShiftTo(_, _) => unimplemented!(),
         };
         return true;
     }

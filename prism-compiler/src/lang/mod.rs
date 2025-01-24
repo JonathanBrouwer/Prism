@@ -26,7 +26,7 @@ type QueuedConstraint<'grm> = (
 #[derive(Default)]
 pub struct TcEnv<'grm> {
     // Value store
-    pub values: Vec<PartialExpr<'grm>>,
+    pub values: Vec<PrismExpr<'grm>>,
     pub value_origins: Vec<ValueOrigin>,
     value_types: HashMap<UnionIndex, UnionIndex>,
 
@@ -77,7 +77,7 @@ impl Deref for UnionIndex {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum PartialExpr<'grm> {
+pub enum PrismExpr<'grm> {
     // Real expressions
     Free,
     Type,
@@ -96,18 +96,18 @@ pub enum PartialExpr<'grm> {
 }
 
 impl<'grm> TcEnv<'grm> {
-    pub fn store_from_source(&mut self, e: PartialExpr<'grm>, span: Span) -> UnionIndex {
+    pub fn store_from_source(&mut self, e: PrismExpr<'grm>, span: Span) -> UnionIndex {
         self.store(e, ValueOrigin::SourceCode(span))
     }
 
-    pub fn store_test(&mut self, e: PartialExpr<'grm>) -> UnionIndex {
+    pub fn store_test(&mut self, e: PrismExpr<'grm>) -> UnionIndex {
         self.store(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
     }
 
-    fn store(&mut self, e: PartialExpr<'grm>, origin: ValueOrigin) -> UnionIndex {
+    fn store(&mut self, e: PrismExpr<'grm>, origin: ValueOrigin) -> UnionIndex {
         self.values.push(e);
         self.value_origins.push(origin);
         UnionIndex(self.values.len() - 1)

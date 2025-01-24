@@ -1,4 +1,4 @@
-use crate::lang::{PartialExpr, TcEnv, UnionIndex};
+use crate::lang::{PrismExpr, TcEnv, UnionIndex};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
@@ -17,11 +17,11 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
         _src: &'grm str,
         tc_env: &mut TcEnv<'grm>,
     ) -> Self {
-        let expr: PartialExpr<'grm> = match constructor {
+        let expr: PrismExpr<'grm> = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
-                PartialExpr::Type
+                PrismExpr::Type
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
@@ -29,9 +29,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
                     .into_value::<Input>()
                     .as_str(_src);
                 if name == "_" {
-                    PartialExpr::Free
+                    PrismExpr::Free
                 } else {
-                    PartialExpr::Name(name)
+                    PrismExpr::Name(name)
                 }
             }
             "Let" => {
@@ -41,7 +41,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
                     .as_str(_src);
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::Let(name, v, b)
+                PrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
@@ -50,7 +50,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
                     .as_str(_src);
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 let b = *reduce_expr(args[2], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::FnType(name, v, b)
+                PrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
@@ -58,27 +58,27 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
                     .into_value::<Input<'grm>>()
                     .as_str(_src);
                 let b = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::FnConstruct(name, b)
+                PrismExpr::FnConstruct(name, b)
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
                 let f = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
                 let v = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::FnDestruct(f, v)
+                PrismExpr::FnDestruct(f, v)
             }
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
 
                 let e = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
                 let typ = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
-                PartialExpr::TypeAssert(e, typ)
+                PrismExpr::TypeAssert(e, typ)
             }
             "GrammarDefine" => {
                 assert_eq!(args.len(), 2);
                 let b = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
                 let g = *reduce_expr(args[1], tc_env, allocs).into_value::<Guid>();
 
-                PartialExpr::ShiftPoint(b, g)
+                PrismExpr::ShiftPoint(b, g)
             }
             _ => unreachable!(),
         };
@@ -99,7 +99,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         let guid = value.1;
 
         let expr = tc_env.store_from_source(
-            PartialExpr::ShiftTo(expr, guid),
+            PrismExpr::ShiftTo(expr, guid),
             tc_env.value_origins[*expr].to_source_span(),
         );
         Parsed::from_value(allocs.alloc(expr))
