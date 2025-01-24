@@ -48,7 +48,9 @@ impl TcEnv<'_> {
             PartialExpr::Free => PartialExpr::Free,
             PartialExpr::Shift(_, _) => unreachable!(),
             PartialExpr::TypeAssert(_, _) => unreachable!(),
-            PartialExpr::Name(_) => unreachable!("Should not occur in typechecked terms"),
+            PartialExpr::Name(_) | PartialExpr::ShiftPoint(_, _) | PartialExpr::ShiftTo(_, _) => {
+                unreachable!("Should not occur in typechecked terms")
+            }
         };
         self.store(e_new, self.value_origins[*i])
     }

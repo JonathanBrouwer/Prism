@@ -1,7 +1,7 @@
 ### Input
 let x = Type;
 grammar {
-    adapt rule expr(env) {
+    adapt rule expr {
         adapt group base {
             x <- "%";
         }

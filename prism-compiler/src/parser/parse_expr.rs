@@ -73,6 +73,13 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for UnionIndex {
                 let typ = *reduce_expr(args[1], tc_env, allocs).into_value::<UnionIndex>();
                 PartialExpr::TypeAssert(e, typ)
             }
+            "GrammarDefine" => {
+                assert_eq!(args.len(), 2);
+                let b = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
+                let g = *reduce_expr(args[1], tc_env, allocs).into_value::<Guid>();
+
+                PartialExpr::ShiftPoint(b, g)
+            }
             _ => unreachable!(),
         };
 
@@ -87,6 +94,18 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
         let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
+        let env = v.env;
+        let expr = *reduce_expr(value.0, tc_env, allocs).into_value::<UnionIndex>();
+        let guid = value.1;
+
+        let expr = tc_env.store_from_source(
+            PartialExpr::ShiftTo(expr, guid),
+            tc_env.value_origins[*expr].to_source_span(),
+        );
+        Parsed::from_value(allocs.alloc(expr))
+
+        // let env = tc_env.guids.get(&value.1).unwrap();
+
         // let from_env = value.1;
         // let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
         //
@@ -98,7 +117,6 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         //     Span::new(Pos::invalid(), Pos::invalid()),
         // );
         // Parsed::from_value(allocs.alloc(expr))
-        value.0
     } else {
         parsed
     }

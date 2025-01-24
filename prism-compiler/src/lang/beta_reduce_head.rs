@@ -76,7 +76,11 @@ impl<'grm> TcEnv<'grm> {
                 PartialExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
-                PartialExpr::Name(_) => unreachable!("Should not occur in typechecked terms"),
+                PartialExpr::Name(_)
+                | PartialExpr::ShiftPoint(_, _)
+                | PartialExpr::ShiftTo(_, _) => {
+                    unreachable!("Should not occur in typechecked terms")
+                }
             }
         }
     }

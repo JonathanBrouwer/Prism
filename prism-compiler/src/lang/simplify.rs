@@ -63,7 +63,9 @@ impl TcEnv<'_> {
                 let typ = self.simplify_inner(typ, s, var_map);
                 PartialExpr::TypeAssert(e, typ)
             }
-            PartialExpr::Name(_) => unreachable!("Should not occur in typechecked terms"),
+            PartialExpr::Name(_) | PartialExpr::ShiftPoint(_, _) | PartialExpr::ShiftTo(_, _) => {
+                unreachable!("Should not occur in typechecked terms")
+            }
         };
         self.store(e_new, self.value_origins[*i])
     }

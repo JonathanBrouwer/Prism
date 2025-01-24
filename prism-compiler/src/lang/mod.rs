@@ -2,6 +2,7 @@ use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
+use prism_parser::parsable::guid::Guid;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -24,17 +25,17 @@ type QueuedConstraint<'grm> = (
 
 #[derive(Default)]
 pub struct TcEnv<'grm> {
+    // Value store
     pub values: Vec<PartialExpr<'grm>>,
     pub value_origins: Vec<ValueOrigin>,
     value_types: HashMap<UnionIndex, UnionIndex>,
 
+    // State during type checking
+    guid_shifts: HashMap<Guid, usize>,
     tc_id: usize,
     pub errors: Vec<TypeError>,
     toxic_values: HashSet<UnionIndex>,
-
-    // Queues
     queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'grm>>>,
-    // queued_tc: HashMap<UnionIndex, (Env, UnionIndex)>,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -47,6 +48,15 @@ pub enum ValueOrigin {
     FreeSub(UnionIndex),
     /// This is an (initally free) AST node generated because type checking a node failed
     Failure,
+}
+
+impl ValueOrigin {
+    pub fn to_source_span(self) -> Span {
+        match self {
+            ValueOrigin::SourceCode(span) => span,
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -68,18 +78,21 @@ impl Deref for UnionIndex {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum PartialExpr<'grm> {
+    // Real expressions
     Free,
     Type,
     Let(&'grm str, UnionIndex, UnionIndex),
-
     DeBruijnIndex(usize),
-    Name(&'grm str),
-
     FnType(&'grm str, UnionIndex, UnionIndex),
     FnConstruct(&'grm str, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),
+
+    // Temporary expressions after parsing
+    Name(&'grm str),
+    ShiftPoint(UnionIndex, Guid),
+    ShiftTo(UnionIndex, Guid),
 }
 
 impl<'grm> TcEnv<'grm> {

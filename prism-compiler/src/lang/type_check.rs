@@ -47,15 +47,19 @@ impl<'grm> TcEnv<'grm> {
                 }
             },
             PartialExpr::Name(n) => {
-                let Some((db_index, _)) = s
+                return if let Some((db_index, _)) = s
                     .iter()
                     .enumerate()
                     .find(|(_, entry)| entry.get_name() == n)
-                else {
-                    todo!()
-                };
-                self.values[*i] = PartialExpr::DeBruijnIndex(db_index);
-                return self._type_check(i, s);
+                {
+                    self.values[*i] = PartialExpr::DeBruijnIndex(db_index);
+                    self._type_check(i, s)
+                } else {
+                    self.errors.push(TypeError::UnknownName(
+                        self.value_origins[*i].to_source_span(),
+                    ));
+                    self.store(PartialExpr::Free, ValueOrigin::Failure)
+                }
             }
             PartialExpr::FnType(n, mut a, b) => {
                 let err_count = self.errors.len();
@@ -105,6 +109,16 @@ impl<'grm> TcEnv<'grm> {
             }
             PartialExpr::Shift(v, shift) => {
                 PartialExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
+            }
+            PartialExpr::ShiftPoint(b, guid) => {
+                self.values[*i] = PartialExpr::Shift(b, 0);
+                self.guid_shifts.insert(guid, s.len());
+                return self._type_check(i, s);
+            }
+            PartialExpr::ShiftTo(b, guid) => {
+                let prev_len = self.guid_shifts[&guid];
+                self.values[*i] = PartialExpr::Shift(b, s.len() - prev_len);
+                return self._type_check(i, s);
             }
             PartialExpr::TypeAssert(e, typ) => {
                 let err_count1 = self.errors.len();

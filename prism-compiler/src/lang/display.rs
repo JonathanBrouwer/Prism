@@ -28,6 +28,8 @@ impl PartialExpr<'_> {
             PartialExpr::Type => PrecedenceLevel::Base,
             PartialExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
             PartialExpr::Name(_) => PrecedenceLevel::Base,
+            PartialExpr::ShiftPoint(_, _) => PrecedenceLevel::Base,
+            PartialExpr::ShiftTo(_, _) => PrecedenceLevel::Base,
         }
     }
 }
@@ -82,7 +84,17 @@ impl TcEnv<'_> {
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
             PartialExpr::Name(n) => {
-                write!(w, "([NAME {n}])")?;
+                write!(w, "{n}")?;
+            }
+            PartialExpr::ShiftPoint(v, g) => {
+                write!(w, "([SHIFT POINT {g:?}] ")?;
+                self.display(v, w, max_precedence)?;
+                write!(w, ")")?;
+            }
+            PartialExpr::ShiftTo(v, g) => {
+                write!(w, "([SHIFT TO {g:?}] ")?;
+                self.display(v, w, max_precedence)?;
+                write!(w, ")")?;
             }
         }
 
