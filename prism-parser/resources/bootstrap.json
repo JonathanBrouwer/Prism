@@ -2892,15 +2892,19 @@
                   {
                     "Repeat": {
                       "expr": {
-                        "CharClass": {
-                          "neg": true,
-                          "ranges": [
-                            [
-                              "*",
-                              "*"
-                            ]
-                          ]
-                        }
+                        "Sequence": [
+                          {
+                            "NegLookahead": {
+                              "Literal": "*/"
+                            }
+                          },
+                          {
+                            "CharClass": {
+                              "neg": true,
+                              "ranges": []
+                            }
+                          }
+                        ]
                       },
                       "min": 0,
                       "max": null,

@@ -112,7 +112,7 @@ rule layout {
     // Line comments
     "//" [^'\n']* "\n";
     /* Block comments */
-    "/*" [^'*']* "*/";
+    "/*" <#neg("*/") [^]>* "*/";
 }
 
 rule integer {
