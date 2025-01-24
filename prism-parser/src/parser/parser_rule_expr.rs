@@ -69,10 +69,10 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     let arg_values = if arg_values.is_empty() {
                         rule_args
                     } else {
-                        assert_eq!(arg_values.len(), rule_args.iter_cloned().count());
+                        assert_eq!(arg_values.len(), rule_args.into_iter().count());
                         VarMap::from_iter(
                             rule_args
-                                .iter_cloned()
+                                .into_iter()
                                 .collect::<Vec<_>>()
                                 .into_iter()
                                 .rev()
@@ -207,11 +207,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                                 sub, rules, blocks, rule_args, res_vars, pos, context, penv,
                             )
                         })
-                        .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
+                        .map(|(l, r)| l.extend(r.free, self.alloc));
                     match &res.ok_ref() {
                         None => break,
                         Some(o) => {
-                            res_vars = res_vars.extend(o.iter_cloned(), self.alloc);
+                            res_vars = res_vars.extend(**o, self.alloc);
                         }
                     }
                 }
@@ -245,7 +245,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     PR::with_rtrn(self.apply_action(
                         action,
                         span,
-                        vars.extend(res.free.iter_cloned(), self.alloc),
+                        vars.extend(res.free, self.alloc),
                         penv,
                     ))
                 })

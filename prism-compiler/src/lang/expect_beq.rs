@@ -15,7 +15,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         expr: UnionIndex,
         expr_type: UnionIndex,
         expected_type: UnionIndex,
-        s: &Env<'grm>,
+        s: &Env<'arn>,
     ) {
         if !self.expect_beq_internal(
             (expr_type, s, &mut HashMap::new()),
@@ -54,7 +54,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         ft: UnionIndex,
         at: UnionIndex,
         rt: UnionIndex,
-        s: &Env<'grm>,
+        s: &Env<'arn>,
     ) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 

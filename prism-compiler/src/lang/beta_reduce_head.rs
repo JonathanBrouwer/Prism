@@ -16,7 +16,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
         loop {
             match self.values[*e] {
-                PrismExpr::Type => {
+                // Values
+                PrismExpr::Type
+                | PrismExpr::FnType(_, _, _)
+                | PrismExpr::ParserValue(_)
+                | PrismExpr::ParserValueType => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
@@ -41,10 +45,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         s = vs.clone();
                     }
                 },
-                PrismExpr::FnType(_n, _, _) => {
-                    assert!(args.is_empty());
-                    return (e, s);
-                }
                 PrismExpr::FnConstruct(_n, b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
@@ -76,11 +76,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 PrismExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
-                PrismExpr::Name(..)
-                | PrismExpr::ShiftPoint(..)
-                | PrismExpr::ShiftTo(..)
-                | PrismExpr::ParserValue(..) => {
-                    unreachable!("Should not occur in typechecked terms")
+                PrismExpr::Name(..) | PrismExpr::ShiftPoint(..) | PrismExpr::ShiftTo(..) => {
+                    unreachable!(
+                        "Should not occur in typechecked terms: {:?}",
+                        self.values[*e]
+                    )
                 }
             }
         }

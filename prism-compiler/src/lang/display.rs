@@ -31,6 +31,7 @@ impl<'arn, 'grm: 'arn> PrismExpr<'arn, 'grm> {
             PrismExpr::ShiftPoint(_, _) => PrecedenceLevel::Base,
             PrismExpr::ShiftTo(_, _, _) => PrecedenceLevel::Base,
             PrismExpr::ParserValue(_) => PrecedenceLevel::Base,
+            PrismExpr::ParserValueType => PrecedenceLevel::Base,
         }
     }
 }
@@ -51,7 +52,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         match e {
             PrismExpr::Type => write!(w, "Type")?,
             PrismExpr::Let(n, v, b) => {
-                write!(w, "let ({n} =) ")?;
+                write!(w, "let {n} = ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
@@ -98,7 +99,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 write!(w, ")")?;
             }
             PrismExpr::ParserValue(_) => {
-                write!(w, "([PARSER VALUE])")?;
+                write!(w, "[PARSER VALUE]")?;
+            }
+            PrismExpr::ParserValueType => {
+                write!(w, "Parsed")?;
             }
         }
 

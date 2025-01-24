@@ -86,8 +86,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         match es {
             [] => PResult::new_err(E::new(pos), pos),
             [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
-                let rule_ctx = rule_ctx.iter_cloned();
-                let rule_args_iter = rule_args.iter_cloned();
+                let rule_ctx = rule_ctx.into_iter();
+                let rule_args_iter = rule_args.into_iter();
                 let vars: VarMap<'arn, 'grm> =
                     VarMap::from_iter(rule_args_iter.chain(rule_ctx), self.alloc);
 

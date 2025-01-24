@@ -102,7 +102,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
-        for (name, value) in rule_args.iter_cloned() {
+        for (name, value) in rule_args {
             args_hash.write(name.as_bytes());
             args_hash.write_usize(value.as_ptr().as_ptr() as usize);
         }

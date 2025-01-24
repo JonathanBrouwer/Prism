@@ -69,19 +69,20 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
     Type,
-    Let(&'grm str, UnionIndex, UnionIndex),
+    Let(&'arn str, UnionIndex, UnionIndex),
     DeBruijnIndex(usize),
-    FnType(&'grm str, UnionIndex, UnionIndex),
-    FnConstruct(&'grm str, UnionIndex),
+    FnType(&'arn str, UnionIndex, UnionIndex),
+    FnConstruct(&'arn str, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),
 
     // Temporary expressions after parsing
-    Name(&'grm str),
+    Name(&'arn str),
     ShiftPoint(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
     ParserValue(Parsed<'arn, 'grm>),
+    ParserValueType,
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
@@ -98,7 +99,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     tc_id: usize,
     pub errors: Vec<TypeError>,
     toxic_values: HashSet<UnionIndex>,
-    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'grm>>>,
+    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'arn>>>,
 }
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {

@@ -15,12 +15,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         // The var_map is a map for each `UniqueVariableId`, its depth in the scope
         (i1o, s1, var_map1): (
             UnionIndex,
-            &Env<'grm>,
+            &Env<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
         (i2o, s2, var_map2): (
             UnionIndex,
-            &Env<'grm>,
+            &Env<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
     ) -> bool {
@@ -100,11 +100,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: UnionIndex,
-        s1: &Env<'grm>,
+        s1: &Env<'arn>,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
         (i2, s2, var_map2): (
             UnionIndex,
-            &Env<'grm>,
+            &Env<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
     ) -> bool {
@@ -131,12 +131,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         &mut self,
         (i1, s1, var_map1): (
             UnionIndex,
-            &Env<'grm>,
+            &Env<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
         (i2, s2, var_map2): (
             UnionIndex,
-            &Env<'grm>,
+            &Env<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
     ) -> bool {
@@ -151,6 +151,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         match self.values[*i1] {
             PrismExpr::Type => {
                 self.values[*i2] = PrismExpr::Type;
+                self.handle_constraints(i2, s2)
+            }
+            PrismExpr::ParserValueType => {
+                self.values[*i2] = PrismExpr::ParserValueType;
                 self.handle_constraints(i2, s2)
             }
             PrismExpr::Let(_n, v1, b1) => {

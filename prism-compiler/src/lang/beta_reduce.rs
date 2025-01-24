@@ -17,7 +17,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let (i, s) = self.beta_reduce_head(i, s.clone());
 
         let e_new = match self.values[*i] {
-            PrismExpr::Type => PrismExpr::Type,
+            // Values
+            PrismExpr::Type | PrismExpr::ParserValue(..) | PrismExpr::ParserValueType => {
+                self.values[*i]
+            }
+
             PrismExpr::Let(_, _, _) => unreachable!(),
             PrismExpr::DeBruijnIndex(v) => {
                 let EnvEntry::RType(id) = s[v] else {
@@ -48,10 +52,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             PrismExpr::Free => PrismExpr::Free,
             PrismExpr::Shift(_, _) => unreachable!(),
             PrismExpr::TypeAssert(_, _) => unreachable!(),
-            PrismExpr::Name(..)
-            | PrismExpr::ShiftPoint(..)
-            | PrismExpr::ShiftTo(..)
-            | PrismExpr::ParserValue(..) => {
+            PrismExpr::Name(..) | PrismExpr::ShiftPoint(..) | PrismExpr::ShiftTo(..) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         };

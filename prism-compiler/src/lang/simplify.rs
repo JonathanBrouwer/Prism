@@ -63,11 +63,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let typ = self.simplify_inner(typ, s, var_map);
                 PrismExpr::TypeAssert(e, typ)
             }
-            PrismExpr::Name(..)
-            | PrismExpr::ShiftPoint(..)
-            | PrismExpr::ShiftTo(..)
-            | PrismExpr::ParserValue(..) => {
-                unreachable!("Should not occur in typechecked terms")
+            PrismExpr::ParserValue(p) => PrismExpr::ParserValue(p),
+            PrismExpr::ParserValueType => PrismExpr::ParserValueType,
+            PrismExpr::Name(..) | PrismExpr::ShiftPoint(..) | PrismExpr::ShiftTo(..) => {
+                unreachable!(
+                    "Should not occur in typechecked terms: {:?}",
+                    self.values[*i]
+                )
             }
         };
         self.store(e_new, self.value_origins[*i])

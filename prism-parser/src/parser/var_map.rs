@@ -10,7 +10,7 @@ pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
 impl Debug for VarMap<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
-        for (name, _value) in self.iter_cloned() {
+        for (name, _value) in *self {
             writeln!(f, "- {name}")?;
         }
         Ok(())
@@ -53,10 +53,6 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         }
     }
 
-    pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, Parsed<'arn, 'grm>)> {
-        VarMapIterator { current: self.0 }
-    }
-
     #[must_use]
     pub fn insert(self, key: &'arn str, value: Parsed<'arn, 'grm>, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
@@ -88,5 +84,14 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
 
     pub fn as_ptr(&self) -> *const VarMapNode {
         self.0.map(|r| r as *const VarMapNode).unwrap_or(null())
+    }
+}
+
+impl<'arn, 'grm> IntoIterator for VarMap<'arn, 'grm> {
+    type Item = (&'arn str, Parsed<'arn, 'grm>);
+    type IntoIter = VarMapIterator<'arn, 'grm>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        VarMapIterator { current: self.0 }
     }
 }

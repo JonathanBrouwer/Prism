@@ -1,5 +1,5 @@
-use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
+use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::UnionIndex;
@@ -21,7 +21,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: UnionIndex, s: &Env<'grm>) -> UnionIndex {
+    fn _type_check(&mut self, i: UnionIndex, s: &Env<'arn>) -> UnionIndex {
         // We should only type check values from the source code
         assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
 
@@ -47,6 +47,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             },
             PrismExpr::Name(n) => {
+                let n = self.resolve_name(n, s);
+
                 return if let Some((db_index, _)) = s
                     .iter()
                     .enumerate()
@@ -59,9 +61,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         self.value_origins[*i].to_source_span(),
                     ));
                     self.store(PrismExpr::Free, ValueOrigin::Failure)
-                }
+                };
             }
             PrismExpr::FnType(n, mut a, b) => {
+                let n = self.resolve_name(n, s);
+
                 let err_count = self.errors.len();
                 let at = self._type_check(a, s);
                 self.expect_beq_type(at, s);
@@ -81,8 +85,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 PrismExpr::Type
             }
             PrismExpr::FnConstruct(n, b) => {
+                let n = self.resolve_name(n, s);
+
                 let a = self.store(PrismExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = s.cons(CType(self.new_tc_id(), a, n));
+                let bs: Env<'arn> = s.cons(CType(self.new_tc_id(), a, n));
                 let bt = self._type_check(b, &bs);
                 PrismExpr::FnType(n, a, bt)
             }
@@ -131,17 +137,37 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.guid_shifts.insert(guid, s.len());
                 return self._type_check(i, s);
             }
-            PrismExpr::ShiftTo(b, guid, env) => {
+            PrismExpr::ShiftTo(mut b, guid, env) => {
                 let prev_len = self.guid_shifts[&guid];
-                self.values[*i] = PrismExpr::Shift(b, s.len() - prev_len);
+                let shift_amount = s.len() - prev_len;
+
+                for (name, value) in env {
+                    let value = if let Some(value) = value.try_into_value::<UnionIndex>() {
+                        *value
+                    } else {
+                        self.store(PrismExpr::ParserValue(value), self.value_origins[*i])
+                    };
+                    b = self.store(PrismExpr::Let(name, value, b), self.value_origins[*i]);
+                }
+
+                //TODO this shift means that the lets above can't see the variables they need to see :c
+                self.values[*i] = PrismExpr::Shift(b, shift_amount);
                 return self._type_check(i, s);
             }
-            PrismExpr::ParserValue(_) => {
-                todo!()
-            }
+            PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,
+            PrismExpr::ParserValueType => PrismExpr::Type,
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));
         self.value_types.insert(i, tid);
         tid
+    }
+
+    fn resolve_name(&mut self, name: &'arn str, s: &Env<'arn>) -> &'arn str {
+        match s.iter().find(|entry| entry.get_name() == name) {
+            Some(CSubst(v, _, _)) if matches!(self.values[**v], PrismExpr::ParserValue(_)) => {
+                todo!()
+            }
+            _ => name,
+        }
     }
 }
