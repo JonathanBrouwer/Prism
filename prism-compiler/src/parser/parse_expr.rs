@@ -3,6 +3,7 @@ use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
+use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
 
@@ -85,8 +86,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
     allocs: Allocs<'arn>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
-        todo!()
-        // let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
+        let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
         // let from_env = value.1;
         // let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
         //
@@ -98,13 +98,14 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         //     Span::new(Pos::invalid(), Pos::invalid()),
         // );
         // Parsed::from_value(allocs.alloc(expr))
+        value.0
     } else {
         parsed
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
+pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
@@ -116,6 +117,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, TcEnv<'grm>> for ScopeEnter<'arn, 'g
         tc_env: &mut TcEnv,
     ) -> Self {
         assert_eq!(constructor, "Enter");
-        ScopeEnter(args[0])
+        ScopeEnter(args[0], *args[1].into_value())
     }
 }
