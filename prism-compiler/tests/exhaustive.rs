@@ -91,6 +91,8 @@ fn next(i: &mut usize, env: &mut TcEnv, env_size: &mut Vec<usize>) -> bool {
             }
             PartialExpr::Shift(_, _) => unreachable!(),
             PartialExpr::Name(_) => unimplemented!(),
+            PartialExpr::ShiftPoint(_, _) => unimplemented!(),
+            PartialExpr::ShiftTo(_, _) => unimplemented!(),
         };
         return true;
     }

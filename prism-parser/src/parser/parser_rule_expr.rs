@@ -245,7 +245,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     PR::with_rtrn(self.apply_action(
                         action,
                         span,
-                        res.free.extend(vars.iter_cloned(), self.alloc),
+                        vars.extend(res.free.iter_cloned(), self.alloc),
                         penv,
                     ))
                 })

@@ -103,20 +103,6 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
             tc_env.value_origins[*expr].to_source_span(),
         );
         Parsed::from_value(allocs.alloc(expr))
-
-        // let env = tc_env.guids.get(&value.1).unwrap();
-
-        // let from_env = value.1;
-        // let to_env = v.env.get("env").unwrap().into_value::<ParsedEnv>();
-        //
-        // let shift = to_env.find_shift_to(from_env);
-        // let inner = *reduce_expr(value.0, tc_env, allocs).into_value::<UnionIndex>();
-        //
-        // let expr = tc_env.store_from_source(
-        //     PartialExpr::Shift(inner, shift),
-        //     Span::new(Pos::invalid(), Pos::invalid()),
-        // );
-        // Parsed::from_value(allocs.alloc(expr))
     } else {
         parsed
     }
