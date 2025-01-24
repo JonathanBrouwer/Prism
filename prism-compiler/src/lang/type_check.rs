@@ -103,23 +103,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 PrismExpr::Let(GENERATED_NAME, a, rt)
             }
-            PrismExpr::Free => {
-                // TODO self.queued_tc.insert(i, (s.clone(), t));
-                PrismExpr::Free
-            }
-            PrismExpr::Shift(v, shift) => {
-                PrismExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
-            }
-            PrismExpr::ShiftPoint(b, guid) => {
-                self.values[*i] = PrismExpr::Shift(b, 0);
-                self.guid_shifts.insert(guid, s.len());
-                return self._type_check(i, s);
-            }
-            PrismExpr::ShiftTo(b, guid) => {
-                let prev_len = self.guid_shifts[&guid];
-                self.values[*i] = PrismExpr::Shift(b, s.len() - prev_len);
-                return self._type_check(i, s);
-            }
             PrismExpr::TypeAssert(e, typ) => {
                 let err_count1 = self.errors.len();
                 let et = self._type_check(e, s);
@@ -135,6 +118,26 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
 
                 return et;
+            }
+            PrismExpr::Free => {
+                // TODO self.queued_tc.insert(i, (s.clone(), t));
+                PrismExpr::Free
+            }
+            PrismExpr::Shift(v, shift) => {
+                PrismExpr::Shift(self._type_check(v, &s.shift(shift)), shift)
+            }
+            PrismExpr::ShiftPoint(b, guid) => {
+                self.values[*i] = PrismExpr::Shift(b, 0);
+                self.guid_shifts.insert(guid, s.len());
+                return self._type_check(i, s);
+            }
+            PrismExpr::ShiftTo(b, guid, env) => {
+                let prev_len = self.guid_shifts[&guid];
+                self.values[*i] = PrismExpr::Shift(b, s.len() - prev_len);
+                return self._type_check(i, s);
+            }
+            PrismExpr::ParserValue(_) => {
+                todo!()
             }
         };
         let tid = self.store(t, ValueOrigin::TypeOf(i));

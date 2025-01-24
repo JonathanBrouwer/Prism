@@ -89,7 +89,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for UnionIndex
 
 pub fn reduce_expr<'arn, 'grm: 'arn>(
     parsed: Parsed<'arn, 'grm>,
-    tc_env: &mut PrismEnv,
+    tc_env: &mut PrismEnv<'arn, 'grm>,
     allocs: Allocs<'arn>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
@@ -99,7 +99,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         let guid = value.1;
 
         let expr = tc_env.store_from_source(
-            PrismExpr::ShiftTo(expr, guid),
+            PrismExpr::ShiftTo(expr, guid, env),
             tc_env.value_origins[*expr].to_source_span(),
         );
         Parsed::from_value(allocs.alloc(expr))

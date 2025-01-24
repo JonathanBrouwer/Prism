@@ -48,7 +48,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             PrismExpr::Free => PrismExpr::Free,
             PrismExpr::Shift(_, _) => unreachable!(),
             PrismExpr::TypeAssert(_, _) => unreachable!(),
-            PrismExpr::Name(_) | PrismExpr::ShiftPoint(_, _) | PrismExpr::ShiftTo(_, _) => {
+            PrismExpr::Name(..)
+            | PrismExpr::ShiftPoint(..)
+            | PrismExpr::ShiftTo(..)
+            | PrismExpr::ParserValue(..) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         };

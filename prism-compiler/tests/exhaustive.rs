@@ -93,9 +93,10 @@ fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
                 continue;
             }
             PrismExpr::Shift(_, _) => unreachable!(),
-            PrismExpr::Name(_) => unimplemented!(),
-            PrismExpr::ShiftPoint(_, _) => unimplemented!(),
-            PrismExpr::ShiftTo(_, _) => unimplemented!(),
+            PrismExpr::Name(_) => unreachable!(),
+            PrismExpr::ShiftPoint(_, _) => unreachable!(),
+            PrismExpr::ShiftTo(_, _, _) => unreachable!(),
+            PrismExpr::ParserValue(_) => unreachable!(),
         };
         return true;
     }

@@ -4,6 +4,8 @@ use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::guid::Guid;
+use prism_parser::parsable::parsed::Parsed;
+use prism_parser::parser::var_map::VarMap;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -62,7 +64,7 @@ impl Deref for UnionIndex {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum PrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
@@ -76,9 +78,10 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
     TypeAssert(UnionIndex, UnionIndex),
 
     // Temporary expressions after parsing
-    Name(&'arn str),
+    Name(&'grm str),
     ShiftPoint(UnionIndex, Guid),
-    ShiftTo(UnionIndex, Guid),
+    ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
+    ParserValue(Parsed<'arn, 'grm>),
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
