@@ -137,26 +137,32 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.guid_shifts.insert(guid, s.len());
                 return self._type_check(i, s);
             }
-            PrismExpr::ShiftTo(mut b, guid, env) => {
+            PrismExpr::ShiftTo(b, guid, env) => {
                 let prev_len = self.guid_shifts[&guid];
-                let shift_amount = s.len() - prev_len;
+                let mut b: PrismExpr = PrismExpr::ShiftToTrigger(b, prev_len, s.len());
 
-                let mut s_sub = s.fill_last_n(
-                    shift_amount,
-                    CSubst(UnionIndex(usize::MAX), UnionIndex(usize::MAX), "_"),
-                );
                 for (name, value) in env {
                     let value = if let Some(value) = value.try_into_value::<UnionIndex>() {
                         *value
                     } else {
                         self.store(PrismExpr::ParserValue(value), self.value_origins[*i])
                     };
-                    b = self.store(PrismExpr::Let(name, value, b), self.value_origins[*i]);
-                    // s_sub = s_sub.cons(CSubst());
+                    let old_b = self.store(b, self.value_origins[*i]);
+                    b = PrismExpr::Let(name, value, old_b);
                 }
 
-                self.values[*i] = PrismExpr::Shift(b, 0);
+                self.values[*i] = b;
                 return self._type_check(i, s);
+            }
+            PrismExpr::ShiftToTrigger(b, s_from, s_to) => {
+                self.values[*i] = PrismExpr::Shift(b, 0);
+                return self._type_check(
+                    i,
+                    &s.fill_range(
+                        s_from..s_to,
+                        CSubst(UnionIndex(usize::MAX), UnionIndex(usize::MAX), "_"),
+                    ),
+                );
             }
             PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,
             PrismExpr::ParserValueType => PrismExpr::Type,

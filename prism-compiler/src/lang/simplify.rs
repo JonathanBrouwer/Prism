@@ -65,7 +65,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::ParserValue(p) => PrismExpr::ParserValue(p),
             PrismExpr::ParserValueType => PrismExpr::ParserValueType,
-            PrismExpr::Name(..) | PrismExpr::ShiftPoint(..) | PrismExpr::ShiftTo(..) => {
+            PrismExpr::Name(..)
+            | PrismExpr::ShiftPoint(..)
+            | PrismExpr::ShiftTo(..)
+            | PrismExpr::ShiftToTrigger(..) => {
                 unreachable!(
                     "Should not occur in typechecked terms: {:?}",
                     self.values[*i]

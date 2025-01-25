@@ -1,6 +1,7 @@
 use crate::lang::PrismEnv;
 use crate::lang::UnionIndex;
 use rpds::Vector;
+use std::ops::Range;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
@@ -61,12 +62,12 @@ impl<T> GenericEnv<T> {
         Self(s)
     }
 
-    pub fn fill_last_n(&self, count: usize, item: T) -> Self
+    pub fn fill_range(&self, range: Range<usize>, item: T) -> Self
     where
         T: Clone,
     {
         let mut s = self.0.clone();
-        for i in s.len() - count..s.len() {
+        for i in range {
             s.set_mut(i, item.clone());
         }
         Self(s)

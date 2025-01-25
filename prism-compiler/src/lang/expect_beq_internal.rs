@@ -326,7 +326,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             PrismExpr::Name(..)
             | PrismExpr::ShiftPoint(..)
             | PrismExpr::ShiftTo(..)
-            | PrismExpr::ParserValue(..) => {
+            | PrismExpr::ParserValue(..)
+            | PrismExpr::ShiftToTrigger(..) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         }

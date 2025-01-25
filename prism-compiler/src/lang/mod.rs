@@ -8,7 +8,7 @@ use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parser::var_map::VarMap;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
-use std::ops::Deref;
+use std::ops::{Deref, Range};
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -81,6 +81,7 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
     Name(&'arn str),
     ShiftPoint(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
+    ShiftToTrigger(UnionIndex, usize, usize),
     ParserValue(Parsed<'arn, 'grm>),
     ParserValueType,
 }

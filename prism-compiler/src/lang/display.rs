@@ -32,6 +32,7 @@ impl<'arn, 'grm: 'arn> PrismExpr<'arn, 'grm> {
             PrismExpr::ShiftTo(_, _, _) => PrecedenceLevel::Base,
             PrismExpr::ParserValue(_) => PrecedenceLevel::Base,
             PrismExpr::ParserValueType => PrecedenceLevel::Base,
+            PrismExpr::ShiftToTrigger(_, _, _) => PrecedenceLevel::Base,
         }
     }
 }
@@ -103,6 +104,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::ParserValueType => {
                 write!(w, "Parsed")?;
+            }
+            PrismExpr::ShiftToTrigger(b, _, _) => {
+                self.display(b, w, max_precedence)?;
             }
         }
 
