@@ -13,11 +13,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             (PrismExpr::Type, PrismExpr::Type) => {}
             (PrismExpr::DeBruijnIndex(i1), PrismExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
-                    CType(id, _, _) | RType(id) => id,
+                    CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 let id2 = match s2[i2] {
-                    CType(id, _, _) | RType(id) => id,
+                    CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
                 };
                 if id1 != id2 {

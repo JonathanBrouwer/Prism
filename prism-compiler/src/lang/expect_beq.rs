@@ -15,7 +15,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         expr: UnionIndex,
         expr_type: UnionIndex,
         expected_type: UnionIndex,
-        s: &Env<'arn>,
+        s: &Env,
     ) {
         if !self.expect_beq_internal(
             (expr_type, s, &mut HashMap::new()),
@@ -49,13 +49,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Expect `f` to be a function type with argument type `i_at` both valid in `s`.
     /// `rt` should be free.
-    pub fn expect_beq_fn_type(
-        &mut self,
-        ft: UnionIndex,
-        at: UnionIndex,
-        rt: UnionIndex,
-        s: &Env<'arn>,
-    ) {
+    pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 
         match self.values[*fr] {

@@ -1,11 +1,13 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
+use crate::lang::type_check::NamesEntry;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parser::var_map::VarMap;
+use rpds::HashTrieMap;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::{Deref, Range};
@@ -21,9 +23,9 @@ pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
 
-type QueuedConstraint<'grm> = (
-    (Env<'grm>, HashMap<UniqueVariableId, usize>),
-    (UnionIndex, Env<'grm>, HashMap<UniqueVariableId, usize>),
+type QueuedConstraint = (
+    (Env, HashMap<UniqueVariableId, usize>),
+    (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -81,7 +83,6 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
     Name(&'arn str),
     ShiftPoint(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
-    ShiftToTrigger(UnionIndex, usize, usize),
     ParserValue(Parsed<'arn, 'grm>),
     ParserValueType,
 }
@@ -97,11 +98,11 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     value_types: HashMap<UnionIndex, UnionIndex>,
 
     // State during type checking
-    guid_shifts: HashMap<Guid, usize>,
+    guid_shifts: HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
     tc_id: usize,
     pub errors: Vec<TypeError>,
     toxic_values: HashSet<UnionIndex>,
-    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint<'arn>>>,
+    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint>>,
 }
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {

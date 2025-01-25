@@ -25,7 +25,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 PrismExpr::Let(n, v, b)
             }
             PrismExpr::DeBruijnIndex(v) => match s.get(v) {
-                Some(EnvEntry::CType(_, _, _)) | Some(EnvEntry::CSubst(_, _, _)) => unreachable!(),
+                Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
                 Some(EnvEntry::RType(id)) => {
                     PrismExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
                 }
@@ -65,10 +65,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::ParserValue(p) => PrismExpr::ParserValue(p),
             PrismExpr::ParserValueType => PrismExpr::ParserValueType,
-            PrismExpr::Name(..)
-            | PrismExpr::ShiftPoint(..)
-            | PrismExpr::ShiftTo(..)
-            | PrismExpr::ShiftToTrigger(..) => {
+            PrismExpr::Name(..) | PrismExpr::ShiftPoint(..) | PrismExpr::ShiftTo(..) => {
                 unreachable!(
                     "Should not occur in typechecked terms: {:?}",
                     self.values[*i]
