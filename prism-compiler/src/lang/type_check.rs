@@ -141,6 +141,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let prev_len = self.guid_shifts[&guid];
                 let shift_amount = s.len() - prev_len;
 
+                let mut s_sub = s.fill_last_n(
+                    shift_amount,
+                    CSubst(UnionIndex(usize::MAX), UnionIndex(usize::MAX), "_"),
+                );
                 for (name, value) in env {
                     let value = if let Some(value) = value.try_into_value::<UnionIndex>() {
                         *value
@@ -148,10 +152,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         self.store(PrismExpr::ParserValue(value), self.value_origins[*i])
                     };
                     b = self.store(PrismExpr::Let(name, value, b), self.value_origins[*i]);
+                    // s_sub = s_sub.cons(CSubst());
                 }
 
-                //TODO this shift means that the lets above can't see the variables they need to see :c
-                self.values[*i] = PrismExpr::Shift(b, shift_amount);
+                self.values[*i] = PrismExpr::Shift(b, 0);
                 return self._type_check(i, s);
             }
             PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,

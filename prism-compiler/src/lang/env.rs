@@ -61,6 +61,17 @@ impl<T> GenericEnv<T> {
         Self(s)
     }
 
+    pub fn fill_last_n(&self, count: usize, item: T) -> Self
+    where
+        T: Clone,
+    {
+        let mut s = self.0.clone();
+        for i in s.len() - count..s.len() {
+            s.set_mut(i, item.clone());
+        }
+        Self(s)
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
