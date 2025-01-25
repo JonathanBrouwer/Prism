@@ -5,6 +5,7 @@ use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::{PrismEnv, PrismExpr};
+use prism_parser::core::input::Input;
 use std::mem;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
@@ -28,6 +29,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let t = match self.values[*i] {
             PrismExpr::Type => PrismExpr::Type,
             PrismExpr::Let(n, mut v, b) => {
+                let n = self.resolve_name(n, s);
+
                 // Check `v`
                 let err_count = self.errors.len();
                 let vt = self._type_check(v, s);
@@ -57,6 +60,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     self.values[*i] = PrismExpr::DeBruijnIndex(db_index);
                     self._type_check(i, s)
                 } else {
+                    println!("{s:?}");
+
                     self.errors.push(TypeError::UnknownName(
                         self.value_origins[*i].to_source_span(),
                     ));
@@ -173,11 +178,22 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     fn resolve_name(&mut self, name: &'arn str, s: &Env<'arn>) -> &'arn str {
-        match s.iter().find(|entry| entry.get_name() == name) {
-            Some(CSubst(v, _, _)) if matches!(self.values[**v], PrismExpr::ParserValue(_)) => {
-                todo!()
-            }
-            _ => name,
-        }
+        // If name can be resolved
+        let Some(CSubst(v, _, _)) = s.iter().find(|entry| entry.get_name() == name) else {
+            return name;
+        };
+
+        // And refers to a parser value
+        let PrismExpr::ParserValue(v) = self.values[**v] else {
+            return name;
+        };
+
+        let Some(v) = v.try_into_value::<Input>() else {
+            // TODO why does this happen
+            return name;
+        };
+
+        // And that parser value is a name
+        v.as_str(self.input)
     }
 }

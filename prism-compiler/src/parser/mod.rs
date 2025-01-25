@@ -24,6 +24,8 @@ pub fn parse_prism_in_env<'p>(
     program: &'p str,
     env: &mut PrismEnv<'_, 'p>,
 ) -> Result<UnionIndex, AggregatedParseError<'p, SetError<'p>>> {
+    env.input = program;
+
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
     parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());

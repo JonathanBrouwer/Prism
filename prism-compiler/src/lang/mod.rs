@@ -88,6 +88,7 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Allocs
+    pub input: &'grm str,
     pub allocs: Allocs<'arn>,
 
     // Value store
@@ -106,6 +107,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
+            input: "",
             allocs,
 
             values: Default::default(),
