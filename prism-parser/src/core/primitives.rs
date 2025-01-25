@@ -2,8 +2,8 @@ use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 
 impl<'grm, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'_, 'grm, Env, E> {
     pub fn parse_char(&mut self, f: impl Fn(&char) -> bool, pos: Pos) -> PResult<(Span, char), E> {

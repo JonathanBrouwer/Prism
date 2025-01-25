@@ -1,11 +1,12 @@
+use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::cache::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
+use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::grammar_file::GrammarFile;
@@ -14,13 +15,12 @@ use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
+use crate::parsable::Parsable;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::Parsable;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
-use crate::META_GRAMMAR;
 use std::collections::HashMap;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {

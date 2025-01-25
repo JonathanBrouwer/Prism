@@ -1,5 +1,5 @@
 use crate::lang::{PrismEnv, UnionIndex};
-use crate::parser::parse_expr::{reduce_expr, ScopeEnter};
+use crate::parser::parse_expr::{ScopeEnter, reduce_expr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;

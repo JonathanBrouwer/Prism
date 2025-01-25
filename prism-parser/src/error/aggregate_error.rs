@@ -1,5 +1,5 @@
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 use ariadne::Source;
 use std::io;
 

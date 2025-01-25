@@ -3,8 +3,8 @@ use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::var_map::VarMap;
 

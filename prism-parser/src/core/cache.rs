@@ -6,7 +6,7 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
-use crate::error::{err_combine_opt, ParseError};
+use crate::error::{ParseError, err_combine_opt};
 use crate::parsable::parsed::Parsed;
 use crate::parser::var_map::VarMap;
 use bumpalo::Bump;

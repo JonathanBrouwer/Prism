@@ -1,6 +1,6 @@
+use crate::lang::UnionIndex;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::UnionIndex;
 use crate::lang::{PrismEnv, PrismExpr};
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
@@ -34,7 +34,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                             (e, s)
                         } else {
                             (start_expr, start_env)
-                        }
+                        };
                     }
                     CSubst(v, _, _) => {
                         e = v;

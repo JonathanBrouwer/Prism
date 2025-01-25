@@ -143,7 +143,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let constraints = self
                     .queued_beq_free
                     .iter()
-                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1 .0)))
+                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1.0)))
                     .collect::<Vec<_>>()
                     .join(",");
 

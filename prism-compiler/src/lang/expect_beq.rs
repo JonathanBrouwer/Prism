@@ -1,8 +1,8 @@
+use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
-use crate::lang::UnionIndex;
-use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 

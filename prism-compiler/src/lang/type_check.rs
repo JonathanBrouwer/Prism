@@ -1,9 +1,9 @@
+use crate::lang::UnionIndex;
+use crate::lang::ValueOrigin;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
-use crate::lang::UnionIndex;
-use crate::lang::ValueOrigin;
 use crate::lang::{PrismEnv, PrismExpr};
 use std::mem;
 

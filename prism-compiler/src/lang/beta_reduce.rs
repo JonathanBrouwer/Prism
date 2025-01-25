@@ -1,5 +1,5 @@
-use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::UnionIndex;
+use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 

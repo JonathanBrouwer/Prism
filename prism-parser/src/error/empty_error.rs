@@ -1,7 +1,7 @@
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 use ariadne::{Report, ReportKind};
 use std::marker::PhantomData;
 

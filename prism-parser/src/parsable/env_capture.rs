@@ -1,5 +1,5 @@
-use crate::parsable::parsed::Parsed;
 use crate::parsable::ParseResult;
+use crate::parsable::parsed::Parsed;
 use crate::parser::var_map::VarMap;
 
 #[derive(Clone, Copy)]

@@ -1,5 +1,5 @@
-use crate::parsable::parsed::checksum_parsable;
 use crate::parsable::ParseResult;
+use crate::parsable::parsed::checksum_parsable;
 use std::any::type_name;
 use std::marker::PhantomData;
 use std::mem;

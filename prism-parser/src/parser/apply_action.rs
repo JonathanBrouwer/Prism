@@ -1,12 +1,12 @@
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 use crate::grammar::rule_action::RuleAction;
+use crate::parsable::ParseResult;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::ParseResult;
 use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {

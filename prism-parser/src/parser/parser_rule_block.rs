@@ -1,6 +1,6 @@
 use crate::core::presult::PResult;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 
@@ -165,21 +165,23 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 },
                 penv,
             ),
-            [RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery, rest @ ..] => self
-                .parse_sub_annotations(
-                    rules,
-                    blocks,
-                    rule_args,
-                    rest,
-                    expr,
-                    vars,
-                    pos,
-                    ParserContext {
-                        recovery_disabled: true,
-                        ..context
-                    },
-                    penv,
-                ),
+            [
+                RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery,
+                rest @ ..,
+            ] => self.parse_sub_annotations(
+                rules,
+                blocks,
+                rule_args,
+                rest,
+                expr,
+                vars,
+                pos,
+                ParserContext {
+                    recovery_disabled: true,
+                    ..context
+                },
+                penv,
+            ),
             &[] => self
                 .parse_expr(expr, rules, blocks, rule_args, vars, pos, context, penv)
                 .map(|pr| pr.rtrn),

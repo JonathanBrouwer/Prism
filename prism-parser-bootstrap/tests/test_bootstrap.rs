@@ -1,10 +1,10 @@
 use bumpalo::Bump;
+use prism_parser::META_GRAMMAR;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parse_grammar;
-use prism_parser::META_GRAMMAR;
 
 #[test]
 pub fn test_bootstrap() {

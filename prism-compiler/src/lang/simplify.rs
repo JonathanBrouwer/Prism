@@ -1,5 +1,5 @@
-use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::UnionIndex;
+use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
 use crate::lang::{PrismEnv, PrismExpr};
 use std::collections::HashMap;
 
@@ -30,7 +30,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     PrismExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
                 }
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
-                    return self.simplify_inner(*subst, subst_env, var_map)
+                    return self.simplify_inner(*subst, subst_env, var_map);
                 }
                 None => PrismExpr::DeBruijnIndex(v),
             },
@@ -56,7 +56,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::Free => PrismExpr::Free,
             PrismExpr::Shift(b, i) => {
-                return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map)
+                return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map);
             }
             PrismExpr::TypeAssert(e, typ) => {
                 let e = self.simplify_inner(e, s, var_map);

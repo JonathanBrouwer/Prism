@@ -1,7 +1,7 @@
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use crate::error::error_printer::{base_report, ErrorLabel};
 use crate::error::ParseError;
+use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report};
 use std::collections::{BTreeMap, HashSet};
 
