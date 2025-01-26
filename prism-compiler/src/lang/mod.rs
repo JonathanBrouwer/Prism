@@ -1,16 +1,14 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
-use crate::lang::type_check::NamesEntry;
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parser::var_map::VarMap;
-use rpds::HashTrieMap;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
-use std::ops::{Deref, Range};
+use std::ops::Deref;
 
 mod beta_reduce;
 mod beta_reduce_head;

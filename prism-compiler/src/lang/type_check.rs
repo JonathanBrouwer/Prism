@@ -32,16 +32,12 @@ pub enum NamesEntry<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     pub fn insert_name(&self, name: &'arn str, value: EnvEntry, input: &'arn str) -> Self {
-        self.insert_name_at(name, self.env.len(), value, input)
+        let mut s = self.insert_name_at(name, self.env.len(), input);
+        s.env = s.env.cons(value);
+        s
     }
 
-    pub fn insert_name_at(
-        &self,
-        name: &'arn str,
-        depth: usize,
-        value: EnvEntry,
-        input: &'arn str,
-    ) -> Self {
+    pub fn insert_name_at(&self, name: &'arn str, depth: usize, input: &'arn str) -> Self {
         let names = self.names.insert(name, NamesEntry::FromEnv(depth));
         let hygienic_names = if let Some(NamesEntry::FromParsed(ar, _)) = self.names.get(name) {
             let new_name = ar.into_value::<Input>().as_str(input);
@@ -51,7 +47,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         };
 
         Self {
-            env: self.env.cons(value),
+            env: self.env.clone(),
             names,
             jump_labels: self.jump_labels.clone(),
             hygienic_names,
@@ -108,23 +104,28 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         }
     }
 
-    pub fn shift_back(&self, old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>) -> Self {
+    pub fn shift_back(
+        &self,
+        old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
+        input: &'arn str,
+    ) -> Self {
         // println!("{:?}", old_names.keys().collect::<Vec<_>>());
         // println!("{:?}", &self.names.keys().collect::<Vec<_>>());
         // println!("{:?}", &self.hygienic_names.keys().collect::<Vec<_>>());
 
-        let mut names = old_names.clone();
+        let mut new_env = Self {
+            env: self.env.clone(),
+            names: old_names.clone(),
+            jump_labels: self.jump_labels.clone(),
+            //TODO what here? old code takes from `old_names` env (not available here)
+            hygienic_names: Default::default(),
+        };
+
         for (name, db_idx) in &self.hygienic_names {
-            names.insert_mut(name, NamesEntry::FromEnv(*db_idx));
+            new_env = new_env.insert_name_at(name, *db_idx, input);
         }
 
-        Self {
-            env: self.env.clone(),
-            names,
-            jump_labels: self.jump_labels.clone(),
-            //TODO what here?
-            hygienic_names: Default::default(),
-        }
+        new_env
     }
 }
 
@@ -178,7 +179,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(expr) = parsed.try_into_value::<UnionIndex>() {
                             self.values[*i] = PrismExpr::Shift(*expr, 0);
-                            self._type_check(i, &env.shift_back(old_names))
+                            self._type_check(i, &env.shift_back(old_names, self.input))
                         } else if let Some(name) = parsed.try_into_value::<Input>() {
                             self.values[*i] = PrismExpr::Name(name.as_str(self.input));
                             self._type_check(i, &env)

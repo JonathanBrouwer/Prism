@@ -13,7 +13,7 @@ grammar {
 grammar {
     adapt rule expr {
         adapt group statement {
-            tle x in e <- "tel" x:identifier "in" e:expr;
+            tle y in e <- "tel" y:identifier "in" e:expr;
         }
     }
     adapt rule keyword {
@@ -22,7 +22,7 @@ grammar {
     }
 }
 
-tel y in y
+tel z in z
 
 
 ### Eval
