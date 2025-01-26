@@ -1,6 +1,5 @@
 use crate::lang::PrismEnv;
 use crate::lang::UnionIndex;
-use prism_parser::parsable::parsed::Parsed;
 use rpds::Vector;
 use std::ops::Range;
 

@@ -113,12 +113,12 @@ pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
     fn from_construct(
-        span: Span,
+        _span: Span,
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
-        allocs: Allocs<'arn>,
-        src: &'grm str,
-        tc_env: &mut PrismEnv,
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _tc_env: &mut PrismEnv,
     ) -> Self {
         assert_eq!(constructor, "Enter");
         ScopeEnter(args[0], *args[1].into_value())

@@ -10,7 +10,6 @@ use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parser::var_map::VarMap;
 use rpds::HashTrieMap;
-use std::collections::HashMap;
 use std::mem;
 
 #[derive(Default, Clone)]
@@ -77,6 +76,10 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
 
     pub fn len(&self) -> usize {
         self.env.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.env.is_empty()
     }
 
     pub fn insert_shift_label(&self, guid: Guid) -> Self {
@@ -182,7 +185,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                             self._type_check(i, &env.shift_back(old_names, self.input))
                         } else if let Some(name) = parsed.try_into_value::<Input>() {
                             self.values[*i] = PrismExpr::Name(name.as_str(self.input));
-                            self._type_check(i, &env)
+                            self._type_check(i, env)
                         } else {
                             unreachable!()
                         }
