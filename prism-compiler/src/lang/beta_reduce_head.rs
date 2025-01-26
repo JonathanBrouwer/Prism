@@ -76,7 +76,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 PrismExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
-                PrismExpr::Name(..) | PrismExpr::ShiftLabel(..) | PrismExpr::ShiftTo(..) => {
+                PrismExpr::ShiftLabel(b, ..) | PrismExpr::ShiftTo(b, ..) => {
+                    e = b;
+                }
+                PrismExpr::Name(..) => {
                     unreachable!(
                         "Should not occur in typechecked terms: {:?}",
                         self.values[*e]

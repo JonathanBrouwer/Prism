@@ -21,7 +21,7 @@ grammar {
     }
 }
 
-list![Type, List Type, Type -> Type]
+list![Type, Type, Type]
 
 ### Eval
 let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;

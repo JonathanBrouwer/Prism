@@ -62,19 +62,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         self.names.get(name)
     }
 
-    // pub fn resolve_name_decl(&self, name: &'arn str, input: &'arn str) -> &'arn str {
-    //     match self.names.get(name) {
-    //         None | Some(NamesEntry::FromEnv(_)) => name,
-    //         Some(NamesEntry::FromParsed(parsed, new_names)) => {
-    //             if let Some(new_name) = parsed.try_into_value::<Input>() {
-    //                 new_name.as_str(input)
-    //             } else {
-    //                 unreachable!()
-    //             }
-    //         }
-    //     }
-    // }
-
     pub fn len(&self) -> usize {
         self.env.len()
     }
@@ -121,10 +108,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
         input: &'arn str,
     ) -> Self {
-        // println!("{:?}", old_names.keys().collect::<Vec<_>>());
-        // println!("{:?}", &self.names.keys().collect::<Vec<_>>());
-        // println!("{:?}", &self.hygienic_names.keys().collect::<Vec<_>>());
-
         let mut new_env = Self {
             env: self.env.clone(),
             names: old_names.clone(),
@@ -190,6 +173,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(expr) = parsed.try_into_value::<UnionIndex>() {
+                            //TODO should not mutate
                             self.values[*i] = PrismExpr::Shift(*expr, 0);
                             self._type_check(i, &env.shift_back(old_names, self.input))
                         } else if let Some(name) = parsed.try_into_value::<Input>() {
@@ -280,11 +264,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 // PrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
             }
             PrismExpr::ShiftLabel(b, guid) => {
-                self.values[*i] = PrismExpr::Shift(b, 0);
-                return self._type_check(i, &env.insert_shift_label(guid));
+                // self.values[*i] = PrismExpr::Shift(b, 0);
+                return self._type_check(b, &env.insert_shift_label(guid));
             }
             PrismExpr::ShiftTo(b, guid, captured_env) => {
-                self.values[*i] = PrismExpr::Shift(b, 0);
+                // self.values[*i] = PrismExpr::Shift(b, 0);
                 let env = env.shift_to_label(guid, captured_env, self);
                 return self._type_check(b, &env);
             }

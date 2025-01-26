@@ -65,7 +65,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::ParserValue(p) => PrismExpr::ParserValue(p),
             PrismExpr::ParserValueType => PrismExpr::ParserValueType,
-            PrismExpr::Name(..) | PrismExpr::ShiftLabel(..) | PrismExpr::ShiftTo(..) => {
+            PrismExpr::ShiftLabel(b, ..) | PrismExpr::ShiftTo(b, ..) => {
+                return self.simplify_inner(b, s, var_map);
+            }
+            PrismExpr::Name(..) => {
                 unreachable!(
                     "Should not occur in typechecked terms: {:?}",
                     self.values[*i]
