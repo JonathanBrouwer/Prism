@@ -18,6 +18,7 @@ pub struct NamedEnv<'arn, 'grm> {
     env: Env,
     names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
     jump_labels: HashTrieMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
+    hygienic_decls: HashTrieMap<&'arn str, usize>,
 }
 
 #[derive(Debug)]
@@ -35,6 +36,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             env: self.env.cons(value),
             names: self.names.insert(name, NamesEntry::FromEnv(self.env.len())),
             jump_labels: self.jump_labels.clone(),
+            hygienic_decls: self.hygienic_decls.insert(name, self.env.len()),
         }
     }
 
@@ -68,6 +70,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             env: self.env.clone(),
             names: self.names.clone(),
             jump_labels: self.jump_labels.insert(guid, self.names.clone()),
+            hygienic_decls: self.hygienic_decls.clone(),
         }
     }
 
@@ -82,18 +85,27 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             env: self.env.clone(),
             names,
             jump_labels: self.jump_labels.clone(),
+            //TODO should these be preserved?
+            hygienic_decls: Default::default(),
         }
     }
 
     pub fn shift_back(&self, old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>) -> Self {
-        println!("{:?}", old_names.keys().collect::<Vec<_>>());
+        // println!("{:?}", old_names.keys().collect::<Vec<_>>());
+        // println!("{:?}", &self.names.keys().collect::<Vec<_>>());
+        // println!("{:?}", &self.hygienic_decls.keys().collect::<Vec<_>>());
 
-        println!("{:?}", &self.names.keys().collect::<Vec<_>>());
+        let mut names = old_names.clone();
+        for (name, db_idx) in &self.hygienic_decls {
+            names.insert_mut(name, NamesEntry::FromEnv(*db_idx));
+        }
 
         Self {
             env: self.env.clone(),
-            names: old_names.clone(),
+            names,
             jump_labels: self.jump_labels.clone(),
+            //TODO what here?
+            hygienic_decls: Default::default(),
         }
     }
 }
