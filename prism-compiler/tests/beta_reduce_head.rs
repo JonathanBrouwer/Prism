@@ -13,10 +13,11 @@ fn test([test]: [&str; 1]) {
 
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
-    let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
-    let expected_eval = parse_prism_in_env(eval, &mut env).unwrap_or_eprint();
 
+    let input = parse_prism_in_env(input, &mut env).unwrap_or_eprint();
     let _ = env.type_check(input);
+
+    let expected_eval = parse_prism_in_env(eval, &mut env).unwrap_or_eprint();
     let _ = env.type_check(expected_eval);
 
     assert!(

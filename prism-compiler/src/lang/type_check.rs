@@ -18,7 +18,7 @@ pub struct NamedEnv<'arn, 'grm> {
     env: Env,
     names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
     jump_labels: HashTrieMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
-    hygienic_decls: HashTrieMap<&'arn str, usize>,
+    hygienic_names: HashTrieMap<&'arn str, usize>,
 }
 
 #[derive(Debug)]
@@ -31,12 +31,30 @@ pub enum NamesEntry<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
-    pub fn cons(&self, name: &'arn str, value: EnvEntry) -> Self {
+    pub fn insert_name(&self, name: &'arn str, value: EnvEntry, input: &'arn str) -> Self {
+        self.insert_name_at(name, self.env.len(), value, input)
+    }
+
+    pub fn insert_name_at(
+        &self,
+        name: &'arn str,
+        depth: usize,
+        value: EnvEntry,
+        input: &'arn str,
+    ) -> Self {
+        let names = self.names.insert(name, NamesEntry::FromEnv(depth));
+        let hygienic_names = if let Some(NamesEntry::FromParsed(ar, _)) = self.names.get(name) {
+            let new_name = ar.into_value::<Input>().as_str(input);
+            self.hygienic_names.insert(new_name, depth)
+        } else {
+            self.hygienic_names.clone()
+        };
+
         Self {
             env: self.env.cons(value),
-            names: self.names.insert(name, NamesEntry::FromEnv(self.env.len())),
+            names,
             jump_labels: self.jump_labels.clone(),
-            hygienic_decls: self.hygienic_decls.insert(name, self.env.len()),
+            hygienic_names,
         }
     }
 
@@ -48,18 +66,18 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         self.names.get(name)
     }
 
-    pub fn resolve_name_decl(&self, name: &'arn str, input: &'arn str) -> &'arn str {
-        match self.names.get(name) {
-            None | Some(NamesEntry::FromEnv(_)) => name,
-            Some(NamesEntry::FromParsed(parsed, new_names)) => {
-                if let Some(new_name) = parsed.try_into_value::<Input>() {
-                    new_name.as_str(input)
-                } else {
-                    unreachable!()
-                }
-            }
-        }
-    }
+    // pub fn resolve_name_decl(&self, name: &'arn str, input: &'arn str) -> &'arn str {
+    //     match self.names.get(name) {
+    //         None | Some(NamesEntry::FromEnv(_)) => name,
+    //         Some(NamesEntry::FromParsed(parsed, new_names)) => {
+    //             if let Some(new_name) = parsed.try_into_value::<Input>() {
+    //                 new_name.as_str(input)
+    //             } else {
+    //                 unreachable!()
+    //             }
+    //         }
+    //     }
+    // }
 
     pub fn len(&self) -> usize {
         self.env.len()
@@ -70,7 +88,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             env: self.env.clone(),
             names: self.names.clone(),
             jump_labels: self.jump_labels.insert(guid, self.names.clone()),
-            hygienic_decls: self.hygienic_decls.clone(),
+            hygienic_names: self.hygienic_names.clone(),
         }
     }
 
@@ -86,17 +104,17 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             names,
             jump_labels: self.jump_labels.clone(),
             //TODO should these be preserved?
-            hygienic_decls: Default::default(),
+            hygienic_names: Default::default(),
         }
     }
 
     pub fn shift_back(&self, old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>) -> Self {
         // println!("{:?}", old_names.keys().collect::<Vec<_>>());
         // println!("{:?}", &self.names.keys().collect::<Vec<_>>());
-        // println!("{:?}", &self.hygienic_decls.keys().collect::<Vec<_>>());
+        // println!("{:?}", &self.hygienic_names.keys().collect::<Vec<_>>());
 
         let mut names = old_names.clone();
-        for (name, db_idx) in &self.hygienic_decls {
+        for (name, db_idx) in &self.hygienic_names {
             names.insert_mut(name, NamesEntry::FromEnv(*db_idx));
         }
 
@@ -105,7 +123,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
             names,
             jump_labels: self.jump_labels.clone(),
             //TODO what here?
-            hygienic_decls: Default::default(),
+            hygienic_names: Default::default(),
         }
     }
 }
@@ -131,8 +149,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let t = match self.values[*i] {
             PrismExpr::Type => PrismExpr::Type,
             PrismExpr::Let(n, mut v, b) => {
-                let n = env.resolve_name_decl(n, self.input);
-
                 // Check `v`
                 let err_count = self.errors.len();
                 let vt = self._type_check(v, env);
@@ -140,7 +156,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     v = self.store(PrismExpr::Free, ValueOrigin::Failure);
                 }
 
-                let bt = self._type_check(b, &env.cons(n, CSubst(v, vt)));
+                let bt = self._type_check(b, &env.insert_name(n, CSubst(v, vt), self.input));
                 PrismExpr::Let(n, v, bt)
             }
             PrismExpr::DeBruijnIndex(index) => match env.resole_de_bruijn_idx(index) {
@@ -152,6 +168,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             },
             PrismExpr::Name(name) => {
+                assert_ne!(name, "_");
+
                 return match env.resolve_name_use(name) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
                         self.values[*i] = PrismExpr::DeBruijnIndex(env.len() - *prev_env_len - 1);
@@ -163,7 +181,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                             self._type_check(i, &env.shift_back(old_names))
                         } else if let Some(name) = parsed.try_into_value::<Input>() {
                             self.values[*i] = PrismExpr::Name(name.as_str(self.input));
-                            self._type_check(i, env)
+                            self._type_check(i, &env)
                         } else {
                             unreachable!()
                         }
@@ -178,8 +196,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 };
             }
             PrismExpr::FnType(n, mut a, b) => {
-                let n = env.resolve_name_decl(n, self.input);
-
                 let err_count = self.errors.len();
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, &env.env);
@@ -188,7 +204,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
 
                 let err_count = self.errors.len();
-                let bs = env.cons(n, CType(self.new_tc_id(), a));
+                let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
                 let bt = self._type_check(b, &bs);
 
                 // Check if `b` typechecked without errors.
@@ -199,10 +215,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 PrismExpr::Type
             }
             PrismExpr::FnConstruct(n, b) => {
-                let n = env.resolve_name_decl(n, self.input);
-
                 let a = self.store(PrismExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = env.cons(n, CType(self.new_tc_id(), a));
+                let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
                 let bt = self._type_check(b, &bs);
                 PrismExpr::FnType(n, a, bt)
             }
@@ -255,6 +269,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 return self._type_check(i, &env.insert_shift_label(guid));
             }
             PrismExpr::ShiftTo(b, guid, captured_env) => {
+                self.values[*i] = PrismExpr::Shift(b, 0);
                 return self._type_check(b, &env.shift_to_label(guid, captured_env));
             }
             PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,

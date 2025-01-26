@@ -1,7 +1,7 @@
 ### Input
 let y = Type;
 grammar {
-    adapt rule expr(env) {
+    adapt rule expr {
         adapt group statement {
             let y = Type -> Type; e <- "tel" e:#this;
         }
