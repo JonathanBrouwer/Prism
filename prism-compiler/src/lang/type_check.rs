@@ -187,11 +187,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                             self.values[*i] = PrismExpr::Name(name.as_str(self.input));
                             self._type_check(i, env)
                         } else {
-                            unreachable!()
+                            unreachable!(
+                                "Found name `{name}` referring to {}",
+                                parsed.to_debug_string(self.input)
+                            );
                         }
                     }
                     None => {
-                        println!("NAME NOT FOUND: {name}");
                         self.errors.push(TypeError::UnknownName(
                             self.value_origins[*i].to_source_span(),
                         ));
