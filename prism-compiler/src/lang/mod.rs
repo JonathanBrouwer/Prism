@@ -81,7 +81,7 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     Name(&'arn str),
-    ShiftPoint(UnionIndex, Guid),
+    ShiftLabel(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
     ParserValue(Parsed<'arn, 'grm>),
     ParserValueType,
@@ -98,7 +98,6 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     value_types: HashMap<UnionIndex, UnionIndex>,
 
     // State during type checking
-    guid_shifts: HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
     tc_id: usize,
     pub errors: Vec<TypeError>,
     toxic_values: HashSet<UnionIndex>,
@@ -114,7 +113,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             values: Default::default(),
             value_origins: Default::default(),
             value_types: Default::default(),
-            guid_shifts: Default::default(),
             tc_id: Default::default(),
             errors: Default::default(),
             toxic_values: Default::default(),

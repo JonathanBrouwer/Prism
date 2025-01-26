@@ -28,7 +28,7 @@ impl<'arn, 'grm: 'arn> PrismExpr<'arn, 'grm> {
             PrismExpr::Type => PrecedenceLevel::Base,
             PrismExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
             PrismExpr::Name(_) => PrecedenceLevel::Base,
-            PrismExpr::ShiftPoint(_, _) => PrecedenceLevel::Base,
+            PrismExpr::ShiftLabel(_, _) => PrecedenceLevel::Base,
             PrismExpr::ShiftTo(_, _, _) => PrecedenceLevel::Base,
             PrismExpr::ParserValue(_) => PrecedenceLevel::Base,
             PrismExpr::ParserValueType => PrecedenceLevel::Base,
@@ -88,7 +88,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             PrismExpr::Name(n) => {
                 write!(w, "{n}")?;
             }
-            PrismExpr::ShiftPoint(v, g) => {
+            PrismExpr::ShiftLabel(v, g) => {
                 write!(w, "([SHIFT POINT {g:?}] ")?;
                 self.display(v, w, max_precedence)?;
                 write!(w, ")")?;

@@ -78,7 +78,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for UnionIndex
                 let b = *reduce_expr(args[0], tc_env, allocs).into_value::<UnionIndex>();
                 let g = *reduce_expr(args[1], tc_env, allocs).into_value::<Guid>();
 
-                PrismExpr::ShiftPoint(b, g)
+                PrismExpr::ShiftLabel(b, g)
             }
             _ => unreachable!(),
         };

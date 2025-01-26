@@ -304,7 +304,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
             PrismExpr::Name(..)
-            | PrismExpr::ShiftPoint(..)
+            | PrismExpr::ShiftLabel(..)
             | PrismExpr::ShiftTo(..)
             | PrismExpr::ParserValue(..) => {
                 unreachable!("Should not occur in typechecked terms")
