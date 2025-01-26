@@ -19,7 +19,7 @@ grammar {
         }
         adapt group base {
             b _ e1 e2 <- "if" b:expr "{" e1:expr "}" "else" "{" e2:expr "}";
-            b Bool false true <- "!" b:#this;
+            c Bool false true <- "!" c:#this;
         }
     }
     adapt rule keyword {

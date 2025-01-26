@@ -33,5 +33,5 @@ pub fn parse_prism_in_env<'p>(
     run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
         &GRAMMAR, "expr", program, env.allocs, parsables, env,
     )
-    .map(|v| *reduce_expr(v, env, env.allocs).into_value())
+    .map(|v| *reduce_expr(v, env).into_value())
 }

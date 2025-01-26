@@ -5,6 +5,7 @@ use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::expect_beq::GENERATED_NAME;
 use crate::lang::{PrismEnv, PrismExpr};
+use crate::parser::parse_expr::reduce_expr;
 use prism_parser::core::input::Input;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
@@ -91,11 +92,19 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         }
     }
 
-    pub fn shift_to_label(&self, guid: Guid, vars: VarMap<'arn, 'grm>) -> Self {
+    pub fn shift_to_label(
+        &self,
+        guid: Guid,
+        vars: VarMap<'arn, 'grm>,
+        env: &mut PrismEnv<'arn, 'grm>,
+    ) -> Self {
         let mut names = self.jump_labels[&guid].clone();
 
         for (name, value) in vars {
-            names.insert_mut(name, NamesEntry::FromParsed(value, self.names.clone()));
+            names.insert_mut(
+                name,
+                NamesEntry::FromParsed(reduce_expr(value, env), self.names.clone()),
+            );
         }
 
         Self {
@@ -276,7 +285,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             PrismExpr::ShiftTo(b, guid, captured_env) => {
                 self.values[*i] = PrismExpr::Shift(b, 0);
-                return self._type_check(b, &env.shift_to_label(guid, captured_env));
+                let env = env.shift_to_label(guid, captured_env, self);
+                return self._type_check(b, &env);
             }
             PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,
             PrismExpr::ParserValueType => PrismExpr::Type,
