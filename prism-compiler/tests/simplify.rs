@@ -1,7 +1,6 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::Env;
-use prism_compiler::lang::error::TypeResultExt;
 use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;

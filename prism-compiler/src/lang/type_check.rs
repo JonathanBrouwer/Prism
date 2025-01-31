@@ -224,11 +224,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 CheckedPrismExpr::Free
             }
             CheckedPrismExpr::Shift(v, shift) => {
-                assert_eq!(shift, 0);
-                return self._type_check(v, env);
-
-                //TODO
-                // PrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
+                CheckedPrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
             }
             CheckedPrismExpr::ParserValue(_) => CheckedPrismExpr::ParserValueType,
             CheckedPrismExpr::ParserValueType => CheckedPrismExpr::Type,
