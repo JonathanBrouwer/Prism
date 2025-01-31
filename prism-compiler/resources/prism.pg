@@ -10,10 +10,7 @@ rule expr {
             <- "let" n:identifier ":" t:#next "=" v:#next ";" b:#this;
     }
     group fnconstruct {
-        Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r))
-            <- "(" n:identifier ":" t:#next ")" "=>" r:#this;
-        Expr::FnConstruct(n, r)
-            <- n:identifier "=>" r:#this;
+        fnconstruct(#this, #next);
     }
     group fntype {
         Expr::FnType(n, at, bt)
@@ -37,14 +34,10 @@ rule expr {
 }
 
 rule fnconstruct(this, next) {
-    FnConstruct(n, Let("_", TypeAssert(n, t), r))
-        <- "(" n:identifier ":" t:next ")" r:#this;
-    FnConstruct(n, r)
-        <- n:identifier r:#this;
-    FnConstruct(n, Let("_", TypeAssert(n, t), r))
-        <- "(" n:identifier ":" t:next ")" "=>" r:this;
-    FnConstruct(n, r)
-        <- n:identifier "=>" r:this;
+    Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r)) <- "(" n:identifier ":" t:next ")" r:#this;
+    Expr::FnConstruct(n, r) <- n:identifier r:#this;
+    Expr::FnConstruct(n, Expr::Let("_", Expr::TypeAssert(Expr::Name(n), t), r)) <- "(" n:identifier ":" t:next ")" "=>" r:this;
+    Expr::FnConstruct(n, r) <- n:identifier "=>" r:this;
 }
 
 rule layout {

@@ -33,7 +33,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 let mut arg_values = Vec::new();
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
-                        if args.is_empty() {
+                        if args.is_empty() && !["#this", "#next"].contains(r) {
                             *vars.get(r).unwrap()
                         } else {
                             self.alloc
