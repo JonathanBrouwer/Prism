@@ -57,7 +57,7 @@ parse_test! {
 name: list_rule_rec
 syntax: r#"
     rule start {
-        o :: os <- o:other os:start;
+        o .. os <- o:other os:start;
         [] <- "";
     }
 

@@ -1,69 +1,71 @@
+use crate::lang::CheckedIndex;
 use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
-use crate::lang::UnionIndex;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{CheckedPrismExpr, PrismEnv};
 use std::collections::HashMap;
 
-impl TcEnv {
-    pub fn simplify(&mut self, i: UnionIndex) -> UnionIndex {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+    pub fn simplify(&mut self, i: CheckedIndex) -> CheckedIndex {
         self.simplify_inner(i, &Env::new(), &mut HashMap::new())
     }
 
     fn simplify_inner(
         &mut self,
-        i: UnionIndex,
+        i: CheckedIndex,
         s: &Env,
         var_map: &mut HashMap<UniqueVariableId, usize>,
-    ) -> UnionIndex {
-        let e_new = match self.values[*i] {
-            PartialExpr::Type => PartialExpr::Type,
-            PartialExpr::Let(v, b) => {
+    ) -> CheckedIndex {
+        let e_new = match self.checked_values[*i] {
+            CheckedPrismExpr::Type => CheckedPrismExpr::Type,
+            CheckedPrismExpr::Let(v, b) => {
                 let v = self.simplify_inner(v, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::Let(v, b)
+                CheckedPrismExpr::Let(v, b)
             }
-            PartialExpr::DeBruijnIndex(v) => match s.get(v) {
+            CheckedPrismExpr::DeBruijnIndex(v) => match s.get(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
                 Some(EnvEntry::RType(id)) => {
-                    PartialExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
+                    CheckedPrismExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
                 }
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
-                    return self.simplify_inner(*subst, subst_env, var_map)
+                    return self.simplify_inner(*subst, subst_env, var_map);
                 }
-                None => PartialExpr::DeBruijnIndex(v),
+                None => CheckedPrismExpr::DeBruijnIndex(v),
             },
-            PartialExpr::FnType(a, b) => {
+            CheckedPrismExpr::FnType(a, b) => {
                 let a = self.simplify_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnType(a, b)
+                CheckedPrismExpr::FnType(a, b)
             }
-            PartialExpr::FnConstruct(b) => {
+            CheckedPrismExpr::FnConstruct(b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                PartialExpr::FnConstruct(b)
+                CheckedPrismExpr::FnConstruct(b)
             }
-            PartialExpr::FnDestruct(a, b) => {
+            CheckedPrismExpr::FnDestruct(a, b) => {
                 let a = self.simplify_inner(a, s, var_map);
                 let b = self.simplify_inner(b, s, var_map);
-                PartialExpr::FnDestruct(a, b)
+                CheckedPrismExpr::FnDestruct(a, b)
             }
-            PartialExpr::Free => PartialExpr::Free,
-            PartialExpr::Shift(b, i) => {
-                return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map)
+            CheckedPrismExpr::Free => CheckedPrismExpr::Free,
+            CheckedPrismExpr::Shift(b, i) => {
+                return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map);
             }
-            PartialExpr::TypeAssert(e, typ) => {
+            CheckedPrismExpr::TypeAssert(e, typ) => {
                 let e = self.simplify_inner(e, s, var_map);
                 let typ = self.simplify_inner(typ, s, var_map);
-                PartialExpr::TypeAssert(e, typ)
+                CheckedPrismExpr::TypeAssert(e, typ)
             }
+            CheckedPrismExpr::ParserValue(p) => CheckedPrismExpr::ParserValue(p),
+            CheckedPrismExpr::ParserValueType => CheckedPrismExpr::ParserValueType,
         };
-        self.store(e_new, self.value_origins[*i])
+        self.store_checked(e_new, self.checked_origins[*i])
     }
 }

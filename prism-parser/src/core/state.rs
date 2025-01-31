@@ -1,9 +1,10 @@
 use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
 use crate::core::pos::Pos;
 use crate::error::ParseError;
+use crate::parsable::parsable_dyn::ParsableDyn;
 use std::collections::HashMap;
 
-pub struct ParserState<'arn, 'grm, E: ParseError> {
+pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     // Cache for parser_cache_recurse
     cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<'arn, 'grm, E>>>,
     cache_stack: Vec<CacheKey>,
@@ -14,10 +15,16 @@ pub struct ParserState<'arn, 'grm, E: ParseError> {
     pub guid_counter: usize,
     // For recovery
     pub recovery_points: HashMap<Pos, Pos>,
+
+    pub parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
 }
 
-impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
-    pub fn new(input: &'grm str, alloc: Allocs<'arn>) -> Self {
+impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
+    pub fn new(
+        input: &'grm str,
+        alloc: Allocs<'arn>,
+        parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
+    ) -> Self {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
@@ -25,6 +32,7 @@ impl<'arn, 'grm, E: ParseError> ParserState<'arn, 'grm, E> {
             input,
             guid_counter: 0,
             recovery_points: HashMap::new(),
+            parsables,
         }
     }
 

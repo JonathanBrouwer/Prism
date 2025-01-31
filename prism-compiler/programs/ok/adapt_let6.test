@@ -3,7 +3,7 @@ let y = Type;
 grammar {
     adapt rule expr {
         adapt group statement {
-            let y = Type -> Type; e <- "tel" e:expr;
+            let y = Type -> Type; e <- "tel" e:#this;
         }
     }
     adapt rule keyword {

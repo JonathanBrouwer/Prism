@@ -2,7 +2,7 @@
 grammar {
     adapt rule expr {
         adapt group statement {
-            let x = Type; e <- "tel" x:identifier "in" e:expr;
+            let x = Type; e <- "tel" x:identifier "in" e:#this;
         }
     }
     adapt rule keyword {

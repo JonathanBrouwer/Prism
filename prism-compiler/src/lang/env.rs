@@ -1,21 +1,22 @@
-use crate::lang::TcEnv;
-use crate::lang::UnionIndex;
+use crate::lang::CheckedIndex;
+use crate::lang::PrismEnv;
 use rpds::Vector;
+use std::ops::Range;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub enum EnvEntry {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
-    CType(UniqueVariableId, UnionIndex),
+    CType(UniqueVariableId, CheckedIndex),
 
-    CSubst(UnionIndex, UnionIndex),
+    CSubst(CheckedIndex, CheckedIndex),
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(UnionIndex, Env),
+    RSubst(CheckedIndex, Env),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -50,6 +51,17 @@ impl<T> GenericEnv<T> {
         Self(s)
     }
 
+    pub fn fill_range(&self, range: Range<usize>, item: T) -> Self
+    where
+        T: Clone,
+    {
+        let mut s = self.0.clone();
+        for i in range {
+            s.set_mut(i, item.clone());
+        }
+        Self(s)
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -79,7 +91,7 @@ impl<T> std::ops::Index<usize> for GenericEnv<T> {
     }
 }
 
-impl TcEnv {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new_tc_id(&mut self) -> UniqueVariableId {
         let id = UniqueVariableId(self.tc_id);
         self.tc_id += 1;

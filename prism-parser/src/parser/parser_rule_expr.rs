@@ -1,118 +1,142 @@
-use crate::core::adaptive::GrammarState;
-use crate::core::context::{ParserContext, PR};
+use crate::core::adaptive::{BlockState, GrammarState, RuleId};
+use crate::core::context::{PR, ParserContext};
+use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
-use crate::action::apply_action::apply_action;
+use crate::error::error_printer::ErrorLabel;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_grammarfile;
-use crate::grammar::rule_action::RuleAction;
-use crate::grammar::{GrammarFile, RuleExpr};
-use crate::parser::var_map::{BlockCtx, CapturedExpr, VarMap, VarMapValue};
+use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule_expr::RuleExpr;
+use crate::parsable::ParseResult;
+use crate::parsable::guid::Guid;
+use crate::parsable::void::Void;
+use crate::parser::parsed_list::ParsedList;
+use crate::parser::rule_closure::RuleClosure;
+use crate::parser::var_map::VarMap;
 
-impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_expr(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        block_ctx: BlockCtx<'arn, 'grm>,
         expr: &'arn RuleExpr<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn, 'grm>,
+        blocks: &'arn [BlockState<'arn, 'grm>],
+        rule_args: VarMap<'arn, 'grm>,
         vars: VarMap<'arn, 'grm>,
         pos: Pos,
         context: ParserContext,
+        penv: &mut Env,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
-            RuleExpr::RunVar(mut rule_str, args) => {
-                let mut result_args = vec![];
-                let mut args = args;
-                let mut block_ctx = block_ctx;
-                let mut vars = vars;
-
-                loop {
-                    // Figure out which rule the variable `rule` refers to
-                    let Some(rule) = vars.get(rule_str) else {
-                        panic!(
-                            "Tried to run variable `{rule_str}` as a rule, but it was not defined."
-                        );
-                    };
-
-                    result_args.splice(
-                        0..0,
-                        args.iter().map(|arg| {
-                            VarMapValue::Expr(CapturedExpr {
+            RuleExpr::RunVar { rule, args } => {
+                let mut arg_values = Vec::new();
+                for arg in *args {
+                    arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
+                        if args.is_empty() && !["#this", "#next"].contains(r) {
+                            *vars.get(r).unwrap()
+                        } else {
+                            self.alloc
+                                .alloc(RuleClosure {
+                                    expr: arg,
+                                    blocks,
+                                    rule_args,
+                                    vars,
+                                })
+                                .to_parsed()
+                        }
+                    } else if let RuleExpr::Action(RuleExpr::Sequence([]), action) = arg {
+                        self.apply_action(action, pos.span_to(pos), vars, penv)
+                    } else {
+                        self.alloc
+                            .alloc(RuleClosure {
                                 expr: arg,
-                                block_ctx,
+                                blocks,
+                                rule_args,
                                 vars,
                             })
-                        }),
-                    );
+                            .to_parsed()
+                    })
+                }
 
-                    return match rule {
-                        VarMapValue::Expr(captured) => {
-                            // If the `Expr` we call is a rule, we might be using it as a higher-order rule
-                            // We process this rule in a loop, using the context of the captured expression
-                            if let RuleExpr::RunVar(sub_rule, sub_args) = captured.expr {
-                                rule_str = sub_rule;
-                                args = sub_args;
-                                block_ctx = captured.block_ctx;
-                                vars = captured.vars;
-                                continue;
-                            } else {
-                                assert_eq!(
-                                    result_args.len(),
-                                    0,
-                                    "Tried to apply an argument to a non-rule expr"
-                                );
-                                self.parse_expr(
-                                    rules,
-                                    captured.block_ctx,
-                                    captured.expr,
-                                    captured.vars,
-                                    pos,
-                                    context,
-                                )
-                            }
-                        }
-                        VarMapValue::Value(value) => {
-                            if let ActionResult::RuleId(rule) = value {
-                                self.parse_rule(rules, *rule, &result_args, pos, context)
-                                    .map(PR::with_rtrn)
-                            } else {
-                                //TODO remove this code and replace with $value expressions
-                                PResult::new_empty(PR::with_rtrn(value), pos)
-                            }
-                        }
+                // Handle #this and #next logic
+                if *rule == "#this" || *rule == "#next" {
+                    let blocks = match *rule {
+                        "#this" => blocks,
+                        "#next" => &blocks[1..],
+                        _ => unreachable!(),
                     };
+                    let arg_values = if arg_values.is_empty() {
+                        rule_args
+                    } else {
+                        assert_eq!(arg_values.len(), rule_args.into_iter().count());
+                        VarMap::from_iter(
+                            rule_args
+                                .into_iter()
+                                .collect::<Vec<_>>()
+                                .into_iter()
+                                .rev()
+                                .zip(arg_values)
+                                .map(|((n, _), v)| (n, v)),
+                            self.alloc,
+                        )
+                    };
+                    return self
+                        .parse_rule_block(rules, blocks, arg_values, pos, context, penv)
+                        .map(PR::with_rtrn);
+                }
+
+                // Figure out which rule the variable `rule` refers to
+                let Some(rule) = vars.get(rule) else {
+                    panic!("Tried to run variable `{rule}` as a rule, but it was not defined.");
+                };
+                if let Some(rule) = rule.try_into_value::<RuleId>() {
+                    self.parse_rule(rules, *rule, &arg_values, pos, context, penv)
+                        .map(PR::with_rtrn)
+                } else if let Some(closure) = rule.try_into_value::<RuleClosure>() {
+                    assert_eq!(arg_values.len(), 0);
+                    self.parse_expr(
+                        closure.expr,
+                        rules,
+                        closure.blocks,
+                        closure.rule_args,
+                        closure.vars,
+                        pos,
+                        context,
+                        penv,
+                    )
+                } else {
+                    panic!("Tried to run a rule of value type: {}", rule.name)
                 }
             }
             RuleExpr::CharClass(cc) => self
                 .parse_with_layout(
                     rules,
                     vars,
-                    |state, pos| state.parse_char(|c| cc.contains(*c), pos),
+                    |state, pos, _penv| state.parse_char(|c| cc.contains(*c), pos),
                     pos,
                     context,
+                    penv,
                 )
-                .map(|(span, _)| PR::with_rtrn(&*self.alloc.alloc(ActionResult::Value(span)))),
+                .map(|(span, _)| PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
-                |state, start_pos| {
+                |state, start_pos, _penv| {
                     let mut res = PResult::new_empty((), start_pos);
                     for char in literal.chars() {
                         let new_res = state.parse_char(|c| *c == char, res.end_pos());
                         res = res.merge_seq(new_res).map(|_| ());
                     }
                     let span = start_pos.span_to(res.end_pos());
-                    let mut res =
-                        res.map(|_| PR::with_rtrn(&*state.alloc.alloc(ActionResult::Value(span))));
+                    let mut res = res
+                        .map(|_| PR::with_rtrn(state.alloc.alloc(Input::Value(span)).to_parsed()));
                     res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
                 pos,
                 context,
+                penv,
             ),
             RuleExpr::Repeat {
                 expr,
@@ -125,11 +149,13 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 for i in 0..max.unwrap_or(u64::MAX) {
                     let pos = res.end_pos();
                     let part = if i == 0 {
-                        self.parse_expr(rules, block_ctx, expr, vars, pos, context)
+                        self.parse_expr(expr, rules, blocks, rule_args, vars, pos, context, penv)
                     } else {
-                        self.parse_expr(rules, block_ctx, delim, vars, pos, context)
+                        self.parse_expr(delim, rules, blocks, rule_args, vars, pos, context, penv)
                             .merge_seq_chain(|pos| {
-                                self.parse_expr(rules, block_ctx, expr, vars, pos, context)
+                                self.parse_expr(
+                                    expr, rules, blocks, rule_args, vars, pos, context, penv,
+                                )
                             })
                             .map(|x| x.1)
                     };
@@ -157,25 +183,18 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                     // We break out with an infinite loop error
                     // The i != 0 check is to make sure to take the delim into account
                     if i != 0 && res.end_pos() <= pos {
-                        let span = pos.span_to(pos);
-                        let mut e = E::new(span);
-                        e.add_label_explicit(ErrorLabel::Debug(span, "INFLOOP"));
+                        let mut e = E::new(pos);
+                        e.add_label_explicit(ErrorLabel::Debug(pos.span_to(pos), "INFLOOP"));
                         return PResult::new_err(e, pos);
                     }
                 }
 
-                res.map_with_span(|rtrn, span| {
-                    PR::with_rtrn(rtrn.iter().rfold(
-                        self.alloc.alloc(ActionResult::Construct(span, "Nil", &[])),
-                        |rest, next| {
-                            self.alloc.alloc(ActionResult::Construct(
-                                span,
-                                "Cons",
-                                self.alloc.alloc_extend([*next.rtrn, *rest]),
-                            ))
-                        },
-                    ))
+                res.map(|rtrn| {
+                    rtrn.iter().rfold(ParsedList::new_empty(), |rest, next| {
+                        rest.cons(next.rtrn, self.alloc)
+                    })
                 })
+                .map(|ar| PR::with_rtrn(self.alloc.alloc(ar).to_parsed()))
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);
@@ -184,26 +203,28 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 for sub in *subs {
                     res = res
                         .merge_seq_chain(|pos| {
-                            self.parse_expr(rules, block_ctx, sub, res_vars, pos, context)
+                            self.parse_expr(
+                                sub, rules, blocks, rule_args, res_vars, pos, context, penv,
+                            )
                         })
-                        .map(|(l, r)| l.extend(r.free.iter_cloned(), self.alloc));
+                        .map(|(l, r)| l.extend(r.free, self.alloc));
                     match &res.ok_ref() {
                         None => break,
                         Some(o) => {
-                            res_vars = res_vars.extend(o.iter_cloned(), self.alloc);
+                            res_vars = res_vars.extend(**o, self.alloc);
                         }
                     }
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: ActionResult::VOID,
+                    rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos.span_to(pos)), pos);
+                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos), pos);
                 for sub in *subs {
                     res = res.merge_choice_chain(|| {
-                        self.parse_expr(rules, block_ctx, sub, vars, pos, context)
+                        self.parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv)
                     });
                     if res.is_ok() {
                         break;
@@ -212,86 +233,53 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv);
                 res.map(|res| PR {
-                    free: res
-                        .free
-                        .insert(name, VarMapValue::Value(res.rtrn), self.alloc),
-                    rtrn: ActionResult::VOID,
+                    free: res.free.insert(name, res.rtrn, self.alloc),
+                    rtrn: Void.to_parsed(),
                 })
             }
             RuleExpr::Action(sub, action) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv);
                 res.map_with_span(|res, span| {
-                    let rtrn = apply_action(
+                    PR::with_rtrn(self.apply_action(
                         action,
                         span,
-                        res.free.extend(vars.iter_cloned(), self.alloc),
-                        &self.alloc,
-                    );
-
-                    PR {
-                        free: res.free,
-                        rtrn: self.alloc.alloc(rtrn),
-                    }
+                        vars.extend(res.free, self.alloc),
+                        penv,
+                    ))
                 })
             }
             RuleExpr::SliceInput(sub) => {
-                let res = self.parse_expr(rules, block_ctx, sub, vars, pos, context);
+                let res = self.parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv);
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(self.alloc.alloc(ActionResult::Value(span)))
+                    PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
                 })
             }
-            RuleExpr::This => self
-                .parse_rule_block(rules, block_ctx, pos, context)
-                .map(PR::with_rtrn),
-            RuleExpr::Next => self
-                .parse_rule_block(rules, (&block_ctx.0[1..], block_ctx.1), pos, context)
-                .map(PR::with_rtrn),
             RuleExpr::PosLookahead(sub) => self
-                .parse_expr(rules, block_ctx, sub, vars, pos, context)
+                .parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv)
                 .positive_lookahead(pos),
             RuleExpr::NegLookahead(sub) => self
-                .parse_expr(rules, block_ctx, sub, vars, pos, context)
+                .parse_expr(sub, rules, blocks, rule_args, vars, pos, context, penv)
                 .negative_lookahead(pos)
-                .map(|()| PR::with_rtrn(ActionResult::VOID)),
-            RuleExpr::AtAdapt(ga, adapt_rule) => {
+                .map(|()| PR::with_rtrn(Void.to_parsed())),
+            RuleExpr::AtAdapt(ga, body) => {
                 // First, get the grammar actionresult
-                let gr = if let Some(ar) = vars.get(ga) {
-                    if let VarMapValue::Value(v) = ar {
-                        v
-                    } else {
-                        panic!("")
-                    }
+                let grammar = if let Some(ar) = vars.get(ga) {
+                    *ar
                 } else {
                     panic!("Name '{ga}' not in context")
                 };
 
                 // Parse it into a grammar
-                //TODO performance: We should have a cache for grammar files
-                //TODO and grammar state + new grammar -> grammar state
-                let g = match parse_grammarfile(gr, self.input, self.alloc, |ar, _| {
-                    Some(RuleAction::ActionResult(ar))
-                }) {
-                    Some(g) => g,
-                    None => {
-                        let mut e = E::new(pos.span_to(pos));
-                        e.add_label_implicit(ErrorLabel::Explicit(
-                            pos.span_to(pos),
-                            EscapedString::from_escaped(
-                                "language grammar to be correct, but adaptation AST was malformed.",
-                            ),
-                        ));
-                        return PResult::new_err(e, pos);
-                    }
-                };
-                let g: &'arn GrammarFile<'arn, 'grm> = self.alloc.alloc(g);
+                let grammar = grammar.into_value::<GrammarFile>();
 
                 // Create new grammarstate
-                let (rules, _) = match rules.adapt_with(g, vars, Some(pos), self.alloc) {
+                //TODO performance: we shoud cache grammar states
+                let (rules, _) = match rules.adapt_with(grammar, vars, Some(pos), self.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
-                        let mut e = E::new(pos.span_to(pos));
+                        let mut e = E::new(pos);
                         e.add_label_implicit(ErrorLabel::Explicit(
                             pos.span_to(pos),
                             EscapedString::from_escaped(
@@ -303,27 +291,16 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
                 };
                 let rules: &'arn GrammarState = self.alloc.alloc(rules);
 
-                let rule = vars
-                    .get(adapt_rule)
-                    .or_else(|| vars.get(adapt_rule))
-                    .unwrap()
-                    .as_rule_id()
-                    .expect("Adaptation rule exists");
-
-                // Parse body
-                let mut res = self
-                    .parse_rule(rules, rule, &[], pos, context)
-                    .map(PR::with_rtrn);
+                let mut res =
+                    self.parse_expr(body, rules, blocks, rule_args, vars, pos, context, penv);
                 res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
                 res
             }
             RuleExpr::Guid => {
-                let guid = self.guid_counter;
+                let guid = Guid(self.guid_counter);
                 self.guid_counter += 1;
-                PResult::new_empty(
-                    PR::with_rtrn(self.alloc.alloc(ActionResult::Guid(guid))),
-                    pos,
-                )
+
+                PResult::new_empty(PR::with_rtrn(self.alloc.alloc(guid).to_parsed()), pos)
             }
         }
     }

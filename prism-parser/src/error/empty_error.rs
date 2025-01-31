@@ -1,7 +1,7 @@
 use crate::core::pos::Pos;
 use crate::core::span::Span;
-use crate::error::error_printer::ErrorLabel;
 use crate::error::ParseError;
+use crate::error::error_printer::ErrorLabel;
 use ariadne::{Report, ReportKind};
 use std::marker::PhantomData;
 
@@ -12,7 +12,7 @@ pub struct EmptyError<'grm>(PhantomData<&'grm str>);
 impl<'grm> ParseError for EmptyError<'grm> {
     type L = ErrorLabel<'grm>;
 
-    fn new(_: Span) -> Self {
+    fn new(_: Pos) -> Self {
         Self(PhantomData)
     }
 
@@ -24,10 +24,8 @@ impl<'grm> ParseError for EmptyError<'grm> {
         Self(PhantomData)
     }
 
-    fn set_end(&mut self, _: Pos) {}
-
     fn report(&self, _enable_debug: bool) -> Report<'static, Span> {
-        Report::build(ReportKind::Error, (), 0)
+        Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()))
             .with_message("Parsing error in this file")
             .with_help(
                 "Parsing was run in fast-mode, rerun without fast-mode to get more error details",

@@ -1,10 +1,13 @@
 use crate::core::cache::Allocs;
 use crate::core::pos::Pos;
-use crate::grammar::{AnnotatedRuleExpr, Block, GrammarFile, Rule};
-use crate::parser::var_map::{VarMap, VarMapValue};
+use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
+use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule::Rule;
+use crate::grammar::rule_block::RuleBlock;
+use crate::parsable::ParseResult;
+use crate::parser::var_map::VarMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::iter;
 
 #[derive(Copy, Clone)]
 pub struct GrammarState<'arn, 'grm> {
@@ -15,13 +18,15 @@ pub struct GrammarState<'arn, 'grm> {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleId {}
+
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl<'arn, 'grm> Default for GrammarState<'arn, 'grm> {
+impl Default for GrammarState<'_, '_> {
     fn default() -> Self {
         Self::new()
     }
@@ -67,17 +72,13 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
             .iter()
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
-                    ctx.get(new_rule.name)
-                        .and_then(VarMapValue::as_rule_id)
-                        .expect("Name refers to a rule id")
+                    let value = ctx.get(new_rule.name).expect("Name exists in context");
+                    *value.into_value::<RuleId>()
                 } else {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.extend(
-                    iter::once((new_rule.name, VarMapValue::new_rule(rule, alloc))),
-                    alloc,
-                );
+                new_ctx = new_ctx.insert(new_rule.name, alloc.alloc(rule).to_parsed(), alloc);
                 (new_rule.name, rule)
             })
             .collect();
@@ -123,10 +124,12 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
+pub type ArgsSlice<'arn, 'grm> = &'arn [(&'grm str, &'grm str)];
+
 #[derive(Copy, Clone)]
 pub struct RuleState<'arn, 'grm> {
     pub name: &'grm str,
-    pub args: &'arn [&'grm str],
+    pub args: ArgsSlice<'arn, 'grm>,
     pub blocks: &'arn [BlockState<'arn, 'grm>],
 }
 
@@ -135,7 +138,7 @@ pub enum UpdateError {
 }
 
 impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, args: &'arn [&'grm str]) -> Self {
+    pub fn new_empty(name: &'grm str, args: ArgsSlice<'arn, 'grm>) -> Self {
         Self {
             name,
             blocks: &[],
@@ -199,7 +202,7 @@ pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<
 
 impl<'arn, 'grm> BlockState<'arn, 'grm> {
     pub fn new(
-        block: &'arn Block<'arn, 'grm>,
+        block: &'arn RuleBlock<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {
@@ -212,7 +215,7 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
     #[must_use]
     pub fn update(
         &self,
-        b: &'arn Block<'arn, 'grm>,
+        b: &'arn RuleBlock<'arn, 'grm>,
         ctx: VarMap<'arn, 'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {

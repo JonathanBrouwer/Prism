@@ -1,10 +1,10 @@
 rule toplevel = grammar(prule_action);
 
-rule grammar(action) = GrammarFile(rs) <- rs:prule(action)*;
+rule grammar(action) = GrammarFile::GrammarFile(rs) <- rs:prule(action)*;
 
 rule prule(action) {
-    Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
-    Rule(name, [], params, Block("", [], AnnotatedExpr([], expr) :: []) :: []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
+    Rule::Rule(name, a, params, blocks) <- a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}";
+    Rule::Rule(name, [], params, RuleBlock::Block("", [], AnnotatedRuleExpr::AnnotatedExpr([], expr) .. []) .. []) <- "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";";
 }
 
 rule prule_params {
@@ -14,70 +14,71 @@ rule prule_params {
 
 rule prule_body(action) {
     prule_block(action)+;
-    Block("", [], c) :: [] <- c:prule_constructors(action);
+    RuleBlock::Block("", [], c) .. [] <- c:prule_constructors(action);
 }
 
 rule prule_block(action) {
-    Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
-    Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
+    RuleBlock::Block(n, a, c) <- a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}";
+    RuleBlock::Block(n, a, []) <- a:"adapt"? "group" n:#str(identifier?) ";";
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;
-rule prule_annotated_expr(action) = AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
+rule prule_annotated_expr(action) = AnnotatedRuleExpr::AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
 
 rule prule_annotation {
-    Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
-    DisableLayout() <- "#" "[" "disable_layout" "]";
-    EnableLayout() <- "#" "[" "enable_layout" "]";
-    DisableRecovery() <- "#" "[" "disable_recovery" "]";
-    EnableRecovery() <- "#" "[" "enable_recovery" "]";
+    RuleAnnotation::Error(err) <- "#" "[" "error" "(" err:pstring ")" "]";
+    RuleAnnotation::DisableLayout() <- "#" "[" "disable_layout" "]";
+    RuleAnnotation::EnableLayout() <- "#" "[" "enable_layout" "]";
+    RuleAnnotation::DisableRecovery() <- "#" "[" "disable_recovery" "]";
+    RuleAnnotation::EnableRecovery() <- "#" "[" "enable_recovery" "]";
 }
 
 rule prule_expr(action) {
     group action {
-        Action(r, a) <- a:action "<-" r:#this;
+        RuleExpr::Action(r, a) <- a:action "<-" r:#this;
     }
     group choice {
-        Choice(es) <- es:#repeat(#next, "/", 2, inf);
+        RuleExpr::Choice(es) <- es:#repeat(#next, "/", 2, inf);
     }
     group sequence {
-        Sequence(es) <- es:#repeat(#next, layout, 2, inf);
+        RuleExpr::Sequence(es) <- es:#repeat(#next, layout, 2, inf);
     }
     group bind {
-        NameBind(n, e) <- n:identifier ":" e:#next;
+        RuleExpr::NameBind(n, e) <- n:identifier ":" e:#next;
     }
     group repeat {
-        Repeat(r, "0", None(), Sequence([])) <- r:#this "*";
-        Repeat(r, "1", None(), Sequence([])) <- r:#this "+";
-        Repeat(r, "0", Some("1"), Sequence([])) <- r:#this "?";
+        RuleExpr::Repeat(r, "0", OptionU64::None(), RuleExpr::Sequence([])) <- r:#this "*";
+        RuleExpr::Repeat(r, "1", OptionU64::None(), RuleExpr::Sequence([])) <- r:#this "+";
+        RuleExpr::Repeat(r, "0", OptionU64::Some("1"), RuleExpr::Sequence([])) <- r:#this "?";
     }
     group base {
-        Literal(s) <- s:pstring;
-        CharClass(c) <- "[" c:charclass "]";
-        SliceInput(r) <- "#str" "(" r:prule_expr(action) ")";
-        PosLookahead(r) <- "#pos" "(" r:prule_expr(action) ")";
-        NegLookahead(r) <- "#neg" "(" r:prule_expr(action) ")";
+        RuleExpr::Literal(s) <- s:pstring;
+        RuleExpr::CharClass(c) <- "[" c:charclass "]";
+        RuleExpr::SliceInput(r) <- "#str" "(" r:prule_expr(action) ")";
+        RuleExpr::PosLookahead(r) <- "#pos" "(" r:prule_expr(action) ")";
+        RuleExpr::NegLookahead(r) <- "#neg" "(" r:prule_expr(action) ")";
         r <- "<" r:prule_expr(action) ">";
-        This() <- "#this";
-        Next() <- "#next";
-        Guid() <- "#guid";
-        AtAdapt(a, n) <- "#adapt" "(" a:identifier "," n:identifier ")";
-        RunVar(n, as) <- n:identifier #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
-        RunVar(n, []) <- n:identifier;
-        Repeat(e, "0", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
-        Repeat(e, "1", None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
-        Repeat(e, min, None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
-        Repeat(e, min, Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
+        RuleExpr::Guid() <- "#guid";
+        RuleExpr::AtAdapt(a, n) <- "#adapt" "(" a:identifier "," n:prule_expr(action) ")";
+        RuleExpr::RunVar(n, as) <- n:prule_runnable #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
+        RuleExpr::RunVar(n, []) <- n:prule_runnable;
+        RuleExpr::Repeat(e, "0", OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";
+        RuleExpr::Repeat(e, "1", OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")";
+        RuleExpr::Repeat(e, min, OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")";
+        RuleExpr::Repeat(e, min, OptionU64::Some(max), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")";
+        RuleExpr::Action(RuleExpr::Sequence([]), a) <- "$" a:action;
     }
 }
 
+rule prule_runnable = identifier / "#this" / "#next";
+
 rule charclass {
-    CharClass(negate, ps) <- negate:"^"? ps:#repeat(charclass_part, "|", *);
+    CharClass::CharClass(negate, ps) <- negate:"^"? ps:#repeat(charclass_part, "|", *);
 }
 
 rule charclass_part {
-    Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'";
-    Range(c, c) <- "\'" c:charclass_char "\'";
+    CharClassRange::Range(c1, c2) <- "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'";
+    CharClassRange::Range(c, c) <- "\'" c:charclass_char "\'";
 }
 
 rule charclass_char {
@@ -106,8 +107,12 @@ rule char_escapes {
 }
 
 rule layout {
+    // Whitespace
     [' ' | '\r' | '\n'];
+    // Line comments
     "//" [^'\n']* "\n";
+    /* Block comments */
+    "/*" <#neg("*/") [^]>* "*/";
 }
 
 rule integer {
@@ -137,13 +142,14 @@ rule reserved {
 
 rule prule_action {
     group cons {
-        Construct("Cons", h :: t :: []) <- h:#next "::" t:#this;
+        RuleAction::Construct("ParsedList", "Cons", h .. t .. []) <- h:#next ".." t:#this;
     }
     group base {
-        Construct("Nil", []) <- "[]";
-        Construct(n, as) <- n:identifier "(" as:#repeat(prule_action, ",", *) ")";
-        InputLiteral(s) <- s:pstring;
-        Name(n) <- n:identifier;
+        RuleAction::Construct("ParsedList", "Nil", []) <- "[]";
+        RuleAction::Construct(ns, n, as) <- ns:identifier "::" n:identifier "(" as:#repeat(prule_action, ",", *) ")";
+        RuleAction::Construct("", n, as) <- n:identifier "(" as:#repeat(prule_action, ",", *) ")";
+        RuleAction::InputLiteral(s) <- s:pstring;
+        RuleAction::Name(n) <- n:identifier;
         a <- "(" a:prule_action ")";
     }
 }

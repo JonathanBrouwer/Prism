@@ -1,4 +1,4 @@
-use crate::core::adaptive::GrammarStateId;
+use crate::core::adaptive::{BlockState, GrammarStateId};
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -6,30 +6,22 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
-use crate::error::{err_combine_opt, ParseError};
-use crate::parser::var_map::BlockCtx;
+use crate::error::{ParseError, err_combine_opt};
+use crate::parsable::parsed::Parsed;
+use crate::parser::var_map::VarMap;
 use bumpalo::Bump;
 use bumpalo_try::BumpaloExtend;
-use crate::action::action_result::ActionResult;
+use std::hash::{DefaultHasher, Hasher};
 
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub struct CacheKey {
     pos: Pos,
-    block_state: BlockKey,
+    block: usize,     // Start of blocks ptr to usize
+    rule_args: usize, //TODO
     ctx: ParserContext,
     state: GrammarStateId,
 }
-
-#[derive(Eq, PartialEq, Hash, Clone)]
-pub struct BlockKey(usize, usize);
-
-impl From<BlockCtx<'_, '_>> for BlockKey {
-    fn from(value: BlockCtx) -> Self {
-        BlockKey(value.0.as_ptr() as usize, value.1.as_ptr() as usize)
-    }
-}
-
-pub type CacheVal<'arn, 'grm, E> = PResult<&'arn ActionResult<'arn, 'grm>, E>;
+pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn, 'grm>, E>;
 
 #[derive(Copy, Clone)]
 pub struct Allocs<'arn> {
@@ -71,7 +63,7 @@ impl<'arn> Allocs<'arn> {
         slice
     }
 
-    pub fn try_alloc_extend<
+    pub fn try_alloc_extend_option<
         T: Copy,
         I: IntoIterator<Item = Option<T>, IntoIter: ExactSizeIterator>,
     >(
@@ -80,6 +72,17 @@ impl<'arn> Allocs<'arn> {
     ) -> Option<&'arn mut [T]> {
         self.bump.alloc_slice_fill_iter_option(iter)
     }
+
+    pub fn try_alloc_extend_result<
+        T: Copy,
+        E,
+        I: IntoIterator<Item = Result<T, E>, IntoIter: ExactSizeIterator>,
+    >(
+        &self,
+        iter: I,
+    ) -> Result<&'arn mut [T], E> {
+        self.bump.alloc_slice_fill_iter_result(iter)
+    }
 }
 
 pub struct ParserCacheEntry<PR> {
@@ -87,19 +90,27 @@ pub struct ParserCacheEntry<PR> {
     pub value: PR,
 }
 
-impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E> {
+impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        sub: impl Fn(&mut ParserState<'arn, 'grm, E>, Pos) -> PResult<&'arn ActionResult<'arn, 'grm>, E>,
-        block_state: BlockCtx<'arn, 'grm>,
+        mut sub: impl FnMut(&mut ParserState<'arn, 'grm, Env, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
+        blocks: &'arn [BlockState<'arn, 'grm>],
+        rule_args: VarMap<'arn, 'grm>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<&'arn ActionResult<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn, 'grm>, E> {
         //Check if this result is cached
+        let mut args_hash = DefaultHasher::new();
+        for (name, value) in rule_args {
+            args_hash.write(name.as_bytes());
+            args_hash.write_usize(value.as_ptr().as_ptr() as usize);
+        }
+
         let key = CacheKey {
             pos: pos_start,
-            block_state: block_state.into(),
+            block: blocks.as_ptr() as usize,
+            rule_args: args_hash.finish() as usize,
             ctx: context,
             state: grammar_state,
         };
@@ -109,7 +120,7 @@ impl<'arn, 'grm, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, E>
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
-        let mut res_recursive = PResult::new_err(E::new(pos_start.span_to(pos_start)), pos_start);
+        let mut res_recursive = PResult::new_err(E::new(pos_start), pos_start);
         res_recursive.add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
 
         let cache_state = self.cache_state_get();

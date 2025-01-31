@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
-use std::str::{Chars, FromStr};
+use std::str::Chars;
 
 #[derive(Debug, Copy, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
 pub struct EscapedString<'grm>(&'grm str);
@@ -22,10 +22,6 @@ impl<'grm> EscapedString<'grm> {
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         EscapedStringIter(self.0.chars())
     }
-
-    pub fn parse<F: FromStr>(&self) -> Result<F, F::Err> {
-        self.0.parse()
-    }
 }
 
 impl Display for EscapedString<'_> {
@@ -36,7 +32,7 @@ impl Display for EscapedString<'_> {
 
 struct EscapedStringIter<'grm>(Chars<'grm>);
 
-impl<'grm> Iterator for EscapedStringIter<'grm> {
+impl Iterator for EscapedStringIter<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {

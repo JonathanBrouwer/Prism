@@ -1,18 +1,18 @@
+use crate::lang::CheckedIndex;
+use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
-use crate::lang::UnionIndex;
-use crate::lang::ValueOrigin::FreeSub;
-use crate::lang::{PartialExpr, TcEnv};
+use crate::lang::{CheckedPrismExpr, PrismEnv};
 use std::collections::HashMap;
 
-impl TcEnv {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     /// Expect `i1` to be equal to `i2` in `s`
     pub fn expect_beq_assert(
         &mut self,
-        expr: UnionIndex,
-        expr_type: UnionIndex,
-        expected_type: UnionIndex,
+        expr: CheckedIndex,
+        expr_type: CheckedIndex,
+        expected_type: CheckedIndex,
         s: &Env,
     ) {
         if !self.expect_beq_internal(
@@ -28,12 +28,12 @@ impl TcEnv {
     }
 
     /// Expect `io` to be equal to `Type`.
-    pub fn expect_beq_type(&mut self, io: UnionIndex, s: &Env) {
+    pub fn expect_beq_type(&mut self, io: CheckedIndex, s: &Env) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
-        match self.values[*i] {
-            PartialExpr::Type => {}
-            PartialExpr::Free => {
-                self.values[*i] = PartialExpr::Type;
+        match self.checked_values[*i] {
+            CheckedPrismExpr::Type => {}
+            CheckedPrismExpr::Free => {
+                self.checked_values[*i] = CheckedPrismExpr::Type;
                 if !self.handle_constraints(i, &s) {
                     self.errors.push(TypeError::ExpectType(io));
                 }
@@ -47,11 +47,17 @@ impl TcEnv {
 
     /// Expect `f` to be a function type with argument type `i_at` both valid in `s`.
     /// `rt` should be free.
-    pub fn expect_beq_fn_type(&mut self, ft: UnionIndex, at: UnionIndex, rt: UnionIndex, s: &Env) {
+    pub fn expect_beq_fn_type(
+        &mut self,
+        ft: CheckedIndex,
+        at: CheckedIndex,
+        rt: CheckedIndex,
+        s: &Env,
+    ) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 
-        match self.values[*fr] {
-            PartialExpr::FnType(f_at, f_rt) => {
+        match self.checked_values[*fr] {
+            CheckedPrismExpr::FnType(f_at, f_rt) => {
                 // Check
                 if !self.expect_beq_internal(
                     (f_at, &sr, &mut HashMap::new()),
@@ -76,10 +82,10 @@ impl TcEnv {
                 );
                 assert!(is_beq_free);
             }
-            PartialExpr::Free => {
-                let f_at = self.store(PartialExpr::Free, FreeSub(fr));
-                let f_rt = self.store(PartialExpr::Free, FreeSub(fr));
-                self.values[*fr] = PartialExpr::FnType(f_at, f_rt);
+            CheckedPrismExpr::Free => {
+                let f_at = self.store_checked(CheckedPrismExpr::Free, FreeSub(fr));
+                let f_rt = self.store_checked(CheckedPrismExpr::Free, FreeSub(fr));
+                self.checked_values[*fr] = CheckedPrismExpr::FnType(f_at, f_rt);
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?

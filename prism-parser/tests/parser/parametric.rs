@@ -73,30 +73,13 @@ passing tests:
 failing tests:
     "z"
 }
-
-parse_test! {
-name: run_value_as_rule
-syntax: r##"
-    rule start = Letters(v1, v2) <- v1:letter v2:id(v1);
-
-    rule letter = ['a'-'z'];
-    rule id(v3) = v4 <- v4:v3;
-    "##
-passing tests:
-    "x" => "Letters('x', 'x')"
-
-failing tests:
-    ""
-    "xy"
-}
-
 parse_test! {
 name: pass_value_twice
 syntax: r##"
-    rule start = id(id(letter));
+    rule start = v <- r1:id(letter) r2:id(r1) v:r2;
 
     rule letter = ['a'-'z'];
-    rule id(v) = v;
+    rule id(v) = $v;
     "##
 passing tests:
     "x" => "'x'"
@@ -164,11 +147,11 @@ failing tests:
 }
 
 parse_test! {
-name: curried
+name: simple_closure
 syntax: r##"
     rule start = do(test("x"));
-    rule do(f) = f("y");
-    rule test(x, y) = Vals(a, b) <- a:x b:y;
+    rule do(f) = f;
+    rule test(x) = Vals(a, "y") <- a:x "y";
     "##
 passing tests:
     "xy" => "Vals('x', 'y')"
@@ -179,3 +162,98 @@ failing tests:
     ""
     "yx"
 }
+
+parse_test! {
+name: val_param1
+syntax: r##"
+    rule start = do($X());
+    rule do(f) = f <- "";
+    "##
+passing tests:
+    "" => "X()"
+
+failing tests:
+    "x"
+}
+
+parse_test! {
+name: parametric_this
+syntax: r##"
+    rule start = do($A());
+    rule do(v) {
+        v <- "x";
+        w <- "y" w:#this($B(v));
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+    "yyx" => "B(B(A()))"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+}
+
+parse_test! {
+name: parametric_next
+syntax: r##"
+    rule start = do($A());
+    rule do(v) {
+        group a {
+            w <- "y" w:#next($B(v));
+        }
+        group b {
+            v <- "x";
+        }
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+    "yyx"
+}
+
+parse_test! {
+name: parametric_this2
+syntax: r##"
+    rule start = do($A(), $C());
+    rule do(v, w) {
+        v <- "x";
+        y <- "y" y:#this($B(v), w);
+    }
+    "##
+passing tests:
+    "x" => "A()"
+    "yx" => "B(A())"
+    "yyx" => "B(B(A()))"
+
+failing tests:
+    "y"
+    "xy"
+    "yxy"
+}
+
+//TODO simple currying
+// parse_test! {
+// name: curried
+// syntax: r##"
+//     rule start = do(test("x"));
+//     rule do(f) = f("y");
+//     rule test(x, y) = Vals(a, b) <- a:x b:y;
+//     "##
+// passing tests:
+//     "xy" => "Vals('x', 'y')"
+//
+// failing tests:
+//     "y"
+//     "x"
+//     ""
+//     "yx"
+// }

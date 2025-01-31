@@ -1,12 +1,5 @@
-use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::cache::Allocs;
-use crate::core::context::ParserContext;
-use crate::core::pos::Pos;
-use crate::core::state::ParserState;
-use crate::error::error_printer::ErrorLabel;
-use crate::error::ParseError;
-use crate::action::action_result::ActionResult;
-use crate::grammar::RuleExpr;
+use crate::parsable::parsed::Parsed;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
@@ -14,11 +7,11 @@ use std::ptr::null;
 #[derive(Default, Copy, Clone)]
 pub struct VarMap<'arn, 'grm>(Option<&'arn VarMapNode<'arn, 'grm>>);
 
-impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
+impl Debug for VarMap<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
-        for (name, value) in self.iter_cloned() {
-            writeln!(f, "- {name}: {value:?}")?;
+        for (name, _value) in *self {
+            writeln!(f, "- {name}")?;
         }
         Ok(())
     }
@@ -28,7 +21,7 @@ impl<'arn, 'grm> Debug for VarMap<'arn, 'grm> {
 pub struct VarMapNode<'arn, 'grm> {
     next: Option<&'arn Self>,
     key: &'arn str,
-    value: VarMapValue<'arn, 'grm>,
+    value: Parsed<'arn, 'grm>,
 }
 
 pub struct VarMapIterator<'arn, 'grm> {
@@ -36,7 +29,7 @@ pub struct VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
-    type Item = (&'arn str, VarMapValue<'arn, 'grm>);
+    type Item = (&'arn str, Parsed<'arn, 'grm>);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.current {
@@ -50,7 +43,7 @@ impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> VarMap<'arn, 'grm> {
-    pub fn get<'a>(&'a self, k: &str) -> Option<&'a VarMapValue<'arn, 'grm>> {
+    pub fn get<'a>(&'a self, k: &str) -> Option<&'a Parsed<'arn, 'grm>> {
         let mut node = self.0?;
         loop {
             if node.key == k {
@@ -60,22 +53,13 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         }
     }
 
-    pub fn iter_cloned(&self) -> impl Iterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)> {
-        VarMapIterator { current: self.0 }
-    }
-
     #[must_use]
-    pub fn insert(
-        self,
-        key: &'arn str,
-        value: VarMapValue<'arn, 'grm>,
-        alloc: Allocs<'arn>,
-    ) -> Self {
+    pub fn insert(self, key: &'arn str, value: Parsed<'arn, 'grm>, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
 
     #[must_use]
-    pub fn extend<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
+    pub fn extend<T: IntoIterator<Item = (&'arn str, Parsed<'arn, 'grm>)>>(
         mut self,
         iter: T,
         alloc: Allocs<'arn>,
@@ -90,7 +74,7 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
         self
     }
 
-    pub fn from_iter<T: IntoIterator<Item = (&'arn str, VarMapValue<'arn, 'grm>)>>(
+    pub fn from_iter<T: IntoIterator<Item = (&'arn str, Parsed<'arn, 'grm>)>>(
         iter: T,
         alloc: Allocs<'arn>,
     ) -> Self {
@@ -103,74 +87,11 @@ impl<'arn, 'grm> VarMap<'arn, 'grm> {
     }
 }
 
-pub type BlockCtx<'arn, 'grm> = (&'arn [BlockState<'arn, 'grm>], VarMap<'arn, 'grm>);
+impl<'arn, 'grm> IntoIterator for VarMap<'arn, 'grm> {
+    type Item = (&'arn str, Parsed<'arn, 'grm>);
+    type IntoIter = VarMapIterator<'arn, 'grm>;
 
-#[derive(Copy, Clone)]
-pub struct CapturedExpr<'arn, 'grm> {
-    pub expr: &'arn RuleExpr<'arn, 'grm>,
-    pub block_ctx: BlockCtx<'arn, 'grm>,
-    pub vars: VarMap<'arn, 'grm>,
-}
-
-#[derive(Copy, Clone)]
-pub enum VarMapValue<'arn, 'grm> {
-    Expr(CapturedExpr<'arn, 'grm>),
-    Value(&'arn ActionResult<'arn, 'grm>),
-}
-
-impl<'arm, 'grm> Debug for VarMapValue<'arm, 'grm> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            VarMapValue::Expr(_) => write!(f, "{{expr}}"),
-            VarMapValue::Value(ar) => write!(f, "{ar:?}"),
-        }
-    }
-}
-
-impl<'arn, 'grm> VarMapValue<'arn, 'grm> {
-    pub fn new_rule(rule: RuleId, alloc: Allocs<'arn>) -> Self {
-        Self::Value(alloc.alloc(ActionResult::RuleId(rule)))
-    }
-
-    pub fn as_value(&self) -> Option<&ActionResult<'arn, 'grm>> {
-        if let VarMapValue::Value(value) = self {
-            Some(value)
-        } else {
-            None
-        }
-    }
-
-    pub fn run_to_ar<'a, E: ParseError<L = ErrorLabel<'grm>>>(
-        &'a self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        state: &mut ParserState<'arn, 'grm, E>,
-        context: ParserContext,
-    ) -> Option<&'arn ActionResult<'arn, 'grm>> {
-        Some(match self {
-            VarMapValue::Expr(captured_expr) => {
-                state
-                    .parse_expr(
-                        rules,
-                        captured_expr.block_ctx,
-                        captured_expr.expr,
-                        captured_expr.vars,
-                        Pos::invalid(),
-                        context,
-                    )
-                    .ok()?
-                    .rtrn
-            }
-            VarMapValue::Value(v) => v,
-        })
-    }
-
-    pub fn as_rule_id(&self) -> Option<RuleId> {
-        let VarMapValue::Value(ar) = self else {
-            return None;
-        };
-        let ActionResult::RuleId(rule) = ar else {
-            return None;
-        };
-        Some(*rule)
+    fn into_iter(self) -> Self::IntoIter {
+        VarMapIterator { current: self.0 }
     }
 }

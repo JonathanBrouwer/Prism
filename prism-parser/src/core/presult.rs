@@ -1,7 +1,7 @@
 use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::span::Span;
-use crate::error::{err_combine, err_combine_opt, ParseError};
+use crate::error::{ParseError, err_combine, err_combine_opt};
 
 #[derive(Clone)]
 pub enum PResult<O, E: ParseError> {
@@ -163,25 +163,21 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_seq(other(pos))
     }
 
-    // pub fn merge_seq_opt_parser<'arn, 'grm, O2, P2: Parser<'arn, 'grm, O2, E>>(
-    //     self,
-    //     other: &P2,
-    //     state: &mut ParserState<'arn, 'grm, E>,
-    //     context: ParserContext,
-    // ) -> (PResult<(O, Option<O2>), E>, bool)
-    // where
-    //     'grm: 'arn,
-    // {
-    //     //Quick out
-    //     if self.is_err() {
-    //         return (self.map(|_| unreachable!()), false);
-    //     }
-    //
-    //     let pos = self.end_pos();
-    //     let other_res = other.parse(pos, state, context);
-    //     let should_continue = other_res.is_ok();
-    //     (self.merge_seq_opt(other_res), should_continue)
-    // }
+    pub fn merge_seq_chain2<'arn, 'grm, O2>(
+        self,
+        mut other: impl FnMut(Pos, Span, O) -> PResult<O2, E>,
+    ) -> PResult<O2, E>
+    where
+        'grm: 'arn,
+    {
+        //Quick out
+        match self {
+            POk(o, start, end, best) => POk((), start, end, best)
+                .merge_seq(other(end, start.span_to(end), o))
+                .map(|((), o)| o),
+            PErr(_, _) => self.map(|_| unreachable!()),
+        }
+    }
 
     pub fn ok(self) -> Option<O> {
         match self {
@@ -206,7 +202,7 @@ impl<O, E: ParseError> PResult<O, E> {
 
     pub fn negative_lookahead(self, start_pos: Pos) -> PResult<(), E> {
         match self {
-            POk(_, _, _, _) => PResult::new_err(E::new(start_pos.span_to(start_pos)), start_pos),
+            POk(_, _, _, _) => PResult::new_err(E::new(start_pos), start_pos),
             PErr(_, _) => PResult::new_empty((), start_pos),
         }
     }

@@ -76,3 +76,14 @@ passing tests:
 
 failing tests:
 }
+
+parse_test! {
+name: use_thing_twice
+syntax: r#"
+    rule start = Test(a, a) <- a:"q";
+    "#
+passing tests:
+    "q" => "Test('q', 'q')"
+
+failing tests:
+}

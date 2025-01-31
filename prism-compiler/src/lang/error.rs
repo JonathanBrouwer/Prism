@@ -1,6 +1,7 @@
-use crate::lang::UnionIndex;
-use crate::lang::{TcEnv, ValueOrigin};
+use crate::lang::CheckedIndex;
+use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
+use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use std::io;
 
@@ -8,36 +9,36 @@ const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 #[derive(Debug)]
 pub enum TypeError {
-    ExpectType(UnionIndex),
-    ExpectFn(UnionIndex),
+    ExpectType(CheckedIndex),
+    ExpectFn(CheckedIndex),
     ExpectFnArg {
-        function_type: UnionIndex,
-        function_arg_type: UnionIndex,
-        arg_type: UnionIndex,
+        function_type: CheckedIndex,
+        function_arg_type: CheckedIndex,
+        arg_type: CheckedIndex,
     },
     ExpectTypeAssert {
-        expr: UnionIndex,
-        expr_type: UnionIndex,
-        expected_type: UnionIndex,
+        expr: CheckedIndex,
+        expr_type: CheckedIndex,
+        expected_type: CheckedIndex,
     },
-    IndexOutOfBound(UnionIndex),
-    InfiniteType(UnionIndex, UnionIndex),
+    IndexOutOfBound(CheckedIndex),
+    InfiniteType(CheckedIndex, CheckedIndex),
     BadInfer {
-        free_var: UnionIndex,
-        inferred_var: UnionIndex,
+        free_var: CheckedIndex,
+        inferred_var: CheckedIndex,
     },
     UnknownName(Span),
 }
 
-impl TcEnv {
+impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
-        let report = Report::build(ReportKind::Error, (), 0);
+        let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
             TypeError::ExpectType(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
 
@@ -45,7 +46,7 @@ impl TcEnv {
                     .with_message("Expected type")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a type, found value of type: {}",
-                        self.index_to_sm_string(self.value_types[&j])
+                        self.index_to_sm_string(self.checked_types[&j])
                     )))
                     .finish()
             }
@@ -54,10 +55,10 @@ impl TcEnv {
                 expr_type,
                 expected_type,
             } => {
-                let ValueOrigin::SourceCode(span_expr) = self.value_origins[**expr] else {
+                let ValueOrigin::SourceCode(span_expr) = self.checked_origins[**expr] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span_expected) = self.value_origins[**expected_type]
+                let ValueOrigin::SourceCode(span_expected) = self.checked_origins[**expected_type]
                 else {
                     unreachable!()
                 };
@@ -75,7 +76,7 @@ impl TcEnv {
                     .finish()
             }
             TypeError::IndexOutOfBound(i) => {
-                let ValueOrigin::SourceCode(span) = self.value_origins[**i] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[**i] else {
                     unreachable!()
                 };
 
@@ -85,17 +86,17 @@ impl TcEnv {
                     .finish()
             }
             TypeError::ExpectFn(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 report
                     .with_message("Expected function")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a function, found value of type: {}",
-                        self.index_to_sm_string(self.value_types[&j])
+                        self.index_to_sm_string(self.checked_types[&j])
                     )))
                     .finish()
             }
@@ -104,10 +105,10 @@ impl TcEnv {
                 function_arg_type,
                 arg_type,
             } => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**arg_type] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**arg_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 let label_arg = Label::new(span).with_message(format!(
@@ -115,10 +116,10 @@ impl TcEnv {
                     self.index_to_sm_string(*arg_type)
                 ));
 
-                let ValueOrigin::TypeOf(j) = self.value_origins[**function_type] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**function_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 let label_fn = Label::new(span)
@@ -142,7 +143,7 @@ impl TcEnv {
                 let constraints = self
                     .queued_beq_free
                     .iter()
-                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1 .0)))
+                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1.0)))
                     .collect::<Vec<_>>()
                     .join(",");
 
@@ -160,10 +161,10 @@ impl TcEnv {
         })
     }
 
-    fn label_value(&self, mut value: UnionIndex) -> Option<(Span, &'static str)> {
+    fn label_value(&self, mut value: CheckedIndex) -> Option<(Span, &'static str)> {
         let mut origin_description = "this value";
         let span = loop {
-            match self.value_origins[*value] {
+            match self.checked_origins[*value] {
                 ValueOrigin::SourceCode(span) => break span,
                 ValueOrigin::TypeOf(sub_value) => {
                     assert_eq!(origin_description, "this value");
@@ -183,7 +184,7 @@ pub struct AggregatedTypeError {
 }
 
 impl AggregatedTypeError {
-    pub fn eprint(&self, env: &mut TcEnv, input: &str) -> io::Result<()> {
+    pub fn eprint(&self, env: &mut PrismEnv, input: &str) -> io::Result<()> {
         let mut input = Source::from(input);
         for report in self.errors.iter().flat_map(|err| env.report(err)) {
             report.eprint(&mut input)?;
@@ -193,11 +194,11 @@ impl AggregatedTypeError {
 }
 
 pub trait TypeResultExt<T> {
-    fn unwrap_or_eprint(self, env: &mut TcEnv, input: &str) -> T;
+    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T;
 }
 
 impl<T> TypeResultExt<T> for Result<T, AggregatedTypeError> {
-    fn unwrap_or_eprint(self, env: &mut TcEnv, input: &str) -> T {
+    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T {
         self.unwrap_or_else(|es| {
             es.eprint(env, input).unwrap();
             panic!("Failed to type check")

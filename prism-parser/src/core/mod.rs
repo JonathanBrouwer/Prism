@@ -1,6 +1,7 @@
 pub mod adaptive;
 pub mod cache;
 pub mod context;
+pub mod input;
 pub mod pos;
 pub mod presult;
 pub mod primitives;
