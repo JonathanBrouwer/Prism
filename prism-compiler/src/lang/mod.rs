@@ -128,7 +128,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         ParsedIndex(self.parsed_values.len() - 1)
     }
 
-    fn store_checked(
+    pub fn store_checked(
         &mut self,
         e: CheckedPrismExpr<'arn, 'grm>,
         origin: ValueOrigin,

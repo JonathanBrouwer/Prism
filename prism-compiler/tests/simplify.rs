@@ -21,7 +21,7 @@ fn check(input_str: &str) {
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
     let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
-    let (input, _) = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
+    let input = env.parsed_to_checked(input);
 
     let sm = env.simplify(input);
 

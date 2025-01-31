@@ -1,4 +1,9 @@
+use bumpalo::Bump;
 use clap::Parser;
+use prism_compiler::lang::PrismEnv;
+use prism_compiler::parser::parse_prism_in_env;
+use prism_parser::core::cache::Allocs;
+use prism_parser::error::aggregate_error::ParseResultExt;
 use std::io::Read;
 
 #[derive(Parser, Debug)]
@@ -17,45 +22,38 @@ fn read_from_stdin() -> Result<String, std::io::Error> {
 fn main() {
     let args = Args::parse();
 
-    let (_program, _filename) = match args.input.as_ref() {
+    let (program, _filename) = match args.input.as_ref() {
         None => (read_from_stdin().unwrap(), "stdin"),
         Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
     };
-    //
-    // let bump = Bump::new();
-    // let allocs = Allocs::new(&bump);
-    // let mut tc_env = TcEnv::default();
-    // let mut parsables = HashMap::new();
-    // parsables.insert("Expr", ParsableDyn::new::<UnionIndex>());
-    //
-    // let root = match run_parser_rule::<UnionIndex, SetError>(
-    //     &GRAMMAR, "expr", &program, allocs, parsables,
-    // ) {
-    //     Ok(idx) => idx,
-    //     Err(e) => {
-    //         e.eprint().unwrap();
-    //         return;
-    //     }
-    // };
 
-    // println!(
-    //     "> Program\n====================\n{}\n\n",
-    //     tc_env.index_to_string(root),
-    // );
+    let bump = Bump::new();
+    let allocs = Allocs::new(&bump);
+    let mut env = PrismEnv::new(allocs);
 
-    // match tc_env.type_check(root) {
-    //     Ok(i) => println!(
-    //         "> Type of program\n====================\n{}\n\n",
-    //         tc_env.index_to_br_string(i)
-    //     ),
-    //     Err(e) => {
-    //         e.eprint(&mut tc_env, &program).unwrap();
-    //         return;
-    //     }
-    // }
-    //
-    // println!(
-    //     "> Evaluated\n====================\n{}\n\n",
-    //     tc_env.index_to_br_string(root)
-    // );
+    // Parse
+    let idx = parse_prism_in_env(&program, &mut env).unwrap_or_eprint();
+    let idx = env.parsed_to_checked(idx);
+    println!(
+        "> Program\n====================\n{}\n\n",
+        env.index_to_string(idx),
+    );
+
+    // Type check
+    match env.type_check(idx) {
+        Ok(i) => println!(
+            "> Type of program\n====================\n{}\n\n",
+            env.index_to_br_string(i)
+        ),
+        Err(e) => {
+            e.eprint(&mut env, &program).unwrap();
+            return;
+        }
+    }
+
+    // Eval
+    println!(
+        "> Evaluated\n====================\n{}\n\n",
+        env.index_to_br_string(idx)
+    );
 }

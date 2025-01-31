@@ -29,6 +29,7 @@ rule expr {
     group base {
         t <- "(" t:expr ")";
         Expr::Type() <- "Type";
+        Epxr::ParseType() <- "Parsed";
         Expr::Name(n) <- n:identifier;
     }
 }
@@ -47,6 +48,7 @@ rule layout {
 
 rule keyword {
     "Type";
+    "Parsed";
     "grammar";
 }
 

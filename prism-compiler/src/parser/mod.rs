@@ -18,6 +18,7 @@ use std::ops::Deref;
 use std::sync::LazyLock;
 
 pub mod parse_expr;
+mod parsed_to_checked;
 
 pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
     *parse_grammar::<SetError>(
