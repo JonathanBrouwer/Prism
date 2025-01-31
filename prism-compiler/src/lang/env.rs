@@ -1,5 +1,5 @@
+use crate::lang::CheckedIndex;
 use crate::lang::PrismEnv;
-use crate::lang::UnionIndex;
 use rpds::Vector;
 use std::ops::Range;
 
@@ -10,13 +10,13 @@ pub struct UniqueVariableId(usize);
 pub enum EnvEntry {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
-    CType(UniqueVariableId, UnionIndex),
+    CType(UniqueVariableId, CheckedIndex),
 
-    CSubst(UnionIndex, UnionIndex),
+    CSubst(CheckedIndex, CheckedIndex),
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(UnionIndex, Env),
+    RSubst(CheckedIndex, Env),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

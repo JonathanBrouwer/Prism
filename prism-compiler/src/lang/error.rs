@@ -1,4 +1,4 @@
-use crate::lang::UnionIndex;
+use crate::lang::CheckedIndex;
 use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::pos::Pos;
@@ -9,23 +9,23 @@ const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 #[derive(Debug)]
 pub enum TypeError {
-    ExpectType(UnionIndex),
-    ExpectFn(UnionIndex),
+    ExpectType(CheckedIndex),
+    ExpectFn(CheckedIndex),
     ExpectFnArg {
-        function_type: UnionIndex,
-        function_arg_type: UnionIndex,
-        arg_type: UnionIndex,
+        function_type: CheckedIndex,
+        function_arg_type: CheckedIndex,
+        arg_type: CheckedIndex,
     },
     ExpectTypeAssert {
-        expr: UnionIndex,
-        expr_type: UnionIndex,
-        expected_type: UnionIndex,
+        expr: CheckedIndex,
+        expr_type: CheckedIndex,
+        expected_type: CheckedIndex,
     },
-    IndexOutOfBound(UnionIndex),
-    InfiniteType(UnionIndex, UnionIndex),
+    IndexOutOfBound(CheckedIndex),
+    InfiniteType(CheckedIndex, CheckedIndex),
     BadInfer {
-        free_var: UnionIndex,
-        inferred_var: UnionIndex,
+        free_var: CheckedIndex,
+        inferred_var: CheckedIndex,
     },
     UnknownName(Span),
 }
@@ -35,10 +35,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
             TypeError::ExpectType(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
 
@@ -46,7 +46,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .with_message("Expected type")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a type, found value of type: {}",
-                        self.index_to_sm_string(self.value_types[&j])
+                        self.index_to_sm_string(self.checked_types[&j])
                     )))
                     .finish()
             }
@@ -55,10 +55,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 expr_type,
                 expected_type,
             } => {
-                let ValueOrigin::SourceCode(span_expr) = self.value_origins[**expr] else {
+                let ValueOrigin::SourceCode(span_expr) = self.checked_origins[**expr] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span_expected) = self.value_origins[**expected_type]
+                let ValueOrigin::SourceCode(span_expected) = self.checked_origins[**expected_type]
                 else {
                     unreachable!()
                 };
@@ -76,7 +76,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .finish()
             }
             TypeError::IndexOutOfBound(i) => {
-                let ValueOrigin::SourceCode(span) = self.value_origins[**i] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[**i] else {
                     unreachable!()
                 };
 
@@ -86,17 +86,17 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .finish()
             }
             TypeError::ExpectFn(i) => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**i] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 report
                     .with_message("Expected function")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a function, found value of type: {}",
-                        self.index_to_sm_string(self.value_types[&j])
+                        self.index_to_sm_string(self.checked_types[&j])
                     )))
                     .finish()
             }
@@ -105,10 +105,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 function_arg_type,
                 arg_type,
             } => {
-                let ValueOrigin::TypeOf(j) = self.value_origins[**arg_type] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**arg_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 let label_arg = Label::new(span).with_message(format!(
@@ -116,10 +116,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     self.index_to_sm_string(*arg_type)
                 ));
 
-                let ValueOrigin::TypeOf(j) = self.value_origins[**function_type] else {
+                let ValueOrigin::TypeOf(j) = self.checked_origins[**function_type] else {
                     unreachable!()
                 };
-                let ValueOrigin::SourceCode(span) = self.value_origins[*j] else {
+                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
                 let label_fn = Label::new(span)
@@ -161,10 +161,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         })
     }
 
-    fn label_value(&self, mut value: UnionIndex) -> Option<(Span, &'static str)> {
+    fn label_value(&self, mut value: CheckedIndex) -> Option<(Span, &'static str)> {
         let mut origin_description = "this value";
         let span = loop {
-            match self.value_origins[*value] {
+            match self.checked_origins[*value] {
                 ValueOrigin::SourceCode(span) => break span,
                 ValueOrigin::TypeOf(sub_value) => {
                     assert_eq!(origin_description, "this value");

@@ -1,34 +1,34 @@
-use crate::lang::UnionIndex;
+use crate::lang::CheckedIndex;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{PrismEnv, PrismExpr};
+use crate::lang::{CheckedPrismExpr, PrismEnv};
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce_head(
         &self,
-        mut start_expr: UnionIndex,
+        mut start_expr: CheckedIndex,
         mut start_env: Env,
-    ) -> (UnionIndex, Env) {
-        let mut args: Vec<(UnionIndex, Env)> = Vec::new();
+    ) -> (CheckedIndex, Env) {
+        let mut args: Vec<(CheckedIndex, Env)> = Vec::new();
 
-        let mut e: UnionIndex = start_expr;
+        let mut e: CheckedIndex = start_expr;
         let mut s: Env = start_env.clone();
 
         loop {
-            match self.values[*e] {
+            match self.checked_values[*e] {
                 // Values
-                PrismExpr::Type
-                | PrismExpr::FnType(_, _, _)
-                | PrismExpr::ParserValue(_)
-                | PrismExpr::ParserValueType => {
+                CheckedPrismExpr::Type
+                | CheckedPrismExpr::FnType(_, _)
+                | CheckedPrismExpr::ParserValue(_)
+                | CheckedPrismExpr::ParserValueType => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                PrismExpr::Let(_n, v, b) => {
+                CheckedPrismExpr::Let(v, b) => {
                     e = b;
                     s = s.cons(RSubst(v, s.clone()))
                 }
-                PrismExpr::DeBruijnIndex(i) => match s[i] {
+                CheckedPrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
@@ -45,14 +45,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         s = vs.clone();
                     }
                 },
-                PrismExpr::FnConstruct(_n, b) => match args.pop() {
+                CheckedPrismExpr::FnConstruct(b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;
                         s = s.cons(RSubst(arg, arg_env));
                     }
                 },
-                PrismExpr::FnDestruct(f, a) => {
+                CheckedPrismExpr::FnDestruct(f, a) => {
                     // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
                     if args.is_empty() {
                         start_expr = e;
@@ -62,28 +62,19 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     e = f;
                     args.push((a, s.clone()));
                 }
-                PrismExpr::Free => {
+                CheckedPrismExpr::Free => {
                     return if args.is_empty() {
                         (e, s)
                     } else {
                         (start_expr, start_env)
                     };
                 }
-                PrismExpr::Shift(b, i) => {
+                CheckedPrismExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
                 }
-                PrismExpr::TypeAssert(new_e, _) => {
+                CheckedPrismExpr::TypeAssert(new_e, _) => {
                     e = new_e;
-                }
-                PrismExpr::ShiftLabel(b, ..) | PrismExpr::ShiftTo(b, ..) => {
-                    e = b;
-                }
-                PrismExpr::Name(..) => {
-                    unreachable!(
-                        "Should not occur in typechecked terms: {:?}",
-                        self.values[*e]
-                    )
                 }
             }
         }

@@ -1,17 +1,23 @@
-use crate::lang::UnionIndex;
+use crate::lang::CheckedIndex;
 use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{PrismEnv, PrismExpr};
+use crate::lang::{CheckedPrismExpr, PrismEnv};
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn is_beta_equal(&mut self, i1: UnionIndex, s1: &Env, i2: UnionIndex, s2: &Env) -> bool {
+    pub fn is_beta_equal(
+        &mut self,
+        i1: CheckedIndex,
+        s1: &Env,
+        i2: CheckedIndex,
+        s2: &Env,
+    ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
         let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
 
-        match (self.values[*i1], self.values[*i2]) {
-            (PrismExpr::Type, PrismExpr::Type) => {}
-            (PrismExpr::DeBruijnIndex(i1), PrismExpr::DeBruijnIndex(i2)) => {
+        match (self.checked_values[*i1], self.checked_values[*i2]) {
+            (CheckedPrismExpr::Type, CheckedPrismExpr::Type) => {}
+            (CheckedPrismExpr::DeBruijnIndex(i1), CheckedPrismExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
@@ -24,7 +30,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (PrismExpr::FnType(_, a1, b1), PrismExpr::FnType(_, a2, b2)) => {
+            (CheckedPrismExpr::FnType(a1, b1), CheckedPrismExpr::FnType(a2, b2)) => {
                 if !self.is_beta_equal(a1, &s1, a2, &s2) {
                     return false;
                 }
@@ -33,13 +39,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (PrismExpr::FnConstruct(_, b1), PrismExpr::FnConstruct(_, b2)) => {
+            (CheckedPrismExpr::FnConstruct(b1), CheckedPrismExpr::FnConstruct(b2)) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;
                 }
             }
-            (PrismExpr::FnDestruct(f1, a1), PrismExpr::FnDestruct(f2, a2)) => {
+            (CheckedPrismExpr::FnDestruct(f1, a1), CheckedPrismExpr::FnDestruct(f2, a2)) => {
                 if !self.is_beta_equal(f1, &s1, f2, &s2) {
                     return false;
                 }
@@ -47,7 +53,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (PrismExpr::Free, PrismExpr::Free) => {}
+            (CheckedPrismExpr::Free, CheckedPrismExpr::Free) => {}
             _ => {
                 return false;
             }

@@ -1,10 +1,10 @@
-use crate::lang::UnionIndex;
+use crate::lang::CheckedIndex;
+use crate::lang::PrismEnv;
 use crate::lang::ValueOrigin;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
-use crate::lang::expect_beq::GENERATED_NAME;
-use crate::lang::{PrismEnv, PrismExpr};
+use crate::parser::ParsedIndex;
 use crate::parser::parse_expr::reduce_expr;
 use prism_parser::core::input::Input;
 use prism_parser::parsable::guid::Guid;
@@ -125,7 +125,10 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn type_check(&mut self, root: UnionIndex) -> Result<UnionIndex, AggregatedTypeError> {
+    pub fn type_check(
+        &mut self,
+        root: ParsedIndex,
+    ) -> Result<(CheckedIndex, CheckedIndex), AggregatedTypeError> {
         let ti = self._type_check(root, &NamedEnv::default());
 
         let errors = mem::take(&mut self.errors);
@@ -138,145 +141,150 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: UnionIndex, env: &NamedEnv<'arn, 'grm>) -> UnionIndex {
-        // We should only type check values from the source code
-        assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
-
-        let t = match self.values[*i] {
-            PrismExpr::Type => PrismExpr::Type,
-            PrismExpr::Let(n, mut v, b) => {
-                // Check `v`
-                let err_count = self.errors.len();
-                let vt = self._type_check(v, env);
-                if self.errors.len() > err_count {
-                    v = self.store(PrismExpr::Free, ValueOrigin::Failure);
-                }
-
-                let bt = self._type_check(b, &env.insert_name(n, CSubst(v, vt), self.input));
-                PrismExpr::Let(n, v, bt)
-            }
-            PrismExpr::DeBruijnIndex(index) => match env.resole_de_bruijn_idx(index) {
-                Some(&CType(_, t) | &CSubst(_, t)) => PrismExpr::Shift(t, index + 1),
-                Some(_) => unreachable!(),
-                None => {
-                    self.errors.push(TypeError::IndexOutOfBound(i));
-                    return self.store(PrismExpr::Free, ValueOrigin::Failure);
-                }
-            },
-            PrismExpr::Name(name) => {
-                assert_ne!(name, "_");
-
-                return match env.resolve_name_use(name) {
-                    Some(NamesEntry::FromEnv(prev_env_len)) => {
-                        self.values[*i] = PrismExpr::DeBruijnIndex(env.len() - *prev_env_len - 1);
-                        self._type_check(i, env)
-                    }
-                    Some(NamesEntry::FromParsed(parsed, old_names)) => {
-                        if let Some(expr) = parsed.try_into_value::<UnionIndex>() {
-                            //TODO should not mutate
-                            self.values[*i] = PrismExpr::Shift(*expr, 0);
-                            self._type_check(i, &env.shift_back(old_names, self.input))
-                        } else if let Some(name) = parsed.try_into_value::<Input>() {
-                            self.values[*i] = PrismExpr::Name(name.as_str(self.input));
-                            self._type_check(i, env)
-                        } else {
-                            unreachable!(
-                                "Found name `{name}` referring to {}",
-                                parsed.to_debug_string(self.input)
-                            );
-                        }
-                    }
-                    None => {
-                        self.errors.push(TypeError::UnknownName(
-                            self.value_origins[*i].to_source_span(),
-                        ));
-                        self.store(PrismExpr::Free, ValueOrigin::Failure)
-                    }
-                };
-            }
-            PrismExpr::FnType(n, mut a, b) => {
-                let err_count = self.errors.len();
-                let at = self._type_check(a, env);
-                self.expect_beq_type(at, &env.env);
-                if self.errors.len() > err_count {
-                    a = self.store(PrismExpr::Free, ValueOrigin::Failure);
-                }
-
-                let err_count = self.errors.len();
-                let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
-                let bt = self._type_check(b, &bs);
-
-                // Check if `b` typechecked without errors.
-                if self.errors.len() == err_count {
-                    self.expect_beq_type(bt, &bs.env);
-                }
-
-                PrismExpr::Type
-            }
-            PrismExpr::FnConstruct(n, b) => {
-                let a = self.store(PrismExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
-                let bt = self._type_check(b, &bs);
-                PrismExpr::FnType(n, a, bt)
-            }
-            PrismExpr::FnDestruct(f, mut a) => {
-                let err_count = self.errors.len();
-                let at = self._type_check(a, env);
-                if self.errors.len() > err_count {
-                    a = self.store(PrismExpr::Free, ValueOrigin::Failure);
-                };
-
-                let rt = self.store(PrismExpr::Free, ValueOrigin::TypeOf(i));
-
-                let err_count = self.errors.len();
-                let ft = self._type_check(f, env);
-                if self.errors.len() == err_count {
-                    self.expect_beq_fn_type(ft, at, rt, &env.env)
-                }
-
-                PrismExpr::Let(GENERATED_NAME, a, rt)
-            }
-            PrismExpr::TypeAssert(e, typ) => {
-                let err_count1 = self.errors.len();
-                let et = self._type_check(e, env);
-
-                let err_count2 = self.errors.len();
-                let typt = self._type_check(typ, env);
-                if self.errors.len() == err_count2 {
-                    self.expect_beq_type(typt, &env.env);
-                }
-
-                if self.errors.len() == err_count1 {
-                    self.expect_beq_assert(e, et, typ, &env.env);
-                }
-
-                return et;
-            }
-            PrismExpr::Free => {
-                // TODO self.queued_tc.insert(i, (s.clone(), t));
-                PrismExpr::Free
-            }
-            PrismExpr::Shift(v, shift) => {
-                assert_eq!(shift, 0);
-                return self._type_check(v, env);
-
-                //TODO
-                // PrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
-            }
-            PrismExpr::ShiftLabel(b, guid) => {
-                // self.values[*i] = PrismExpr::Shift(b, 0);
-                return self._type_check(b, &env.insert_shift_label(guid));
-            }
-            PrismExpr::ShiftTo(b, guid, captured_env) => {
-                // self.values[*i] = PrismExpr::Shift(b, 0);
-                let env = env.shift_to_label(guid, captured_env, self);
-                return self._type_check(b, &env);
-            }
-            PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,
-            PrismExpr::ParserValueType => PrismExpr::Type,
-        };
-        let tid = self.store(t, ValueOrigin::TypeOf(i));
-        self.value_types.insert(i, tid);
-        tid
+    fn _type_check(
+        &mut self,
+        i: ParsedIndex,
+        env: &NamedEnv<'arn, 'grm>,
+    ) -> (CheckedIndex, CheckedIndex) {
+        // // We should only type check values from the source code
+        // assert!(matches!(self.value_origins[*i], ValueOrigin::SourceCode(_)));
+        //
+        // let t = match self.values[*i] {
+        //     PrismExpr::Type => PrismExpr::Type,
+        //     PrismExpr::Let(n, mut v, b) => {
+        //         // Check `v`
+        //         let err_count = self.errors.len();
+        //         let vt = self._type_check(v, env);
+        //         if self.errors.len() > err_count {
+        //             v = self.store(PrismExpr::Free, ValueOrigin::Failure);
+        //         }
+        //
+        //         let bt = self._type_check(b, &env.insert_name(n, CSubst(v, vt), self.input));
+        //         PrismExpr::Let(n, v, bt)
+        //     }
+        //     PrismExpr::DeBruijnIndex(index) => match env.resole_de_bruijn_idx(index) {
+        //         Some(&CType(_, t) | &CSubst(_, t)) => PrismExpr::Shift(t, index + 1),
+        //         Some(_) => unreachable!(),
+        //         None => {
+        //             self.errors.push(TypeError::IndexOutOfBound(i));
+        //             return self.store(PrismExpr::Free, ValueOrigin::Failure);
+        //         }
+        //     },
+        //     PrismExpr::Name(name) => {
+        //         assert_ne!(name, "_");
+        //
+        //         return match env.resolve_name_use(name) {
+        //             Some(NamesEntry::FromEnv(prev_env_len)) => {
+        //                 self.values[*i] = PrismExpr::DeBruijnIndex(env.len() - *prev_env_len - 1);
+        //                 self._type_check(i, env)
+        //             }
+        //             Some(NamesEntry::FromParsed(parsed, old_names)) => {
+        //                 if let Some(expr) = parsed.try_into_value::<UnionIndex>() {
+        //                     //TODO should not mutate
+        //                     self.values[*i] = PrismExpr::Shift(*expr, 0);
+        //                     self._type_check(i, &env.shift_back(old_names, self.input))
+        //                 } else if let Some(name) = parsed.try_into_value::<Input>() {
+        //                     self.values[*i] = PrismExpr::Name(name.as_str(self.input));
+        //                     self._type_check(i, env)
+        //                 } else {
+        //                     unreachable!(
+        //                         "Found name `{name}` referring to {}",
+        //                         parsed.to_debug_string(self.input)
+        //                     );
+        //                 }
+        //             }
+        //             None => {
+        //                 self.errors.push(TypeError::UnknownName(
+        //                     self.value_origins[*i].to_source_span(),
+        //                 ));
+        //                 self.store(PrismExpr::Free, ValueOrigin::Failure)
+        //             }
+        //         };
+        //     }
+        //     PrismExpr::FnType(n, mut a, b) => {
+        //         let err_count = self.errors.len();
+        //         let at = self._type_check(a, env);
+        //         self.expect_beq_type(at, &env.env);
+        //         if self.errors.len() > err_count {
+        //             a = self.store(PrismExpr::Free, ValueOrigin::Failure);
+        //         }
+        //
+        //         let err_count = self.errors.len();
+        //         let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
+        //         let bt = self._type_check(b, &bs);
+        //
+        //         // Check if `b` typechecked without errors.
+        //         if self.errors.len() == err_count {
+        //             self.expect_beq_type(bt, &bs.env);
+        //         }
+        //
+        //         PrismExpr::Type
+        //     }
+        //     PrismExpr::FnConstruct(n, b) => {
+        //         let a = self.store(PrismExpr::Free, ValueOrigin::FreeSub(i));
+        //         let bs = env.insert_name(n, CType(self.new_tc_id(), a), self.input);
+        //         let bt = self._type_check(b, &bs);
+        //         PrismExpr::FnType(n, a, bt)
+        //     }
+        //     PrismExpr::FnDestruct(f, mut a) => {
+        //         let err_count = self.errors.len();
+        //         let at = self._type_check(a, env);
+        //         if self.errors.len() > err_count {
+        //             a = self.store(PrismExpr::Free, ValueOrigin::Failure);
+        //         };
+        //
+        //         let rt = self.store(PrismExpr::Free, ValueOrigin::TypeOf(i));
+        //
+        //         let err_count = self.errors.len();
+        //         let ft = self._type_check(f, env);
+        //         if self.errors.len() == err_count {
+        //             self.expect_beq_fn_type(ft, at, rt, &env.env)
+        //         }
+        //
+        //         PrismExpr::Let(GENERATED_NAME, a, rt)
+        //     }
+        //     PrismExpr::TypeAssert(e, typ) => {
+        //         let err_count1 = self.errors.len();
+        //         let et = self._type_check(e, env);
+        //
+        //         let err_count2 = self.errors.len();
+        //         let typt = self._type_check(typ, env);
+        //         if self.errors.len() == err_count2 {
+        //             self.expect_beq_type(typt, &env.env);
+        //         }
+        //
+        //         if self.errors.len() == err_count1 {
+        //             self.expect_beq_assert(e, et, typ, &env.env);
+        //         }
+        //
+        //         return et;
+        //     }
+        //     PrismExpr::Free => {
+        //         // TODO self.queued_tc.insert(i, (s.clone(), t));
+        //         PrismExpr::Free
+        //     }
+        //     PrismExpr::Shift(v, shift) => {
+        //         assert_eq!(shift, 0);
+        //         return self._type_check(v, env);
+        //
+        //         //TODO
+        //         // PrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
+        //     }
+        //     PrismExpr::ShiftLabel(b, guid) => {
+        //         // self.values[*i] = PrismExpr::Shift(b, 0);
+        //         return self._type_check(b, &env.insert_shift_label(guid));
+        //     }
+        //     PrismExpr::ShiftTo(b, guid, captured_env) => {
+        //         // self.values[*i] = PrismExpr::Shift(b, 0);
+        //         let env = env.shift_to_label(guid, captured_env, self);
+        //         return self._type_check(b, &env);
+        //     }
+        //     PrismExpr::ParserValue(_) => PrismExpr::ParserValueType,
+        //     PrismExpr::ParserValueType => PrismExpr::Type,
+        // };
+        // let tid = self.store(t, ValueOrigin::TypeOf(i));
+        // self.value_types.insert(i, tid);
+        // tid
+        todo!()
     }
 }

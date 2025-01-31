@@ -1,5 +1,6 @@
 use crate::lang::env::{Env, UniqueVariableId};
 use crate::lang::error::TypeError;
+use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
@@ -23,7 +24,7 @@ pub mod type_check;
 
 type QueuedConstraint = (
     (Env, HashMap<UniqueVariableId, usize>),
-    (UnionIndex, Env, HashMap<UniqueVariableId, usize>),
+    (CheckedIndex, Env, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -31,32 +32,23 @@ pub enum ValueOrigin {
     /// This is an AST node directly from the source code
     SourceCode(Span),
     /// This is the type of another AST node
-    TypeOf(UnionIndex),
+    TypeOf(CheckedIndex),
     /// This is an AST node generated from expanding the given free variable
-    FreeSub(UnionIndex),
+    FreeSub(CheckedIndex),
     /// This is an (initally free) AST node generated because type checking a node failed
     Failure,
 }
 
-impl ValueOrigin {
-    pub fn to_source_span(self) -> Span {
-        match self {
-            ValueOrigin::SourceCode(span) => span,
-            _ => unreachable!(),
-        }
-    }
-}
-
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct UnionIndex(pub usize);
+pub struct CheckedIndex(pub usize);
 
-impl Display for UnionIndex {
+impl Display for CheckedIndex {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "[{}]", self.0)
     }
 }
 
-impl Deref for UnionIndex {
+impl Deref for CheckedIndex {
     type Target = usize;
 
     fn deref(&self) -> &Self::Target {
@@ -65,52 +57,55 @@ impl Deref for UnionIndex {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum PrismExpr<'arn, 'grm: 'arn> {
+pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
     Type,
-    Let(&'grm str, UnionIndex, UnionIndex),
+    Let(CheckedIndex, CheckedIndex),
     DeBruijnIndex(usize),
-    FnType(&'grm str, UnionIndex, UnionIndex),
-    FnConstruct(&'grm str, UnionIndex),
-    FnDestruct(UnionIndex, UnionIndex),
-    Shift(UnionIndex, usize),
-    TypeAssert(UnionIndex, UnionIndex),
+    FnType(CheckedIndex, CheckedIndex),
+    FnConstruct(CheckedIndex),
+    FnDestruct(CheckedIndex, CheckedIndex),
+    Shift(CheckedIndex, usize),
+    TypeAssert(CheckedIndex, CheckedIndex),
 
     // Temporary expressions after parsing
-    Name(&'grm str),
-    ShiftLabel(UnionIndex, Guid),
-    ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
     ParserValue(Parsed<'arn, 'grm>),
     ParserValueType,
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Allocs
-    pub input: &'grm str,
+    // pub input: &'grm str,
     pub allocs: Allocs<'arn>,
 
-    // Value store
-    pub values: Vec<PrismExpr<'arn, 'grm>>,
-    pub value_origins: Vec<ValueOrigin>,
-    value_types: HashMap<UnionIndex, UnionIndex>,
+    // Parsed Values
+    pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
+    pub parsed_spans: Vec<Span>,
+
+    // Checked Values
+    pub checked_values: Vec<CheckedPrismExpr<'arn, 'grm>>,
+    pub checked_origins: Vec<ValueOrigin>,
+    checked_types: HashMap<CheckedIndex, CheckedIndex>,
 
     // State during type checking
     tc_id: usize,
     pub errors: Vec<TypeError>,
-    toxic_values: HashSet<UnionIndex>,
-    queued_beq_free: HashMap<UnionIndex, Vec<QueuedConstraint>>,
+    toxic_values: HashSet<CheckedIndex>,
+    queued_beq_free: HashMap<CheckedIndex, Vec<QueuedConstraint>>,
 }
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            input: "",
+            // input: "",
             allocs,
 
-            values: Default::default(),
-            value_origins: Default::default(),
-            value_types: Default::default(),
+            parsed_values: Default::default(),
+            parsed_spans: Default::default(),
+            checked_values: Default::default(),
+            checked_origins: Default::default(),
+            checked_types: Default::default(),
             tc_id: Default::default(),
             errors: Default::default(),
             toxic_values: Default::default(),
@@ -118,21 +113,31 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         }
     }
 
-    pub fn store_from_source(&mut self, e: PrismExpr<'arn, 'grm>, span: Span) -> UnionIndex {
-        self.store(e, ValueOrigin::SourceCode(span))
+    pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn, 'grm>, span: Span) -> ParsedIndex {
+        self.store_parsed(e, span)
     }
 
-    pub fn store_test(&mut self, e: PrismExpr<'arn, 'grm>) -> UnionIndex {
-        self.store(
+    pub fn store_test(&mut self, e: CheckedPrismExpr<'arn, 'grm>) -> CheckedIndex {
+        self.store_checked(
             e,
             ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
         )
     }
 
-    fn store(&mut self, e: PrismExpr<'arn, 'grm>, origin: ValueOrigin) -> UnionIndex {
-        self.values.push(e);
-        self.value_origins.push(origin);
-        UnionIndex(self.values.len() - 1)
+    fn store_parsed(&mut self, e: ParsedPrismExpr<'arn, 'grm>, origin: Span) -> ParsedIndex {
+        self.parsed_values.push(e);
+        self.parsed_spans.push(origin);
+        ParsedIndex(self.parsed_values.len() - 1)
+    }
+
+    fn store_checked(
+        &mut self,
+        e: CheckedPrismExpr<'arn, 'grm>,
+        origin: ValueOrigin,
+    ) -> CheckedIndex {
+        self.checked_values.push(e);
+        self.checked_origins.push(origin);
+        CheckedIndex(self.checked_values.len() - 1)
     }
 
     pub fn reset(&mut self) {
