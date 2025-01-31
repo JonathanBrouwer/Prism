@@ -1,7 +1,7 @@
 use crate::lang::PrismEnv;
 use crate::lang::ValueOrigin;
+use crate::lang::env::Env;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{Env, EnvEntry};
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::{CheckedIndex, CheckedPrismExpr};
 use crate::parser::parse_expr::reduce_expr;
@@ -170,7 +170,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self
                                 .parsed_to_checked(expr, &env.shift_back(old_names, self.input));
-                        } else if let Some(name) = parsed.try_into_value::<Input>() {
+                        } else if let Some(_name) = parsed.try_into_value::<Input>() {
                             todo!()
                             // self.values[*i] = PrismExpr::Name(name.as_str(self.input));
                             // self._type_check(i, env)
@@ -234,7 +234,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::FnType(mut a, b) => {
                 let err_count = self.errors.len();
                 let at = self._type_check(a, env);
-                self.expect_beq_type(at, &env);
+                self.expect_beq_type(at, env);
                 if self.errors.len() > err_count {
                     a = self.store_checked(CheckedPrismExpr::Free, ValueOrigin::Failure);
                 }
@@ -268,7 +268,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let err_count = self.errors.len();
                 let ft = self._type_check(f, env);
                 if self.errors.len() == err_count {
-                    self.expect_beq_fn_type(ft, at, rt, &env)
+                    self.expect_beq_fn_type(ft, at, rt, env)
                 }
 
                 CheckedPrismExpr::Let(a, rt)
@@ -280,11 +280,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let err_count2 = self.errors.len();
                 let typt = self._type_check(typ, env);
                 if self.errors.len() == err_count2 {
-                    self.expect_beq_type(typt, &env);
+                    self.expect_beq_type(typt, env);
                 }
 
                 if self.errors.len() == err_count1 {
-                    self.expect_beq_assert(e, et, typ, &env);
+                    self.expect_beq_assert(e, et, typ, env);
                 }
 
                 return et;
