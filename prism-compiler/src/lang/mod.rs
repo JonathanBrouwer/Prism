@@ -69,16 +69,16 @@ pub enum PrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
     Type,
-    Let(&'arn str, UnionIndex, UnionIndex),
+    Let(&'grm str, UnionIndex, UnionIndex),
     DeBruijnIndex(usize),
-    FnType(&'arn str, UnionIndex, UnionIndex),
-    FnConstruct(&'arn str, UnionIndex),
+    FnType(&'grm str, UnionIndex, UnionIndex),
+    FnConstruct(&'grm str, UnionIndex),
     FnDestruct(UnionIndex, UnionIndex),
     Shift(UnionIndex, usize),
     TypeAssert(UnionIndex, UnionIndex),
 
     // Temporary expressions after parsing
-    Name(&'arn str),
+    Name(&'grm str),
     ShiftLabel(UnionIndex, Guid),
     ShiftTo(UnionIndex, Guid, VarMap<'arn, 'grm>),
     ParserValue(Parsed<'arn, 'grm>),
