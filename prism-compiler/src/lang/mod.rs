@@ -4,9 +4,7 @@ use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
-use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parser::var_map::VarMap;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -76,7 +74,7 @@ pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Allocs
-    // pub input: &'grm str,
+    pub input: &'grm str,
     pub allocs: Allocs<'arn>,
 
     // Parsed Values
@@ -98,7 +96,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            // input: "",
+            input: "",
             allocs,
 
             parsed_values: Default::default(),
