@@ -1,0 +1,3 @@
+[alias]
+uitest = "test --bin prism-compiler --test type_check_new"
+uibless = "test --bin prism-compiler --test type_check_new -- --bless"

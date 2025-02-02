@@ -1,0 +1,14 @@
+### Input
+let _ = Type;
+let v = Type -> Type;
+let _ = Type;
+let w = v;
+let _ = Type;
+let _ = Type;
+w
+
+### Eval
+Type -> Type
+
+### Type
+Type

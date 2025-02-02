@@ -15,3 +15,8 @@ bumpalo.workspace = true
 
 [dev-dependencies]
 test_each_file.workspace = true
+ui_test.workspace = true
+
+[[test]]
+name = "type_check_new"
+harness = false
