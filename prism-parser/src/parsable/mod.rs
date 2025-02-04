@@ -38,7 +38,9 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         )
     }
 
-    fn eval_to_parsed() {}
+    fn eval_to_parsed(&'arn self, _allocs: Allocs<'arn>, _env: &mut Env) -> &'arn Self {
+        self
+    }
 }
 
 #[cfg(test)]
