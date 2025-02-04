@@ -18,6 +18,8 @@ pub enum RuleAnnotation<'grm> {
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAnnotation<'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAnnotation<'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

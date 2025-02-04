@@ -10,6 +10,8 @@ use prism_parser::parsable::{Parsable, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedIndex {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedIndex {
+    type EvalCtx = ();
+
     fn from_construct(
         span: Span,
         constructor: &'grm str,
@@ -81,6 +83,14 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 
                 ParsedPrismExpr::ShiftLabel(b, g)
             }
+            "ParserValue" => {
+                assert_eq!(args.len(), 1);
+                ParsedPrismExpr::ParserValue(args[0])
+            }
+            "ParsedType" => {
+                assert_eq!(args.len(), 0);
+                ParsedPrismExpr::ParsedType
+            }
             _ => unreachable!(),
         };
 
@@ -112,6 +122,8 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

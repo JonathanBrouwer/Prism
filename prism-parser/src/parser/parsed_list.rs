@@ -56,6 +56,8 @@ impl ExactSizeIterator for ParsedListIterator<'_, '_> {}
 
 impl<'arn, 'grm> ParseResult<'arn, 'grm> for ParsedList<'arn, 'grm> {}
 impl<'arn, 'grm, Env> Parsable<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

@@ -16,6 +16,8 @@ pub struct AnnotatedRuleExpr<'arn, 'grm>(
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for AnnotatedRuleExpr<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

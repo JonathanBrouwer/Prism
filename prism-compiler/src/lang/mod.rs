@@ -69,7 +69,7 @@ pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     ParserValue(Parsed<'arn, 'grm>),
-    ParserValueType,
+    ParsedType,
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {

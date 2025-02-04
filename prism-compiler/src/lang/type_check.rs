@@ -226,8 +226,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::Shift(v, shift) => {
                 CheckedPrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
             }
-            CheckedPrismExpr::ParserValue(_) => CheckedPrismExpr::ParserValueType,
-            CheckedPrismExpr::ParserValueType => CheckedPrismExpr::Type,
+            CheckedPrismExpr::ParserValue(_) => CheckedPrismExpr::ParsedType,
+            CheckedPrismExpr::ParsedType => CheckedPrismExpr::Type,
         };
         let tid = self.store_checked(t, ValueOrigin::TypeOf(i));
         self.checked_types.insert(i, tid);

@@ -69,7 +69,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 return self._parsed_to_checked(b, &env);
             }
             ParsedPrismExpr::ParserValue(v) => CheckedPrismExpr::ParserValue(v),
-            ParsedPrismExpr::ParserValueType => CheckedPrismExpr::ParserValueType,
+            ParsedPrismExpr::ParsedType => CheckedPrismExpr::ParsedType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }

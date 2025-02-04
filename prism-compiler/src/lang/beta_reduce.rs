@@ -20,7 +20,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             // Values
             CheckedPrismExpr::Type
             | CheckedPrismExpr::ParserValue(..)
-            | CheckedPrismExpr::ParserValueType => self.checked_values[*i],
+            | CheckedPrismExpr::ParsedType => self.checked_values[*i],
 
             CheckedPrismExpr::Let(_, _) => unreachable!(),
             CheckedPrismExpr::DeBruijnIndex(v) => {

@@ -28,7 +28,7 @@ impl<'arn, 'grm: 'arn> CheckedPrismExpr<'arn, 'grm> {
             CheckedPrismExpr::Type => PrecedenceLevel::Base,
             CheckedPrismExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
             CheckedPrismExpr::ParserValue(_) => PrecedenceLevel::Base,
-            CheckedPrismExpr::ParserValueType => PrecedenceLevel::Base,
+            CheckedPrismExpr::ParsedType => PrecedenceLevel::Base,
         }
     }
 }
@@ -83,7 +83,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::ParserValue(_) => {
                 write!(w, "[PARSER VALUE]")?;
             }
-            CheckedPrismExpr::ParserValueType => {
+            CheckedPrismExpr::ParsedType => {
                 write!(w, "Parsed")?;
             }
         }

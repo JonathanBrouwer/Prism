@@ -77,7 +77,7 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     ShiftLabel(ParsedIndex, Guid),
     ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>),
     ParserValue(Parsed<'arn, 'grm>),
-    ParserValueType,
+    ParsedType,
 }
 
 pub struct PrismParseEnv<'arn, 'grm: 'arn> {

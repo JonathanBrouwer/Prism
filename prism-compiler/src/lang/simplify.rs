@@ -64,7 +64,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 CheckedPrismExpr::TypeAssert(e, typ)
             }
             CheckedPrismExpr::ParserValue(p) => CheckedPrismExpr::ParserValue(p),
-            CheckedPrismExpr::ParserValueType => CheckedPrismExpr::ParserValueType,
+            CheckedPrismExpr::ParsedType => CheckedPrismExpr::ParsedType,
         };
         self.store_checked(e_new, self.checked_origins[*i])
     }

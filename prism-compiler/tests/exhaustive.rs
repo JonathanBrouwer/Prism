@@ -87,7 +87,7 @@ fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
             }
             CheckedPrismExpr::Shift(_, _) => unreachable!(),
             CheckedPrismExpr::ParserValue(_) => unreachable!(),
-            CheckedPrismExpr::ParserValueType => unreachable!(),
+            CheckedPrismExpr::ParsedType => unreachable!(),
         };
         return true;
     }

@@ -20,7 +20,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 CheckedPrismExpr::Type
                 | CheckedPrismExpr::FnType(_, _)
                 | CheckedPrismExpr::ParserValue(_)
-                | CheckedPrismExpr::ParserValueType => {
+                | CheckedPrismExpr::ParsedType => {
                     assert!(args.is_empty());
                     return (e, s);
                 }

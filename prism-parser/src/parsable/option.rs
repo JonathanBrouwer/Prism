@@ -6,6 +6,8 @@ use crate::parsable::{Parsable, ParseResult};
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Option<u64> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Option<u64> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

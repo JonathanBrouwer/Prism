@@ -25,6 +25,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
+            // ParsedType is always equal to ParsedType
+            (CheckedPrismExpr::ParsedType, CheckedPrismExpr::ParsedType) => true,
             // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
             // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
             (CheckedPrismExpr::DeBruijnIndex(index1), CheckedPrismExpr::DeBruijnIndex(index2)) => {
@@ -136,8 +138,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.checked_values[*i2] = CheckedPrismExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            CheckedPrismExpr::ParserValueType => {
-                self.checked_values[*i2] = CheckedPrismExpr::ParserValueType;
+            CheckedPrismExpr::ParsedType => {
+                self.checked_values[*i2] = CheckedPrismExpr::ParsedType;
                 self.handle_constraints(i2, s2)
             }
             CheckedPrismExpr::Let(v1, b1) => {

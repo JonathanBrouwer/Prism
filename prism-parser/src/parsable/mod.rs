@@ -22,6 +22,8 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
 pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
+    type EvalCtx;
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -35,6 +37,8 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
             type_name::<Self>()
         )
     }
+
+    fn eval_to_parsed() {}
 }
 
 #[cfg(test)]

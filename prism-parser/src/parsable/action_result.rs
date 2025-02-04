@@ -10,6 +10,8 @@ pub enum ActionResult<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ActionResult<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for ActionResult<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
