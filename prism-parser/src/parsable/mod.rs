@@ -22,7 +22,7 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
 pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
-    type EvalCtx;
+    type EvalCtx: Default;
 
     fn from_construct(
         _span: Span,
