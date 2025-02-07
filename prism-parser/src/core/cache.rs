@@ -20,6 +20,7 @@ pub struct CacheKey {
     rule_args: usize, //TODO
     ctx: ParserContext,
     state: GrammarStateId,
+    eval_ctx: usize,
 }
 pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn, 'grm>, E>;
 
@@ -113,6 +114,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             rule_args: args_hash.finish() as usize,
             ctx: context,
             state: grammar_state,
+            eval_ctx: 0, //TODO insert eval ctx as part of cache entry
         };
         if let Some(cached) = self.cache_get(&key) {
             return cached.clone();

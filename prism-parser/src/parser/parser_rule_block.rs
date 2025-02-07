@@ -1,6 +1,7 @@
 use crate::core::presult::PResult;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
+use std::collections::HashMap;
 
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 
@@ -22,9 +23,12 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
+        eval_ctx: Parsed<'arn, 'grm>,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         self.parse_cache_recurse(
-            |state, pos| state.parse_sub_blocks(rules, blocks, rule_args, pos, context, penv),
+            |state, pos| {
+                state.parse_sub_blocks(rules, blocks, rule_args, pos, context, penv, eval_ctx)
+            },
             blocks,
             rule_args,
             rules.unique_id(),
@@ -41,6 +45,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
+        eval_ctx: Parsed<'arn, 'grm>,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match blocks {
             [] => unreachable!(),
@@ -52,6 +57,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 pos,
                 context,
                 penv,
+                eval_ctx,
             ),
             [b, brest @ ..] => {
                 // Parse current
@@ -63,11 +69,12 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     pos,
                     context,
                     penv,
+                    eval_ctx,
                 );
 
                 // Parse next with recursion check
                 res.merge_choice_chain(|| {
-                    self.parse_rule_block(rules, brest, rule_args, pos, context, penv)
+                    self.parse_rule_block(rules, brest, rule_args, pos, context, penv, eval_ctx)
                 })
             }
         }
@@ -82,6 +89,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
+        eval_ctx: Parsed<'arn, 'grm>,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match es {
             [] => PResult::new_err(E::new(pos), pos),
@@ -93,11 +101,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 let res = self
                     .parse_sub_annotations(
-                        rules, blocks, rule_args, annots, expr, vars, pos, context, penv,
+                        rules, blocks, rule_args, annots, expr, vars, pos, context, penv, eval_ctx,
                     )
                     .merge_choice_chain(|| {
                         self.parse_sub_constructors(
-                            rules, blocks, rule_args, rest, pos, context, penv,
+                            rules, blocks, rule_args, rest, pos, context, penv, eval_ctx,
                         )
                     });
                 res
@@ -116,11 +124,12 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
+        eval_ctx: Parsed<'arn, 'grm>,
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res = self.parse_sub_annotations(
-                    rules, blocks, rule_args, rest, expr, vars, pos, context, penv,
+                    rules, blocks, rule_args, rest, expr, vars, pos, context, penv, eval_ctx,
                 );
                 res.add_label_explicit(ErrorLabel::Explicit(
                     pos.span_to(res.end_pos().next(self.input).0),
@@ -145,6 +154,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                             ..context
                         },
                         penv,
+                        eval_ctx,
                     )
                 },
                 pos,
@@ -164,6 +174,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     ..context
                 },
                 penv,
+                eval_ctx,
             ),
             [
                 RuleAnnotation::DisableRecovery | RuleAnnotation::EnableRecovery,
@@ -181,9 +192,21 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     ..context
                 },
                 penv,
+                eval_ctx,
             ),
             &[] => self
-                .parse_expr(expr, rules, blocks, rule_args, vars, pos, context, penv)
+                .parse_expr(
+                    expr,
+                    rules,
+                    blocks,
+                    rule_args,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    eval_ctx,
+                    &mut HashMap::new(),
+                )
                 .map(|pr| pr.rtrn),
         }
     }

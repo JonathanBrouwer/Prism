@@ -6,6 +6,8 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
+use crate::parsable::ParseResult;
+use crate::parsable::void::Void;
 use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
@@ -46,6 +48,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                         ..context
                     },
                     penv,
+                    Void.to_parsed(),
                 )
             });
             match new_res {

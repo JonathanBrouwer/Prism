@@ -15,10 +15,11 @@ use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
-use crate::parsable::Parsable;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::void::Void;
+use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
@@ -107,6 +108,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             Pos::start(),
             ParserContext::new(),
             penv,
+            Void.to_parsed(),
         );
         let end_pos = result.end_pos();
         let result = result

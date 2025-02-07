@@ -2,7 +2,7 @@ use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use parsed::Parsed;
 use std::any::type_name;
-use std::marker::PhantomData;
+use std::iter;
 
 pub mod action_result;
 pub mod env_capture;
@@ -20,12 +20,14 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
     }
 }
 
-pub struct ParsedPlaceholder<'arn, 'grm>(usize, PhantomData<(&'arn (), &'grm ())>);
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for () {}
+
+pub struct ParsedPlaceholder(usize);
 
 pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
-    type EvalCtx: Default + Copy;
+    type EvalCtx: Default + Copy + ParseResult<'arn, 'grm>;
 
     fn from_construct(
         _span: Span,
@@ -43,20 +45,20 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     }
 
     fn create_eval_ctx(
-        &'arn self,
         _constructor: &'grm str,
         _parent_ctx: Self::EvalCtx,
-        _arg_placeholders: &[ParsedPlaceholder<'arn, 'grm>],
+        _arg_placeholders: &[ParsedPlaceholder],
         // Env
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Vec<Option<Self::EvalCtx>> {
-        vec![]
+    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
+        iter::empty()
     }
 
     fn eval_to_parsed(
         &'arn self,
+        _eval_ctx: Self::EvalCtx,
         // Env
         _allocs: Allocs<'arn>,
         _src: &'grm str,

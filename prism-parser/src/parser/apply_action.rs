@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
@@ -10,6 +11,34 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::var_map::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+    pub fn pre_apply_action(
+        &self,
+        rule: &RuleAction<'arn, 'grm>,
+        penv: &mut Env,
+
+        eval_ctx: Parsed<'arn, 'grm>,
+        eval_ctxs: &mut HashMap<&'grm str, Parsed<'arn, 'grm>>,
+    ) {
+        match rule {
+            RuleAction::Name(n) => {
+                assert!(!eval_ctxs.contains_key(n));
+                eval_ctxs.insert(n, eval_ctx);
+            }
+            RuleAction::Construct(namespace, name, args) => {
+                let ns = self
+                    .parsables
+                    .get(namespace)
+                    .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
+
+                //TODOOO
+                todo
+                let placeholders = &[];
+                let arg_envs = (ns.create_eval_ctx)(name, eval_ctx, placeholders, self.alloc, self.input, penv);
+            }
+            RuleAction::InputLiteral(_) | RuleAction::Value(_) => {}
+        }
+    }
+
     pub fn apply_action(
         &self,
         rule: &RuleAction<'arn, 'grm>,
