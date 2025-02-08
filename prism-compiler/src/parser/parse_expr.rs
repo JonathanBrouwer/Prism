@@ -12,7 +12,7 @@ use std::iter;
 
 #[derive(Copy, Clone, Default)]
 pub struct PrismEvalCtx {
-    default: bool,
+    test: bool,
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for PrismEvalCtx {}
@@ -125,7 +125,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                vec![]
+                vec![None, None, Some(PrismEvalCtx { test: true })]
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
@@ -167,6 +167,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,
     ) -> Parsed<'arn, 'grm> {
+        assert!(eval_ctx.test);
         self.to_parsed()
     }
 }
