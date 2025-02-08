@@ -11,7 +11,9 @@ use prism_parser::parser::apply_action::ParsedPlaceholder;
 use std::iter;
 
 #[derive(Copy, Clone, Default)]
-pub struct PrismEvalCtx {}
+pub struct PrismEvalCtx {
+    default: bool,
+}
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for PrismEvalCtx {}
 
@@ -107,12 +109,55 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     fn create_eval_ctx(
         constructor: &'grm str,
         parent_ctx: Self::EvalCtx,
-        arg_placeholders: &[ParsedPlaceholder],
+        args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        iter::empty()
+        match constructor {
+            "Type" => {
+                assert_eq!(args.len(), 0);
+                vec![]
+            }
+            "Name" => {
+                assert_eq!(args.len(), 1);
+                vec![]
+            }
+            "Let" => {
+                assert_eq!(args.len(), 3);
+                vec![]
+            }
+            "FnType" => {
+                assert_eq!(args.len(), 3);
+                vec![]
+            }
+            "FnConstruct" => {
+                assert_eq!(args.len(), 2);
+                vec![]
+            }
+            "FnDestruct" => {
+                assert_eq!(args.len(), 2);
+                vec![]
+            }
+            "TypeAssert" => {
+                assert_eq!(args.len(), 2);
+                vec![]
+            }
+            "GrammarDefine" => {
+                assert_eq!(args.len(), 2);
+                vec![]
+            }
+            "ParserValue" => {
+                assert_eq!(args.len(), 1);
+                vec![]
+            }
+            "ParsedType" => {
+                assert_eq!(args.len(), 0);
+                vec![]
+            }
+            _ => unreachable!(),
+        }
+        .into_iter()
     }
 
     fn eval_to_parsed(

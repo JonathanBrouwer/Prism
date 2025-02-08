@@ -388,8 +388,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     panic!("Name '{ga}' not in context")
                 };
 
-                // Evaluate the grammar
-
                 // Parse it into a grammar
                 let grammar = grammar.into_value::<GrammarFile>();
 
@@ -422,8 +420,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 PResult::new_empty(PR::with_rtrn(self.alloc.alloc(guid).to_parsed()), pos)
             }
-            RuleExpr::Eval(_, _) => {
-                todo!()
+            RuleExpr::Eval(ns, v) => {
+                let ns = self
+                    .parsables
+                    .get(ns)
+                    .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
+                let v = *vars.get(v).unwrap();
+                let v = (ns.eval_to_parsed)(v, eval_ctx, self.alloc, self.input, penv);
+                PResult::new_empty(PR::with_rtrn(v), pos)
             }
         }
     }

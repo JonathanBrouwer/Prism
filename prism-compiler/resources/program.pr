@@ -5,4 +5,5 @@ grammar test {
         }
     }
 }
-test : Parsed
+adapt test;
+%
