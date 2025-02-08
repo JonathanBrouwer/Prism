@@ -59,7 +59,7 @@ rule prule_expr(action) {
         RuleExpr::NegLookahead(r) <- "#neg" "(" r:prule_expr(action) ")";
         r <- "<" r:prule_expr(action) ">";
         RuleExpr::Guid() <- "#guid";
-        RuleExpr::AtAdapt(a, RuleExpr::RunVar(n, [])) <- "#adapt" "(" a:identifier "," n:identifier ")";
+        RuleExpr::AtAdapt(a, n) <- "#adapt" "(" a:identifier "," n:prule_expr(action) ")";
         RuleExpr::Eval(ns, n) <- "#eval" "(" ns:identifier "," n:identifier ")";
         RuleExpr::RunVar(n, as) <- n:prule_runnable #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
         RuleExpr::RunVar(n, []) <- n:prule_runnable;

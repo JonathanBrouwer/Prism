@@ -1760,8 +1760,15 @@
                           "n",
                           {
                             "RunVar": {
-                              "rule": "identifier",
-                              "args": []
+                              "rule": "prule_expr",
+                              "args": [
+                                {
+                                  "RunVar": {
+                                    "rule": "action",
+                                    "args": []
+                                  }
+                                }
+                              ]
                             }
                           }
                         ]
@@ -1780,22 +1787,7 @@
                           "Name": "a"
                         },
                         {
-                          "Construct": [
-                            "RuleExpr",
-                            "RunVar",
-                            [
-                              {
-                                "Name": "n"
-                              },
-                              {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
-                              }
-                            ]
-                          ]
+                          "Name": "n"
                         }
                       ]
                     ]
