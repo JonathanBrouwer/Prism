@@ -164,7 +164,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                             pos,
                             context,
                             penv,
-                            Void.to_parsed(),
+                            eval_ctx,
                             &mut HashMap::new(),
                         )
                     } else {
@@ -177,7 +177,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                             pos,
                             context,
                             penv,
-                            Void.to_parsed(),
+                            eval_ctx,
                             &mut HashMap::new(),
                         )
                         .merge_seq_chain(|pos| {
@@ -190,7 +190,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                                 pos,
                                 context,
                                 penv,
-                                Void.to_parsed(),
+                                eval_ctx,
                                 &mut HashMap::new(),
                             )
                         })
@@ -241,16 +241,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     res = res
                         .merge_seq_chain(|pos| {
                             self.parse_expr(
-                                sub,
-                                rules,
-                                blocks,
-                                rule_args,
-                                res_vars,
-                                pos,
-                                context,
-                                penv,
-                                Void.to_parsed(),
-                                eval_ctxs,
+                                sub, rules, blocks, rule_args, res_vars, pos, context, penv,
+                                eval_ctx, eval_ctxs,
                             )
                         })
                         .map(|(l, r)| l.extend(r.free, self.alloc));
@@ -279,7 +271,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                             pos,
                             context,
                             penv,
-                            Void.to_parsed(),
+                            eval_ctx,
                             &mut HashMap::new(),
                         )
                     });
@@ -290,7 +282,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let eval_ctx = eval_ctxs.get(name).copied().unwrap_or(Void.to_parsed());
+                let eval_ctx = eval_ctxs.get(name).copied().unwrap_or(eval_ctx);
 
                 let res = self.parse_expr(
                     sub,
@@ -322,7 +314,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     pos,
                     context,
                     penv,
-                    Void.to_parsed(),
+                    eval_ctx,
                     &mut eval_ctxs,
                 );
                 res.map_with_span(|res, span| {
@@ -361,7 +353,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     pos,
                     context,
                     penv,
-                    Void.to_parsed(),
+                    eval_ctx,
                     &mut HashMap::new(),
                 )
                 .positive_lookahead(pos),
