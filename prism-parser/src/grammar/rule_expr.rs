@@ -40,6 +40,7 @@ pub enum RuleExpr<'arn, 'grm> {
     NegLookahead(#[serde(with = "leak")] &'arn Self),
     AtAdapt(&'grm str, #[serde(with = "leak")] &'arn Self),
     Guid,
+    Eval(&'grm str, &'grm str),
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleExpr<'arn, 'grm> {}
@@ -49,60 +50,64 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
-        _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        args: &[Parsed<'arn, 'grm>],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
         _env: &mut Env,
     ) -> Self {
         match constructor {
             "Action" => RuleExpr::Action(
-                _allocs.alloc(_args[0].into_value()),
-                _allocs.alloc(_args[1].into_value()),
+                allocs.alloc(args[0].into_value()),
+                allocs.alloc(args[1].into_value()),
             ),
             "Choice" => RuleExpr::Choice(
-                _allocs.alloc_extend(
-                    _args[0]
+                allocs.alloc_extend(
+                    args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
             "Sequence" => RuleExpr::Sequence(
-                _allocs.alloc_extend(
-                    _args[0]
+                allocs.alloc_extend(
+                    args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
             "NameBind" => RuleExpr::NameBind(
-                parse_identifier(_args[0], _src),
-                _args[1].into_value::<RuleExpr>(),
+                parse_identifier(args[0], src),
+                args[1].into_value::<RuleExpr>(),
             ),
             "Repeat" => RuleExpr::Repeat {
-                expr: _args[0].into_value::<RuleExpr>(),
-                min: _args[1].into_value::<Input>().as_str(_src).parse().unwrap(),
-                max: *_args[2].into_value::<Option<u64>>(),
-                delim: _args[3].into_value::<RuleExpr>(),
+                expr: args[0].into_value::<RuleExpr>(),
+                min: args[1].into_value::<Input>().as_str(src).parse().unwrap(),
+                max: *args[2].into_value::<Option<u64>>(),
+                delim: args[3].into_value::<RuleExpr>(),
             },
-            "Literal" => RuleExpr::Literal(parse_string(_args[0], _src)),
-            "CharClass" => RuleExpr::CharClass(_args[0].into_value::<CharClass>()),
-            "SliceInput" => RuleExpr::SliceInput(_args[0].into_value::<RuleExpr>()),
-            "PosLookahead" => RuleExpr::PosLookahead(_args[0].into_value::<RuleExpr>()),
-            "NegLookahead" => RuleExpr::NegLookahead(_args[0].into_value::<RuleExpr>()),
+            "Literal" => RuleExpr::Literal(parse_string(args[0], src)),
+            "CharClass" => RuleExpr::CharClass(args[0].into_value::<CharClass>()),
+            "SliceInput" => RuleExpr::SliceInput(args[0].into_value::<RuleExpr>()),
+            "PosLookahead" => RuleExpr::PosLookahead(args[0].into_value::<RuleExpr>()),
+            "NegLookahead" => RuleExpr::NegLookahead(args[0].into_value::<RuleExpr>()),
             "Guid" => RuleExpr::Guid,
             "RunVar" => RuleExpr::RunVar {
-                rule: parse_identifier(_args[0], _src),
-                args: _allocs.alloc_extend(
-                    _args[1]
+                rule: parse_identifier(args[0], src),
+                args: allocs.alloc_extend(
+                    args[1]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             },
             "AtAdapt" => RuleExpr::AtAdapt(
-                parse_identifier(_args[0], _src),
-                _args[1].into_value::<RuleExpr>(),
+                parse_identifier(args[0], src),
+                args[1].into_value::<RuleExpr>(),
+            ),
+            "Eval" => RuleExpr::Eval(
+                parse_identifier(args[0], src),
+                parse_identifier(args[1], src),
             ),
             _ => unreachable!(),
         }

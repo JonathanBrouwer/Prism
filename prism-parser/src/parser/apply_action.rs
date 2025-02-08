@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
@@ -8,11 +7,16 @@ use crate::grammar::rule_action::RuleAction;
 use crate::parsable::ParseResult;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::void::Void;
 use crate::parser::var_map::VarMap;
+use std::collections::HashMap;
+use std::iter;
+
+pub struct ParsedPlaceholder(usize);
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn pre_apply_action(
-        &self,
+        &mut self,
         rule: &RuleAction<'arn, 'grm>,
         penv: &mut Env,
 
@@ -21,8 +25,13 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
     ) {
         match rule {
             RuleAction::Name(n) => {
-                assert!(!eval_ctxs.contains_key(n));
-                eval_ctxs.insert(n, eval_ctx);
+                if eval_ctxs.contains_key(n) {
+                    // Ctx is ambiguous
+                    //TODO if both ctxs are identical, we can continue
+                    eval_ctxs.insert(n, Void.to_parsed());
+                } else {
+                    eval_ctxs.insert(n, eval_ctx);
+                }
             }
             RuleAction::Construct(namespace, name, args) => {
                 let ns = self
@@ -30,12 +39,32 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .get(namespace)
                     .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
 
-                //TODOOO
-                todo
-                let placeholders = &[];
-                let arg_envs = (ns.create_eval_ctx)(name, eval_ctx, placeholders, self.alloc, self.input, penv);
+                let mut placeholders = vec![];
+                for _ in *args {
+                    placeholders.push(ParsedPlaceholder(self.placeholders.len()));
+                    self.placeholders.push(Void.to_parsed());
+                }
+
+                let arg_envs = (ns.create_eval_ctx)(
+                    name,
+                    eval_ctx,
+                    &placeholders,
+                    self.alloc,
+                    self.input,
+                    penv,
+                );
+                for (arg, env) in args.iter().zip(
+                    arg_envs
+                        .iter()
+                        .copied()
+                        .chain(iter::repeat(Void.to_parsed())),
+                ) {
+                    self.pre_apply_action(arg, penv, env, eval_ctxs);
+                }
             }
-            RuleAction::InputLiteral(_) | RuleAction::Value(_) => {}
+            RuleAction::InputLiteral(_) | RuleAction::Value(_) => {
+                //TODO input literals can be provided to the placeholders
+            }
         }
     }
 

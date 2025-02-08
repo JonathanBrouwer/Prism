@@ -52,7 +52,7 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
         .with_label(
             Label::new(span)
                 .with_message(match span.end - span.start {
-                    0 => "Failed to parse at this location (but recovered immediately)",
+                    0 => "Failed to parse at this location",
                     1 => "This character was unparsable",
                     _ => "These characters were unparsable",
                 })

@@ -1760,15 +1760,8 @@
                           "n",
                           {
                             "RunVar": {
-                              "rule": "prule_expr",
-                              "args": [
-                                {
-                                  "RunVar": {
-                                    "rule": "action",
-                                    "args": []
-                                  }
-                                }
-                              ]
+                              "rule": "identifier",
+                              "args": []
                             }
                           }
                         ]
@@ -1785,6 +1778,80 @@
                       [
                         {
                           "Name": "a"
+                        },
+                        {
+                          "Construct": [
+                            "RuleExpr",
+                            "RunVar",
+                            [
+                              {
+                                "Name": "n"
+                              },
+                              {
+                                "Construct": [
+                                  "ParsedList",
+                                  "Nil",
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "#eval"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "ns",
+                          {
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "RuleExpr",
+                      "Eval",
+                      [
+                        {
+                          "Name": "ns"
                         },
                         {
                           "Name": "n"

@@ -1,5 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
+use crate::parser::apply_action::ParsedPlaceholder;
 use parsed::Parsed;
 use std::any::type_name;
 use std::iter;
@@ -21,8 +22,6 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for () {}
-
-pub struct ParsedPlaceholder(usize);
 
 pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
@@ -63,8 +62,8 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> &'arn Self {
-        self
+    ) -> Parsed<'arn, 'grm> {
+        self.to_parsed()
     }
 }
 

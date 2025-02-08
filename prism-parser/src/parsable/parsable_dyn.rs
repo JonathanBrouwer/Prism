@@ -2,9 +2,9 @@ use crate::core::cache::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
-use crate::parsable::{Parsable, ParseResult, ParsedPlaceholder};
+use crate::parsable::{Parsable, ParseResult};
+use crate::parser::apply_action::ParsedPlaceholder;
 
-#[derive(Copy, Clone)]
 pub struct ParsableDyn<'arn, 'grm, Env> {
     pub from_construct: fn(
         span: Span,
@@ -23,8 +23,19 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Vec<Option<Parsed<'arn, 'grm>>>,
+    ) -> Vec<Parsed<'arn, 'grm>>,
 }
+
+impl<'arn, 'grm, Env> Clone for ParsableDyn<'arn, 'grm, Env> {
+    fn clone(&self) -> Self {
+        Self {
+            from_construct: self.from_construct,
+            create_eval_ctx: self.create_eval_ctx,
+        }
+    }
+}
+
+impl<'arn, 'grm, Env> Copy for ParsableDyn<'arn, 'grm, Env> {}
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
     pub fn new<P: Parsable<'arn, 'grm, Env>>() -> Self {
@@ -54,7 +65,7 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     allocs: Allocs<'arn>,
     src: &'grm str,
     env: &mut Env,
-) -> Vec<Option<Parsed<'arn, 'grm>>> {
+) -> Vec<Parsed<'arn, 'grm>> {
     let parent_ctx = match parent_ctx.try_into_value::<Void>() {
         Some(Void) => P::EvalCtx::default(),
         None => *parent_ctx.into_value(),
@@ -62,6 +73,9 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
 
     let res = P::create_eval_ctx(constructor, parent_ctx, arg_placeholders, allocs, src, env);
 
-    res.map(|v| v.map(|e| allocs.alloc(e).to_parsed()))
-        .collect()
+    res.map(|v| match v {
+        None => Void.to_parsed(),
+        Some(v) => allocs.alloc(v).to_parsed(),
+    })
+    .collect()
 }

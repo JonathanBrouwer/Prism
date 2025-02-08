@@ -7,10 +7,17 @@ use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
+use prism_parser::parser::apply_action::ParsedPlaceholder;
+use std::iter;
+
+#[derive(Copy, Clone, Default)]
+pub struct PrismEvalCtx {}
+
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for PrismEvalCtx {}
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedIndex {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedIndex {
-    type EvalCtx = ();
+    type EvalCtx = PrismEvalCtx;
 
     fn from_construct(
         span: Span,
@@ -95,6 +102,27 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         };
 
         tc_env.store_from_source(expr, span)
+    }
+
+    fn create_eval_ctx(
+        constructor: &'grm str,
+        parent_ctx: Self::EvalCtx,
+        arg_placeholders: &[ParsedPlaceholder],
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+        env: &mut PrismEnv<'arn, 'grm>,
+    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
+        iter::empty()
+    }
+
+    fn eval_to_parsed(
+        &'arn self,
+        eval_ctx: Self::EvalCtx,
+        allocs: Allocs<'arn>,
+        src: &'grm str,
+        env: &mut PrismEnv<'arn, 'grm>,
+    ) -> Parsed<'arn, 'grm> {
+        self.to_parsed()
     }
 }
 

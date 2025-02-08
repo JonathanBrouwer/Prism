@@ -388,6 +388,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     panic!("Name '{ga}' not in context")
                 };
 
+                // Evaluate the grammar
+
                 // Parse it into a grammar
                 let grammar = grammar.into_value::<GrammarFile>();
 
@@ -419,6 +421,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 self.guid_counter += 1;
 
                 PResult::new_empty(PR::with_rtrn(self.alloc.alloc(guid).to_parsed()), pos)
+            }
+            RuleExpr::Eval(_, _) => {
+                todo!()
             }
         }
     }
