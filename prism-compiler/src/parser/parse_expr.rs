@@ -6,20 +6,75 @@ use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
+use prism_parser::parsable::void::Void;
 use prism_parser::parsable::{Parsable, ParseResult};
 use prism_parser::parser::apply_action::ParsedPlaceholder;
+use std::fmt::{Debug, Formatter};
 use std::iter;
 
-#[derive(Copy, Clone, Default)]
-pub struct PrismEvalCtx<'arn, 'grm: 'arn> {
-    test: &'arn [&'grm str],
+#[derive(Default, Copy, Clone)]
+pub struct PrismEvalCtx<'arn>(Option<&'arn PrismEvalCtxNode<'arn>>);
+
+impl<'arn> PrismEvalCtx<'arn> {
+    pub fn get<'grm>(
+        &self,
+        k: &str,
+        placeholders: &[Parsed<'arn, 'grm>],
+        input: &'grm str,
+    ) -> Option<Parsed<'arn, 'grm>> {
+        let mut node = self.0?;
+        loop {
+            let key = placeholders[node.key.0];
+            if key.try_into_value::<Void>().is_some() {
+                node = node.next?;
+                continue;
+            }
+            let key = key.into_value::<Input>().as_str(input);
+            if key != k {
+                node = node.next?;
+                continue;
+            }
+
+            let Some(value) = node.value else {
+                node = node.next?;
+                continue;
+            };
+            let value = placeholders[value.0];
+            if value.try_into_value::<Void>().is_some() {
+                node = node.next?;
+                continue;
+            }
+            return Some(value);
+        }
+    }
+
+    #[must_use]
+    pub fn insert(
+        self,
+        key: ParsedPlaceholder,
+        value: Option<ParsedPlaceholder>,
+        alloc: Allocs<'arn>,
+    ) -> Self {
+        Self(Some(alloc.alloc(PrismEvalCtxNode {
+            next: self.0,
+            key,
+            value,
+        })))
+    }
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for PrismEvalCtx<'arn, 'grm> {}
+#[derive(Copy, Clone)]
+pub struct PrismEvalCtxNode<'arn> {
+    next: Option<&'arn Self>,
+    key: ParsedPlaceholder,
+    value: Option<ParsedPlaceholder>,
+}
+
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for PrismEvalCtx<'arn> {}
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedIndex {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedIndex {
-    type EvalCtx = PrismEvalCtx<'arn, 'grm>;
+    type EvalCtx = PrismEvalCtx<'arn>;
 
     fn from_construct(
         span: Span,
@@ -114,17 +169,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        let new_ctx = Some(PrismEvalCtx {
-            test: allocs.alloc_extend_len(
-                parent_ctx.test.len() + 1,
-                parent_ctx
-                    .test
-                    .iter()
-                    .copied()
-                    .chain(iter::once(constructor)),
-            ),
-        });
-
         match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
@@ -136,27 +180,31 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                vec![None, new_ctx, new_ctx]
+                vec![
+                    None,
+                    Some(parent_ctx),
+                    Some(parent_ctx.insert(args[0], Some(args[1]), allocs)),
+                ]
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                vec![None, new_ctx, new_ctx]
+                vec![None, Some(parent_ctx), Some(parent_ctx)]
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                vec![None, new_ctx]
+                vec![None, Some(parent_ctx)]
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
-                vec![new_ctx, new_ctx]
+                vec![Some(parent_ctx), Some(parent_ctx)]
             }
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
-                vec![new_ctx, new_ctx]
+                vec![Some(parent_ctx), Some(parent_ctx)]
             }
             "GrammarDefine" => {
                 assert_eq!(args.len(), 2);
-                vec![None, new_ctx]
+                vec![None, Some(parent_ctx)]
             }
             "ParserValue" => {
                 assert_eq!(args.len(), 1);
@@ -174,11 +222,17 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     fn eval_to_parsed(
         &'arn self,
         eval_ctx: Self::EvalCtx,
+        placeholders: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,
     ) -> Parsed<'arn, 'grm> {
-        eprintln!("{:?}", eval_ctx.test);
+        //TODO convert eval_ctx to env and run
+
+        let x = eval_ctx.get("test", placeholders, src);
+        eprintln!("{x:?}");
+
+        // eprintln!("{:?}", eval_ctx);
         self.to_parsed()
     }
 }

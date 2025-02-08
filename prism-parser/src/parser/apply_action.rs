@@ -12,7 +12,8 @@ use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 use std::iter;
 
-pub struct ParsedPlaceholder(usize);
+#[derive(Copy, Clone)]
+pub struct ParsedPlaceholder(pub usize);
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn pre_apply_action(
@@ -20,17 +21,18 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         rule: &RuleAction<'arn, 'grm>,
         penv: &mut Env,
 
+        placeholder: Option<ParsedPlaceholder>,
         eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, Parsed<'arn, 'grm>>,
+        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, Option<ParsedPlaceholder>)>,
     ) {
         match rule {
             RuleAction::Name(n) => {
                 if eval_ctxs.contains_key(n) {
                     // Ctx is ambiguous
                     //TODO if both ctxs are identical, we can continue
-                    eval_ctxs.insert(n, Void.to_parsed());
+                    eval_ctxs.insert(n, (Void.to_parsed(), placeholder));
                 } else {
-                    eval_ctxs.insert(n, eval_ctx);
+                    eval_ctxs.insert(n, (eval_ctx, placeholder));
                 }
             }
             RuleAction::Construct(namespace, name, args) => {
@@ -53,13 +55,17 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     self.input,
                     penv,
                 );
-                for (arg, env) in args.iter().zip(
-                    arg_envs
-                        .iter()
-                        .copied()
-                        .chain(iter::repeat(Void.to_parsed())),
-                ) {
-                    self.pre_apply_action(arg, penv, env, eval_ctxs);
+                for ((arg, env), placeholder) in args
+                    .iter()
+                    .zip(
+                        arg_envs
+                            .iter()
+                            .copied()
+                            .chain(iter::repeat(Void.to_parsed())),
+                    )
+                    .zip(&placeholders)
+                {
+                    self.pre_apply_action(arg, penv, Some(*placeholder), env, eval_ctxs);
                 }
             }
             RuleAction::InputLiteral(_) | RuleAction::Value(_) => {

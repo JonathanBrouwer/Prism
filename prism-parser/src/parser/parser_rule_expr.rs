@@ -13,6 +13,7 @@ use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
+use crate::parser::apply_action::ParsedPlaceholder;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
@@ -30,7 +31,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         context: ParserContext,
         penv: &mut Env,
         eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, Parsed<'arn, 'grm>>,
+        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, Option<ParsedPlaceholder>)>,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
@@ -282,7 +283,12 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let eval_ctx = eval_ctxs.get(name).copied().unwrap_or(eval_ctx);
+                let (eval_ctx, placeholder) =
+                    if let Some((eval_ctx, placeholder)) = eval_ctxs.get(name) {
+                        (*eval_ctx, *placeholder)
+                    } else {
+                        (eval_ctx, None)
+                    };
 
                 let res = self.parse_expr(
                     sub,
@@ -296,14 +302,20 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctx,
                     &mut HashMap::new(),
                 );
-                res.map(|res| PR {
-                    free: res.free.insert(name, res.rtrn, self.alloc),
-                    rtrn: Void.to_parsed(),
+                res.map(|res| {
+                    if let Some(placeholder) = placeholder {
+                        self.placeholders[placeholder.0] = res.rtrn;
+                    }
+
+                    PR {
+                        free: res.free.insert(name, res.rtrn, self.alloc),
+                        rtrn: Void.to_parsed(),
+                    }
                 })
             }
             RuleExpr::Action(sub, action) => {
                 let mut eval_ctxs = HashMap::new();
-                self.pre_apply_action(action, penv, eval_ctx, &mut eval_ctxs);
+                self.pre_apply_action(action, penv, None, eval_ctx, &mut eval_ctxs);
 
                 let res = self.parse_expr(
                     sub,
@@ -418,7 +430,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let v = *vars.get(v).unwrap();
-                let v = (ns.eval_to_parsed)(v, eval_ctx, self.alloc, self.input, penv);
+                let v = (ns.eval_to_parsed)(
+                    v,
+                    eval_ctx,
+                    &self.placeholders,
+                    self.alloc,
+                    self.input,
+                    penv,
+                );
                 PResult::new_empty(PR::with_rtrn(v), pos)
             }
         }
