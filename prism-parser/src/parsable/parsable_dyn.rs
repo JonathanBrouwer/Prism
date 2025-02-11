@@ -3,7 +3,7 @@ use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
-use crate::parser::apply_action::ParsedPlaceholder;
+use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
 pub struct ParsableDyn<'arn, 'grm, Env> {
     pub from_construct: fn(
@@ -28,7 +28,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
     pub eval_to_parsed: fn(
         v: Parsed<'arn, 'grm>,
         eval_ctx: Parsed<'arn, 'grm>,
-        placeholders: &[Parsed<'arn, 'grm>],
+        placeholders: &PlaceholderStore,
         // Env
         allocs: Allocs<'arn>,
         src: &'grm str,
@@ -78,9 +78,9 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     src: &'grm str,
     env: &mut Env,
 ) -> Vec<Parsed<'arn, 'grm>> {
-    let parent_ctx = match parent_ctx.try_into_value::<Void>() {
-        Some(Void) => P::EvalCtx::default(),
-        None => *parent_ctx.into_value(),
+    let parent_ctx = match parent_ctx.try_into_value::<P::EvalCtx>() {
+        Some(v) => *v,
+        None => P::EvalCtx::default(),
     };
 
     let res = P::create_eval_ctx(constructor, parent_ctx, arg_placeholders, allocs, src, env);
@@ -95,7 +95,7 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
 fn eval_to_parsed_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     v: Parsed<'arn, 'grm>,
     eval_ctx: Parsed<'arn, 'grm>,
-    placeholders: &[Parsed<'arn, 'grm>],
+    placeholders: &PlaceholderStore,
     // Env
     allocs: Allocs<'arn>,
     src: &'grm str,

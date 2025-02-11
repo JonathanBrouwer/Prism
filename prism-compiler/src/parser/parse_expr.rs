@@ -8,9 +8,7 @@ use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::void::Void;
 use prism_parser::parsable::{Parsable, ParseResult};
-use prism_parser::parser::apply_action::ParsedPlaceholder;
-use std::fmt::{Debug, Formatter};
-use std::iter;
+use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
 #[derive(Default, Copy, Clone)]
 pub struct PrismEvalCtx<'arn>(Option<&'arn PrismEvalCtxNode<'arn>>);
@@ -19,12 +17,12 @@ impl<'arn> PrismEvalCtx<'arn> {
     pub fn get<'grm>(
         &self,
         k: &str,
-        placeholders: &[Parsed<'arn, 'grm>],
+        placeholders: &PlaceholderStore<'arn, 'grm>,
         input: &'grm str,
     ) -> Option<Parsed<'arn, 'grm>> {
         let mut node = self.0?;
         loop {
-            let key = placeholders[node.key.0];
+            let key = placeholders[node.key];
             if key.try_into_value::<Void>().is_some() {
                 node = node.next?;
                 continue;
@@ -39,7 +37,7 @@ impl<'arn> PrismEvalCtx<'arn> {
                 node = node.next?;
                 continue;
             };
-            let value = placeholders[value.0];
+            let value = placeholders[value];
             if value.try_into_value::<Void>().is_some() {
                 node = node.next?;
                 continue;
@@ -222,7 +220,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     fn eval_to_parsed(
         &'arn self,
         eval_ctx: Self::EvalCtx,
-        placeholders: &[Parsed<'arn, 'grm>],
+        placeholders: &PlaceholderStore,
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,
@@ -261,7 +259,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
-    type EvalCtx = ();
+    type EvalCtx = PrismEvalCtx<'arn>;
 
     fn from_construct(
         _span: Span,
@@ -273,5 +271,16 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter
     ) -> Self {
         assert_eq!(constructor, "Enter");
         ScopeEnter(args[0], *args[1].into_value())
+    }
+
+    fn create_eval_ctx(
+        _constructor: &'grm str,
+        parent_ctx: Self::EvalCtx,
+        _arg_placeholders: &[ParsedPlaceholder],
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut PrismEnv<'arn, 'grm>,
+    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
+        [Some(parent_ctx), None].into_iter()
     }
 }

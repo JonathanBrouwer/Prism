@@ -1,6 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
-use crate::parser::apply_action::ParsedPlaceholder;
+use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
 use std::any::type_name;
 use std::iter;
@@ -58,7 +58,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     fn eval_to_parsed(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
-        _placeholders: &[Parsed<'arn, 'grm>],
+        _placeholders: &PlaceholderStore,
         // Env
         _allocs: Allocs<'arn>,
         _src: &'grm str,

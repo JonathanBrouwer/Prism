@@ -8,12 +8,10 @@ use crate::parsable::ParseResult;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
+use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 use std::iter;
-
-#[derive(Copy, Clone)]
-pub struct ParsedPlaceholder(pub usize);
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn pre_apply_action(
@@ -43,8 +41,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 let mut placeholders = vec![];
                 for _ in *args {
-                    placeholders.push(ParsedPlaceholder(self.placeholders.len()));
-                    self.placeholders.push(Void.to_parsed());
+                    placeholders.push(self.placeholders.push());
                 }
 
                 let arg_envs = (ns.create_eval_ctx)(
@@ -68,8 +65,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     self.pre_apply_action(arg, penv, Some(*placeholder), env, eval_ctxs);
                 }
             }
-            RuleAction::InputLiteral(_) | RuleAction::Value(_) => {
-                //TODO input literals can be provided to the placeholders
+            RuleAction::InputLiteral(lit) => {
+                if let Some(placeholder) = placeholder {
+                    let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
+                    self.placeholders[placeholder] = parsed;
+                }
+            }
+            RuleAction::Value(_) => {
+                //TODO
             }
         }
     }

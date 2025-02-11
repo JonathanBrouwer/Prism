@@ -13,8 +13,8 @@ use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
-use crate::parser::apply_action::ParsedPlaceholder;
 use crate::parser::parsed_list::ParsedList;
+use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
 use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
@@ -304,7 +304,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 );
                 res.map(|res| {
                     if let Some(placeholder) = placeholder {
-                        self.placeholders[placeholder.0] = res.rtrn;
+                        self.placeholders[placeholder] = res.rtrn;
                     }
 
                     PR {
