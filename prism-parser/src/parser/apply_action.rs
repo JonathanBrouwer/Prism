@@ -41,7 +41,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 let mut placeholders = vec![];
                 for _ in *args {
-                    placeholders.push(self.placeholders.push());
+                    placeholders.push(self.placeholders.push(name, &placeholders));
                 }
 
                 let arg_envs = (ns.create_eval_ctx)(
