@@ -1,6 +1,6 @@
 use crate::lang::PrismEnv;
 use crate::lang::ValueOrigin;
-use crate::lang::env::Env;
+use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::{CheckedIndex, CheckedPrismExpr};
@@ -121,7 +121,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn type_check(&mut self, root: CheckedIndex) -> Result<CheckedIndex, AggregatedTypeError> {
-        let ti = self._type_check(root, &Env::default());
+        let ti = self._type_check(root, &DbEnv::default());
 
         let errors = mem::take(&mut self.errors);
         if errors.is_empty() {
@@ -133,7 +133,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: CheckedIndex, env: &Env) -> CheckedIndex {
+    fn _type_check(&mut self, i: CheckedIndex, env: &DbEnv) -> CheckedIndex {
         // We should only type check values from the source code
         assert!(matches!(
             self.checked_origins[*i],

@@ -1,5 +1,5 @@
 use crate::lang::CheckedIndex;
-use crate::lang::env::Env;
+use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 
@@ -7,9 +7,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn is_beta_equal(
         &mut self,
         i1: CheckedIndex,
-        s1: &Env,
+        s1: &DbEnv,
         i2: CheckedIndex,
-        s2: &Env,
+        s2: &DbEnv,
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());

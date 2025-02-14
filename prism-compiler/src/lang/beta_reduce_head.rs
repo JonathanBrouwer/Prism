@@ -1,5 +1,5 @@
 use crate::lang::CheckedIndex;
-use crate::lang::env::Env;
+use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 
@@ -7,12 +7,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CheckedIndex,
-        mut start_env: Env,
-    ) -> (CheckedIndex, Env) {
-        let mut args: Vec<(CheckedIndex, Env)> = Vec::new();
+        mut start_env: DbEnv,
+    ) -> (CheckedIndex, DbEnv) {
+        let mut args: Vec<(CheckedIndex, DbEnv)> = Vec::new();
 
         let mut e: CheckedIndex = start_expr;
-        let mut s: Env = start_env.clone();
+        let mut s: DbEnv = start_env.clone();
 
         loop {
             match self.checked_values[*e] {

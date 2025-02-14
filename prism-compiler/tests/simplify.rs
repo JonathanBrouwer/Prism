@@ -1,6 +1,6 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
-use prism_compiler::lang::env::Env;
+use prism_compiler::lang::env::DbEnv;
 use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::cache::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
@@ -25,7 +25,7 @@ fn check(input_str: &str) {
     let sm = env.simplify(input);
 
     assert!(
-        env.is_beta_equal(input, &Env::new(), sm, &Env::new()),
+        env.is_beta_equal(input, &DbEnv::new(), sm, &DbEnv::new()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
         env.index_to_br_string(input),

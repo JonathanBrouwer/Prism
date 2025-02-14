@@ -1,6 +1,6 @@
 use crate::lang::CheckedIndex;
 use crate::lang::ValueOrigin::FreeSub;
-use crate::lang::env::Env;
+use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
@@ -13,7 +13,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         expr: CheckedIndex,
         expr_type: CheckedIndex,
         expected_type: CheckedIndex,
-        s: &Env,
+        s: &DbEnv,
     ) {
         if !self.expect_beq_internal(
             (expr_type, s, &mut HashMap::new()),
@@ -28,7 +28,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     /// Expect `io` to be equal to `Type`.
-    pub fn expect_beq_type(&mut self, io: CheckedIndex, s: &Env) {
+    pub fn expect_beq_type(&mut self, io: CheckedIndex, s: &DbEnv) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
         match self.checked_values[*i] {
             CheckedPrismExpr::Type => {}
@@ -52,7 +52,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         ft: CheckedIndex,
         at: CheckedIndex,
         rt: CheckedIndex,
-        s: &Env,
+        s: &DbEnv,
     ) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 

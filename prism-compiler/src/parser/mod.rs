@@ -47,12 +47,6 @@ pub fn parse_prism_in_env<'p>(
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct ParsedIndex(pub usize);
 
-impl Display for ParsedIndex {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self.0)
-    }
-}
-
 impl Deref for ParsedIndex {
     type Target = usize;
 

@@ -1,4 +1,4 @@
-use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
@@ -21,8 +21,8 @@ pub mod simplify;
 pub mod type_check;
 
 type QueuedConstraint = (
-    (Env, HashMap<UniqueVariableId, usize>),
-    (CheckedIndex, Env, HashMap<UniqueVariableId, usize>),
+    (DbEnv, HashMap<UniqueVariableId, usize>),
+    (CheckedIndex, DbEnv, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]

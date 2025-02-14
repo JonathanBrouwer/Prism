@@ -1,7 +1,7 @@
 use crate::lang::CheckedIndex;
 use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 use std::collections::HashMap;
@@ -12,8 +12,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         &mut self,
         // io is the UnionIndex that lives in a certain `s`
         // The var_map is a map for each `UniqueVariableId`, its depth in the scope
-        (i1o, s1, var_map1): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2o, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1o, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i2o, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
@@ -97,9 +97,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: CheckedIndex,
-        s1: &Env,
+        s1: &DbEnv,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
-        (i2, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         assert!(matches!(
@@ -122,8 +122,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     #[must_use]
     pub fn expect_beq_free(
         &mut self,
-        (i1, s1, var_map1): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         assert!(matches!(self.checked_values[*i2], CheckedPrismExpr::Free));
 
@@ -315,7 +315,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     #[must_use]
-    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: &Env) -> bool {
+    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: &DbEnv) -> bool {
         let mut eq = true;
 
         // Check queued constraints
