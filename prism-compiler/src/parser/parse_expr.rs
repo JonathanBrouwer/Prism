@@ -1,6 +1,6 @@
-use crate::lang::PrismEnv;
 use crate::lang::env::{DbEnv, EnvEntry};
 use crate::lang::type_check::NamedEnv;
+use crate::lang::{CheckedPrismExpr, PrismEnv};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
@@ -260,19 +260,19 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         &'arn self,
         eval_ctx: Self::EvalCtx,
         placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-        allocs: Allocs<'arn>,
+        _allocs: Allocs<'arn>,
         src: &'grm str,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> Parsed<'arn, 'grm> {
         let (named_env, db_env) = eval_ctx.to_envs(placeholders, src, prism_env);
+        let value = prism_env.parsed_to_checked_with_env(*self, &named_env);
+        let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
-        //TODO convert eval_ctx to env and run
-
-        // let x = eval_ctx.get("test", placeholders, src);
-        // eprintln!("{x:?}");
-
-        // eprintln!("{:?}", eval_ctx);
-        self.to_parsed()
+        if let CheckedPrismExpr::ParserValue(parsed) = prism_env.checked_values[reduced_value.0] {
+            parsed
+        } else {
+            panic!("Tried to reduce expression which was not a parser value")
+        }
     }
 }
 
