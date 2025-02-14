@@ -31,7 +31,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         context: ParserContext,
         penv: &mut Env,
         eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, Option<ParsedPlaceholder>)>,
+        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, ParsedPlaceholder)>,
     ) -> PResult<PR<'arn, 'grm>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
@@ -285,7 +285,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleExpr::NameBind(name, sub) => {
                 let (eval_ctx, placeholder) =
                     if let Some((eval_ctx, placeholder)) = eval_ctxs.get(name) {
-                        (*eval_ctx, *placeholder)
+                        (*eval_ctx, Some(*placeholder))
                     } else {
                         (eval_ctx, None)
                     };
@@ -304,7 +304,13 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 );
                 res.map(|res| {
                     if let Some(placeholder) = placeholder {
-                        self.placeholders.store(placeholder, res.rtrn);
+                        self.placeholders.place_into_empty(
+                            placeholder,
+                            res.rtrn,
+                            self.alloc,
+                            self.input,
+                            penv,
+                        );
                     }
 
                     PR {
@@ -315,7 +321,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             }
             RuleExpr::Action(sub, action) => {
                 let mut eval_ctxs = HashMap::new();
-                self.pre_apply_action(action, penv, None, eval_ctx, &mut eval_ctxs);
+                let root_placeholder = self.placeholders.push_empty();
+                self.pre_apply_action(action, penv, root_placeholder, eval_ctx, &mut eval_ctxs);
 
                 let res = self.parse_expr(
                     sub,

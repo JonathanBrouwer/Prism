@@ -19,9 +19,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         rule: &RuleAction<'arn, 'grm>,
         penv: &mut Env,
 
-        placeholder: Option<ParsedPlaceholder>,
+        placeholder: ParsedPlaceholder,
         eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, Option<ParsedPlaceholder>)>,
+        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, ParsedPlaceholder)>,
     ) {
         match rule {
             RuleAction::Name(n) => {
@@ -33,25 +33,36 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctxs.insert(n, (eval_ctx, placeholder));
                 }
             }
-            RuleAction::Construct(namespace, name, args) => {
+            RuleAction::Construct(namespace, constructor, args) => {
+                // Get placeholders for args
+                let mut placeholders = Vec::with_capacity(args.len());
+                for _arg in args.iter() {
+                    placeholders.push(self.placeholders.push_empty());
+                }
+
+                // Store construct info
                 let ns = self
                     .parsables
                     .get(namespace)
                     .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
+                self.placeholders.place_construct_info(
+                    placeholder,
+                    constructor,
+                    *ns,
+                    placeholders.clone(),
+                );
 
-                let mut placeholders = vec![];
-                for _ in *args {
-                    placeholders.push(self.placeholders.push(name, *ns, &placeholders));
-                }
-
+                // Create envs for args
                 let arg_envs = (ns.create_eval_ctx)(
-                    name,
+                    constructor,
                     eval_ctx,
                     &placeholders,
                     self.alloc,
                     self.input,
                     penv,
                 );
+
+                // Recurse on args
                 for ((arg, env), placeholder) in args
                     .iter()
                     .zip(
@@ -62,14 +73,18 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     )
                     .zip(&placeholders)
                 {
-                    self.pre_apply_action(arg, penv, Some(*placeholder), env, eval_ctxs);
+                    self.pre_apply_action(arg, penv, *placeholder, env, eval_ctxs);
                 }
             }
             RuleAction::InputLiteral(lit) => {
-                if let Some(placeholder) = placeholder {
-                    let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
-                    self.placeholders.store(placeholder, parsed);
-                }
+                let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
+                self.placeholders.place_into_empty(
+                    placeholder,
+                    parsed,
+                    self.alloc,
+                    self.input,
+                    penv,
+                );
             }
             RuleAction::Value(_) => {
                 //TODO
