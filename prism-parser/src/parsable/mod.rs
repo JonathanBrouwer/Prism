@@ -58,7 +58,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     fn eval_to_parsed(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
-        _placeholders: &PlaceholderStore,
+        _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
         _allocs: Allocs<'arn>,
         _src: &'grm str,

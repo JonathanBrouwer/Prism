@@ -304,7 +304,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 );
                 res.map(|res| {
                     if let Some(placeholder) = placeholder {
-                        self.placeholders[placeholder] = res.rtrn;
+                        self.placeholders.store(placeholder, res.rtrn);
                     }
 
                     PR {

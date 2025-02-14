@@ -41,7 +41,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 let mut placeholders = vec![];
                 for _ in *args {
-                    placeholders.push(self.placeholders.push(name, &placeholders));
+                    placeholders.push(self.placeholders.push(name, *ns, &placeholders));
                 }
 
                 let arg_envs = (ns.create_eval_ctx)(
@@ -68,7 +68,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleAction::InputLiteral(lit) => {
                 if let Some(placeholder) = placeholder {
                     let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
-                    self.placeholders[placeholder] = parsed;
+                    self.placeholders.store(placeholder, parsed);
                 }
             }
             RuleAction::Value(_) => {

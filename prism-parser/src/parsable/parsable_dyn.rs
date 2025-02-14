@@ -28,7 +28,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
     pub eval_to_parsed: fn(
         v: Parsed<'arn, 'grm>,
         eval_ctx: Parsed<'arn, 'grm>,
-        placeholders: &PlaceholderStore,
+        placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
         allocs: Allocs<'arn>,
         src: &'grm str,
@@ -95,7 +95,7 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
 fn eval_to_parsed_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     v: Parsed<'arn, 'grm>,
     eval_ctx: Parsed<'arn, 'grm>,
-    placeholders: &PlaceholderStore,
+    placeholders: &PlaceholderStore<'arn, 'grm, Env>,
     // Env
     allocs: Allocs<'arn>,
     src: &'grm str,

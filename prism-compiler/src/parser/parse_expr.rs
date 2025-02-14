@@ -17,7 +17,7 @@ impl<'arn> PrismEvalCtx<'arn> {
     pub fn get<'grm>(
         &self,
         k: &str,
-        placeholders: &PlaceholderStore<'arn, 'grm>,
+        placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
         input: &'grm str,
     ) -> Option<Parsed<'arn, 'grm>> {
         let mut node = self.0?;
@@ -220,7 +220,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     fn eval_to_parsed(
         &'arn self,
         eval_ctx: Self::EvalCtx,
-        placeholders: &PlaceholderStore,
+        placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut PrismEnv<'arn, 'grm>,

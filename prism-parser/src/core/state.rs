@@ -18,7 +18,7 @@ pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     pub recovery_points: HashMap<Pos, Pos>,
 
     pub parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
-    pub placeholders: PlaceholderStore<'arn, 'grm>,
+    pub placeholders: PlaceholderStore<'arn, 'grm, Env>,
 }
 
 impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
