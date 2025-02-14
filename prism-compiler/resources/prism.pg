@@ -4,8 +4,8 @@ rule expr {
     group statement {
         //Expr::GrammarDefine(g, b) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
         Expr::GrammarDefine(b, guid) <- "grammar" "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
-        //Expr::GrammarDefine(Expr::Let(n, Expr::ParserValue(g), b), guid) <- "grammar" n:identifier "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#this;
-        //b <- "adapt" e:#next ";" ee:#eval(Expr, e) b:#adapt(ee, expr);
+        Expr::GrammarDefine(Expr::Let(n, Expr::ParserValue(g), b), guid) <- "grammar" n:identifier "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#this;
+        b <- "adapt" e:#next ";" ee:#eval(Expr, e) b:#adapt(ee, expr);
 
         Expr::Let(n, v, b)
             <- "let" n:identifier "=" v:#next ";" b:#this;

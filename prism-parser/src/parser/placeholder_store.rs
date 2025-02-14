@@ -2,13 +2,13 @@ use crate::parsable::ParseResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
-use std::ops::{Index, IndexMut};
+use std::ops::Index;
 
 #[derive(Copy, Clone)]
 pub struct ParsedPlaceholder(usize);
 
 struct StoreEntry<'arn, 'grm, Env> {
-    value: Parsed<'arn, 'grm>,
+    value: Option<Parsed<'arn, 'grm>>,
     children_left: usize,
     parent: Option<ParsedPlaceholder>,
     constructor: &'grm str,
@@ -28,7 +28,7 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
     ) -> ParsedPlaceholder {
         let len = self.store.len();
         self.store.push(StoreEntry {
-            value: Void.to_parsed(),
+            value: None,
             children_left: children.len(),
             parent: None,
             constructor,
@@ -41,16 +41,14 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
         v
     }
 
-    pub fn store(&mut self, index: ParsedPlaceholder, value: Parsed<'arn, 'grm>) {
-        self.store[index.0].value = value
+    pub fn get(&self, index: ParsedPlaceholder) -> Option<Parsed<'arn, 'grm>> {
+        self.store[index.0].value
     }
-}
 
-impl<'arn, 'grm, Env> Index<ParsedPlaceholder> for PlaceholderStore<'arn, 'grm, Env> {
-    type Output = Parsed<'arn, 'grm>;
-
-    fn index(&self, index: ParsedPlaceholder) -> &Self::Output {
-        &self.store[index.0].value
+    pub fn store(&mut self, index: ParsedPlaceholder, value: Parsed<'arn, 'grm>) {
+        let value_ref = &mut self.store[index.0].value;
+        assert!(value_ref.is_none());
+        *value_ref = Some(value);
     }
 }
 

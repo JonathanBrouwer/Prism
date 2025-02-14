@@ -22,11 +22,10 @@ impl<'arn> PrismEvalCtx<'arn> {
     ) -> Option<Parsed<'arn, 'grm>> {
         let mut node = self.0?;
         loop {
-            let key = placeholders[node.key];
-            if key.try_into_value::<Void>().is_some() {
+            let Some(key) = placeholders.get(node.key) else {
                 node = node.next?;
                 continue;
-            }
+            };
             let key = key.into_value::<Input>().as_str(input);
             if key != k {
                 node = node.next?;
@@ -37,11 +36,10 @@ impl<'arn> PrismEvalCtx<'arn> {
                 node = node.next?;
                 continue;
             };
-            let value = placeholders[value];
-            if value.try_into_value::<Void>().is_some() {
+            let Some(value) = placeholders.get(value) else {
                 node = node.next?;
                 continue;
-            }
+            };
             return Some(value);
         }
     }
