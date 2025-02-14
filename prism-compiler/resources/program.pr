@@ -1,6 +1,6 @@
 grammar test {
-    rule expr {
-        group base {
+    adapt rule expr {
+        adapt group base {
             Type <- "%";
         }
     }
