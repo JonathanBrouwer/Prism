@@ -1,13 +1,17 @@
+let Bool = (T: Type) -> T -> T -> T;
+let true = (T: Type) => (v1: T) => (v2: T) => v1; // true returns v1
+let false = (T: Type) => (v1: T) => (v2: T) => v2; // false returns v2
+
+// and : Bool -> Bool -> Bool
+let and = (b1: Bool) => (b2: Bool) => b1 Bool b2 false;
+
 adapt grammar {
     adapt rule expr {
-        adapt group statement {
-            let x = Type; e <- "tel" x:identifier "in" e:#this;
+        group and {
+            and e1 e2 <- e1:#this "&&" e2:#next;
         }
     }
-    adapt rule keyword {
-        "tel";
-        "in";
-    }
+
 };
 
-tel y in y
+true && true

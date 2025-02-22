@@ -75,7 +75,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     ) -> Self {
         let mut names = jump_labels[&guid].clone();
 
-        for (name, value) in vars {
+        for (name, value) in vars.into_iter().collect::<Vec<_>>().into_iter().rev() {
             names.insert_mut(
                 name,
                 NamesEntry::FromParsed(reduce_expr(value, env), self.names.clone()),
