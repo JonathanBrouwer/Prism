@@ -8,6 +8,7 @@ use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
@@ -337,6 +338,10 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     &mut eval_ctxs,
                 );
                 res.map_with_span(|res, span| {
+                    if let RuleAction::Value(_) = &action {
+                        println!("A {:?}", vars);
+                        println!("B {:?}", res.free);
+                    }
                     PR::with_rtrn(self.apply_action(
                         action,
                         span,
@@ -392,18 +397,16 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
             RuleExpr::AtAdapt(ga, body) => {
-                // First, get the grammar actionresult
+                // First, get the grammar
                 let grammar = if let Some(ar) = vars.get(ga) {
-                    *ar
+                    ar.into_value::<GrammarFile>()
                 } else {
                     panic!("Name '{ga}' not in context")
                 };
 
-                // Parse it into a grammar
-                let grammar = grammar.into_value::<GrammarFile>();
-
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states
+                //TODO this should not use `vars`, but instead the global scope in which this rule is defined
                 let (rules, _) = match rules.adapt_with(grammar, vars, Some(pos), self.alloc) {
                     Ok(rules) => rules,
                     Err(_) => {
