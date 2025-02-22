@@ -8,12 +8,10 @@ use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
-use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use prism_parser::parser::var_map::VarMap;
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::LazyLock;
 

@@ -102,7 +102,7 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
     }
 }
 
-impl<'arn, 'grm, Env> Default for PlaceholderStore<'arn, 'grm, Env> {
+impl<Env> Default for PlaceholderStore<'_, '_, Env> {
     fn default() -> Self {
         Self { store: Vec::new() }
     }

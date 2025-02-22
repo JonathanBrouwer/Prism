@@ -1,6 +1,5 @@
 use std::fmt::Write;
 
-use crate::lang::CheckedIndex;
 use crate::lang::PrismEnv;
 use crate::lang::display::PrecedenceLevel;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};

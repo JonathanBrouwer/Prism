@@ -5,6 +5,7 @@ use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
+#[allow(clippy::type_complexity)]
 pub struct ParsableDyn<'arn, 'grm, Env> {
     pub from_construct: fn(
         span: Span,
@@ -36,17 +37,13 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
     ) -> Parsed<'arn, 'grm>,
 }
 
-impl<'arn, 'grm, Env> Clone for ParsableDyn<'arn, 'grm, Env> {
+impl<Env> Clone for ParsableDyn<'_, '_, Env> {
     fn clone(&self) -> Self {
-        Self {
-            from_construct: self.from_construct,
-            create_eval_ctx: self.create_eval_ctx,
-            eval_to_parsed: self.eval_to_parsed,
-        }
+        *self
     }
 }
 
-impl<'arn, 'grm, Env> Copy for ParsableDyn<'arn, 'grm, Env> {}
+impl<Env> Copy for ParsableDyn<'_, '_, Env> {}
 
 impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
     pub fn new<P: Parsable<'arn, 'grm, Env>>() -> Self {

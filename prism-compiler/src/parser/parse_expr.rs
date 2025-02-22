@@ -207,8 +207,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         parent_ctx: Self::EvalCtx,
         args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,
-        src: &'grm str,
-        env: &mut PrismEnv<'arn, 'grm>,
+        _src: &'grm str,
+        _env: &mut PrismEnv<'arn, 'grm>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         match constructor {
             "Type" => {
