@@ -1,7 +1,9 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
+use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
 use std::any::type_name;
+use std::iter;
 
 pub mod action_result;
 pub mod env_capture;
@@ -19,13 +21,18 @@ pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
     }
 }
 
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for () {}
+
 pub trait Parsable<'arn, 'grm: 'arn, Env>:
     ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
 {
+    type EvalCtx: Default + Copy + ParseResult<'arn, 'grm>;
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
+        // Env
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
@@ -34,6 +41,30 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
             "Cannot parse a {} from a {constructor} constructor",
             type_name::<Self>()
         )
+    }
+
+    fn create_eval_ctx(
+        _constructor: &'grm str,
+        _parent_ctx: Self::EvalCtx,
+        _arg_placeholders: &[ParsedPlaceholder],
+        // Env
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut Env,
+    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
+        iter::empty()
+    }
+
+    fn eval_to_parsed(
+        &'arn self,
+        _eval_ctx: Self::EvalCtx,
+        _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
+        // Env
+        _allocs: Allocs<'arn>,
+        _src: &'grm str,
+        _env: &mut Env,
+    ) -> Parsed<'arn, 'grm> {
+        self.to_parsed()
     }
 }
 

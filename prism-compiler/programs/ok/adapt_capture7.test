@@ -1,20 +1,20 @@
 ### Input
 let a = Type;
-grammar {
+adapt grammar {
     adapt rule expr {
         adapt group base {
             a <- "$";
         }
     }
-}
+};
 let b = Type -> Type;
-grammar {
+adapt grammar {
     adapt rule expr {
         adapt group base {
             $ <- "%";
         }
     }
-}
+};
 let c = Type -> Type;
 %
 

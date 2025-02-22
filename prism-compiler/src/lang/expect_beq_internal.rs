@@ -1,7 +1,7 @@
 use crate::lang::CheckedIndex;
 use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 use std::collections::HashMap;
@@ -12,8 +12,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         &mut self,
         // io is the UnionIndex that lives in a certain `s`
         // The var_map is a map for each `UniqueVariableId`, its depth in the scope
-        (i1o, s1, var_map1): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2o, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1o, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i2o, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
@@ -25,6 +25,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
+            // ParsedType is always equal to ParsedType
+            (CheckedPrismExpr::GrammarType, CheckedPrismExpr::GrammarType) => true,
             // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
             // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
             (CheckedPrismExpr::DeBruijnIndex(index1), CheckedPrismExpr::DeBruijnIndex(index2)) => {
@@ -95,9 +97,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: CheckedIndex,
-        s1: &Env,
+        s1: &DbEnv,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
-        (i2, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         assert!(matches!(
@@ -120,8 +122,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     #[must_use]
     pub fn expect_beq_free(
         &mut self,
-        (i1, s1, var_map1): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
-        (i2, s2, var_map2): (CheckedIndex, &Env, &mut HashMap<UniqueVariableId, usize>),
+        (i1, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
         assert!(matches!(self.checked_values[*i2], CheckedPrismExpr::Free));
 
@@ -136,8 +138,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.checked_values[*i2] = CheckedPrismExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            CheckedPrismExpr::ParserValueType => {
-                self.checked_values[*i2] = CheckedPrismExpr::ParserValueType;
+            CheckedPrismExpr::GrammarType => {
+                self.checked_values[*i2] = CheckedPrismExpr::GrammarType;
                 self.handle_constraints(i2, s2)
             }
             CheckedPrismExpr::Let(v1, b1) => {
@@ -306,14 +308,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
-            CheckedPrismExpr::ParserValue(..) => {
+            CheckedPrismExpr::GrammarValue(..) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         }
     }
 
     #[must_use]
-    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: &Env) -> bool {
+    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: &DbEnv) -> bool {
         let mut eq = true;
 
         // Check queued constraints

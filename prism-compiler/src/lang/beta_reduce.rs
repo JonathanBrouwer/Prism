@@ -1,17 +1,17 @@
 use crate::lang::CheckedIndex;
-use crate::lang::env::{Env, EnvEntry, UniqueVariableId};
+use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce(&mut self, i: CheckedIndex) -> CheckedIndex {
-        self.beta_reduce_inner(i, &Env::new(), &mut HashMap::new())
+        self.beta_reduce_inner(i, &DbEnv::new(), &mut HashMap::new())
     }
 
     fn beta_reduce_inner(
         &mut self,
         i: CheckedIndex,
-        s: &Env,
+        s: &DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CheckedIndex {
         let (i, s) = self.beta_reduce_head(i, s.clone());
@@ -19,8 +19,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let e_new = match self.checked_values[*i] {
             // Values
             CheckedPrismExpr::Type
-            | CheckedPrismExpr::ParserValue(..)
-            | CheckedPrismExpr::ParserValueType => self.checked_values[*i],
+            | CheckedPrismExpr::GrammarValue(..)
+            | CheckedPrismExpr::GrammarType => self.checked_values[*i],
 
             CheckedPrismExpr::Let(_, _) => unreachable!(),
             CheckedPrismExpr::DeBruijnIndex(v) => {

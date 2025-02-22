@@ -16,7 +16,7 @@ pub enum EnvEntry {
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(CheckedIndex, Env),
+    RSubst(CheckedIndex, DbEnv),
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -28,7 +28,7 @@ impl<T> Default for GenericEnv<T> {
     }
 }
 
-pub type Env = GenericEnv<EnvEntry>;
+pub type DbEnv = GenericEnv<EnvEntry>;
 
 impl<T> GenericEnv<T> {
     pub fn new() -> Self {

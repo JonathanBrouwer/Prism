@@ -1,36 +1,44 @@
 use crate::lang::error::TypeError;
-use crate::lang::type_check::{NamedEnv, NamesEntry};
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
+use crate::parser::named_env::{NamedEnv, NamesEntry};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::input::Input;
+use prism_parser::parsable::guid::Guid;
+use rpds::HashTrieMap;
+use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CheckedIndex {
-        self._parsed_to_checked(i, &NamedEnv::default())
+        self.parsed_to_checked_with_env(i, &NamedEnv::default(), &mut HashMap::new())
     }
 
-    fn _parsed_to_checked(&mut self, i: ParsedIndex, env: &NamedEnv<'arn, 'grm>) -> CheckedIndex {
+    pub fn parsed_to_checked_with_env(
+        &mut self,
+        i: ParsedIndex,
+        env: &NamedEnv<'arn, 'grm>,
+        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
+    ) -> CheckedIndex {
         let e = match self.parsed_values[*i] {
             ParsedPrismExpr::Free => CheckedPrismExpr::Free,
             ParsedPrismExpr::Type => CheckedPrismExpr::Type,
             ParsedPrismExpr::Let(n, v, b) => CheckedPrismExpr::Let(
-                self._parsed_to_checked(v, env),
-                self._parsed_to_checked(b, &env.insert_name(n, self.input)),
+                self.parsed_to_checked_with_env(v, env, jump_labels),
+                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
             ),
             ParsedPrismExpr::FnType(n, a, b) => CheckedPrismExpr::FnType(
-                self._parsed_to_checked(a, env),
-                self._parsed_to_checked(b, &env.insert_name(n, self.input)),
+                self.parsed_to_checked_with_env(a, env, jump_labels),
+                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
             ),
             ParsedPrismExpr::FnConstruct(n, b) => CheckedPrismExpr::FnConstruct(
-                self._parsed_to_checked(b, &env.insert_name(n, self.input)),
+                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
             ),
             ParsedPrismExpr::FnDestruct(f, a) => CheckedPrismExpr::FnDestruct(
-                self._parsed_to_checked(f, env),
-                self._parsed_to_checked(a, env),
+                self.parsed_to_checked_with_env(f, env, jump_labels),
+                self.parsed_to_checked_with_env(a, env, jump_labels),
             ),
             ParsedPrismExpr::TypeAssert(v, t) => CheckedPrismExpr::TypeAssert(
-                self._parsed_to_checked(v, env),
-                self._parsed_to_checked(t, env),
+                self.parsed_to_checked_with_env(v, env, jump_labels),
+                self.parsed_to_checked_with_env(t, env, jump_labels),
             ),
             ParsedPrismExpr::Name(name) => {
                 assert_ne!(name, "_");
@@ -41,8 +49,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
-                            return self
-                                ._parsed_to_checked(expr, &env.shift_back(old_names, self.input));
+                            return self.parsed_to_checked_with_env(
+                                expr,
+                                &env.shift_back(old_names, self.input),
+                                jump_labels,
+                            );
                         } else if let Some(_name) = parsed.try_into_value::<Input>() {
                             todo!()
                             // self.values[*i] = PrismExpr::Name(name.as_str(self.input));
@@ -61,15 +72,18 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
-            ParsedPrismExpr::ShiftLabel(b, guid) => {
-                return self._parsed_to_checked(b, &env.insert_shift_label(guid));
-            }
+            // ParsedPrismExpr::ShiftLabel(b, guid) => {
+            //     return self.parsed_to_checked_with_env(b, &env.insert_shift_label(guid));
+            // }
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
-                let env = env.shift_to_label(guid, captured_env, self);
-                return self._parsed_to_checked(b, &env);
+                let env = env.shift_to_label(guid, captured_env, self, jump_labels);
+                return self.parsed_to_checked_with_env(b, &env, jump_labels);
             }
-            ParsedPrismExpr::ParserValue(v) => CheckedPrismExpr::ParserValue(v),
-            ParsedPrismExpr::ParserValueType => CheckedPrismExpr::ParserValueType,
+            ParsedPrismExpr::GrammarValue(v, guid) => {
+                env.insert_shift_label(guid, jump_labels);
+                CheckedPrismExpr::GrammarValue(v)
+            }
+            ParsedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }

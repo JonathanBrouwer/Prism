@@ -23,6 +23,8 @@ pub enum RuleAction<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAction<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

@@ -9,7 +9,7 @@ let and = (b1: Bool) => (b2: Bool) => b1 Bool b2 false;
 // or : Bool -> Bool -> Bool
 let or = (b1: Bool) => (b2: Bool) => b1 Bool true b2;
 
-grammar {
+adapt grammar {
     adapt rule expr {
         group or {
             or e1 e2 <- e1:#this "||" e2:#next;
@@ -26,7 +26,7 @@ grammar {
         "if";
     }
 
-}
+};
 
 let x = false;
 if true && x || !false {

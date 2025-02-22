@@ -60,6 +60,7 @@ rule prule_expr(action) {
         r <- "<" r:prule_expr(action) ">";
         RuleExpr::Guid() <- "#guid";
         RuleExpr::AtAdapt(a, n) <- "#adapt" "(" a:identifier "," n:prule_expr(action) ")";
+        RuleExpr::Eval(ns, n) <- "#eval" "(" ns:identifier "," n:identifier ")";
         RuleExpr::RunVar(n, as) <- n:prule_runnable #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")";
         RuleExpr::RunVar(n, []) <- n:prule_runnable;
         RuleExpr::Repeat(e, "0", OptionU64::None(), d) <- "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")";

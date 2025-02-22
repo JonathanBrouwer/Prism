@@ -8,15 +8,15 @@ use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
-use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parse_grammar;
 use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use prism_parser::parser::var_map::VarMap;
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::LazyLock;
 
+mod display;
+pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
 
@@ -47,12 +47,6 @@ pub fn parse_prism_in_env<'p>(
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct ParsedIndex(pub usize);
 
-impl Display for ParsedIndex {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}]", self.0)
-    }
-}
-
 impl Deref for ParsedIndex {
     type Target = usize;
 
@@ -61,7 +55,7 @@ impl Deref for ParsedIndex {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
@@ -74,10 +68,9 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     Name(&'grm str),
-    ShiftLabel(ParsedIndex, Guid),
     ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>),
-    ParserValue(Parsed<'arn, 'grm>),
-    ParserValueType,
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
+    GrammarType,
 }
 
 pub struct PrismParseEnv<'arn, 'grm: 'arn> {

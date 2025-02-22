@@ -1,19 +1,19 @@
 ### Input
-grammar {
+adapt grammar {
     adapt rule expr {
         adapt group base {
             x <- "$" x:#this;
         }
     }
-}
+};
 let w = Type -> Type;
-grammar {
+adapt grammar {
     adapt rule expr {
         adapt group base {
             $y <- "%" y:#this;
         }
     }
-}
+};
 let z = Type;
 %z
 

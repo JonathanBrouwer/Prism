@@ -15,3 +15,6 @@ fn test_ok([test]: [&str; 1]) {
     let _input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
 }
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test_ok }
+
+#[test]
+fn placeholder() {}

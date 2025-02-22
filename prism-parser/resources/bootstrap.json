@@ -1802,6 +1802,65 @@
                   {
                     "Sequence": [
                       {
+                        "Literal": "#eval"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "ns",
+                          {
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
+                          "n",
+                          {
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "RuleExpr",
+                      "Eval",
+                      [
+                        {
+                          "Name": "ns"
+                        },
+                        {
+                          "Name": "n"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
                         "NameBind": [
                           "n",
                           {

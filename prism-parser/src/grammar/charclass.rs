@@ -22,6 +22,8 @@ impl CharClass<'_> {
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClass<'arn> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
@@ -52,6 +54,8 @@ pub struct CharClassRange(char, char);
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClassRange {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClassRange {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

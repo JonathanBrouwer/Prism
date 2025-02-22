@@ -1,13 +1,15 @@
 ### Input
-adapt grammar {
+let test = grammar {
     adapt rule expr {
         adapt group base {
-            x <- "%" x:#this;
+            Type <- "%";
         }
     }
 };
-let y = Type;
-%y
+let z = Type -> Type;
+adapt test;
+let w = Type -> Type;
+%
 
 ### Eval
 Type

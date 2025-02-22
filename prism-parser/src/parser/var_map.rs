@@ -43,7 +43,7 @@ impl<'arn, 'grm> Iterator for VarMapIterator<'arn, 'grm> {
 }
 
 impl<'arn, 'grm> VarMap<'arn, 'grm> {
-    pub fn get<'a>(&'a self, k: &str) -> Option<&'a Parsed<'arn, 'grm>> {
+    pub fn get(&self, k: &str) -> Option<&'arn Parsed<'arn, 'grm>> {
         let mut node = self.0?;
         loop {
             if node.key == k {

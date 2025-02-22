@@ -1,5 +1,5 @@
 ### Input
-grammar {
+adapt grammar {
     adapt rule expr {
         adapt group statement {
             let x = Type; e <- "tel" x:identifier "in" e:#this;
@@ -9,7 +9,7 @@ grammar {
         "tel";
         "in";
     }
-}
+};
 
 tel y in y
 

@@ -15,6 +15,8 @@ pub struct GrammarFile<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for GrammarFile<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
+    type EvalCtx = ();
+
     fn from_construct(
         _span: Span,
         constructor: &'grm str,

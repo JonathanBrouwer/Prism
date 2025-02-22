@@ -1,10 +1,10 @@
-use crate::lang::env::{Env, UniqueVariableId};
+use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
-use prism_parser::parsable::parsed::Parsed;
+use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -21,8 +21,8 @@ pub mod simplify;
 pub mod type_check;
 
 type QueuedConstraint = (
-    (Env, HashMap<UniqueVariableId, usize>),
-    (CheckedIndex, Env, HashMap<UniqueVariableId, usize>),
+    (DbEnv, HashMap<UniqueVariableId, usize>),
+    (CheckedIndex, DbEnv, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -54,7 +54,7 @@ impl Deref for CheckedIndex {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
@@ -68,8 +68,8 @@ pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     TypeAssert(CheckedIndex, CheckedIndex),
 
     // Temporary expressions after parsing
-    ParserValue(Parsed<'arn, 'grm>),
-    ParserValueType,
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarType,
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
