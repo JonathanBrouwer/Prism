@@ -5,10 +5,10 @@ rule expr {
         //Expr::GrammarDefine(g, b) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
 
         //TODO these rules must go
-        Expr::GrammarDefine(b, guid) <- "adapt_grammar" "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
-        Expr::GrammarDefine(Expr::Let(n, Expr::ParserValue(g), b), guid) <- "let_adapt" n:identifier "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#this;
+        //Expr::GrammarDefine(b, guid) <- "adapt_grammar" "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#adapt(g, expr);
+        //Expr::GrammarDefine(Expr::Let(n, Expr::ParserValue(g), b), guid) <- "let_adapt" n:identifier "{" guid:#guid g:grammar(wrapped_expr(guid)) "}" b:#this;
 
-
+        Expr::GrammarValue(g, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}";
         b <- "adapt" e:#this ";" ee:#eval(Expr, e) b:#adapt(ee, expr);
 
         Expr::Let(n, v, b)
@@ -36,7 +36,7 @@ rule expr {
     group base {
         t <- "(" t:expr ")";
         Expr::Type() <- "Type";
-        Expr::ParsedType() <- "Parsed";
+        Expr::GrammarType() <- "Grammar";
         Expr::Name(n) <- n:identifier;
     }
 }
@@ -55,7 +55,7 @@ rule layout {
 
 rule keyword {
     "Type";
-    "Parsed";
+    "Grammar";
     "grammar";
 }
 

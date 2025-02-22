@@ -17,7 +17,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
         match (self.checked_values[*i1], self.checked_values[*i2]) {
             (CheckedPrismExpr::Type, CheckedPrismExpr::Type) => {}
-            (CheckedPrismExpr::ParsedType, CheckedPrismExpr::ParsedType) => {}
+            (CheckedPrismExpr::GrammarType, CheckedPrismExpr::GrammarType) => {}
             (CheckedPrismExpr::DeBruijnIndex(i1), CheckedPrismExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,

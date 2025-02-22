@@ -4,6 +4,7 @@ use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
+use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsed::Parsed;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
@@ -54,7 +55,7 @@ impl Deref for CheckedIndex {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
@@ -68,8 +69,8 @@ pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     TypeAssert(CheckedIndex, CheckedIndex),
 
     // Temporary expressions after parsing
-    ParserValue(Parsed<'arn, 'grm>),
-    ParsedType,
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarType,
 }
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {

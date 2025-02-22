@@ -1,6 +1,6 @@
 use crate::lang::error::TypeError;
-use crate::lang::type_check::{NamedEnv, NamesEntry};
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
+use crate::parser::named_env::{NamedEnv, NamesEntry};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::input::Input;
 
@@ -67,15 +67,15 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
-            ParsedPrismExpr::ShiftLabel(b, guid) => {
-                return self.parsed_to_checked_with_env(b, &env.insert_shift_label(guid));
-            }
+            // ParsedPrismExpr::ShiftLabel(b, guid) => {
+            //     return self.parsed_to_checked_with_env(b, &env.insert_shift_label(guid));
+            // }
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
                 let env = env.shift_to_label(guid, captured_env, self);
                 return self.parsed_to_checked_with_env(b, &env);
             }
-            ParsedPrismExpr::ParserValue(v) => CheckedPrismExpr::ParserValue(v),
-            ParsedPrismExpr::ParsedType => CheckedPrismExpr::ParsedType,
+            ParsedPrismExpr::GrammarValue(v, guid) => CheckedPrismExpr::GrammarValue(v),
+            ParsedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }

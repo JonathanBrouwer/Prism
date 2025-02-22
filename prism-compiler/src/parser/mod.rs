@@ -17,6 +17,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::LazyLock;
 
+pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
 
@@ -55,7 +56,7 @@ impl Deref for ParsedIndex {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     // Real expressions
     Free,
@@ -68,10 +69,9 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     Name(&'grm str),
-    ShiftLabel(ParsedIndex, Guid),
     ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>),
-    ParserValue(Parsed<'arn, 'grm>),
-    ParsedType,
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
+    GrammarType,
 }
 
 pub struct PrismParseEnv<'arn, 'grm: 'arn> {

@@ -1,6 +1,6 @@
 use crate::lang::env::{DbEnv, EnvEntry};
-use crate::lang::type_check::NamedEnv;
 use crate::lang::{CheckedPrismExpr, PrismEnv};
+use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
@@ -8,7 +8,6 @@ use prism_parser::core::span::Span;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parsable::void::Void;
 use prism_parser::parsable::{Parsable, ParseResult};
 use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
@@ -177,20 +176,23 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 let typ = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
                 ParsedPrismExpr::TypeAssert(e, typ)
             }
-            "GrammarDefine" => {
+            // "GrammarDefine" => {
+            //     assert_eq!(args.len(), 2);
+            //     let b = *reduce_expr(args[0], prism_env).into_value::<ParsedIndex>();
+            //     let g = *reduce_expr(args[1], prism_env).into_value::<Guid>();
+            //
+            //     ParsedPrismExpr::ShiftLabel(b, g)
+            // }
+            "GrammarValue" => {
                 assert_eq!(args.len(), 2);
-                let b = *reduce_expr(args[0], prism_env).into_value::<ParsedIndex>();
-                let g = *reduce_expr(args[1], prism_env).into_value::<Guid>();
+                let grammar = args[0].into_value();
+                let guid: Guid = *args[1].into_value();
 
-                ParsedPrismExpr::ShiftLabel(b, g)
+                ParsedPrismExpr::GrammarValue(grammar, guid)
             }
-            "ParserValue" => {
-                assert_eq!(args.len(), 1);
-                ParsedPrismExpr::ParserValue(args[0])
-            }
-            "ParsedType" => {
+            "GrammarType" => {
                 assert_eq!(args.len(), 0);
-                ParsedPrismExpr::ParsedType
+                ParsedPrismExpr::GrammarType
             }
             _ => unreachable!(),
         };
@@ -239,15 +241,15 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 assert_eq!(args.len(), 2);
                 vec![Some(parent_ctx), Some(parent_ctx)]
             }
-            "GrammarDefine" => {
+            // "GrammarDefine" => {
+            //     assert_eq!(args.len(), 2);
+            //     vec![None, Some(parent_ctx)]
+            // }
+            "GrammarValue" => {
                 assert_eq!(args.len(), 2);
-                vec![None, Some(parent_ctx)]
+                vec![None, None]
             }
-            "ParserValue" => {
-                assert_eq!(args.len(), 1);
-                vec![None]
-            }
-            "ParsedType" => {
+            "GrammarType" => {
                 assert_eq!(args.len(), 0);
                 vec![]
             }
@@ -268,8 +270,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env);
         let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
-        if let CheckedPrismExpr::ParserValue(parsed) = prism_env.checked_values[reduced_value.0] {
-            parsed
+        if let CheckedPrismExpr::GrammarValue(parsed) = prism_env.checked_values[reduced_value.0] {
+            parsed.to_parsed()
         } else {
             panic!("Tried to reduce expression which was not a parser value")
         }

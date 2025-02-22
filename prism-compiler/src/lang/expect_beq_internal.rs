@@ -26,7 +26,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 true
             }
             // ParsedType is always equal to ParsedType
-            (CheckedPrismExpr::ParsedType, CheckedPrismExpr::ParsedType) => true,
+            (CheckedPrismExpr::GrammarType, CheckedPrismExpr::GrammarType) => true,
             // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
             // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
             (CheckedPrismExpr::DeBruijnIndex(index1), CheckedPrismExpr::DeBruijnIndex(index2)) => {
@@ -138,8 +138,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.checked_values[*i2] = CheckedPrismExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            CheckedPrismExpr::ParsedType => {
-                self.checked_values[*i2] = CheckedPrismExpr::ParsedType;
+            CheckedPrismExpr::GrammarType => {
+                self.checked_values[*i2] = CheckedPrismExpr::GrammarType;
                 self.handle_constraints(i2, s2)
             }
             CheckedPrismExpr::Let(v1, b1) => {
@@ -308,7 +308,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
-            CheckedPrismExpr::ParserValue(..) => {
+            CheckedPrismExpr::GrammarValue(..) => {
                 unreachable!("Should not occur in typechecked terms")
             }
         }

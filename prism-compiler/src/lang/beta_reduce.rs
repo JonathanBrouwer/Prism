@@ -19,8 +19,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let e_new = match self.checked_values[*i] {
             // Values
             CheckedPrismExpr::Type
-            | CheckedPrismExpr::ParserValue(..)
-            | CheckedPrismExpr::ParsedType => self.checked_values[*i],
+            | CheckedPrismExpr::GrammarValue(..)
+            | CheckedPrismExpr::GrammarType => self.checked_values[*i],
 
             CheckedPrismExpr::Let(_, _) => unreachable!(),
             CheckedPrismExpr::DeBruijnIndex(v) => {
