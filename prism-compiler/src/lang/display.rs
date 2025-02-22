@@ -81,10 +81,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
             CheckedPrismExpr::GrammarValue(_) => {
-                write!(w, "[PARSER VALUE]")?;
+                write!(w, "[GRAMMAR]")?;
             }
             CheckedPrismExpr::GrammarType => {
-                write!(w, "Parsed")?;
+                write!(w, "Grammar")?;
             }
         }
 

@@ -33,6 +33,11 @@ fn main() {
 
     // Parse
     let idx = parse_prism_in_env(&program, &mut env).unwrap_or_eprint();
+    println!(
+        "> Parsed Program\n====================\n{}\n\n",
+        env.parse_index_to_string(idx),
+    );
+
     let idx = env.parsed_to_checked(idx);
     println!(
         "> Program\n====================\n{}\n\n",

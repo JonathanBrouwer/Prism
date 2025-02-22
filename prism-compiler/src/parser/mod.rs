@@ -17,6 +17,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::LazyLock;
 
+mod display;
 pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
