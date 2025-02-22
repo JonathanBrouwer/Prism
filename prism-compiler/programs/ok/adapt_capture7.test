@@ -1,6 +1,6 @@
 ### Input
 let a = Type;
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             a <- "$";
@@ -8,7 +8,7 @@ grammar {
     }
 }
 let b = Type -> Type;
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             $ <- "%";

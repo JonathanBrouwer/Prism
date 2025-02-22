@@ -1,5 +1,5 @@
 ### Input
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group statement {
             let n = Type; n <- "tel" n:identifier;

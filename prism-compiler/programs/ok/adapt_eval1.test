@@ -1,19 +1,18 @@
 ### Input
-adapt_grammar {
+let_adapt test {
     adapt rule expr {
         adapt group base {
-            x <- "%" x:#this;
+            Type <- "%";
         }
     }
 }
-let y = Type;
 let z = Type -> Type;
-let y2 = %y;
-let w = Type;
-%z
+adapt test;
+let w = Type -> Type;
+%
 
 ### Eval
-Type -> Type
+Type
 
 ### Type
 Type

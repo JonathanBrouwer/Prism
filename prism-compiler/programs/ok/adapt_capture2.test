@@ -1,6 +1,6 @@
 ### Input
 let x = Type;
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             x <- "%";

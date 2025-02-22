@@ -1,5 +1,5 @@
 ### Input
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             x <- "$" x:#this;
@@ -7,7 +7,7 @@ grammar {
     }
 }
 let z = Type -> Type;
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             $z <- "%" x:#this;

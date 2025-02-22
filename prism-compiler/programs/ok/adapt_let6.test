@@ -1,6 +1,6 @@
 ### Input
 let y = Type;
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group statement {
             let y = Type -> Type; e <- "tel" e:#this;

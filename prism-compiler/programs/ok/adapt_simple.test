@@ -1,5 +1,5 @@
 ### Input
-grammar {
+adapt_grammar {
     adapt rule expr {
         adapt group base {
             Type <- "%";
