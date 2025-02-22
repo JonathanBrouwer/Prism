@@ -1,10 +1,7 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
-use crate::parsable::ParseResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::void::Void;
-use std::ops::Index;
 
 #[derive(Copy, Clone)]
 pub struct ParsedPlaceholder(usize);

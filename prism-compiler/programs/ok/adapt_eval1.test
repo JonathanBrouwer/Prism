@@ -1,11 +1,11 @@
 ### Input
-let_adapt test {
+let test = grammar {
     adapt rule expr {
         adapt group base {
             Type <- "%";
         }
     }
-}
+};
 let z = Type -> Type;
 adapt test;
 let w = Type -> Type;

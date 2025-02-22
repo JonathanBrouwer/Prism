@@ -3,7 +3,7 @@ let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> 
 let nil = (T : Type) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => nil;
 let cons = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => cons head (tail Out nil cons);
 
-adapt_grammar {
+adapt grammar {
     adapt rule expr {
         adapt group base {
             l <- "list" "!" "[" l:list "]";
@@ -19,7 +19,7 @@ adapt_grammar {
         (cons _ e (nil _)) <- e:expr;
         (nil _) <- "";
     }
-}
+};
 
 list![Type, List Type, Type -> Type]
 

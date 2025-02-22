@@ -10,6 +10,7 @@ use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
 use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
+use std::collections::HashMap;
 
 #[derive(Default, Copy, Clone)]
 pub struct PrismEvalCtx<'arn>(Option<&'arn PrismEvalCtxNode<'arn>>);
@@ -89,7 +90,8 @@ impl<'arn> PrismEvalCtx<'arn> {
                 continue;
             };
             let value = value.into_value::<ParsedIndex>();
-            let value = prism_env.parsed_to_checked_with_env(*value, &named_env);
+            let value =
+                prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
 
             named_env = named_env.insert_name(key, input);
             db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
@@ -267,7 +269,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> Parsed<'arn, 'grm> {
         let (named_env, db_env) = eval_ctx.to_envs(placeholders, src, prism_env);
-        let value = prism_env.parsed_to_checked_with_env(*self, &named_env);
+        let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
         let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
         if let CheckedPrismExpr::GrammarValue(parsed) = prism_env.checked_values[reduced_value.0] {

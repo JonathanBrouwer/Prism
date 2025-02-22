@@ -5,12 +5,12 @@ use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parser::var_map::VarMap;
 use rpds::HashTrieMap;
+use std::collections::HashMap;
 
 #[derive(Default, Clone)]
 pub struct NamedEnv<'arn, 'grm> {
     env_len: usize,
     names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
-    jump_labels: HashTrieMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
     hygienic_names: HashTrieMap<&'arn str, usize>,
 }
 
@@ -42,7 +42,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         Self {
             env_len: self.env_len,
             names,
-            jump_labels: self.jump_labels.clone(),
             hygienic_names,
         }
     }
@@ -59,13 +58,12 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         self.env_len == 0
     }
 
-    pub fn insert_shift_label(&self, guid: Guid) -> Self {
-        Self {
-            env_len: self.env_len,
-            names: self.names.clone(),
-            jump_labels: self.jump_labels.insert(guid, self.names.clone()),
-            hygienic_names: self.hygienic_names.clone(),
-        }
+    pub fn insert_shift_label(
+        &self,
+        guid: Guid,
+        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
+    ) {
+        jump_labels.insert(guid, self.names.clone());
     }
 
     pub fn shift_to_label(
@@ -73,8 +71,9 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         guid: Guid,
         vars: VarMap<'arn, 'grm>,
         env: &mut PrismEnv<'arn, 'grm>,
+        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
     ) -> Self {
-        let mut names = self.jump_labels[&guid].clone();
+        let mut names = jump_labels[&guid].clone();
 
         for (name, value) in vars {
             names.insert_mut(
@@ -86,7 +85,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         Self {
             env_len: self.env_len,
             names,
-            jump_labels: self.jump_labels.clone(),
             //TODO should these be preserved?
             hygienic_names: Default::default(),
         }
@@ -100,7 +98,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         let mut new_env = Self {
             env_len: self.env_len,
             names: old_names.clone(),
-            jump_labels: self.jump_labels.clone(),
             //TODO what here? old code takes from `old_names` env (not available here)
             hygienic_names: Default::default(),
         };
