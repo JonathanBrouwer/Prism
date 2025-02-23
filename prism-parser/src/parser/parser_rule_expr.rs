@@ -338,10 +338,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     &mut eval_ctxs,
                 );
                 res.map_with_span(|res, span| {
-                    if let RuleAction::Value(_) = &action {
-                        println!("A {:?}", vars);
-                        println!("B {:?}", res.free);
-                    }
                     PR::with_rtrn(self.apply_action(
                         action,
                         span,
