@@ -146,13 +146,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 let typ = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
                 ParsedPrismExpr::TypeAssert(e, typ)
             }
-            // "GrammarDefine" => {
-            //     assert_eq!(args.len(), 2);
-            //     let b = *reduce_expr(args[0], prism_env).into_value::<ParsedIndex>();
-            //     let g = *reduce_expr(args[1], prism_env).into_value::<Guid>();
-            //
-            //     ParsedPrismExpr::ShiftLabel(b, g)
-            // }
             "GrammarValue" => {
                 assert_eq!(args.len(), 2);
                 let grammar = args[0].into_value();
@@ -211,10 +204,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 assert_eq!(args.len(), 2);
                 vec![Some(parent_ctx), Some(parent_ctx)]
             }
-            // "GrammarDefine" => {
-            //     assert_eq!(args.len(), 2);
-            //     vec![None, Some(parent_ctx)]
-            // }
             "GrammarValue" => {
                 assert_eq!(args.len(), 2);
                 vec![None, None]

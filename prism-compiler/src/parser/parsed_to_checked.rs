@@ -72,9 +72,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
-            // ParsedPrismExpr::ShiftLabel(b, guid) => {
-            //     return self.parsed_to_checked_with_env(b, &env.insert_shift_label(guid));
-            // }
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
                 let env = env.shift_to_label(guid, captured_env, self, jump_labels);
                 return self.parsed_to_checked_with_env(b, &env, jump_labels);
