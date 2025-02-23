@@ -230,15 +230,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx.to_envs(placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        println!("named env:");
-        for (n, v) in named_env.names.iter() {
-            println!("* {n}: {v:?}");
-        }
-        println!("db env:");
-        for v in db_env.iter() {
-            println!("{v:?}");
-        }
-
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
         let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
