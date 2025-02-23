@@ -1,3 +1,4 @@
+### Input
 let test = grammar {
     adapt rule expr {
         adapt group base {
@@ -5,6 +6,15 @@ let test = grammar {
         }
     }
 };
+let y = Type -> Type;
 let test2 = test;
+let z = Type -> Type;
 adapt test2;
+let w = Type -> Type;
 %
+
+### Eval
+Type
+
+### Type
+Type

@@ -16,39 +16,45 @@ use std::collections::HashMap;
 pub struct PrismEvalCtx<'arn>(Option<&'arn PrismEvalCtxNode<'arn>>);
 
 impl<'arn> PrismEvalCtx<'arn> {
-    // pub fn get<'grm>(
-    //     &self,
-    //     k: &str,
-    //     placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-    //     input: &'grm str,
-    // ) -> Option<Parsed<'arn, 'grm>> {
-    //     let mut node = self.0?;
-    //     loop {
-    //         let Some(key) = placeholders.get(node.key) else {
-    //             node = node.next?;
-    //             continue;
-    //         };
-    //         let key = key.into_value::<Input>().as_str(input);
-    //         if key != k {
-    //             node = node.next?;
-    //             continue;
-    //         }
-    //
-    //         let Some(value) = node.value else {
-    //             node = node.next?;
-    //             continue;
-    //         };
-    //         let Some(value) = placeholders.get(value) else {
-    //             node = node.next?;
-    //             continue;
-    //         };
-    //         return Some(value);
-    //     }
-    // }
+    pub fn to_envs<'grm>(
+        &self,
+        placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
+        input: &'grm str,
+        prism_env: &mut PrismEnv<'arn, 'grm>,
+    ) -> (NamedEnv<'arn, 'grm>, DbEnv) {
+        match self.0 {
+            None => (NamedEnv::default(), DbEnv::default()),
+            Some(node) => {
+                let (named_env, db_env) =
+                    PrismEvalCtx(node.next).to_envs(placeholders, input, prism_env);
 
-    #[must_use]
+                // If the name or value of this entry is not known, continue
+                let Some(key) = placeholders.get(node.key) else {
+                    return (named_env, db_env);
+                };
+                let key = key.into_value::<Input>().as_str(input);
+
+                // TODO we should also handle Nones here
+                let Some(value) = node.value else {
+                    return (named_env, db_env);
+                };
+                let Some(value) = placeholders.get(value) else {
+                    return (named_env, db_env);
+                };
+                let value = value.into_value::<ParsedIndex>();
+                let value =
+                    prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
+
+                let named_env = named_env.insert_name(key, input);
+                let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
+                (named_env, db_env)
+            }
+        }
+    }
+
     /// Insert a value into this ctx
     /// `value` is None of this is a `type` entry rather than a `subst` entry
+    #[must_use]
     pub fn insert(
         self,
         key: ParsedPlaceholder,
@@ -60,44 +66,6 @@ impl<'arn> PrismEvalCtx<'arn> {
             key,
             value,
         })))
-    }
-
-    pub fn to_envs<'grm>(
-        &self,
-        placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-        input: &'grm str,
-        prism_env: &mut PrismEnv<'arn, 'grm>,
-    ) -> (NamedEnv<'arn, 'grm>, DbEnv) {
-        let mut named_env = NamedEnv::default();
-        let mut db_env = DbEnv::default();
-
-        // Iterate over all values in the eval ctx
-        let mut next_node = self.0;
-        while let Some(node) = next_node {
-            next_node = node.next;
-
-            // If the name or value of this entry is not known, continue
-            let Some(key) = placeholders.get(node.key) else {
-                continue;
-            };
-            let key = key.into_value::<Input>().as_str(input);
-
-            // TODO we should also handle Nones here
-            let Some(value) = node.value else {
-                continue;
-            };
-            let Some(value) = placeholders.get(value) else {
-                continue;
-            };
-            let value = value.into_value::<ParsedIndex>();
-            let value =
-                prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
-
-            named_env = named_env.insert_name(key, input);
-            db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
-        }
-
-        (named_env, db_env)
     }
 }
 
@@ -273,13 +241,27 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx.to_envs(placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
+        println!("named env:");
+        for (n, v) in named_env.names.iter() {
+            println!("* {n}: {v:?}");
+        }
+        println!("db env:");
+        for v in db_env.iter() {
+            println!("{v:?}");
+        }
+
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
         let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
         if let CheckedPrismExpr::GrammarValue(parsed) = prism_env.checked_values[reduced_value.0] {
             parsed.to_parsed()
         } else {
-            panic!("Tried to reduce expression which was not a parser value")
+            panic!(
+                "Tried to reduce expression which was not a grammar: {} / {} / {}",
+                prism_env.parse_index_to_string(*self),
+                prism_env.index_to_string(value),
+                prism_env.index_to_string(reduced_value)
+            )
         }
     }
 }

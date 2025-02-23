@@ -10,7 +10,7 @@ use std::collections::HashMap;
 #[derive(Default, Clone)]
 pub struct NamedEnv<'arn, 'grm> {
     env_len: usize,
-    names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
+    pub names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
     hygienic_names: HashTrieMap<&'arn str, usize>,
 }
 
