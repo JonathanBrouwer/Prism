@@ -28,18 +28,22 @@ impl<'arn> PrismEvalCtx<'arn> {
                 let (named_env, db_env) =
                     PrismEvalCtx(node.next).to_envs(placeholders, input, prism_env);
 
+                // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
+                let dummy_named_env = named_env.insert_name("_", input);
+                let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.new_tc_id()));
+
                 // If the name or value of this entry is not known, continue
                 let Some(key) = placeholders.get(node.key) else {
-                    return (named_env, db_env);
+                    return (dummy_named_env, dummy_db_env);
                 };
                 let key = key.into_value::<Input>().as_str(input);
 
                 // TODO we should also handle Nones here
                 let Some(value) = node.value else {
-                    return (named_env, db_env);
+                    return (dummy_named_env, dummy_db_env);
                 };
                 let Some(value) = placeholders.get(value) else {
-                    return (named_env, db_env);
+                    return (dummy_named_env, dummy_db_env);
                 };
                 let value = value.into_value::<ParsedIndex>();
                 let value =

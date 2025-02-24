@@ -25,7 +25,11 @@ pub enum NamesEntry<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     pub fn insert_name(&self, name: &'arn str, input: &'arn str) -> Self {
-        let mut s = self.insert_name_at(name, self.env_len, input);
+        let mut s = if name != "_" {
+            self.insert_name_at(name, self.env_len, input)
+        } else {
+            self.clone()
+        };
         s.env_len += 1;
         s
     }

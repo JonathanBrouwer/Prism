@@ -1,10 +1,14 @@
-let test = grammar {
-    adapt rule expr {
-        adapt group base {
-            Type <- "%";
+let test = (
+    let _ = Type -> Type;
+    let _ = Type -> Type;
+    let x = Type;
+    grammar {
+        adapt rule expr {
+            adapt group base {
+                x <- "%";
+            }
         }
     }
-};
-let test2 = test;
-adapt test2;
+);
+adapt test;
 %
