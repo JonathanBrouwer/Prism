@@ -6,7 +6,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Debug)]
 pub enum RuleAnnotation<'grm> {
     #[serde(borrow)]
     Error(EscapedString<'grm>),

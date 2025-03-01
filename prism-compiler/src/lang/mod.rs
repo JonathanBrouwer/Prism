@@ -5,6 +5,7 @@ use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use prism_parser::parsable::guid::Guid;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -68,7 +69,7 @@ pub enum CheckedPrismExpr<'arn, 'grm: 'arn> {
     TypeAssert(CheckedIndex, CheckedIndex),
 
     // Temporary expressions after parsing
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
     GrammarType,
 }
 
@@ -80,6 +81,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Parsed Values
     pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
     pub parsed_spans: Vec<Span>,
+    pub grammar_envs: HashMap<Guid, ()>,
 
     // Checked Values
     pub checked_values: Vec<CheckedPrismExpr<'arn, 'grm>>,
@@ -101,6 +103,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
             parsed_values: Default::default(),
             parsed_spans: Default::default(),
+            grammar_envs: Default::default(),
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),

@@ -63,7 +63,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let typ = self.simplify_inner(typ, s, var_map);
                 CheckedPrismExpr::TypeAssert(e, typ)
             }
-            CheckedPrismExpr::GrammarValue(p) => CheckedPrismExpr::GrammarValue(p),
+            CheckedPrismExpr::GrammarValue(p, g) => CheckedPrismExpr::GrammarValue(p, g),
             CheckedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
         };
         self.store_checked(e_new, self.checked_origins[*i])

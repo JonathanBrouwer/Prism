@@ -8,7 +8,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,

@@ -236,18 +236,30 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         prism_env.errors.truncate(error_count);
 
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
-        let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
+        let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env.clone());
 
-        if let CheckedPrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] {
-            grammar
-        } else {
+        let common_index = db_env
+            .iter()
+            .rev()
+            .zip(reduced_env.iter().rev())
+            .take_while(|(a, b)| a == b)
+            .count();
+        assert_eq!(common_index, reduced_env.len());
+
+        let CheckedPrismExpr::GrammarValue(grammar, guid) =
+            prism_env.checked_values[reduced_value.0]
+        else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
                 prism_env.parse_index_to_string(*self),
                 prism_env.index_to_string(value),
                 prism_env.index_to_string(reduced_value)
             )
-        }
+        };
+
+        prism_env.grammar_envs.insert(guid, ());
+
+        grammar
     }
 }
 

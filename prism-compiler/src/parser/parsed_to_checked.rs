@@ -78,7 +78,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             ParsedPrismExpr::GrammarValue(v, guid) => {
                 env.insert_shift_label(guid, jump_labels);
-                CheckedPrismExpr::GrammarValue(v)
+                CheckedPrismExpr::GrammarValue(v, guid)
             }
             ParsedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
         };

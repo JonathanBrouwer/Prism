@@ -6,7 +6,7 @@ use std::ops::Range;
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EnvEntry {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
@@ -78,7 +78,7 @@ impl<T> GenericEnv<T> {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> + DoubleEndedIterator {
         self.0.iter().rev()
     }
 }

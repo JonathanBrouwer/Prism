@@ -113,7 +113,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::Shift(v, shift) => {
                 CheckedPrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
             }
-            CheckedPrismExpr::GrammarValue(_) => CheckedPrismExpr::GrammarType,
+            CheckedPrismExpr::GrammarValue(_, _) => CheckedPrismExpr::GrammarType,
             CheckedPrismExpr::GrammarType => CheckedPrismExpr::Type,
         };
         let tid = self.store_checked(t, ValueOrigin::TypeOf(i));

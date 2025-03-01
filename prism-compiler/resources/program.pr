@@ -1,3 +1,4 @@
+let z = Type -> Type;
 let test = (
     let _ = Type -> Type;
     let _ = Type -> Type;
