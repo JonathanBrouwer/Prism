@@ -391,13 +391,21 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 )
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
-            RuleExpr::AtAdapt(ga, body) => {
-                // First, get the grammar
-                let grammar = if let Some(ar) = vars.get(ga) {
-                    ar.into_value::<GrammarFile>()
-                } else {
-                    panic!("Name '{ga}' not in context")
-                };
+            RuleExpr::AtAdapt(ns, grammar, body) => {
+                let ns = self
+                    .parsables
+                    .get(ns)
+                    .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
+                let grammar = *vars.get(grammar).unwrap();
+                let grammar = (ns.eval_to_parsed)(
+                    grammar,
+                    eval_ctx,
+                    &self.placeholders,
+                    self.alloc,
+                    self.input,
+                    penv,
+                );
+                let grammar = grammar.into_value::<GrammarFile>();
 
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states
@@ -428,22 +436,6 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 self.guid_counter += 1;
 
                 PResult::new_empty(PR::with_rtrn(self.alloc.alloc(guid).to_parsed()), pos)
-            }
-            RuleExpr::Eval(ns, v) => {
-                let ns = self
-                    .parsables
-                    .get(ns)
-                    .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let v = *vars.get(v).unwrap();
-                let v = (ns.eval_to_parsed)(
-                    v,
-                    eval_ctx,
-                    &self.placeholders,
-                    self.alloc,
-                    self.input,
-                    penv,
-                );
-                PResult::new_empty(PR::with_rtrn(v), pos)
             }
         }
     }

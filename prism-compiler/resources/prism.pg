@@ -2,7 +2,7 @@ rule wrapped_expr(g) = RuleAction::Value(ScopeEnter::Enter(e, g)) <- e:expr;
 
 rule expr {
     group statement {
-        Expr::Let("_", e, b) <- "adapt" e:#next ";" ee:#eval(Expr, e) b:#adapt(ee, expr);
+        Expr::Let("_", e, b) <- "adapt" e:#next ";" b:#adapt(Expr, e, expr);
         Expr::Let(n, v, b)
             <- "let" n:identifier "=" v:#next ";" b:#this;
         Expr::Let(n, Expr::TypeAssert(v, t), b)

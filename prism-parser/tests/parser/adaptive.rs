@@ -5,7 +5,7 @@ name: adaptive
 syntax: r#"
     rule start = block;
     rule block {
-        b <- "grammar" "{" g:grammar(prule_action) "}" ";" b:#adapt(g, block);
+        b <- "grammar" "{" g:grammar(prule_action) "}" ";" b:#adapt(GrammarFile,  g, block);
         s .. b <- s:stmt ";" b:block;
         [] <- "";
     }
@@ -140,7 +140,7 @@ parse_test! {
 name: adaptive_simple
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:#adapt(g, start);
+        b <- "{" g:grammar(prule_action) "}" b:#adapt(GrammarFile,  g, start);
         X() <- "x";
     }
     "#
@@ -154,7 +154,7 @@ parse_test! {
 name: adaptive_sub
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:<start / #adapt(g, start)>;
+        b <- "{" g:grammar(prule_action) "}" b:<start / #adapt(GrammarFile,  g, start)>;
         X() <- "x";
         sub;
     }
@@ -213,7 +213,7 @@ parse_test! {
 name: adaptive_sub2
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:<sub2 / #adapt(g, sub2)>;
+        b <- "{" g:grammar(prule_action) "}" b:<sub2 / #adapt(GrammarFile,  g, sub2)>;
     }
 
     rule sub2 = sub;
@@ -233,7 +233,7 @@ parse_test! {
 name: same_name_rule
 syntax: r#"
     rule start {
-        b <- "{" g:grammar(prule_action) "}" b:#adapt(g, start);
+        b <- "{" g:grammar(prule_action) "}" b:#adapt(GrammarFile,  g, start);
         X() <- "x";
     }"#
 passing tests:

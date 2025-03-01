@@ -5,7 +5,7 @@ name: arithmetic
 syntax: r#"
 rule start = block;
 rule block {
-    b <- "grammar" "{" g:grammar(wrapped_expr) "}" ";" b:#adapt(g, block);
+    b <- "grammar" "{" g:grammar(wrapped_expr) "}" ";" b:#adapt(GrammarFile,  g, block);
     expr;
 }
 rule wrapped_expr = RuleAction::Value(v) <- v:expr;

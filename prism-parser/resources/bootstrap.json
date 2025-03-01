@@ -1743,6 +1743,20 @@
                       },
                       {
                         "NameBind": [
+                          "ns",
+                          {
+                            "RunVar": {
+                              "rule": "identifier",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ","
+                      },
+                      {
+                        "NameBind": [
                           "a",
                           {
                             "RunVar": {
@@ -1784,66 +1798,10 @@
                       "AtAdapt",
                       [
                         {
-                          "Name": "a"
+                          "Name": "ns"
                         },
                         {
-                          "Name": "n"
-                        }
-                      ]
-                    ]
-                  }
-                ]
-              }
-            ],
-            [
-              [],
-              {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "#eval"
-                      },
-                      {
-                        "Literal": "("
-                      },
-                      {
-                        "NameBind": [
-                          "ns",
-                          {
-                            "RunVar": {
-                              "rule": "identifier",
-                              "args": []
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "Literal": ","
-                      },
-                      {
-                        "NameBind": [
-                          "n",
-                          {
-                            "RunVar": {
-                              "rule": "identifier",
-                              "args": []
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "Literal": ")"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": [
-                      "RuleExpr",
-                      "Eval",
-                      [
-                        {
-                          "Name": "ns"
+                          "Name": "a"
                         },
                         {
                           "Name": "n"
