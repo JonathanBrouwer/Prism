@@ -7,7 +7,6 @@ use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
