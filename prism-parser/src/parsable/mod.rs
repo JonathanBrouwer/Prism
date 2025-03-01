@@ -1,5 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
+use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
 use std::any::type_name;
@@ -55,7 +56,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         iter::empty()
     }
 
-    fn eval_to_parsed(
+    fn eval_to_grammar(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
@@ -63,8 +64,8 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
-    ) -> Parsed<'arn, 'grm> {
-        self.to_parsed()
+    ) -> &'arn GrammarFile<'arn, 'grm> {
+        unreachable!()
     }
 }
 

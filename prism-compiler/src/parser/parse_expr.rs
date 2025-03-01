@@ -5,6 +5,7 @@ use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
+use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
@@ -221,14 +222,14 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         .into_iter()
     }
 
-    fn eval_to_parsed(
+    fn eval_to_grammar(
         &'arn self,
         eval_ctx: Self::EvalCtx,
         placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
         _allocs: Allocs<'arn>,
         src: &'grm str,
         prism_env: &mut PrismEnv<'arn, 'grm>,
-    ) -> Parsed<'arn, 'grm> {
+    ) -> &'arn GrammarFile<'arn, 'grm> {
         // Create context, ignore any errors that occur in this process
         let error_count = prism_env.errors.len();
         let (named_env, db_env) = eval_ctx.to_envs(placeholders, src, prism_env);
@@ -237,8 +238,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
         let (reduced_value, _) = prism_env.beta_reduce_head(value, db_env);
 
-        if let CheckedPrismExpr::GrammarValue(parsed) = prism_env.checked_values[reduced_value.0] {
-            parsed.to_parsed()
+        if let CheckedPrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] {
+            grammar
         } else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",

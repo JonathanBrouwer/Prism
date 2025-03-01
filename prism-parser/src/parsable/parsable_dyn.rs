@@ -1,5 +1,6 @@
 use crate::core::cache::Allocs;
 use crate::core::span::Span;
+use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
@@ -26,7 +27,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         env: &mut Env,
     ) -> Vec<Parsed<'arn, 'grm>>,
 
-    pub eval_to_parsed: fn(
+    pub eval_to_grammar: fn(
         v: Parsed<'arn, 'grm>,
         eval_ctx: Parsed<'arn, 'grm>,
         placeholders: &PlaceholderStore<'arn, 'grm, Env>,
@@ -34,7 +35,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut Env,
-    ) -> Parsed<'arn, 'grm>,
+    ) -> &'arn GrammarFile<'arn, 'grm>,
 }
 
 impl<Env> Clone for ParsableDyn<'_, '_, Env> {
@@ -50,7 +51,7 @@ impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
         Self {
             from_construct: from_construct_dyn::<Env, P>,
             create_eval_ctx: create_eval_ctx_dyn::<Env, P>,
-            eval_to_parsed: eval_to_parsed_dyn::<Env, P>,
+            eval_to_grammar: eval_to_grammar_dyn::<Env, P>,
         }
     }
 }
@@ -89,7 +90,7 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     .collect()
 }
 
-fn eval_to_parsed_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
+fn eval_to_grammar_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     v: Parsed<'arn, 'grm>,
     eval_ctx: Parsed<'arn, 'grm>,
     placeholders: &PlaceholderStore<'arn, 'grm, Env>,
@@ -97,11 +98,11 @@ fn eval_to_parsed_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     allocs: Allocs<'arn>,
     src: &'grm str,
     env: &mut Env,
-) -> Parsed<'arn, 'grm> {
+) -> &'arn GrammarFile<'arn, 'grm> {
     let eval_ctx = if eval_ctx.try_into_value::<Void>().is_some() {
         P::EvalCtx::default()
     } else {
         *eval_ctx.into_value()
     };
-    P::eval_to_parsed(v.into_value(), eval_ctx, placeholders, allocs, src, env)
+    P::eval_to_grammar(v.into_value(), eval_ctx, placeholders, allocs, src, env)
 }
