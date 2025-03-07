@@ -1,28 +1,31 @@
 use crate::core::allocs::Allocs;
+use crate::parsable::ParseResult;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
 
 #[derive(Copy, Clone)]
-pub struct GenericerEnv<'arn, N: Eq + Copy, V: Copy>(
-    Option<&'arn GenericerEnvNode<'arn, N, V>>,
-    usize,
-);
+pub struct GenericerEnv<'arn, N: Copy, V: Copy>(Option<&'arn GenericerEnvNode<'arn, N, V>>, usize);
 
-impl<'arn, N: Debug + Eq + Copy, V: Copy> Default for GenericerEnv<'arn, N, V> {
+impl<'arn, 'grm: 'arn, N: Copy + Sized + Sync + Send + 'arn, V: Copy + Sized + Sync + Send + 'arn>
+    ParseResult<'arn, 'grm> for GenericerEnv<'arn, N, V>
+{
+}
+
+impl<'arn, N: Debug + Copy, V: Copy> Default for GenericerEnv<'arn, N, V> {
     fn default() -> Self {
         Self(None, 0)
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct GenericerEnvNode<'arn, N: Eq + Copy, V: Copy> {
+pub struct GenericerEnvNode<'arn, N: Copy, V: Copy> {
     name: N,
     value: V,
     next: Option<&'arn GenericerEnvNode<'arn, N, V>>,
 }
 
-impl<'arn, N: Debug + Eq + Copy, V: Copy> Debug for GenericerEnv<'arn, N, V> {
+impl<'arn, N: Debug + Copy, V: Copy> Debug for GenericerEnv<'arn, N, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
         for (name, _value) in *self {
@@ -32,12 +35,12 @@ impl<'arn, N: Debug + Eq + Copy, V: Copy> Debug for GenericerEnv<'arn, N, V> {
     }
 }
 
-pub struct GenericerEnvIterator<'arn, N: Eq + Copy, V: Copy> {
+pub struct GenericerEnvIterator<'arn, N: Copy, V: Copy> {
     current: Option<&'arn GenericerEnvNode<'arn, N, V>>,
     len_left: usize,
 }
 
-impl<'arn, N: Eq + Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> {
+impl<'arn, N: Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> {
     type Item = (N, V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -55,9 +58,9 @@ impl<'arn, N: Eq + Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> 
     }
 }
 
-impl<'arn, N: Eq + Copy, V: Copy> ExactSizeIterator for GenericerEnvIterator<'arn, N, V> {}
+impl<'arn, N: Copy, V: Copy> ExactSizeIterator for GenericerEnvIterator<'arn, N, V> {}
 
-impl<'arn, N: Eq + Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
+impl<'arn, N: Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
     type Item = (N, V);
     type IntoIter = GenericerEnvIterator<'arn, N, V>;
 
@@ -69,7 +72,7 @@ impl<'arn, N: Eq + Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
     }
 }
 
-impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
+impl<'arn, N: Copy + Debug + Eq, V: Copy> GenericerEnv<'arn, N, V> {
     pub fn get(&self, k: N) -> Option<&'arn V> {
         let mut node = self.0?;
         loop {
@@ -79,7 +82,9 @@ impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
             node = node.next?;
         }
     }
+}
 
+impl<'arn, N: Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
     #[must_use]
     pub fn cons(self, key: N, value: V, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
@@ -111,5 +116,10 @@ impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
 
     pub fn len(&self) -> usize {
         self.1
+    }
+
+    pub fn split(&self) -> Option<((N, V), Self)> {
+        self.0
+            .map(|node| ((node.name, node.value), Self(node.next, self.1 - 1)))
     }
 }
