@@ -28,7 +28,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
             let (named_env, db_env) = eval_ctx_to_envs(rest, placeholders, input, prism_env);
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
-            let dummy_named_env = named_env.insert_name("_", input);
+            let dummy_named_env = named_env.insert_name("_", input, prism_env.allocs);
             let dummy_db_env =
                 db_env.cons(EnvEntry::RType(prism_env.new_tc_id()), prism_env.allocs);
 
@@ -49,7 +49,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
             let value =
                 prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
 
-            let named_env = named_env.insert_name(key, input);
+            let named_env = named_env.insert_name(key, input, prism_env.allocs);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env), prism_env.allocs);
             (named_env, db_env)
         }

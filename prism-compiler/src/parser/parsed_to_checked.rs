@@ -1,10 +1,9 @@
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
-use crate::parser::named_env::{NamedEnv, NamesEntry};
+use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::parse_expr::reduce_expr;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::parsable::guid::Guid;
-use rpds::HashTrieMap;
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
@@ -16,22 +15,34 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         &mut self,
         i: ParsedIndex,
         env: &NamedEnv<'arn, 'grm>,
-        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
+        jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
     ) -> CheckedIndex {
         let e = match self.parsed_values[*i] {
             ParsedPrismExpr::Free => CheckedPrismExpr::Free,
             ParsedPrismExpr::Type => CheckedPrismExpr::Type,
             ParsedPrismExpr::Let(n, v, b) => CheckedPrismExpr::Let(
                 self.parsed_to_checked_with_env(v, env, jump_labels),
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
+                self.parsed_to_checked_with_env(
+                    b,
+                    &env.insert_name(n, self.input, self.allocs),
+                    jump_labels,
+                ),
             ),
             ParsedPrismExpr::FnType(n, a, b) => CheckedPrismExpr::FnType(
                 self.parsed_to_checked_with_env(a, env, jump_labels),
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
+                self.parsed_to_checked_with_env(
+                    b,
+                    &env.insert_name(n, self.input, self.allocs),
+                    jump_labels,
+                ),
             ),
-            ParsedPrismExpr::FnConstruct(n, b) => CheckedPrismExpr::FnConstruct(
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, self.input), jump_labels),
-            ),
+            ParsedPrismExpr::FnConstruct(n, b) => {
+                CheckedPrismExpr::FnConstruct(self.parsed_to_checked_with_env(
+                    b,
+                    &env.insert_name(n, self.input, self.allocs),
+                    jump_labels,
+                ))
+            }
             ParsedPrismExpr::FnDestruct(f, a) => CheckedPrismExpr::FnDestruct(
                 self.parsed_to_checked_with_env(f, env, jump_labels),
                 self.parsed_to_checked_with_env(a, env, jump_labels),
@@ -45,13 +56,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 match env.resolve_name_use(name) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
-                        CheckedPrismExpr::DeBruijnIndex(env.len() - *prev_env_len - 1)
+                        CheckedPrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
                                 expr,
-                                &env.shift_back(old_names, self.input),
+                                &env.shift_back(old_names, self.input, self.allocs),
                                 jump_labels,
                             );
                         } else {
@@ -71,7 +82,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
                 // let x = &self.grammar_envs[&guid];
 
-                let mut names = jump_labels[&guid].clone();
+                let mut names = jump_labels[&guid];
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -79,9 +90,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .into_iter()
                     .rev()
                 {
-                    names.insert_mut(
+                    names = names.insert(
                         name,
-                        NamesEntry::FromParsed(reduce_expr(value, self), env.names.clone()),
+                        NamesEntry::FromParsed(reduce_expr(value, self), env.names),
+                        self.allocs,
                     );
                 }
 
