@@ -1,4 +1,5 @@
 pub mod adaptive;
+pub mod allocs;
 pub mod cache;
 pub mod context;
 pub mod input;

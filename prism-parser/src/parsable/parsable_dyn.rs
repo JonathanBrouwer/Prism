@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::parsed::Parsed;

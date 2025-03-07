@@ -313,7 +313,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     }
 
                     PR {
-                        free: res.free.insert(name, res.rtrn, self.alloc),
+                        free: res.free.cons(name, res.rtrn, self.alloc),
                         rtrn: Void.to_parsed(),
                     }
                 })

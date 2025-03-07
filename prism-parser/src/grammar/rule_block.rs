@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::from_action_result::parse_identifier;

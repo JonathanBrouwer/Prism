@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use bumpalo::Bump;
-use prism_parser::core::cache::Allocs;
+use prism_parser::core::allocs::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parse_grammar;

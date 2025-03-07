@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::pos::Pos;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
@@ -78,7 +78,7 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
                     new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.insert(new_rule.name, alloc.alloc(rule).to_parsed(), alloc);
+                new_ctx = new_ctx.cons(new_rule.name, alloc.alloc(rule).to_parsed(), alloc);
                 (new_rule.name, rule)
             })
             .collect();

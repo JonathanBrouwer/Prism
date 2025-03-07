@@ -1,7 +1,7 @@
 use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
 use crate::parser::parse_expr::{ScopeEnter, reduce_expr};
-use prism_parser::core::cache::Allocs;
+use prism_parser::core::allocs::Allocs;
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;

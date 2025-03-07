@@ -2,7 +2,7 @@ use crate::lang::env::{DbEnv, EnvEntry};
 use crate::lang::{CheckedPrismExpr, PrismEnv};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
-use prism_parser::core::cache::Allocs;
+use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;

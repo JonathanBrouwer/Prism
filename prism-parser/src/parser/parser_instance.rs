@@ -1,6 +1,6 @@
 use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
@@ -163,7 +163,7 @@ pub fn run_parser_rule<
 macro_rules! run_parser_rule_here {
     ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
         let bump = ::bumpalo::Bump::new();
-        let alloc = $crate::core::cache::Allocs::new(&bump);
+        let alloc = $crate::core::allocs::Allocs::new(&bump);
         let mut instance =
             $crate::parser::parser_instance::ParserInstance::<$error>::new($input, alloc, $rules)
                 .unwrap();

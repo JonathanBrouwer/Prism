@@ -1,4 +1,5 @@
-use crate::core::cache::{Allocs, CacheKey, CacheVal, ParserCacheEntry};
+use crate::core::allocs::Allocs;
+use crate::core::cache::{CacheKey, CacheVal, ParserCacheEntry};
 use crate::core::pos::Pos;
 use crate::error::ParseError;
 use crate::parsable::parsable_dyn::ParsableDyn;

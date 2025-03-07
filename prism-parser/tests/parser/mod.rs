@@ -34,7 +34,7 @@ macro_rules! parse_test {
             use prism_parser::grammar::rule_action::RuleAction;
             use prism_parser::error::aggregate_error::ParseResultExt;
             use bumpalo::Bump;
-            use prism_parser::core::cache::Allocs;
+            use prism_parser::core::allocs::Allocs;
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;

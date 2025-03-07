@@ -1,6 +1,6 @@
 use bumpalo::Bump;
 use prism_compiler::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv};
-use prism_parser::core::cache::Allocs;
+use prism_parser::core::allocs::Allocs;
 
 #[test]
 fn test_exhaustive() {

@@ -1,7 +1,8 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ptr::null;
+
 #[derive(Copy, Clone)]
 pub struct GenericerEnv<'arn, N: Eq + Copy, V: Copy>(Option<&'arn GenericerEnvNode<'arn, N, V>>);
 
@@ -67,7 +68,7 @@ impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
     }
 
     #[must_use]
-    pub fn insert(self, key: N, value: V, alloc: Allocs<'arn>) -> Self {
+    pub fn cons(self, key: N, value: V, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
 
