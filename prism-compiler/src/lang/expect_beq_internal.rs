@@ -12,8 +12,16 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         &mut self,
         // io is the UnionIndex that lives in a certain `s`
         // The var_map is a map for each `UniqueVariableId`, its depth in the scope
-        (i1o, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
-        (i2o, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i1o, s1, var_map1): (
+            CheckedIndex,
+            DbEnv<'arn>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
+        (i2o, s2, var_map2): (
+            CheckedIndex,
+            DbEnv<'arn>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
@@ -46,15 +54,15 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             // Two function types are equal if their argument types and body types are equal
             (CheckedPrismExpr::FnType(a1, b1), CheckedPrismExpr::FnType(a2, b2)) => {
                 // Check that the argument types are equal
-                let a_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
+                let a_equal = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
 
                 // Insert the new variable into the scopes, and check if `b` is equal
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
                 let b_equal = self.expect_beq_internal(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
+                    (b1, s1.cons(RType(id), self.allocs), var_map1),
+                    (b2, s2.cons(RType(id), self.allocs), var_map2),
                 );
 
                 // Function types are equal if the arguments and body are equal
@@ -67,28 +75,28 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map2.insert(id, s2.len());
 
                 self.expect_beq_internal(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
+                    (b1, s1.cons(RType(id), self.allocs), var_map1),
+                    (b2, s2.cons(RType(id), self.allocs), var_map2),
                 )
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
             (CheckedPrismExpr::FnDestruct(f1, a1), CheckedPrismExpr::FnDestruct(f2, a2)) => {
-                let f_equal = self.expect_beq_internal((f1, &s1, var_map1), (f2, &s2, var_map2));
-                let b_equal = self.expect_beq_internal((a1, &s1, var_map1), (a2, &s2, var_map2));
+                let f_equal = self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2));
+                let b_equal = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
                 f_equal && b_equal
             }
             (_, CheckedPrismExpr::Free) => {
-                self.expect_beq_free((i1, &s1, var_map1), (i2, &s2, var_map2))
+                self.expect_beq_free((i1, s1, var_map1), (i2, s2, var_map2))
             }
             (CheckedPrismExpr::Free, _) => {
-                self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1))
+                self.expect_beq_free((i2, s2, var_map2), (i1, s1, var_map1))
             }
             (CheckedPrismExpr::FnDestruct(f, _), _) => {
-                self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2))
+                self.expect_beq_in_destruct(f, s1, var_map1, (i2, s2, var_map2))
             }
             (_, CheckedPrismExpr::FnDestruct(f, _)) => {
-                self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1))
+                self.expect_beq_in_destruct(f, s2, var_map2, (i1, s1, var_map1))
             }
             _ => false,
         }
@@ -97,9 +105,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn expect_beq_in_destruct(
         &mut self,
         f1: CheckedIndex,
-        s1: &DbEnv,
+        s1: DbEnv<'arn>,
         var_map1: &mut HashMap<UniqueVariableId, usize>,
-        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i2, s2, var_map2): (
+            CheckedIndex,
+            DbEnv<'arn>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
         assert!(matches!(
@@ -115,15 +127,23 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         // We construct a value in scope 2 and set them equal
         let b = self.store_checked(CheckedPrismExpr::Shift(i2, 1), FreeSub(i2));
         let f = self.store_checked(CheckedPrismExpr::FnConstruct(b), FreeSub(i2));
-        self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2))
+        self.expect_beq_internal((f1, f1s, var_map1), (f, s2, var_map2))
     }
 
     /// Precondition: i2 should be free
     #[must_use]
     pub fn expect_beq_free(
         &mut self,
-        (i1, s1, var_map1): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
-        (i2, s2, var_map2): (CheckedIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+        (i1, s1, var_map1): (
+            CheckedIndex,
+            DbEnv<'arn>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
+        (i2, s2, var_map2): (
+            CheckedIndex,
+            DbEnv<'arn>,
+            &mut HashMap<UniqueVariableId, usize>,
+        ),
     ) -> bool {
         assert!(matches!(self.checked_values[*i2], CheckedPrismExpr::Free));
 
@@ -156,8 +176,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
                 let b_eq = self.expect_beq_internal(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
+                    (b1, s1.cons(RType(id), self.allocs), var_map1),
+                    (b2, s2.cons(RType(id), self.allocs), var_map2),
                 );
 
                 constraints_eq && a_eq && b_eq
@@ -237,7 +257,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         self.checked_values[*i2] = CheckedPrismExpr::DeBruijnIndex(v2);
                         true
                     }
-                    RSubst(i1, s1) => self.expect_beq_free((*i1, s1, var_map1), (i2, s2, var_map2)),
+                    RSubst(i1, s1) => {
+                        self.expect_beq_free((*i1, *s1, var_map1), (i2, s2, var_map2))
+                    }
                 };
                 let constraints_eq = self.handle_constraints(i2, s2);
                 subst_equal && constraints_eq
@@ -255,8 +277,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
                 let b_eq = self.expect_beq_internal(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
+                    (b1, s1.cons(RType(id), self.allocs), var_map1),
+                    (b2, s2.cons(RType(id), self.allocs), var_map2),
                 );
 
                 constraints_eq && a_eq && b_eq
@@ -273,8 +295,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
                 let b_eq = self.expect_beq_internal(
-                    (b1, &s1.cons(RType(id)), var_map1),
-                    (b2, &s2.cons(RType(id)), var_map2),
+                    (b1, s1.cons(RType(id), self.allocs), var_map1),
+                    (b2, s2.cons(RType(id), self.allocs), var_map2),
                 );
 
                 constraints_eq && b_eq
@@ -303,7 +325,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 true
             }
             CheckedPrismExpr::Shift(v1, i) => {
-                self.expect_beq_free((v1, &s1.shift(i), var_map1), (i2, s2, var_map2))
+                self.expect_beq_free((v1, s1.shift(i), var_map1), (i2, s2, var_map2))
             }
             CheckedPrismExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
@@ -315,7 +337,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     #[must_use]
-    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: &DbEnv) -> bool {
+    pub fn handle_constraints(&mut self, i2: CheckedIndex, s2: DbEnv) -> bool {
         let mut eq = true;
 
         // Check queued constraints
@@ -325,8 +347,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 assert_eq!(s2.len(), s2n.len());
 
                 //TODO performance: this causes expect_beq(i3, i2) to be executed
-                eq &=
-                    self.expect_beq_internal((i2, &s2n, &mut var_map2n), (i3, &s3, &mut var_map3));
+                eq &= self.expect_beq_internal((i2, s2n, &mut var_map2n), (i3, s3, &mut var_map3));
             }
         }
 

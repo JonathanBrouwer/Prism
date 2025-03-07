@@ -22,9 +22,9 @@ pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
 
-type QueuedConstraint = (
-    (DbEnv, HashMap<UniqueVariableId, usize>),
-    (CheckedIndex, DbEnv, HashMap<UniqueVariableId, usize>),
+type QueuedConstraint<'arn> = (
+    (DbEnv<'arn>, HashMap<UniqueVariableId, usize>),
+    (CheckedIndex, DbEnv<'arn>, HashMap<UniqueVariableId, usize>),
 );
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -82,7 +82,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Parsed Values
     pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
     pub parsed_spans: Vec<Span>,
-    pub grammar_envs: HashMap<Guid, GrammarEnvEntry>,
+    pub grammar_envs: HashMap<Guid, GrammarEnvEntry<'arn>>,
 
     // Checked Values
     pub checked_values: Vec<CheckedPrismExpr<'arn, 'grm>>,
@@ -93,7 +93,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     tc_id: usize,
     pub errors: Vec<TypeError>,
     toxic_values: HashSet<CheckedIndex>,
-    queued_beq_free: HashMap<CheckedIndex, Vec<QueuedConstraint>>,
+    queued_beq_free: HashMap<CheckedIndex, Vec<QueuedConstraint<'arn>>>,
 }
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {

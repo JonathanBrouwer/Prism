@@ -38,7 +38,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
                         if args.is_empty() && !["#this", "#next"].contains(r) {
-                            *vars.get(r).unwrap()
+                            vars.get(r).unwrap()
                         } else {
                             self.alloc
                                 .alloc(RuleClosure {
@@ -228,7 +228,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
                 res.map(|rtrn| {
                     rtrn.iter().rfold(ParsedList::default(), |rest, next| {
-                        rest.cons((), next.rtrn, self.alloc)
+                        rest.insert((), next.rtrn, self.alloc)
                     })
                 })
                 .map(|ar| PR::with_rtrn(self.alloc.alloc(ar).to_parsed()))
@@ -313,7 +313,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     }
 
                     PR {
-                        free: res.free.cons(name, res.rtrn, self.alloc),
+                        free: res.free.insert(name, res.rtrn, self.alloc),
                         rtrn: Void.to_parsed(),
                     }
                 })
@@ -395,7 +395,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let grammar = *vars.get(grammar).unwrap();
+                let grammar = vars.get(grammar).unwrap();
                 let grammar = (ns.eval_to_grammar)(
                     grammar,
                     eval_ctx,

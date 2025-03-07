@@ -22,7 +22,7 @@ impl<'arn, 'grm, Env> Parsable<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
                 assert_eq!(_args.len(), 2);
                 _args[1]
                     .into_value::<ParsedList<'arn, 'grm>>()
-                    .cons((), _args[0], _allocs)
+                    .insert((), _args[0], _allocs)
             }
             "Nil" => ParsedList::default(),
             _ => unreachable!(),

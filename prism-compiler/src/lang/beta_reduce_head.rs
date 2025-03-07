@@ -7,8 +7,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CheckedIndex,
-        mut start_env: DbEnv,
-    ) -> (CheckedIndex, DbEnv) {
+        mut start_env: DbEnv<'arn>,
+    ) -> (CheckedIndex, DbEnv<'arn>) {
         let mut args: Vec<(CheckedIndex, DbEnv)> = Vec::new();
 
         let mut e: CheckedIndex = start_expr;
@@ -26,7 +26,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
                 CheckedPrismExpr::Let(v, b) => {
                     e = b;
-                    s = s.cons(RSubst(v, s.clone()))
+                    s = s.cons(RSubst(v, s.clone()), self.allocs)
                 }
                 CheckedPrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
@@ -49,7 +49,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;
-                        s = s.cons(RSubst(arg, arg_env));
+                        s = s.cons(RSubst(arg, arg_env), self.allocs);
                     }
                 },
                 CheckedPrismExpr::FnDestruct(f, a) => {

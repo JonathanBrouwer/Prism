@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::parsable::ParseResult;
 use std::fmt::{Debug, Formatter};
 use std::iter;
+use std::ops::Index;
 use std::ptr::null;
 
 #[derive(Copy, Clone)]
@@ -73,20 +74,44 @@ impl<'arn, N: Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
 }
 
 impl<'arn, N: Copy + Debug + Eq, V: Copy> GenericerEnv<'arn, N, V> {
-    pub fn get(&self, k: N) -> Option<&'arn V> {
+    pub fn get(&self, k: N) -> Option<V> {
         let mut node = self.0?;
         loop {
             if node.name == k {
-                return Some(&node.value);
+                return Some(node.value);
             }
             node = node.next?;
         }
+    }
+
+    pub fn get_idx(&self, i: usize) -> Option<V> {
+        let mut node = self.0?;
+        for _ in 0..i {
+            node = node.next?;
+        }
+        Some(node.value)
+    }
+}
+
+impl<'arn, V: Copy> GenericerEnv<'arn, (), V> {
+    #[must_use]
+    pub fn cons(self, value: V, alloc: Allocs<'arn>) -> Self {
+        self.extend(iter::once(((), value)), alloc)
+    }
+
+    #[must_use]
+    pub fn shift(self, amount: usize) -> Self {
+        let mut node = self.0;
+        for _ in 0..amount {
+            node = node.unwrap().next;
+        }
+        Self(node, self.1 - amount)
     }
 }
 
 impl<'arn, N: Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
     #[must_use]
-    pub fn cons(self, key: N, value: V, alloc: Allocs<'arn>) -> Self {
+    pub fn insert(self, key: N, value: V, alloc: Allocs<'arn>) -> Self {
         self.extend(iter::once((key, value)), alloc)
     }
 
@@ -121,5 +146,17 @@ impl<'arn, N: Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
     pub fn split(&self) -> Option<((N, V), Self)> {
         self.0
             .map(|node| ((node.name, node.value), Self(node.next, self.1 - 1)))
+    }
+}
+
+impl<'arn, V: Copy> Index<usize> for GenericerEnv<'arn, (), V> {
+    type Output = V;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let mut node = self.0.unwrap();
+        for _ in 0..index {
+            node = node.next.unwrap();
+        }
+        &node.value
     }
 }

@@ -8,7 +8,7 @@ use std::mem;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn type_check(&mut self, root: CheckedIndex) -> Result<CheckedIndex, AggregatedTypeError> {
-        let ti = self._type_check(root, &DbEnv::default());
+        let ti = self._type_check(root, DbEnv::default());
 
         let errors = mem::take(&mut self.errors);
         if errors.is_empty() {
@@ -20,7 +20,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: CheckedIndex, env: &DbEnv) -> CheckedIndex {
+    fn _type_check(&mut self, i: CheckedIndex, env: DbEnv<'arn>) -> CheckedIndex {
         // We should only type check values from the source code
         assert!(matches!(
             self.checked_origins[*i],
@@ -37,11 +37,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     v = self.store_checked(CheckedPrismExpr::Free, ValueOrigin::Failure);
                 }
 
-                let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
+                let bt = self._type_check(b, env.cons(CSubst(v, vt), self.allocs));
                 CheckedPrismExpr::Let(v, bt)
             }
-            CheckedPrismExpr::DeBruijnIndex(index) => match env.get(index) {
-                Some(&CType(_, t) | &CSubst(_, t)) => CheckedPrismExpr::Shift(t, index + 1),
+            CheckedPrismExpr::DeBruijnIndex(index) => match env.get_idx(index) {
+                Some(CType(_, t) | CSubst(_, t)) => CheckedPrismExpr::Shift(t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
                     self.errors.push(TypeError::IndexOutOfBound(i));
@@ -57,20 +57,20 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
 
                 let err_count = self.errors.len();
-                let bs = env.cons(CType(self.new_tc_id(), a));
-                let bt = self._type_check(b, &bs);
+                let bs = env.cons(CType(self.new_tc_id(), a), self.allocs);
+                let bt = self._type_check(b, bs);
 
                 // Check if `b` typechecked without errors.
                 if self.errors.len() == err_count {
-                    self.expect_beq_type(bt, &bs);
+                    self.expect_beq_type(bt, bs);
                 }
 
                 CheckedPrismExpr::Type
             }
             CheckedPrismExpr::FnConstruct(b) => {
                 let a = self.store_checked(CheckedPrismExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = env.cons(CType(self.new_tc_id(), a));
-                let bt = self._type_check(b, &bs);
+                let bs = env.cons(CType(self.new_tc_id(), a), self.allocs);
+                let bt = self._type_check(b, bs);
                 CheckedPrismExpr::FnType(a, bt)
             }
             CheckedPrismExpr::FnDestruct(f, mut a) => {
@@ -111,7 +111,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 CheckedPrismExpr::Free
             }
             CheckedPrismExpr::Shift(v, shift) => {
-                CheckedPrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
+                CheckedPrismExpr::Shift(self._type_check(v, env.shift(shift)), shift)
             }
             CheckedPrismExpr::GrammarValue(_, _) => CheckedPrismExpr::GrammarType,
             CheckedPrismExpr::GrammarType => CheckedPrismExpr::Type,

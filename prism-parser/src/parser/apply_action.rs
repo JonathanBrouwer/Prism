@@ -102,7 +102,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         match rule {
             RuleAction::Name(name) => {
                 if let Some(ar) = vars.get(name) {
-                    *ar
+                    ar
                 } else {
                     panic!("Name '{name}' not in context")
                 }

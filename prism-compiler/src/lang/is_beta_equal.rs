@@ -7,9 +7,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn is_beta_equal(
         &mut self,
         i1: CheckedIndex,
-        s1: &DbEnv,
+        s1: DbEnv,
         i2: CheckedIndex,
-        s2: &DbEnv,
+        s2: DbEnv,
     ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
@@ -32,25 +32,35 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             }
             (CheckedPrismExpr::FnType(a1, b1), CheckedPrismExpr::FnType(a2, b2)) => {
-                if !self.is_beta_equal(a1, &s1, a2, &s2) {
+                if !self.is_beta_equal(a1, s1, a2, s2) {
                     return false;
                 }
                 let id = self.new_tc_id();
-                if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
+                if !self.is_beta_equal(
+                    b1,
+                    s1.cons(RType(id), self.allocs),
+                    b2,
+                    s2.cons(RType(id), self.allocs),
+                ) {
                     return false;
                 }
             }
             (CheckedPrismExpr::FnConstruct(b1), CheckedPrismExpr::FnConstruct(b2)) => {
                 let id = self.new_tc_id();
-                if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
+                if !self.is_beta_equal(
+                    b1,
+                    s1.cons(RType(id), self.allocs),
+                    b2,
+                    s2.cons(RType(id), self.allocs),
+                ) {
                     return false;
                 }
             }
             (CheckedPrismExpr::FnDestruct(f1, a1), CheckedPrismExpr::FnDestruct(f2, a2)) => {
-                if !self.is_beta_equal(f1, &s1, f2, &s2) {
+                if !self.is_beta_equal(f1, s1, f2, s2) {
                     return false;
                 }
-                if !self.is_beta_equal(a1, &s1, a2, &s2) {
+                if !self.is_beta_equal(a1, s1, a2, s2) {
                     return false;
                 }
             }

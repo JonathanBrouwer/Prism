@@ -13,7 +13,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         expr: CheckedIndex,
         expr_type: CheckedIndex,
         expected_type: CheckedIndex,
-        s: &DbEnv,
+        s: DbEnv<'arn>,
     ) {
         if !self.expect_beq_internal(
             (expr_type, s, &mut HashMap::new()),
@@ -28,13 +28,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     /// Expect `io` to be equal to `Type`.
-    pub fn expect_beq_type(&mut self, io: CheckedIndex, s: &DbEnv) {
+    pub fn expect_beq_type(&mut self, io: CheckedIndex, s: DbEnv) {
         let (i, s) = self.beta_reduce_head(io, s.clone());
         match self.checked_values[*i] {
             CheckedPrismExpr::Type => {}
             CheckedPrismExpr::Free => {
                 self.checked_values[*i] = CheckedPrismExpr::Type;
-                if !self.handle_constraints(i, &s) {
+                if !self.handle_constraints(i, s) {
                     self.errors.push(TypeError::ExpectType(io));
                 }
             }
@@ -52,7 +52,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         ft: CheckedIndex,
         at: CheckedIndex,
         rt: CheckedIndex,
-        s: &DbEnv,
+        s: DbEnv<'arn>,
     ) {
         let (fr, sr) = self.beta_reduce_head(ft, s.clone());
 
@@ -60,7 +60,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CheckedPrismExpr::FnType(f_at, f_rt) => {
                 // Check
                 if !self.expect_beq_internal(
-                    (f_at, &sr, &mut HashMap::new()),
+                    (f_at, sr, &mut HashMap::new()),
                     (at, s, &mut HashMap::new()),
                 ) {
                     self.errors.push(TypeError::ExpectFnArg {
@@ -77,8 +77,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map1.insert(id, sr.len());
                 var_map2.insert(id, s.len());
                 let is_beq_free = self.expect_beq_free(
-                    (f_rt, &sr.cons(RType(id)), &mut var_map1),
-                    (rt, &s.cons(RType(id)), &mut var_map2),
+                    (f_rt, sr.cons(RType(id), self.allocs), &mut var_map1),
+                    (rt, s.cons(RType(id), self.allocs), &mut var_map2),
                 );
                 assert!(is_beq_free);
             }
@@ -89,7 +89,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
-                if !self.handle_constraints(fr, &sr) {
+                if !self.handle_constraints(fr, sr) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
@@ -99,7 +99,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 let is_beq_free = self.expect_beq_free(
                     (at, s, &mut HashMap::new()),
-                    (f_at, &sr, &mut HashMap::new()),
+                    (f_at, sr, &mut HashMap::new()),
                 );
                 assert!(is_beq_free);
                 self.toxic_values.clear();
@@ -110,8 +110,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 var_map1.insert(id, sr.len());
                 var_map2.insert(id, s.len());
                 let is_beq_free = self.expect_beq_free(
-                    (f_rt, &sr.cons(RType(id)), &mut var_map1),
-                    (rt, &s.cons(RType(id)), &mut var_map2),
+                    (f_rt, sr.cons(RType(id), self.allocs), &mut var_map1),
+                    (rt, s.cons(RType(id), self.allocs), &mut var_map2),
                 );
                 assert!(is_beq_free);
             }

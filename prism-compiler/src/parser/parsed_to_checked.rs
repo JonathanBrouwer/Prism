@@ -70,7 +70,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             }
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
-                let x = &self.grammar_envs[&guid];
+                // let x = &self.grammar_envs[&guid];
 
                 let mut names = jump_labels[&guid].clone();
 

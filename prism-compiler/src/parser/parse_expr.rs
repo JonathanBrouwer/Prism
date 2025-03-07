@@ -21,7 +21,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
     placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
     input: &'grm str,
     prism_env: &mut PrismEnv<'arn, 'grm>,
-) -> (NamedEnv<'arn, 'grm>, DbEnv) {
+) -> (NamedEnv<'arn, 'grm>, DbEnv<'arn>) {
     match env.split() {
         None => (NamedEnv::default(), DbEnv::default()),
         Some(((key, value), rest)) => {
@@ -29,7 +29,8 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
             let dummy_named_env = named_env.insert_name("_", input);
-            let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.new_tc_id()));
+            let dummy_db_env =
+                db_env.cons(EnvEntry::RType(prism_env.new_tc_id()), prism_env.allocs);
 
             // If the name or value of this entry is not known, continue
             let Some(key) = placeholders.get(key) else {
@@ -49,7 +50,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
                 prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
 
             let named_env = named_env.insert_name(key, input);
-            let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
+            let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()), prism_env.allocs);
             (named_env, db_env)
         }
     }
@@ -162,7 +163,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 vec![
                     None,
                     Some(parent_ctx),
-                    Some(parent_ctx.cons(args[0], Some(args[1]), allocs)),
+                    Some(parent_ctx.insert(args[0], Some(args[1]), allocs)),
                 ]
             }
             "FnType" => {
@@ -210,13 +211,14 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
         let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env.clone());
 
-        let common_index = db_env
-            .iter()
-            .rev()
-            .zip(reduced_env.iter().rev())
-            .take_while(|(a, b)| a == b)
-            .count();
-        assert_eq!(common_index, reduced_env.len());
+        // let common_index = db_env
+        //     .into_iter()
+        //     .rev()
+        //     .zip(reduced_env.into_iter().rev())
+        //     .map(|((), v)| v)
+        //     .take_while(|(a, b)| a == b)
+        //     .count();
+        // assert_eq!(common_index, reduced_env.len());
 
         let CheckedPrismExpr::GrammarValue(grammar, guid) =
             prism_env.checked_values[reduced_value.0]
@@ -229,21 +231,21 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             )
         };
 
-        prism_env.grammar_envs.insert(
-            guid,
-            GrammarEnvEntry {
-                env: reduced_env,
-                common_index,
-            },
-        );
+        // prism_env.grammar_envs.insert(
+        //     guid,
+        //     GrammarEnvEntry {
+        //         env: reduced_env,
+        //         common_index,
+        //     },
+        // );
 
         grammar
     }
 }
 
 #[derive(Clone)]
-pub struct GrammarEnvEntry {
-    env: DbEnv,
+pub struct GrammarEnvEntry<'arn> {
+    env: DbEnv<'arn>,
     common_index: usize,
 }
 
@@ -257,7 +259,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
         let guid = value.1;
 
-        let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
+        // let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
 
         let expr = prism_env.store_from_source(
             ParsedPrismExpr::ShiftTo(expr, guid, env),

@@ -63,13 +63,13 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             [
                 (
                     "grammar",
-                    *meta_vars
+                    meta_vars
                         .get("grammar")
                         .expect("Meta grammar contains 'grammar' rule"),
                 ),
                 (
                     "prule_action",
-                    *meta_vars
+                    meta_vars
                         .get("prule_action")
                         .expect("Meta grammar contains 'prule_action' rule"),
                 ),

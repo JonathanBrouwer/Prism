@@ -21,7 +21,7 @@ fn test([test]: [&str; 1]) {
     let expected_eval = env.parsed_to_checked(expected_eval);
 
     assert!(
-        env.is_beta_equal(input, &DbEnv::new(), expected_eval, &DbEnv::new()),
+        env.is_beta_equal(input, DbEnv::default(), expected_eval, DbEnv::default()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
         env.index_to_br_string(input),

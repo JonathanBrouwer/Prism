@@ -5,13 +5,13 @@ use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce(&mut self, i: CheckedIndex) -> CheckedIndex {
-        self.beta_reduce_inner(i, &DbEnv::new(), &mut HashMap::new())
+        self.beta_reduce_inner(i, DbEnv::default(), &mut HashMap::new())
     }
 
     fn beta_reduce_inner(
         &mut self,
         i: CheckedIndex,
-        s: &DbEnv,
+        s: DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CheckedIndex {
         let (i, s) = self.beta_reduce_head(i, s.clone());
@@ -30,23 +30,25 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 CheckedPrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
             }
             CheckedPrismExpr::FnType(a, b) => {
-                let a = self.beta_reduce_inner(a, &s, var_map);
+                let a = self.beta_reduce_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
-                let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
+                let sub_env = s.cons(EnvEntry::RType(id), self.allocs);
+                let b = self.beta_reduce_inner(b, sub_env, var_map);
                 var_map.remove(&id);
                 CheckedPrismExpr::FnType(a, b)
             }
             CheckedPrismExpr::FnConstruct(b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
-                let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
+                let sub_env = s.cons(EnvEntry::RType(id), self.allocs);
+                let b = self.beta_reduce_inner(b, sub_env, var_map);
                 var_map.remove(&id);
                 CheckedPrismExpr::FnConstruct(b)
             }
             CheckedPrismExpr::FnDestruct(a, b) => {
-                let a = self.beta_reduce_inner(a, &s, var_map);
-                let b = self.beta_reduce_inner(b, &s, var_map);
+                let a = self.beta_reduce_inner(a, s, var_map);
+                let b = self.beta_reduce_inner(b, s, var_map);
                 CheckedPrismExpr::FnDestruct(a, b)
             }
             CheckedPrismExpr::Free => CheckedPrismExpr::Free,
