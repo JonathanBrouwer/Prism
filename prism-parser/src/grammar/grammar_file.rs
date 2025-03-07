@@ -32,6 +32,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
                 _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|rule| *rule.into_value::<Rule>()),
             ),
         }

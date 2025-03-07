@@ -44,12 +44,14 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
                 _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|n| ("ActionResult", parse_identifier(n, _src))),
             ),
             blocks: _allocs.alloc_extend(
                 _args[3]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|block| *block.into_value::<RuleBlock>()),
             ),
             return_type: "ActionResult",

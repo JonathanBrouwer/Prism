@@ -41,6 +41,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
                     _args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
             ),

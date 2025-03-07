@@ -227,8 +227,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 }
 
                 res.map(|rtrn| {
-                    rtrn.iter().rfold(ParsedList::new_empty(), |rest, next| {
-                        rest.cons(next.rtrn, self.alloc)
+                    rtrn.iter().rfold(ParsedList::default(), |rest, next| {
+                        rest.cons((), next.rtrn, self.alloc)
                     })
                 })
                 .map(|ar| PR::with_rtrn(self.alloc.alloc(ar).to_parsed()))

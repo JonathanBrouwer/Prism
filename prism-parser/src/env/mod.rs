@@ -4,11 +4,14 @@ use std::iter;
 use std::ptr::null;
 
 #[derive(Copy, Clone)]
-pub struct GenericerEnv<'arn, N: Eq + Copy, V: Copy>(Option<&'arn GenericerEnvNode<'arn, N, V>>);
+pub struct GenericerEnv<'arn, N: Eq + Copy, V: Copy>(
+    Option<&'arn GenericerEnvNode<'arn, N, V>>,
+    usize,
+);
 
 impl<'arn, N: Debug + Eq + Copy, V: Copy> Default for GenericerEnv<'arn, N, V> {
     fn default() -> Self {
-        Self(None)
+        Self(None, 0)
     }
 }
 
@@ -31,6 +34,7 @@ impl<'arn, N: Debug + Eq + Copy, V: Copy> Debug for GenericerEnv<'arn, N, V> {
 
 pub struct GenericerEnvIterator<'arn, N: Eq + Copy, V: Copy> {
     current: Option<&'arn GenericerEnvNode<'arn, N, V>>,
+    len_left: usize,
 }
 
 impl<'arn, N: Eq + Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> {
@@ -45,14 +49,23 @@ impl<'arn, N: Eq + Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> 
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len_left, Some(self.len_left))
+    }
 }
+
+impl<'arn, N: Eq + Copy, V: Copy> ExactSizeIterator for GenericerEnvIterator<'arn, N, V> {}
 
 impl<'arn, N: Eq + Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
     type Item = (N, V);
     type IntoIter = GenericerEnvIterator<'arn, N, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        GenericerEnvIterator { current: self.0 }
+        GenericerEnvIterator {
+            current: self.0,
+            len_left: self.1,
+        }
     }
 }
 
@@ -79,7 +92,8 @@ impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
                 next: self.0,
                 name,
                 value,
-            }))
+            }));
+            self.1 += 1;
         }
         self
     }
@@ -93,5 +107,9 @@ impl<'arn, N: Eq + Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
         self.0
             .map(|r| r as *const GenericerEnvNode<'arn, N, V>)
             .unwrap_or(null())
+    }
+
+    pub fn len(&self) -> usize {
+        self.1
     }
 }

@@ -43,6 +43,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
                 _args[1]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|p| *p.into_value::<CharClassRange>()),
             ),
         }

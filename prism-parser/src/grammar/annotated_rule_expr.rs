@@ -32,6 +32,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn
                 _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|annot| *annot.into_value::<RuleAnnotation>()),
             ),
             _args[1].into_value::<RuleExpr<'arn, 'grm>>(),

@@ -40,6 +40,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleBlock<'arn, 'grm> 
                 _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|c| *c.into_value::<AnnotatedRuleExpr>()),
             ),
         }

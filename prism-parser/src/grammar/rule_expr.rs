@@ -64,6 +64,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
@@ -72,6 +73,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
@@ -97,6 +99,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[1]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             },
