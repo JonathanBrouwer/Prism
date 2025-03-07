@@ -1,7 +1,7 @@
 use crate::core::adaptive::BlockState;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::ParseResult;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 
 #[derive(Copy, Clone)]
 pub struct RuleClosure<'arn, 'grm> {

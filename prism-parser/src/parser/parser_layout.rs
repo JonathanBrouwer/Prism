@@ -8,7 +8,7 @@ use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::ParseResult;
 use crate::parsable::void::Void;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_with_layout<'a, O>(

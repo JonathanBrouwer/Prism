@@ -1,6 +1,7 @@
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry};
+use crate::parser::parse_expr::reduce_expr;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::input::Input;
 use prism_parser::parsable::guid::Guid;
@@ -54,10 +55,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                                 &env.shift_back(old_names, self.input),
                                 jump_labels,
                             );
-                        } else if let Some(_name) = parsed.try_into_value::<Input>() {
-                            todo!()
-                            // self.values[*i] = PrismExpr::Name(name.as_str(self.input));
-                            // self._type_check(i, env)
                         } else {
                             unreachable!(
                                 "Found name `{name}` referring to {}",
@@ -73,7 +70,29 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             }
             ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
-                let env = env.shift_to_label(guid, captured_env, self, jump_labels);
+                let x = &self.grammar_envs[&guid];
+
+                let mut names = jump_labels[&guid].clone();
+
+                for (name, value) in captured_env
+                    .into_iter()
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
+                {
+                    names.insert_mut(
+                        name,
+                        NamesEntry::FromParsed(reduce_expr(value, self), env.names.clone()),
+                    );
+                }
+
+                let env = NamedEnv::<'arn, 'grm> {
+                    env_len: env.env_len,
+                    names,
+                    //TODO should these be preserved?
+                    hygienic_names: Default::default(),
+                };
+
                 return self.parsed_to_checked_with_env(b, &env, jump_labels);
             }
             ParsedPrismExpr::GrammarValue(v, guid) => {

@@ -11,6 +11,7 @@ use crate::parser::parser_instance::run_parser_rule;
 use grammar::grammar_file::GrammarFile;
 
 pub mod core;
+mod env;
 pub mod error;
 pub mod grammar;
 pub mod parsable;

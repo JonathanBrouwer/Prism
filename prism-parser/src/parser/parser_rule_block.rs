@@ -12,7 +12,7 @@ use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
     pub fn parse_rule_block(

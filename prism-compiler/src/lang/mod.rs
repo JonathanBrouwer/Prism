@@ -1,5 +1,6 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
+use crate::parser::parse_expr::GrammarEnvEntry;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::cache::Allocs;
 use prism_parser::core::pos::Pos;
@@ -81,7 +82,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Parsed Values
     pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
     pub parsed_spans: Vec<Span>,
-    pub grammar_envs: HashMap<Guid, ()>,
+    pub grammar_envs: HashMap<Guid, GrammarEnvEntry>,
 
     // Checked Values
     pub checked_values: Vec<CheckedPrismExpr<'arn, 'grm>>,

@@ -1,5 +1,5 @@
 use crate::parsable::parsed::Parsed;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 

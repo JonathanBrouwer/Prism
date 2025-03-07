@@ -20,8 +20,8 @@ use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
+use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
-use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {

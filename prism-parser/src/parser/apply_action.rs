@@ -8,8 +8,8 @@ use crate::parsable::ParseResult;
 use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
+use crate::parser::VarMap;
 use crate::parser::placeholder_store::ParsedPlaceholder;
-use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 use std::iter;
 

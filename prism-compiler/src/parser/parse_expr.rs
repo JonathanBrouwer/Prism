@@ -257,10 +257,22 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             )
         };
 
-        prism_env.grammar_envs.insert(guid, ());
+        prism_env.grammar_envs.insert(
+            guid,
+            GrammarEnvEntry {
+                env: reduced_env,
+                common_index,
+            },
+        );
 
         grammar
     }
+}
+
+#[derive(Clone)]
+pub struct GrammarEnvEntry {
+    env: DbEnv,
+    common_index: usize,
 }
 
 pub fn reduce_expr<'arn, 'grm: 'arn>(
@@ -272,6 +284,8 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         let env = v.env;
         let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
         let guid = value.1;
+
+        let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
 
         let expr = prism_env.store_from_source(
             ParsedPrismExpr::ShiftTo(expr, guid, env),

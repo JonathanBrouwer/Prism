@@ -3,15 +3,15 @@ use crate::parser::parse_expr::reduce_expr;
 use prism_parser::core::input::Input;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parser::var_map::VarMap;
+use prism_parser::parser::VarMap;
 use rpds::HashTrieMap;
 use std::collections::HashMap;
 
 #[derive(Default, Clone)]
 pub struct NamedEnv<'arn, 'grm> {
-    env_len: usize,
+    pub(crate) env_len: usize,
     pub names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
-    hygienic_names: HashTrieMap<&'arn str, usize>,
+    pub(crate) hygienic_names: HashTrieMap<&'arn str, usize>,
 }
 
 #[derive(Debug)]
@@ -68,30 +68,6 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
     ) {
         jump_labels.insert(guid, self.names.clone());
-    }
-
-    pub fn shift_to_label(
-        &self,
-        guid: Guid,
-        vars: VarMap<'arn, 'grm>,
-        env: &mut PrismEnv<'arn, 'grm>,
-        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
-    ) -> Self {
-        let mut names = jump_labels[&guid].clone();
-
-        for (name, value) in vars.into_iter().collect::<Vec<_>>().into_iter().rev() {
-            names.insert_mut(
-                name,
-                NamesEntry::FromParsed(reduce_expr(value, env), self.names.clone()),
-            );
-        }
-
-        Self {
-            env_len: self.env_len,
-            names,
-            //TODO should these be preserved?
-            hygienic_names: Default::default(),
-        }
     }
 
     pub fn shift_back(
