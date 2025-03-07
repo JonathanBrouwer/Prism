@@ -12,8 +12,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         s2: DbEnv,
     ) -> bool {
         // Brh and reduce i1 and i2
-        let (i1, s1) = self.beta_reduce_head(i1, s1.clone());
-        let (i2, s2) = self.beta_reduce_head(i2, s2.clone());
+        let (i1, s1) = self.beta_reduce_head(i1, s1);
+        let (i2, s2) = self.beta_reduce_head(i2, s2);
 
         match (self.checked_values[*i1], self.checked_values[*i2]) {
             (CheckedPrismExpr::Type, CheckedPrismExpr::Type) => {}

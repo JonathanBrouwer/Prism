@@ -14,7 +14,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         s: DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CheckedIndex {
-        let (i, s) = self.beta_reduce_head(i, s.clone());
+        let (i, s) = self.beta_reduce_head(i, s);
 
         let e_new = match self.checked_values[*i] {
             // Values

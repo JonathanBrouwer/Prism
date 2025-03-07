@@ -24,8 +24,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         ),
     ) -> bool {
         // Brh and reduce i1 and i2
-        let (i1, s1) = self.beta_reduce_head(i1o, s1.clone());
-        let (i2, s2) = self.beta_reduce_head(i2o, s2.clone());
+        let (i1, s1) = self.beta_reduce_head(i1o, s1);
+        let (i2, s2) = self.beta_reduce_head(i2o, s2);
 
         match (self.checked_values[*i1], self.checked_values[*i2]) {
             // Type is always equal to Type
@@ -113,7 +113,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             &mut HashMap<UniqueVariableId, usize>,
         ),
     ) -> bool {
-        let (f1, f1s) = self.beta_reduce_head(f1, s1.clone());
+        let (f1, f1s) = self.beta_reduce_head(f1, s1);
         assert!(matches!(
             self.checked_values[*i2],
             CheckedPrismExpr::Type
@@ -314,14 +314,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 constraints_eq && f_eq && a_eq
             }
             CheckedPrismExpr::Free => {
-                self.queued_beq_free.entry(i1).or_default().push((
-                    (s1.clone(), var_map1.clone()),
-                    (i2, s2.clone(), var_map2.clone()),
-                ));
-                self.queued_beq_free.entry(i2).or_default().push((
-                    (s2.clone(), var_map2.clone()),
-                    (i1, s1.clone(), var_map1.clone()),
-                ));
+                self.queued_beq_free
+                    .entry(i1)
+                    .or_default()
+                    .push(((s1, var_map1.clone()), (i2, s2, var_map2.clone())));
+                self.queued_beq_free
+                    .entry(i2)
+                    .or_default()
+                    .push(((s2, var_map2.clone()), (i1, s1, var_map1.clone())));
                 true
             }
             CheckedPrismExpr::Shift(v1, i) => {

@@ -12,7 +12,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         let mut args: Vec<(CheckedIndex, DbEnv)> = Vec::new();
 
         let mut e: CheckedIndex = start_expr;
-        let mut s: DbEnv = start_env.clone();
+        let mut s: DbEnv = start_env;
 
         loop {
             match self.checked_values[*e] {
@@ -26,7 +26,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
                 CheckedPrismExpr::Let(v, b) => {
                     e = b;
-                    s = s.cons(RSubst(v, s.clone()), self.allocs)
+                    s = s.cons(RSubst(v, s), self.allocs)
                 }
                 CheckedPrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
@@ -42,7 +42,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     RSubst(v, ref vs) => {
                         e = v;
-                        s = vs.clone();
+                        s = *vs;
                     }
                 },
                 CheckedPrismExpr::FnConstruct(b) => match args.pop() {
@@ -56,11 +56,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
                     if args.is_empty() {
                         start_expr = e;
-                        start_env = s.clone();
+                        start_env = s;
                     }
                     // Push new argument to stack
                     e = f;
-                    args.push((a, s.clone()));
+                    args.push((a, s));
                 }
                 CheckedPrismExpr::Free => {
                     return if args.is_empty() {

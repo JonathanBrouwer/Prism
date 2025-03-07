@@ -13,7 +13,7 @@ impl<'arn, 'grm: 'arn, N: Copy + Sized + Sync + Send + 'arn, V: Copy + Sized + S
 {
 }
 
-impl<'arn, N: Debug + Copy, V: Copy> Default for GenericerEnv<'arn, N, V> {
+impl<N: Debug + Copy, V: Copy> Default for GenericerEnv<'_, N, V> {
     fn default() -> Self {
         Self(None, 0)
     }
@@ -26,7 +26,7 @@ pub struct GenericerEnvNode<'arn, N: Copy, V: Copy> {
     next: Option<&'arn GenericerEnvNode<'arn, N, V>>,
 }
 
-impl<'arn, N: Debug + Copy, V: Copy> Debug for GenericerEnv<'arn, N, V> {
+impl<N: Debug + Copy, V: Copy> Debug for GenericerEnv<'_, N, V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
         for (name, _value) in *self {
@@ -41,7 +41,7 @@ pub struct GenericerEnvIterator<'arn, N: Copy, V: Copy> {
     len_left: usize,
 }
 
-impl<'arn, N: Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> {
+impl<N: Copy, V: Copy> Iterator for GenericerEnvIterator<'_, N, V> {
     type Item = (N, V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -59,7 +59,7 @@ impl<'arn, N: Copy, V: Copy> Iterator for GenericerEnvIterator<'arn, N, V> {
     }
 }
 
-impl<'arn, N: Copy, V: Copy> ExactSizeIterator for GenericerEnvIterator<'arn, N, V> {}
+impl<N: Copy, V: Copy> ExactSizeIterator for GenericerEnvIterator<'_, N, V> {}
 
 impl<'arn, N: Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
     type Item = (N, V);
@@ -73,7 +73,7 @@ impl<'arn, N: Copy, V: Copy> IntoIterator for GenericerEnv<'arn, N, V> {
     }
 }
 
-impl<'arn, N: Copy + Debug + Eq, V: Copy> GenericerEnv<'arn, N, V> {
+impl<N: Copy + Debug + Eq, V: Copy> GenericerEnv<'_, N, V> {
     pub fn get(&self, k: N) -> Option<V> {
         let mut node = self.0?;
         loop {
@@ -143,13 +143,17 @@ impl<'arn, N: Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
         self.1
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_none()
+    }
+
     pub fn split(&self) -> Option<((N, V), Self)> {
         self.0
             .map(|node| ((node.name, node.value), Self(node.next, self.1 - 1)))
     }
 }
 
-impl<'arn, V: Copy> Index<usize> for GenericerEnv<'arn, (), V> {
+impl<V: Copy> Index<usize> for GenericerEnv<'_, (), V> {
     type Output = V;
 
     fn index(&self, index: usize) -> &Self::Output {

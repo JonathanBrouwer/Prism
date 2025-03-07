@@ -29,7 +29,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
     /// Expect `io` to be equal to `Type`.
     pub fn expect_beq_type(&mut self, io: CheckedIndex, s: DbEnv) {
-        let (i, s) = self.beta_reduce_head(io, s.clone());
+        let (i, s) = self.beta_reduce_head(io, s);
         match self.checked_values[*i] {
             CheckedPrismExpr::Type => {}
             CheckedPrismExpr::Free => {
@@ -54,7 +54,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         rt: CheckedIndex,
         s: DbEnv<'arn>,
     ) {
-        let (fr, sr) = self.beta_reduce_head(ft, s.clone());
+        let (fr, sr) = self.beta_reduce_head(ft, s);
 
         match self.checked_values[*fr] {
             CheckedPrismExpr::FnType(f_at, f_rt) => {

@@ -3,7 +3,6 @@ use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry};
 use crate::parser::parse_expr::reduce_expr;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
-use prism_parser::core::input::Input;
 use prism_parser::parsable::guid::Guid;
 use rpds::HashTrieMap;
 use std::collections::HashMap;
