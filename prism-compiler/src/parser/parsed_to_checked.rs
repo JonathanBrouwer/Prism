@@ -6,16 +6,17 @@ use crate::parser::parse_expr::{GrammarEnvEntry, reduce_expr};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::parsable::guid::Guid;
 use std::collections::HashMap;
+use prism_parser::core::span::Span;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CheckedIndex {
-        self.parsed_to_checked_with_env(i, &NamedEnv::default(), &mut HashMap::new())
+        self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut HashMap::new())
     }
 
     pub fn parsed_to_checked_with_env(
         &mut self,
         i: ParsedIndex,
-        env: &NamedEnv<'arn, 'grm>,
+        env: NamedEnv<'arn, 'grm>,
         jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
     ) -> CheckedIndex {
         let e = match self.parsed_values[*i] {
@@ -25,7 +26,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    &env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, self.input, self.allocs),
                     jump_labels,
                 ),
             ),
@@ -33,14 +34,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(a, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    &env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, self.input, self.allocs),
                     jump_labels,
                 ),
             ),
             ParsedPrismExpr::FnConstruct(n, b) => {
                 CheckedPrismExpr::FnConstruct(self.parsed_to_checked_with_env(
                     b,
-                    &env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, self.input, self.allocs),
                     jump_labels,
                 ))
             }
@@ -66,7 +67,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
                                 expr,
-                                &env.shift_back(old_names, self.input, self.allocs),
+                                env.shift_back(old_names, self.input, self.allocs),
                                 jump_labels,
                             );
                         } else {
@@ -93,8 +94,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 },
             ) => {
                 let mut names = jump_labels[&guid];
-
-                names = Self::apply_names(names, grammar_env, common_len);
+                let original_names = names;
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -109,14 +109,20 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     );
                 }
 
+                let extra_applied_names = grammar_env.len() - common_len;
+
                 let env = NamedEnv::<'arn, 'grm> {
-                    env_len: env.env_len,
+                    todo //TODO mistake is that the inlined part of `names` should be shifted over 
+                    env_len: env.env_len + extra_applied_names,
                     names,
                     //TODO should these be preserved?
                     hygienic_names: Default::default(),
                 };
+                
+                println!("{names:?}");
 
-                return self.parsed_to_checked_with_env(b, &env, jump_labels);
+                let body = self.parsed_to_checked_with_env(b, env, jump_labels);
+                return self.apply_names(original_names, grammar_env, common_len, body);
             }
             ParsedPrismExpr::GrammarValue(v, guid) => {
                 env.insert_shift_label(guid, jump_labels);
@@ -128,26 +134,34 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     fn apply_names(
-        names: NamesEnv<'arn, 'grm>,
-        grammar_env: DbEnv<'arn>,
+        &mut self,
+        mut names: NamesEnv<'arn, 'grm>,
+        mut grammar_env: DbEnv<'arn>,
         common_len: usize,
-    ) -> NamesEnv<'arn, 'grm> {
-        if grammar_env.len() == common_len {
-            return names;
+        mut body: CheckedIndex,
+    ) -> CheckedIndex {
+        while grammar_env.len() > common_len {
+            let ((name, names_entry), names_rest) = names.split().unwrap();
+            let NamesEntry::FromEnv(prev_env_len) = names_entry else {
+                panic!("Got non-names entry")
+            };
+            names = names_rest;
+
+            let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
+            grammar_env = grammar_rest;
+
+            // Always 0 because grammar_env changes :D
+            let db_index = grammar_env.len() - prev_env_len;
+            assert_eq!(db_index, 0);
+
+            let typ = self.store_checked(CheckedPrismExpr::Type, ValueOrigin::SourceCode(Span::invalid()));
+            body = self.store_checked(CheckedPrismExpr::Let(
+                typ,
+                body
+            ), ValueOrigin::SourceCode(Span::invalid()));
         }
 
-        let ((name, names_entry), names_rest) = names.split().unwrap();
 
-        let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
-        Self::apply_names(names_rest, grammar_rest, common_len);
-
-        println!("Entry: {name} {names_entry:?}");
-
-        names
-
-        // grammar_env
-        // if common_index != 0 {
-        //     Self::apply_names(names, grammar_env.shift(1), common_index - 1);
-        // }
+        body
     }
 }

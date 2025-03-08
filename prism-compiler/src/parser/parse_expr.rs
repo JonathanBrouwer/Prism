@@ -47,7 +47,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
             };
             let value = value.into_value::<ParsedIndex>();
             let value =
-                prism_env.parsed_to_checked_with_env(*value, &named_env, &mut HashMap::new());
+                prism_env.parsed_to_checked_with_env(*value, named_env, &mut HashMap::new());
 
             let named_env = named_env.insert_name(key, input, prism_env.allocs);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env), prism_env.allocs);
@@ -208,7 +208,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
+        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
         let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
 
         let CheckedPrismExpr::GrammarValue(grammar, guid) =
