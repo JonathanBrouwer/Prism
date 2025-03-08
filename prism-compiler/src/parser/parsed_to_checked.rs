@@ -94,7 +94,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ) => {
                 let mut names = jump_labels[&guid];
 
-                Self::apply_names(&mut names, grammar_env, common_len);
+                names = Self::apply_names(names, grammar_env, common_len);
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -127,14 +127,23 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }
 
-    fn apply_names(names: &mut NamesEnv, grammar_env: DbEnv, common_len: usize) {
+    fn apply_names(
+        names: NamesEnv<'arn, 'grm>,
+        grammar_env: DbEnv<'arn>,
+        common_len: usize,
+    ) -> NamesEnv<'arn, 'grm> {
         if grammar_env.len() == common_len {
-            return;
+            return names;
         }
 
-        let (((), entry), rest) = grammar_env.split().unwrap();
+        let ((name, names_entry), names_rest) = names.split().unwrap();
 
-        todo!()
+        let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
+        Self::apply_names(names_rest, grammar_rest, common_len);
+
+        println!("Entry: {name} {names_entry:?}");
+
+        names
 
         // grammar_env
         // if common_index != 0 {

@@ -1,6 +1,6 @@
 use crate::lang::CheckedIndex;
 use crate::lang::PrismEnv;
-use prism_parser::env::GenericerEnv;
+use prism_parser::env::GenericEnv;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
@@ -13,7 +13,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 }
 
-pub type DbEnv<'arn> = GenericerEnv<'arn, (), EnvEntry<'arn>>;
+pub type DbEnv<'arn> = GenericEnv<'arn, (), EnvEntry<'arn>>;
 
 #[derive(Copy, Clone, Debug)]
 pub enum EnvEntry<'arn> {

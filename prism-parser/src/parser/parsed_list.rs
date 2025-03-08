@@ -1,10 +1,10 @@
 use crate::core::allocs::Allocs;
 use crate::core::span::Span;
-use crate::env::GenericerEnv;
+use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 
-pub type ParsedList<'arn, 'grm> = GenericerEnv<'arn, (), Parsed<'arn, 'grm>>;
+pub type ParsedList<'arn, 'grm> = GenericEnv<'arn, (), Parsed<'arn, 'grm>>;
 
 impl<'arn, 'grm, Env> Parsable<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
     type EvalCtx = ();

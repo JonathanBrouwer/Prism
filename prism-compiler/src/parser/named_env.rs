@@ -1,19 +1,19 @@
 use crate::lang::CheckedIndex;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
-use prism_parser::env::GenericerEnv;
+use prism_parser::env::GenericEnv;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use std::collections::HashMap;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Copy)]
 pub struct NamedEnv<'arn, 'grm> {
     pub(crate) env_len: usize,
     pub names: NamesEnv<'arn, 'grm>,
-    pub(crate) hygienic_names: GenericerEnv<'arn, &'arn str, usize>,
+    pub(crate) hygienic_names: GenericEnv<'arn, &'arn str, usize>,
 }
 
-pub type NamesEnv<'arn, 'grm> = GenericerEnv<'arn, &'arn str, NamesEntry<'arn, 'grm>>;
+pub type NamesEnv<'arn, 'grm> = GenericEnv<'arn, &'arn str, NamesEntry<'arn, 'grm>>;
 
 #[derive(Debug, Copy, Clone)]
 pub enum NamesEntry<'arn, 'grm> {
@@ -24,11 +24,7 @@ pub enum NamesEntry<'arn, 'grm> {
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     pub fn insert_name(&self, name: &'arn str, input: &'arn str, allocs: Allocs<'arn>) -> Self {
-        let mut s = if name != "_" {
-            self.insert_name_at(name, self.env_len, input, allocs)
-        } else {
-            self.clone()
-        };
+        let mut s = self.insert_name_at(name, self.env_len, input, allocs);
         s.env_len += 1;
         s
     }
