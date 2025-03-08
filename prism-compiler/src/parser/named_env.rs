@@ -18,7 +18,7 @@ pub type NamesEnv<'arn, 'grm> = GenericerEnv<'arn, &'arn str, NamesEntry<'arn, '
 #[derive(Debug, Copy, Clone)]
 pub enum NamesEntry<'arn, 'grm> {
     FromEnv(usize),
-    FromEnvSubst(CheckedIndex, NamesEnv<'arn, 'grm>),
+    FromEnvSubst(CheckedIndex),
     FromParsed(Parsed<'arn, 'grm>, NamesEnv<'arn, 'grm>),
 }
 

@@ -226,7 +226,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             guid,
             GrammarEnvEntry {
                 grammar_env: reduced_env,
-                common_index: db_env.intersect(reduced_env).len(),
+                common_len: db_env.intersect(reduced_env).len(),
             },
         );
 
@@ -237,7 +237,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 #[derive(Clone, Copy)]
 pub struct GrammarEnvEntry<'arn> {
     pub grammar_env: DbEnv<'arn>,
-    pub common_index: usize,
+    pub common_len: usize,
 }
 
 pub fn reduce_expr<'arn, 'grm: 'arn>(

@@ -1,3 +1,4 @@
+use crate::lang::env::DbEnv;
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
@@ -88,10 +89,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 captured_env,
                 GrammarEnvEntry {
                     grammar_env,
-                    common_index,
+                    common_len,
                 },
             ) => {
                 let mut names = jump_labels[&guid];
+
+                Self::apply_names(&mut names, grammar_env, common_len);
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -122,5 +125,20 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
+    }
+
+    fn apply_names(names: &mut NamesEnv, grammar_env: DbEnv, common_len: usize) {
+        if grammar_env.len() == common_len {
+            return;
+        }
+
+        let (((), entry), rest) = grammar_env.split().unwrap();
+
+        todo!()
+
+        // grammar_env
+        // if common_index != 0 {
+        //     Self::apply_names(names, grammar_env.shift(1), common_index - 1);
+        // }
     }
 }
