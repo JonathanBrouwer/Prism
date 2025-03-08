@@ -1,7 +1,7 @@
 use crate::lang::error::TypeError;
 use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
-use crate::parser::parse_expr::reduce_expr;
+use crate::parser::parse_expr::{GrammarEnvEntry, reduce_expr};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::parsable::guid::Guid;
 use std::collections::HashMap;
@@ -58,6 +58,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
                         CheckedPrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
+                    Some(NamesEntry::FromEnvSubst(..)) => {
+                        todo!()
+                    }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
@@ -79,9 +82,15 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
-            ParsedPrismExpr::ShiftTo(b, guid, captured_env) => {
-                // let x = &self.grammar_envs[&guid];
-
+            ParsedPrismExpr::ShiftTo(
+                b,
+                guid,
+                captured_env,
+                GrammarEnvEntry {
+                    grammar_env,
+                    common_index,
+                },
+            ) => {
                 let mut names = jump_labels[&guid];
 
                 for (name, value) in captured_env

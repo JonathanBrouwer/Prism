@@ -21,9 +21,9 @@ impl<N: Debug + Copy, V: Copy> Default for GenericerEnv<'_, N, V> {
 
 #[derive(Copy, Clone)]
 pub struct GenericerEnvNode<'arn, N: Copy, V: Copy> {
+    next: Option<&'arn GenericerEnvNode<'arn, N, V>>,
     name: N,
     value: V,
-    next: Option<&'arn GenericerEnvNode<'arn, N, V>>,
 }
 
 impl<N: Debug + Copy, V: Copy> Debug for GenericerEnv<'_, N, V> {
@@ -144,12 +144,42 @@ impl<'arn, N: Copy + Debug, V: Copy> GenericerEnv<'arn, N, V> {
     }
 
     pub fn is_empty(&self) -> bool {
+        debug_assert_eq!(self.1, 0);
         self.0.is_none()
     }
 
     pub fn split(&self) -> Option<((N, V), Self)> {
         self.0
             .map(|node| ((node.name, node.value), Self(node.next, self.1 - 1)))
+    }
+
+    pub fn intersect(self, other: Self) -> Self {
+        let mut n1 = self.0;
+        let mut n2 = other.0;
+
+        // Align both pointers
+        let mut len = if self.1 > other.1 {
+            for _ in 0..(self.1 - other.1) {
+                n1 = n1.unwrap().next;
+            }
+            other.1
+        } else {
+            for _ in 0..(other.1 - self.1) {
+                n2 = n2.unwrap().next;
+            }
+            self.1
+        };
+
+        // Traverse until equal
+        while n1.map(|p| p as *const GenericerEnvNode<N, V>)
+            != n2.map(|p| p as *const GenericerEnvNode<N, V>)
+        {
+            n1 = n1.unwrap().next;
+            n2 = n2.unwrap().next;
+            len -= 1;
+        }
+
+        Self(n1, len)
     }
 }
 

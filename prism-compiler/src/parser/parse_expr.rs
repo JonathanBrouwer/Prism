@@ -209,18 +209,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         prism_env.errors.truncate(error_count);
 
         let value = prism_env.parsed_to_checked_with_env(*self, &named_env, &mut HashMap::new());
-        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(value, db_env);
+        let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
 
-        // let common_index = db_env
-        //     .into_iter()
-        //     .rev()
-        //     .zip(reduced_env.into_iter().rev())
-        //     .map(|((), v)| v)
-        //     .take_while(|(a, b)| a == b)
-        //     .count();
-        // assert_eq!(common_index, reduced_env.len());
-
-        let CheckedPrismExpr::GrammarValue(grammar, _guid) =
+        let CheckedPrismExpr::GrammarValue(grammar, guid) =
             prism_env.checked_values[reduced_value.0]
         else {
             panic!(
@@ -231,22 +222,22 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             )
         };
 
-        // prism_env.grammar_envs.insert(
-        //     guid,
-        //     GrammarEnvEntry {
-        //         env: reduced_env,
-        //         common_index,
-        //     },
-        // );
+        prism_env.grammar_envs.insert(
+            guid,
+            GrammarEnvEntry {
+                grammar_env: reduced_env,
+                common_index: db_env.intersect(reduced_env).len(),
+            },
+        );
 
         grammar
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct GrammarEnvEntry<'arn> {
-    env: DbEnv<'arn>,
-    common_index: usize,
+    pub grammar_env: DbEnv<'arn>,
+    pub common_index: usize,
 }
 
 pub fn reduce_expr<'arn, 'grm: 'arn>(
@@ -259,10 +250,10 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
         let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
         let guid = value.1;
 
-        // let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
+        let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
 
         let expr = prism_env.store_from_source(
-            ParsedPrismExpr::ShiftTo(expr, guid, env),
+            ParsedPrismExpr::ShiftTo(expr, guid, env, *grammar_env_entry),
             prism_env.parsed_spans[*expr],
         );
         Parsed::from_value(prism_env.allocs.alloc(expr))
