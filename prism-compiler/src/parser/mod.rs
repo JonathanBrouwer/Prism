@@ -69,7 +69,7 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     // Temporary expressions after parsing
     Name(&'grm str),
     ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>, GrammarEnvEntry<'arn>),
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
     GrammarType,
 }
 

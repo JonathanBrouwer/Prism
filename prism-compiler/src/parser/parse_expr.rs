@@ -125,11 +125,9 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 ParsedPrismExpr::TypeAssert(e, typ)
             }
             "GrammarValue" => {
-                assert_eq!(args.len(), 2);
+                assert_eq!(args.len(), 1);
                 let grammar = args[0].into_value();
-                let guid: Guid = *args[1].into_value();
-
-                ParsedPrismExpr::GrammarValue(grammar, guid)
+                ParsedPrismExpr::GrammarValue(grammar)
             }
             "GrammarType" => {
                 assert_eq!(args.len(), 0);
@@ -183,8 +181,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
                 vec![Some(parent_ctx), Some(parent_ctx)]
             }
             "GrammarValue" => {
-                assert_eq!(args.len(), 2);
-                vec![None, None]
+                assert_eq!(args.len(), 1);
+                vec![None]
             }
             "GrammarType" => {
                 assert_eq!(args.len(), 0);
@@ -203,33 +201,34 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         src: &'grm str,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> &'arn GrammarFile<'arn, 'grm> {
-        // Create context, ignore any errors that occur in this process
-        let error_count = prism_env.errors.len();
-        let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
-        prism_env.errors.truncate(error_count);
-
-        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
-        let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
-
-        let CorePrismExpr::GrammarValue(grammar, guid) = prism_env.checked_values[reduced_value.0]
-        else {
-            panic!(
-                "Tried to reduce expression which was not a grammar: {} / {} / {}",
-                prism_env.parse_index_to_string(*self),
-                prism_env.index_to_string(value),
-                prism_env.index_to_string(reduced_value)
-            )
-        };
-
-        prism_env.grammar_envs.insert(
-            guid,
-            GrammarEnvEntry {
-                grammar_env: reduced_env,
-                common_len: db_env.intersect(reduced_env).len(),
-            },
-        );
-
-        grammar
+        todo!()
+        // // Create context, ignore any errors that occur in this process
+        // let error_count = prism_env.errors.len();
+        // let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
+        // prism_env.errors.truncate(error_count);
+        //
+        // let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
+        // let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
+        //
+        // let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0]
+        // else {
+        //     panic!(
+        //         "Tried to reduce expression which was not a grammar: {} / {} / {}",
+        //         prism_env.parse_index_to_string(*self),
+        //         prism_env.index_to_string(value),
+        //         prism_env.index_to_string(reduced_value)
+        //     )
+        // };
+        //
+        // prism_env.grammar_envs.insert(
+        //     guid,
+        //     GrammarEnvEntry {
+        //         grammar_env: reduced_env,
+        //         common_len: db_env.intersect(reduced_env).len(),
+        //     },
+        // );
+        //
+        // grammar
     }
 }
 

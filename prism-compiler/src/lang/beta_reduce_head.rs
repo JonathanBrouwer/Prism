@@ -18,8 +18,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             match self.checked_values[*e] {
                 // Values
                 CorePrismExpr::Type
-                | CorePrismExpr::FnType(_, _)
-                | CorePrismExpr::GrammarValue(_, _)
+                | CorePrismExpr::FnType(..)
+                | CorePrismExpr::GrammarValue(..)
                 | CorePrismExpr::GrammarType => {
                     assert!(args.is_empty());
                     return (e, s);

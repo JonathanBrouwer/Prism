@@ -67,7 +67,7 @@ pub enum CorePrismExpr<'arn, 'grm: 'arn> {
     FnDestruct(CoreIndex, CoreIndex),
     Shift(CoreIndex, usize),
     TypeAssert(CoreIndex, CoreIndex),
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
     GrammarType,
 }
 

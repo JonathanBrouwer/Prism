@@ -29,7 +29,7 @@ rule expr {
         t <- "(" t:expr ")";
         Expr::Type() <- "Type";
         Expr::GrammarType() <- "Grammar";
-        Expr::GrammarValue(g, guid) <- guid:#guid "grammar" "{" g:grammar(wrapped_expr(guid)) "}";
+        Expr::GrammarValue(g) <- "grammar" "{" g:grammar(wrapped_expr) "}";
         Expr::Name(n) <- n:identifier;
     }
 }

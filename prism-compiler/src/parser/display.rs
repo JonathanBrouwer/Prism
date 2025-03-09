@@ -66,8 +66,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 write!(w, ": ")?;
                 self.parse_display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            ParsedPrismExpr::GrammarValue(_, guid) => {
-                write!(w, "[GRAMMAR {guid:?}]")?;
+            ParsedPrismExpr::GrammarValue(_) => {
+                write!(w, "[GRAMMAR]")?;
             }
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
