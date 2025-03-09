@@ -1,5 +1,5 @@
 use crate::lang::env::{DbEnv, EnvEntry};
-use crate::lang::{CheckedPrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismEnv};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
@@ -211,8 +211,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
         let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
 
-        let CheckedPrismExpr::GrammarValue(grammar, guid) =
-            prism_env.checked_values[reduced_value.0]
+        let CorePrismExpr::GrammarValue(grammar, guid) = prism_env.checked_values[reduced_value.0]
         else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",

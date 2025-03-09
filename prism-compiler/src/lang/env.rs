@@ -1,4 +1,4 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use crate::lang::PrismEnv;
 use prism_parser::env::GenericEnv;
 
@@ -19,10 +19,10 @@ pub type DbEnv<'arn> = GenericEnv<'arn, (), EnvEntry<'arn>>;
 pub enum EnvEntry<'arn> {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
-    CType(UniqueVariableId, CheckedIndex),
-    CSubst(CheckedIndex, CheckedIndex),
+    CType(UniqueVariableId, CoreIndex),
+    CSubst(CoreIndex, CoreIndex),
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(CheckedIndex, DbEnv<'arn>),
+    RSubst(CoreIndex, DbEnv<'arn>),
 }

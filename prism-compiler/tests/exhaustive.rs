@@ -1,5 +1,5 @@
 use bumpalo::Bump;
-use prism_compiler::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv};
+use prism_compiler::lang::{CoreIndex, CorePrismExpr, PrismEnv};
 use prism_parser::core::allocs::Allocs;
 
 #[test]
@@ -10,11 +10,11 @@ fn test_exhaustive() {
 fn iter_exhaustive(
     max_depth: usize,
     continue_when_fail: bool,
-    mut f: impl FnMut(&mut PrismEnv, CheckedIndex) -> bool,
+    mut f: impl FnMut(&mut PrismEnv, CoreIndex) -> bool,
 ) {
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
-    let root = env.store_test(CheckedPrismExpr::Free);
+    let root = env.store_test(CorePrismExpr::Free);
     let mut env_size = vec![0];
 
     // Invariant: env.values[i+1..] is free
@@ -28,7 +28,7 @@ fn iter_exhaustive(
         // Reset free variables
         env.checked_values.truncate(len);
         env.checked_origins.truncate(len);
-        env.checked_values[i + 1..].fill(CheckedPrismExpr::Free);
+        env.checked_values[i + 1..].fill(CorePrismExpr::Free);
         env.reset();
 
         // Keep this partial expr if the result is ok
@@ -46,35 +46,35 @@ fn iter_exhaustive(
 fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
     loop {
         env.checked_values[*i] = match env.checked_values[*i] {
-            CheckedPrismExpr::Free => CheckedPrismExpr::Type,
-            CheckedPrismExpr::Type => CheckedPrismExpr::DeBruijnIndex(0),
-            CheckedPrismExpr::DeBruijnIndex(idx) => {
+            CorePrismExpr::Free => CorePrismExpr::Type,
+            CorePrismExpr::Type => CorePrismExpr::DeBruijnIndex(0),
+            CorePrismExpr::DeBruijnIndex(idx) => {
                 if idx + 1 < env_size[*i] {
-                    CheckedPrismExpr::DeBruijnIndex(idx + 1)
+                    CorePrismExpr::DeBruijnIndex(idx + 1)
                 } else {
                     env_size.push(env_size[*i]);
                     env_size.push(env_size[*i] + 1);
-                    CheckedPrismExpr::Let(
-                        env.store_test(CheckedPrismExpr::Free),
-                        env.store_test(CheckedPrismExpr::Free),
+                    CorePrismExpr::Let(
+                        env.store_test(CorePrismExpr::Free),
+                        env.store_test(CorePrismExpr::Free),
                     )
                 }
             }
-            CheckedPrismExpr::Let(e1, e2) => CheckedPrismExpr::FnType(e1, e2),
-            CheckedPrismExpr::FnType(e1, _) => {
+            CorePrismExpr::Let(e1, e2) => CorePrismExpr::FnType(e1, e2),
+            CorePrismExpr::FnType(e1, _) => {
                 env.checked_values.pop().unwrap();
                 env_size.pop().unwrap();
                 env_size[*e1] += 1;
-                CheckedPrismExpr::FnConstruct(e1)
+                CorePrismExpr::FnConstruct(e1)
             }
-            CheckedPrismExpr::FnConstruct(e1) => {
+            CorePrismExpr::FnConstruct(e1) => {
                 env_size[*e1] -= 1;
                 env_size.push(env_size[*i]);
-                CheckedPrismExpr::FnDestruct(e1, env.store_test(CheckedPrismExpr::Free))
+                CorePrismExpr::FnDestruct(e1, env.store_test(CorePrismExpr::Free))
             }
-            CheckedPrismExpr::FnDestruct(e1, e2) => CheckedPrismExpr::TypeAssert(e1, e2),
-            CheckedPrismExpr::TypeAssert(_, _) => {
-                env.checked_values[*i] = CheckedPrismExpr::Free;
+            CorePrismExpr::FnDestruct(e1, e2) => CorePrismExpr::TypeAssert(e1, e2),
+            CorePrismExpr::TypeAssert(_, _) => {
+                env.checked_values[*i] = CorePrismExpr::Free;
                 env.checked_values.pop().unwrap();
                 env.checked_values.pop().unwrap();
                 env_size.pop().unwrap();
@@ -85,9 +85,9 @@ fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
                 *i -= 1;
                 continue;
             }
-            CheckedPrismExpr::Shift(_, _) => unreachable!(),
-            CheckedPrismExpr::GrammarValue(_, _) => unreachable!(),
-            CheckedPrismExpr::GrammarType => unreachable!(),
+            CorePrismExpr::Shift(_, _) => unreachable!(),
+            CorePrismExpr::GrammarValue(_, _) => unreachable!(),
+            CorePrismExpr::GrammarType => unreachable!(),
         };
         return true;
     }

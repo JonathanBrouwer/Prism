@@ -1,15 +1,15 @@
 use crate::lang::env::DbEnv;
 use crate::lang::error::TypeError;
-use crate::lang::{CheckedIndex, CheckedPrismExpr, PrismEnv, ValueOrigin};
+use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::parse_expr::{GrammarEnvEntry, reduce_expr};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
+use prism_parser::core::span::Span;
 use prism_parser::parsable::guid::Guid;
 use std::collections::HashMap;
-use prism_parser::core::span::Span;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CheckedIndex {
+    pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CoreIndex {
         self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut HashMap::new())
     }
 
@@ -18,11 +18,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         i: ParsedIndex,
         env: NamedEnv<'arn, 'grm>,
         jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
-    ) -> CheckedIndex {
+    ) -> CoreIndex {
         let e = match self.parsed_values[*i] {
-            ParsedPrismExpr::Free => CheckedPrismExpr::Free,
-            ParsedPrismExpr::Type => CheckedPrismExpr::Type,
-            ParsedPrismExpr::Let(n, v, b) => CheckedPrismExpr::Let(
+            ParsedPrismExpr::Free => CorePrismExpr::Free,
+            ParsedPrismExpr::Type => CorePrismExpr::Type,
+            ParsedPrismExpr::Let(n, v, b) => CorePrismExpr::Let(
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
@@ -30,7 +30,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     jump_labels,
                 ),
             ),
-            ParsedPrismExpr::FnType(n, a, b) => CheckedPrismExpr::FnType(
+            ParsedPrismExpr::FnType(n, a, b) => CorePrismExpr::FnType(
                 self.parsed_to_checked_with_env(a, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
@@ -39,17 +39,17 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 ),
             ),
             ParsedPrismExpr::FnConstruct(n, b) => {
-                CheckedPrismExpr::FnConstruct(self.parsed_to_checked_with_env(
+                CorePrismExpr::FnConstruct(self.parsed_to_checked_with_env(
                     b,
                     env.insert_name(n, self.input, self.allocs),
                     jump_labels,
                 ))
             }
-            ParsedPrismExpr::FnDestruct(f, a) => CheckedPrismExpr::FnDestruct(
+            ParsedPrismExpr::FnDestruct(f, a) => CorePrismExpr::FnDestruct(
                 self.parsed_to_checked_with_env(f, env, jump_labels),
                 self.parsed_to_checked_with_env(a, env, jump_labels),
             ),
-            ParsedPrismExpr::TypeAssert(v, t) => CheckedPrismExpr::TypeAssert(
+            ParsedPrismExpr::TypeAssert(v, t) => CorePrismExpr::TypeAssert(
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(t, env, jump_labels),
             ),
@@ -58,7 +58,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 match env.resolve_name_use(name) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
-                        CheckedPrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
+                        CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
                     Some(NamesEntry::FromEnvSubst(..)) => {
                         todo!()
@@ -80,7 +80,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     None => {
                         self.errors
                             .push(TypeError::UnknownName(self.parsed_spans[*i]));
-                        CheckedPrismExpr::Free
+                        CorePrismExpr::Free
                     }
                 }
             }
@@ -112,13 +112,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let extra_applied_names = grammar_env.len() - common_len;
 
                 let env = NamedEnv::<'arn, 'grm> {
-                    todo //TODO mistake is that the inlined part of `names` should be shifted over 
                     env_len: env.env_len + extra_applied_names,
                     names,
                     //TODO should these be preserved?
                     hygienic_names: Default::default(),
                 };
-                
+
                 println!("{names:?}");
 
                 let body = self.parsed_to_checked_with_env(b, env, jump_labels);
@@ -126,9 +125,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             ParsedPrismExpr::GrammarValue(v, guid) => {
                 env.insert_shift_label(guid, jump_labels);
-                CheckedPrismExpr::GrammarValue(v, guid)
+                CorePrismExpr::GrammarValue(v, guid)
             }
-            ParsedPrismExpr::GrammarType => CheckedPrismExpr::GrammarType,
+            ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }
@@ -138,8 +137,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         mut names: NamesEnv<'arn, 'grm>,
         mut grammar_env: DbEnv<'arn>,
         common_len: usize,
-        mut body: CheckedIndex,
-    ) -> CheckedIndex {
+        mut body: CoreIndex,
+    ) -> CoreIndex {
         while grammar_env.len() > common_len {
             let ((name, names_entry), names_rest) = names.split().unwrap();
             let NamesEntry::FromEnv(prev_env_len) = names_entry else {
@@ -150,17 +149,19 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
             grammar_env = grammar_rest;
 
-            // Always 0 because grammar_env changes :D
+            // Always 0 because grammar_env changes
             let db_index = grammar_env.len() - prev_env_len;
             assert_eq!(db_index, 0);
 
-            let typ = self.store_checked(CheckedPrismExpr::Type, ValueOrigin::SourceCode(Span::invalid()));
-            body = self.store_checked(CheckedPrismExpr::Let(
-                typ,
-                body
-            ), ValueOrigin::SourceCode(Span::invalid()));
+            let typ = self.store_checked(
+                CorePrismExpr::Type,
+                ValueOrigin::SourceCode(Span::invalid()),
+            );
+            body = self.store_checked(
+                CorePrismExpr::Let(typ, body),
+                ValueOrigin::SourceCode(Span::invalid()),
+            );
         }
-
 
         body
     }

@@ -1,24 +1,18 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CheckedPrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismEnv};
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn is_beta_equal(
-        &mut self,
-        i1: CheckedIndex,
-        s1: DbEnv,
-        i2: CheckedIndex,
-        s2: DbEnv,
-    ) -> bool {
+    pub fn is_beta_equal(&mut self, i1: CoreIndex, s1: DbEnv, i2: CoreIndex, s2: DbEnv) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1);
         let (i2, s2) = self.beta_reduce_head(i2, s2);
 
         match (self.checked_values[*i1], self.checked_values[*i2]) {
-            (CheckedPrismExpr::Type, CheckedPrismExpr::Type) => {}
-            (CheckedPrismExpr::GrammarType, CheckedPrismExpr::GrammarType) => {}
-            (CheckedPrismExpr::DeBruijnIndex(i1), CheckedPrismExpr::DeBruijnIndex(i2)) => {
+            (CorePrismExpr::Type, CorePrismExpr::Type) => {}
+            (CorePrismExpr::GrammarType, CorePrismExpr::GrammarType) => {}
+            (CorePrismExpr::DeBruijnIndex(i1), CorePrismExpr::DeBruijnIndex(i2)) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
@@ -31,7 +25,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (CheckedPrismExpr::FnType(a1, b1), CheckedPrismExpr::FnType(a2, b2)) => {
+            (CorePrismExpr::FnType(a1, b1), CorePrismExpr::FnType(a2, b2)) => {
                 if !self.is_beta_equal(a1, s1, a2, s2) {
                     return false;
                 }
@@ -45,7 +39,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (CheckedPrismExpr::FnConstruct(b1), CheckedPrismExpr::FnConstruct(b2)) => {
+            (CorePrismExpr::FnConstruct(b1), CorePrismExpr::FnConstruct(b2)) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(
                     b1,
@@ -56,7 +50,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (CheckedPrismExpr::FnDestruct(f1, a1), CheckedPrismExpr::FnDestruct(f2, a2)) => {
+            (CorePrismExpr::FnDestruct(f1, a1), CorePrismExpr::FnDestruct(f2, a2)) => {
                 if !self.is_beta_equal(f1, s1, f2, s2) {
                     return false;
                 }
@@ -64,7 +58,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     return false;
                 }
             }
-            (CheckedPrismExpr::Free, CheckedPrismExpr::Free) => {}
+            (CorePrismExpr::Free, CorePrismExpr::Free) => {}
             _ => {
                 return false;
             }

@@ -1,4 +1,4 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::env::GenericEnv;
@@ -18,7 +18,7 @@ pub type NamesEnv<'arn, 'grm> = GenericEnv<'arn, &'arn str, NamesEntry<'arn, 'gr
 #[derive(Debug, Copy, Clone)]
 pub enum NamesEntry<'arn, 'grm> {
     FromEnv(usize),
-    FromEnvSubst(CheckedIndex),
+    FromEnvSubst(CoreIndex),
     FromParsed(Parsed<'arn, 'grm>, NamesEnv<'arn, 'grm>),
 }
 
