@@ -1,57 +1,59 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
-use crate::lang::{CheckedPrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn beta_reduce(&mut self, i: CheckedIndex) -> CheckedIndex {
-        self.beta_reduce_inner(i, &DbEnv::new(), &mut HashMap::new())
+    pub fn beta_reduce(&mut self, i: CoreIndex) -> CoreIndex {
+        self.beta_reduce_inner(i, DbEnv::default(), &mut HashMap::new())
     }
 
     fn beta_reduce_inner(
         &mut self,
-        i: CheckedIndex,
-        s: &DbEnv,
+        i: CoreIndex,
+        s: DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
-    ) -> CheckedIndex {
-        let (i, s) = self.beta_reduce_head(i, s.clone());
+    ) -> CoreIndex {
+        let (i, s) = self.beta_reduce_head(i, s);
 
         let e_new = match self.checked_values[*i] {
             // Values
-            CheckedPrismExpr::Type
-            | CheckedPrismExpr::GrammarValue(..)
-            | CheckedPrismExpr::GrammarType => self.checked_values[*i],
+            CorePrismExpr::Type | CorePrismExpr::GrammarValue(..) | CorePrismExpr::GrammarType => {
+                self.checked_values[*i]
+            }
 
-            CheckedPrismExpr::Let(_, _) => unreachable!(),
-            CheckedPrismExpr::DeBruijnIndex(v) => {
+            CorePrismExpr::Let(_, _) => unreachable!(),
+            CorePrismExpr::DeBruijnIndex(v) => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
                 };
-                CheckedPrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
+                CorePrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
             }
-            CheckedPrismExpr::FnType(a, b) => {
-                let a = self.beta_reduce_inner(a, &s, var_map);
+            CorePrismExpr::FnType(a, b) => {
+                let a = self.beta_reduce_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
-                let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
+                let sub_env = s.cons(EnvEntry::RType(id), self.allocs);
+                let b = self.beta_reduce_inner(b, sub_env, var_map);
                 var_map.remove(&id);
-                CheckedPrismExpr::FnType(a, b)
+                CorePrismExpr::FnType(a, b)
             }
-            CheckedPrismExpr::FnConstruct(b) => {
+            CorePrismExpr::FnConstruct(b) => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
-                let b = self.beta_reduce_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
+                let sub_env = s.cons(EnvEntry::RType(id), self.allocs);
+                let b = self.beta_reduce_inner(b, sub_env, var_map);
                 var_map.remove(&id);
-                CheckedPrismExpr::FnConstruct(b)
+                CorePrismExpr::FnConstruct(b)
             }
-            CheckedPrismExpr::FnDestruct(a, b) => {
-                let a = self.beta_reduce_inner(a, &s, var_map);
-                let b = self.beta_reduce_inner(b, &s, var_map);
-                CheckedPrismExpr::FnDestruct(a, b)
+            CorePrismExpr::FnDestruct(a, b) => {
+                let a = self.beta_reduce_inner(a, s, var_map);
+                let b = self.beta_reduce_inner(b, s, var_map);
+                CorePrismExpr::FnDestruct(a, b)
             }
-            CheckedPrismExpr::Free => CheckedPrismExpr::Free,
-            CheckedPrismExpr::Shift(_, _) => unreachable!(),
-            CheckedPrismExpr::TypeAssert(_, _) => unreachable!(),
+            CorePrismExpr::Free => CorePrismExpr::Free,
+            CorePrismExpr::Shift(_, _) => unreachable!(),
+            CorePrismExpr::TypeAssert(_, _) => unreachable!(),
         };
         self.store_checked(e_new, self.checked_origins[*i])
     }

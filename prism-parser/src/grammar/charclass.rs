@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::grammar::serde_leak::*;
@@ -43,6 +43,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
                 _args[1]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|p| *p.into_value::<CharClassRange>()),
             ),
         }

@@ -1,11 +1,11 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::pos::Pos;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::ParseResult;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 

@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::parse_string;
@@ -6,7 +6,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Debug)]
 pub enum RuleAnnotation<'grm> {
     #[serde(borrow)]
     Error(EscapedString<'grm>),

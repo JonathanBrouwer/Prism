@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use crate::core::cache::Allocs;
+use self::core::allocs::Allocs;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
@@ -11,6 +11,7 @@ use crate::parser::parser_instance::run_parser_rule;
 use grammar::grammar_file::GrammarFile;
 
 pub mod core;
+pub mod env;
 pub mod error;
 pub mod grammar;
 pub mod parsable;

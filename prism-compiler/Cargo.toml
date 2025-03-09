@@ -9,7 +9,6 @@ license.workspace = true
 [dependencies]
 clap.workspace = true
 prism-parser.workspace = true
-rpds.workspace = true
 ariadne.workspace = true
 bumpalo.workspace = true
 

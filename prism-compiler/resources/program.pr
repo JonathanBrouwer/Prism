@@ -1,6 +1,7 @@
+let z = Type -> Type;
 let test = (
-    let _ = Type -> Type;
-    let _ = Type -> Type;
+    let b = Type -> Type;
+    let a = Type -> Type;
     let x = Type;
     grammar {
         adapt rule expr {

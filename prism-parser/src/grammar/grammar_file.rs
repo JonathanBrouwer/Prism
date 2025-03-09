@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::rule::Rule;
 use crate::grammar::serde_leak::*;
@@ -8,7 +8,7 @@ use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::PlaceholderStore;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct GrammarFile<'arn, 'grm> {
     #[serde(borrow, with = "leak_slice")]
     pub rules: &'arn [Rule<'arn, 'grm>],
@@ -32,6 +32,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
                 _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|rule| *rule.into_value::<Rule>()),
             ),
         }

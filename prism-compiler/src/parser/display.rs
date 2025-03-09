@@ -8,17 +8,17 @@ impl<'arn, 'grm: 'arn> ParsedPrismExpr<'arn, 'grm> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
-            ParsedPrismExpr::Let(_, _, _) => PrecedenceLevel::Let,
-            ParsedPrismExpr::FnConstruct(_, _) => PrecedenceLevel::Construct,
-            ParsedPrismExpr::FnType(_, _, _) => PrecedenceLevel::FnType,
-            ParsedPrismExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
-            ParsedPrismExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
+            ParsedPrismExpr::Let(..) => PrecedenceLevel::Let,
+            ParsedPrismExpr::FnConstruct(..) => PrecedenceLevel::Construct,
+            ParsedPrismExpr::FnType(..) => PrecedenceLevel::FnType,
+            ParsedPrismExpr::TypeAssert(..) => PrecedenceLevel::TypeAssert,
+            ParsedPrismExpr::FnDestruct(..) => PrecedenceLevel::Destruct,
             ParsedPrismExpr::Free => PrecedenceLevel::Base,
             ParsedPrismExpr::Type => PrecedenceLevel::Base,
-            ParsedPrismExpr::Name(_) => PrecedenceLevel::Base,
-            ParsedPrismExpr::GrammarValue(_, _) => PrecedenceLevel::Base,
+            ParsedPrismExpr::Name(..) => PrecedenceLevel::Base,
+            ParsedPrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarType => PrecedenceLevel::Base,
-            ParsedPrismExpr::ShiftTo(_, _, _) => PrecedenceLevel::Base,
+            ParsedPrismExpr::ShiftTo(..) => PrecedenceLevel::Base,
         }
     }
 }
@@ -72,7 +72,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
             }
-            ParsedPrismExpr::ShiftTo(v, guid, vars) => {
+            ParsedPrismExpr::ShiftTo(v, guid, vars, _) => {
                 writeln!(w, "[SHIFT TO {guid:?}]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;

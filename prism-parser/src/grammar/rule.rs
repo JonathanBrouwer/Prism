@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::from_action_result::parse_identifier;
 use crate::grammar::rule_block::RuleBlock;
@@ -8,7 +8,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Rule<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
@@ -44,12 +44,14 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Rule<'arn, 'grm> {
                 _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|n| ("ActionResult", parse_identifier(n, _src))),
             ),
             blocks: _allocs.alloc_extend(
                 _args[3]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|block| *block.into_value::<RuleBlock>()),
             ),
             return_type: "ActionResult",

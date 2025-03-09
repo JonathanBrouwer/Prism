@@ -1,46 +1,47 @@
-use crate::lang::PrismEnv;
-use crate::parser::parse_expr::reduce_expr;
+use crate::lang::CoreIndex;
+use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
+use prism_parser::env::GenericEnv;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
-use prism_parser::parser::var_map::VarMap;
-use rpds::HashTrieMap;
 use std::collections::HashMap;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Copy)]
 pub struct NamedEnv<'arn, 'grm> {
-    env_len: usize,
-    pub names: HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
-    hygienic_names: HashTrieMap<&'arn str, usize>,
+    pub(crate) env_len: usize,
+    pub names: NamesEnv<'arn, 'grm>,
+    pub(crate) hygienic_names: GenericEnv<'arn, &'arn str, usize>,
 }
 
-#[derive(Debug)]
+pub type NamesEnv<'arn, 'grm> = GenericEnv<'arn, &'arn str, NamesEntry<'arn, 'grm>>;
+
+#[derive(Debug, Copy, Clone)]
 pub enum NamesEntry<'arn, 'grm> {
     FromEnv(usize),
-    FromParsed(
-        Parsed<'arn, 'grm>,
-        HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
-    ),
+    FromEnvSubst(CoreIndex),
+    FromParsed(Parsed<'arn, 'grm>, NamesEnv<'arn, 'grm>),
 }
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
-    pub fn insert_name(&self, name: &'arn str, input: &'arn str) -> Self {
-        let mut s = if name != "_" {
-            self.insert_name_at(name, self.env_len, input)
-        } else {
-            self.clone()
-        };
+    pub fn insert_name(&self, name: &'arn str, input: &'arn str, allocs: Allocs<'arn>) -> Self {
+        let mut s = self.insert_name_at(name, self.env_len, input, allocs);
         s.env_len += 1;
         s
     }
 
-    pub fn insert_name_at(&self, name: &'arn str, depth: usize, input: &'arn str) -> Self {
-        let names = self.names.insert(name, NamesEntry::FromEnv(depth));
+    pub fn insert_name_at(
+        &self,
+        name: &'arn str,
+        depth: usize,
+        input: &'arn str,
+        allocs: Allocs<'arn>,
+    ) -> Self {
+        let names = self.names.insert(name, NamesEntry::FromEnv(depth), allocs);
         let hygienic_names = if let Some(NamesEntry::FromParsed(ar, _)) = self.names.get(name) {
             let new_name = ar.into_value::<Input>().as_str(input);
-            self.hygienic_names.insert(new_name, depth)
+            self.hygienic_names.insert(new_name, depth, allocs)
         } else {
-            self.hygienic_names.clone()
+            self.hygienic_names
         };
 
         Self {
@@ -50,7 +51,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         }
     }
 
-    pub fn resolve_name_use(&self, name: &str) -> Option<&NamesEntry<'arn, 'grm>> {
+    pub fn resolve_name_use(&self, name: &str) -> Option<NamesEntry<'arn, 'grm>> {
         self.names.get(name)
     }
 
@@ -65,49 +66,26 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     pub fn insert_shift_label(
         &self,
         guid: Guid,
-        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
+        jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
     ) {
-        jump_labels.insert(guid, self.names.clone());
-    }
-
-    pub fn shift_to_label(
-        &self,
-        guid: Guid,
-        vars: VarMap<'arn, 'grm>,
-        env: &mut PrismEnv<'arn, 'grm>,
-        jump_labels: &mut HashMap<Guid, HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>>,
-    ) -> Self {
-        let mut names = jump_labels[&guid].clone();
-
-        for (name, value) in vars.into_iter().collect::<Vec<_>>().into_iter().rev() {
-            names.insert_mut(
-                name,
-                NamesEntry::FromParsed(reduce_expr(value, env), self.names.clone()),
-            );
-        }
-
-        Self {
-            env_len: self.env_len,
-            names,
-            //TODO should these be preserved?
-            hygienic_names: Default::default(),
-        }
+        jump_labels.insert(guid, self.names);
     }
 
     pub fn shift_back(
         &self,
-        old_names: &HashTrieMap<&'arn str, NamesEntry<'arn, 'grm>>,
+        old_names: NamesEnv<'arn, 'grm>,
         input: &'arn str,
+        allocs: Allocs<'arn>,
     ) -> Self {
         let mut new_env = Self {
             env_len: self.env_len,
-            names: old_names.clone(),
+            names: old_names,
             //TODO what here? old code takes from `old_names` env (not available here)
             hygienic_names: Default::default(),
         };
 
-        for (name, db_idx) in &self.hygienic_names {
-            new_env = new_env.insert_name_at(name, *db_idx, input);
+        for (name, db_idx) in self.hygienic_names {
+            new_env = new_env.insert_name_at(name, db_idx, input, allocs);
         }
 
         new_env

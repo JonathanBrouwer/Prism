@@ -25,6 +25,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
             format!(
                 "[{}]",
                 ll.into_iter()
+                    .map(|((), v)| v)
                     .map(|e| e.to_debug_string(src))
                     .collect::<Vec<String>>()
                     .join(", ")

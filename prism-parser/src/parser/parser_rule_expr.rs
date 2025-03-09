@@ -12,10 +12,10 @@ use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
+use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
-use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
@@ -38,7 +38,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
                         if args.is_empty() && !["#this", "#next"].contains(r) {
-                            *vars.get(r).unwrap()
+                            vars.get(r).unwrap()
                         } else {
                             self.alloc
                                 .alloc(RuleClosure {
@@ -227,8 +227,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 }
 
                 res.map(|rtrn| {
-                    rtrn.iter().rfold(ParsedList::new_empty(), |rest, next| {
-                        rest.cons(next.rtrn, self.alloc)
+                    rtrn.iter().rfold(ParsedList::default(), |rest, next| {
+                        rest.insert((), next.rtrn, self.alloc)
                     })
                 })
                 .map(|ar| PR::with_rtrn(self.alloc.alloc(ar).to_parsed()))
@@ -395,7 +395,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let grammar = *vars.get(grammar).unwrap();
+                let grammar = vars.get(grammar).unwrap();
                 let grammar = (ns.eval_to_grammar)(
                     grammar,
                     eval_ctx,

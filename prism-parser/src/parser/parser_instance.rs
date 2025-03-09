@@ -1,6 +1,6 @@
 use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
@@ -20,8 +20,8 @@ use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
+use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
-use crate::parser::var_map::VarMap;
 use std::collections::HashMap;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {
@@ -63,13 +63,13 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             [
                 (
                     "grammar",
-                    *meta_vars
+                    meta_vars
                         .get("grammar")
                         .expect("Meta grammar contains 'grammar' rule"),
                 ),
                 (
                     "prule_action",
-                    *meta_vars
+                    meta_vars
                         .get("prule_action")
                         .expect("Meta grammar contains 'prule_action' rule"),
                 ),
@@ -163,7 +163,7 @@ pub fn run_parser_rule<
 macro_rules! run_parser_rule_here {
     ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
         let bump = ::bumpalo::Bump::new();
-        let alloc = $crate::core::cache::Allocs::new(&bump);
+        let alloc = $crate::core::allocs::Allocs::new(&bump);
         let mut instance =
             $crate::parser::parser_instance::ParserInstance::<$error>::new($input, alloc, $rules)
                 .unwrap();

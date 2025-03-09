@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::from_action_result::parse_identifier;
@@ -8,7 +8,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct RuleBlock<'arn, 'grm> {
     pub name: &'grm str,
     pub adapt: bool,
@@ -40,6 +40,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleBlock<'arn, 'grm> 
                 _args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
+                    .map(|((), v)| v)
                     .map(|c| *c.into_value::<AnnotatedRuleExpr>()),
             ),
         }

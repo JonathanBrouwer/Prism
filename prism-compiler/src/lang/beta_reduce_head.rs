@@ -1,34 +1,34 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CheckedPrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismEnv};
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn beta_reduce_head(
         &self,
-        mut start_expr: CheckedIndex,
-        mut start_env: DbEnv,
-    ) -> (CheckedIndex, DbEnv) {
-        let mut args: Vec<(CheckedIndex, DbEnv)> = Vec::new();
+        mut start_expr: CoreIndex,
+        mut start_env: DbEnv<'arn>,
+    ) -> (CoreIndex, DbEnv<'arn>) {
+        let mut args: Vec<(CoreIndex, DbEnv)> = Vec::new();
 
-        let mut e: CheckedIndex = start_expr;
-        let mut s: DbEnv = start_env.clone();
+        let mut e: CoreIndex = start_expr;
+        let mut s: DbEnv = start_env;
 
         loop {
             match self.checked_values[*e] {
                 // Values
-                CheckedPrismExpr::Type
-                | CheckedPrismExpr::FnType(_, _)
-                | CheckedPrismExpr::GrammarValue(_)
-                | CheckedPrismExpr::GrammarType => {
+                CorePrismExpr::Type
+                | CorePrismExpr::FnType(_, _)
+                | CorePrismExpr::GrammarValue(_, _)
+                | CorePrismExpr::GrammarType => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                CheckedPrismExpr::Let(v, b) => {
+                CorePrismExpr::Let(v, b) => {
                     e = b;
-                    s = s.cons(RSubst(v, s.clone()))
+                    s = s.cons(RSubst(v, s), self.allocs)
                 }
-                CheckedPrismExpr::DeBruijnIndex(i) => match s[i] {
+                CorePrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
@@ -42,38 +42,38 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     RSubst(v, ref vs) => {
                         e = v;
-                        s = vs.clone();
+                        s = *vs;
                     }
                 },
-                CheckedPrismExpr::FnConstruct(b) => match args.pop() {
+                CorePrismExpr::FnConstruct(b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;
-                        s = s.cons(RSubst(arg, arg_env));
+                        s = s.cons(RSubst(arg, arg_env), self.allocs);
                     }
                 },
-                CheckedPrismExpr::FnDestruct(f, a) => {
+                CorePrismExpr::FnDestruct(f, a) => {
                     // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
                     if args.is_empty() {
                         start_expr = e;
-                        start_env = s.clone();
+                        start_env = s;
                     }
                     // Push new argument to stack
                     e = f;
-                    args.push((a, s.clone()));
+                    args.push((a, s));
                 }
-                CheckedPrismExpr::Free => {
+                CorePrismExpr::Free => {
                     return if args.is_empty() {
                         (e, s)
                     } else {
                         (start_expr, start_env)
                     };
                 }
-                CheckedPrismExpr::Shift(b, i) => {
+                CorePrismExpr::Shift(b, i) => {
                     e = b;
                     s = s.shift(i);
                 }
-                CheckedPrismExpr::TypeAssert(new_e, _) => {
+                CorePrismExpr::TypeAssert(new_e, _) => {
                     e = new_e;
                 }
             }

@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
@@ -11,7 +11,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum RuleExpr<'arn, 'grm> {
     RunVar {
         rule: &'grm str,
@@ -64,6 +64,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
@@ -72,6 +73,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[0]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             ),
@@ -97,6 +99,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                     args[1]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             },

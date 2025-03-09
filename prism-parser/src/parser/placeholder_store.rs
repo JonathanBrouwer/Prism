@@ -1,9 +1,9 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ParsedPlaceholder(usize);
 
 struct StoreEntry<'arn, 'grm, Env> {

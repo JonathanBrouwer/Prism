@@ -1,7 +1,7 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::parser::parse_prism_in_env;
-use prism_parser::core::cache::Allocs;
+use prism_parser::core::allocs::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use test_each_file::test_each_file;
 

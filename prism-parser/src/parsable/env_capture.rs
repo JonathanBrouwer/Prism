@@ -1,6 +1,6 @@
 use crate::parsable::ParseResult;
 use crate::parsable::parsed::Parsed;
-use crate::parser::var_map::VarMap;
+use crate::parser::VarMap;
 
 #[derive(Clone, Copy)]
 pub struct EnvCapture<'arn, 'grm> {

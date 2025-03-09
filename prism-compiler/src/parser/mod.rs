@@ -1,7 +1,7 @@
 use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
-use crate::parser::parse_expr::{ScopeEnter, reduce_expr};
-use prism_parser::core::cache::Allocs;
+use crate::parser::parse_expr::{GrammarEnvEntry, ScopeEnter, reduce_expr};
+use prism_parser::core::allocs::Allocs;
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;
@@ -9,8 +9,8 @@ use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
+use prism_parser::parser::VarMap;
 use prism_parser::parser::parser_instance::run_parser_rule_raw;
-use prism_parser::parser::var_map::VarMap;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::LazyLock;
@@ -68,7 +68,7 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     Name(&'grm str),
-    ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>),
+    ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>, GrammarEnvEntry<'arn>),
     GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
     GrammarType,
 }

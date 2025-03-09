@@ -1,4 +1,4 @@
-use crate::lang::CheckedIndex;
+use crate::lang::CoreIndex;
 use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use prism_parser::core::pos::Pos;
@@ -9,23 +9,23 @@ const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 #[derive(Debug)]
 pub enum TypeError {
-    ExpectType(CheckedIndex),
-    ExpectFn(CheckedIndex),
+    ExpectType(CoreIndex),
+    ExpectFn(CoreIndex),
     ExpectFnArg {
-        function_type: CheckedIndex,
-        function_arg_type: CheckedIndex,
-        arg_type: CheckedIndex,
+        function_type: CoreIndex,
+        function_arg_type: CoreIndex,
+        arg_type: CoreIndex,
     },
     ExpectTypeAssert {
-        expr: CheckedIndex,
-        expr_type: CheckedIndex,
-        expected_type: CheckedIndex,
+        expr: CoreIndex,
+        expr_type: CoreIndex,
+        expected_type: CoreIndex,
     },
-    IndexOutOfBound(CheckedIndex),
-    InfiniteType(CheckedIndex, CheckedIndex),
+    IndexOutOfBound(CoreIndex),
+    InfiniteType(CoreIndex, CoreIndex),
     BadInfer {
-        free_var: CheckedIndex,
-        inferred_var: CheckedIndex,
+        free_var: CoreIndex,
+        inferred_var: CoreIndex,
     },
     UnknownName(Span),
 }
@@ -161,7 +161,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         })
     }
 
-    fn label_value(&self, mut value: CheckedIndex) -> Option<(Span, &'static str)> {
+    fn label_value(&self, mut value: CoreIndex) -> Option<(Span, &'static str)> {
         let mut origin_description = "this value";
         let span = loop {
             match self.checked_origins[*value] {

@@ -1,4 +1,4 @@
-use crate::core::cache::Allocs;
+use crate::core::allocs::Allocs;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::{parse_identifier, parse_string};
@@ -41,6 +41,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
                     _args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
+                        .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
             ),
