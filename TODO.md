@@ -15,6 +15,6 @@ THE BIG TODO LIST:
 
 
 TODO:
-grammar -> adapt grammar
-CheckedIndex -> DesugaredIndex
-parsed value into name/grammar
+* Add `rule.group` syntax 
+* Swap syntax around actions
+* Change representation of grammars

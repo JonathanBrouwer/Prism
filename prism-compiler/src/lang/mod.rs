@@ -35,7 +35,7 @@ pub enum ValueOrigin {
     TypeOf(CoreIndex),
     /// This is an AST node generated from expanding the given free variable
     FreeSub(CoreIndex),
-    /// This is an (initally free) AST node generated because type checking a node failed
+    /// This is an (initially free) AST node generated because type checking a node failed
     Failure,
 }
 

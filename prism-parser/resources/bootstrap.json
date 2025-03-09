@@ -1071,6 +1071,56 @@
                     "Sequence": [
                       {
                         "NameBind": [
+                          "r",
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "=>"
+                      },
+                      {
+                        "NameBind": [
+                          "a",
+                          {
+                            "RunVar": {
+                              "rule": "action",
+                              "args": []
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": [
+                      "RuleExpr",
+                      "Action",
+                      [
+                        {
+                          "Name": "r"
+                        },
+                        {
+                          "Name": "a"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              [],
+              {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
                           "a",
                           {
                             "RunVar": {

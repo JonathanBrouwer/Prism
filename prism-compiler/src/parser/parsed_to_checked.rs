@@ -118,8 +118,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     hygienic_names: Default::default(),
                 };
 
-                println!("{names:?}");
-
                 let body = self.parsed_to_checked_with_env(b, env, jump_labels);
                 return self.apply_names(original_names, grammar_env, common_len, body);
             }

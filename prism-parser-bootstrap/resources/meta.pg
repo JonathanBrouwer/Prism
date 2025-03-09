@@ -35,6 +35,7 @@ rule prule_annotation {
 
 rule prule_expr(action) {
     group action {
+        RuleExpr::Action(r, a) <- r:#this "=>" a:action;
         RuleExpr::Action(r, a) <- a:action "<-" r:#this;
     }
     group choice {
