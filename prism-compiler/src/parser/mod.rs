@@ -36,7 +36,6 @@ pub fn parse_prism_in_env<'p>(
 
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
-    parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
         &GRAMMAR, "expr", program, env.allocs, parsables, env,

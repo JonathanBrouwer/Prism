@@ -12,10 +12,10 @@ impl<'arn, 'grm: 'arn> GrammarFile<'arn, 'grm> {
         &'arn self,
         map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
         allocs: Allocs<'arn>,
-    ) -> Self {
-        Self {
+    ) -> &'arn Self {
+        allocs.alloc(Self {
             rules: allocs.alloc_extend(self.rules.iter().map(|r| r.map_actions(map, allocs))),
-        }
+        })
     }
 }
 

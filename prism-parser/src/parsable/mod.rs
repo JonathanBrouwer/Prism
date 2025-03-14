@@ -61,7 +61,6 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
-        _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm> {

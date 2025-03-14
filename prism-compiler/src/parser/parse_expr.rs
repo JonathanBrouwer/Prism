@@ -197,7 +197,6 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         &'arn self,
         eval_ctx: Self::EvalCtx,
         placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-        _allocs: Allocs<'arn>,
         src: &'grm str,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> &'arn GrammarFile<'arn, 'grm> {
@@ -218,7 +217,11 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             )
         };
 
-        grammar
+        // Insert the scope into the grammar, so we can find the scope again later in `reduce_expr`
+        grammar.map_actions(
+            &|e| prism_env.allocs.alloc(ScopeEnter(e)).to_parsed(),
+            prism_env.allocs,
+        )
     }
 }
 
@@ -232,12 +235,15 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
     parsed: Parsed<'arn, 'grm>,
     prism_env: &mut PrismEnv<'arn, 'grm>,
 ) -> Parsed<'arn, 'grm> {
-    if let Some(v) = parsed.try_into_value::<EnvCapture>() {
+    if let Some(capture) = parsed.try_into_value::<EnvCapture>() {
+        let value = capture.value.into_value::<ScopeEnter>();
+
+        value.0
+
         // let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
         // let env = v.env;
         // let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
 
-        todo!()
         // let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
         //
         // let expr = prism_env.store_from_source(
@@ -253,29 +259,3 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 #[derive(Copy, Clone)]
 pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
-    type EvalCtx = PrismEvalCtx<'arn>;
-
-    fn from_construct(
-        _span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        _allocs: Allocs<'arn>,
-        _src: &'grm str,
-        _prism_env: &mut PrismEnv,
-    ) -> Self {
-        assert_eq!(constructor, "Enter");
-        ScopeEnter(args[0])
-    }
-
-    fn create_eval_ctx(
-        _constructor: &'grm str,
-        parent_ctx: Self::EvalCtx,
-        _arg_placeholders: &[ParsedPlaceholder],
-        _allocs: Allocs<'arn>,
-        _src: &'grm str,
-        _env: &mut PrismEnv<'arn, 'grm>,
-    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        [Some(parent_ctx), None].into_iter()
-    }
-}
