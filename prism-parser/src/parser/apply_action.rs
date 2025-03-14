@@ -33,7 +33,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctxs.insert(n, (eval_ctx, placeholder));
                 }
             }
-            RuleAction::Construct(namespace, constructor, args) => {
+            RuleAction::Construct {
+                ns: namespace,
+                name: constructor,
+                args: args,
+            } => {
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());
                 for _arg in args.iter() {
@@ -108,7 +112,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 }
             }
             RuleAction::InputLiteral(lit) => self.alloc.alloc(Input::Literal(*lit)).to_parsed(),
-            RuleAction::Construct(namespace, name, args) => {
+            RuleAction::Construct {
+                ns: namespace,
+                name: name,
+                args: args,
+            } => {
                 let ns = self
                     .parsables
                     .get(namespace)

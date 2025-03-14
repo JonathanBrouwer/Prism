@@ -121,9 +121,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let body = self.parsed_to_checked_with_env(b, env, jump_labels);
                 return self.apply_names(original_names, grammar_env, common_len, body);
             }
-            ParsedPrismExpr::GrammarValue(v) => {
-                todo!()
-            }
+            ParsedPrismExpr::GrammarValue(grammar) => CorePrismExpr::GrammarValue(grammar),
             ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))

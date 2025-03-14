@@ -390,7 +390,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 )
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
-            RuleExpr::AtAdapt(ns, grammar, body) => {
+            RuleExpr::AtAdapt {
+                ns: ns,
+                name: grammar,
+                expr: body,
+            } => {
                 let ns = self
                     .parsables
                     .get(ns)

@@ -12,11 +12,12 @@ use serde::{Deserialize, Serialize};
 pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
-    Construct(
-        &'grm str,
-        &'grm str,
-        #[serde(with = "leak_slice")] &'arn [Self],
-    ),
+    Construct {
+        ns: &'grm str,
+        name: &'grm str,
+        #[serde(with = "leak_slice")]
+        args: &'arn [Self],
+    },
     #[serde(skip)]
     Value(Parsed<'arn, 'grm>),
 }
@@ -34,17 +35,17 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
         _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Construct" => RuleAction::Construct(
-                parse_identifier(_args[0], _src),
-                parse_identifier(_args[1], _src),
-                _allocs.alloc_extend(
+            "Construct" => RuleAction::Construct {
+                ns: parse_identifier(_args[0], _src),
+                name: parse_identifier(_args[1], _src),
+                args: _allocs.alloc_extend(
                     _args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
-            ),
+            },
             "InputLiteral" => RuleAction::InputLiteral(parse_string(_args[0], _src)),
             "Name" => RuleAction::Name(parse_identifier(_args[0], _src)),
             "Value" => RuleAction::Value(_args[0]),

@@ -2,7 +2,7 @@
 adapt grammar {
     adapt rule expr {
         adapt group base {
-            Type <- "%";
+            "%" => Type;
         }
     }
 };

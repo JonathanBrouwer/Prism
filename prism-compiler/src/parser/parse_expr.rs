@@ -201,34 +201,24 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         src: &'grm str,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> &'arn GrammarFile<'arn, 'grm> {
-        todo!()
-        // // Create context, ignore any errors that occur in this process
-        // let error_count = prism_env.errors.len();
-        // let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
-        // prism_env.errors.truncate(error_count);
-        //
-        // let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
-        // let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
-        //
-        // let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0]
-        // else {
-        //     panic!(
-        //         "Tried to reduce expression which was not a grammar: {} / {} / {}",
-        //         prism_env.parse_index_to_string(*self),
-        //         prism_env.index_to_string(value),
-        //         prism_env.index_to_string(reduced_value)
-        //     )
-        // };
-        //
-        // prism_env.grammar_envs.insert(
-        //     guid,
-        //     GrammarEnvEntry {
-        //         grammar_env: reduced_env,
-        //         common_len: db_env.intersect(reduced_env).len(),
-        //     },
-        // );
-        //
-        // grammar
+        // Create context, ignore any errors that occur in this process
+        let error_count = prism_env.errors.len();
+        let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
+        prism_env.errors.truncate(error_count);
+
+        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
+        let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
+
+        let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
+            panic!(
+                "Tried to reduce expression which was not a grammar: {} / {} / {}",
+                prism_env.parse_index_to_string(*self),
+                prism_env.index_to_string(value),
+                prism_env.index_to_string(reduced_value)
+            )
+        };
+
+        grammar
     }
 }
 
@@ -243,25 +233,25 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
     prism_env: &mut PrismEnv<'arn, 'grm>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(v) = parsed.try_into_value::<EnvCapture>() {
-        let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
-        let env = v.env;
-        let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
-        let guid = value.1;
+        // let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
+        // let env = v.env;
+        // let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
 
-        let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
-
-        let expr = prism_env.store_from_source(
-            ParsedPrismExpr::ShiftTo(expr, guid, env, *grammar_env_entry),
-            prism_env.parsed_spans[*expr],
-        );
-        Parsed::from_value(prism_env.allocs.alloc(expr))
+        todo!()
+        // let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
+        //
+        // let expr = prism_env.store_from_source(
+        //     ParsedPrismExpr::ShiftTo(expr, guid, env, *grammar_env_entry),
+        //     prism_env.parsed_spans[*expr],
+        // );
+        // Parsed::from_value(prism_env.allocs.alloc(expr))
     } else {
         parsed
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>, Guid);
+pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter<'arn, 'grm> {
     type EvalCtx = PrismEvalCtx<'arn>;
@@ -275,7 +265,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ScopeEnter
         _prism_env: &mut PrismEnv,
     ) -> Self {
         assert_eq!(constructor, "Enter");
-        ScopeEnter(args[0], *args[1].into_value())
+        ScopeEnter(args[0])
     }
 
     fn create_eval_ctx(

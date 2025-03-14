@@ -11,6 +11,7 @@ let or = (b1: Bool) => (b2: Bool) => b1 Bool true b2;
 adapt grammar {
     adapt rule expr {
         group or {
+            // (e1: Bool) (e2: Bool) -> Bool
             e1:#this "||" e2:#next => (e1: Bool) (e2: Bool) => or e1 e2;
         }
         group and {
