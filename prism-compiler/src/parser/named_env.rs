@@ -63,12 +63,8 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         self.env_len == 0
     }
 
-    pub fn insert_shift_label(
-        &self,
-        guid: Guid,
-        jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
-    ) {
-        jump_labels.insert(guid, self.names);
+    pub fn insert_shift_label(&self, jump_labels: &mut Vec<NamesEnv<'arn, 'grm>>) {
+        jump_labels.push(self.names);
     }
 
     pub fn shift_back(

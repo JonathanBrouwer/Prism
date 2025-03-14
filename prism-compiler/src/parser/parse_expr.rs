@@ -46,8 +46,7 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
                 return (dummy_named_env, dummy_db_env);
             };
             let value = value.into_value::<ParsedIndex>();
-            let value =
-                prism_env.parsed_to_checked_with_env(*value, named_env, &mut HashMap::new());
+            let value = prism_env.parsed_to_checked_with_env(*value, named_env, &mut Vec::new());
 
             let named_env = named_env.insert_name(key, input, prism_env.allocs);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env), prism_env.allocs);
@@ -205,7 +204,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut HashMap::new());
+        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut Vec::new());
         let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
@@ -219,7 +218,10 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 
         // Insert the scope into the grammar, so we can find the scope again later in `reduce_expr`
         grammar.map_actions(
-            &|e| prism_env.allocs.alloc(ScopeEnter(e)).to_parsed(),
+            &|e| {
+                let w1 = e.into_value::<EnvWrapper1>();
+                prism_env.allocs.alloc(EnvWrapper2(w1.0)).to_parsed()
+            },
             prism_env.allocs,
         )
     }
@@ -236,7 +238,7 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
     prism_env: &mut PrismEnv<'arn, 'grm>,
 ) -> Parsed<'arn, 'grm> {
     if let Some(capture) = parsed.try_into_value::<EnvCapture>() {
-        let value = capture.value.into_value::<ScopeEnter>();
+        let value = capture.value.into_value::<EnvWrapper2>();
 
         value.0
 
@@ -257,5 +259,9 @@ pub fn reduce_expr<'arn, 'grm: 'arn>(
 }
 
 #[derive(Copy, Clone)]
-pub struct ScopeEnter<'arn, 'grm>(Parsed<'arn, 'grm>);
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ScopeEnter<'arn, 'grm> {}
+pub struct EnvWrapper1<'arn, 'grm>(pub(crate) Parsed<'arn, 'grm>);
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper1<'arn, 'grm> {}
+
+#[derive(Copy, Clone)]
+pub struct EnvWrapper2<'arn, 'grm>(Parsed<'arn, 'grm>);
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper2<'arn, 'grm> {}

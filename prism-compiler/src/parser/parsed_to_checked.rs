@@ -2,22 +2,23 @@ use crate::lang::env::DbEnv;
 use crate::lang::error::TypeError;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
-use crate::parser::parse_expr::{GrammarEnvEntry, reduce_expr};
+use crate::parser::parse_expr::{EnvWrapper1, GrammarEnvEntry, reduce_expr};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::span::Span;
+use prism_parser::parsable::ParseResult;
 use prism_parser::parsable::guid::Guid;
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CoreIndex {
-        self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut HashMap::new())
+        self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut Vec::new())
     }
 
     pub fn parsed_to_checked_with_env(
         &mut self,
         i: ParsedIndex,
         env: NamedEnv<'arn, 'grm>,
-        jump_labels: &mut HashMap<Guid, NamesEnv<'arn, 'grm>>,
+        jump_labels: &mut Vec<NamesEnv<'arn, 'grm>>,
     ) -> CoreIndex {
         let e = match self.parsed_values[*i] {
             ParsedPrismExpr::Free => CorePrismExpr::Free,
@@ -84,80 +85,90 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
-            ParsedPrismExpr::ShiftTo(
-                b,
-                guid,
-                captured_env,
-                GrammarEnvEntry {
-                    grammar_env,
-                    common_len,
-                },
-            ) => {
-                let mut names = jump_labels[&guid];
-                let original_names = names;
+            ParsedPrismExpr::ShiftTo {
+                expr: b,
+                id: guid,
+                vars: captured_env,
+                // entry:
+                //     GrammarEnvEntry {
+                //         grammar_env,
+                //         common_len,
+                //     },
+            } => {
+                todo!()
+                // let mut names = jump_labels[&guid];
+                // let original_names = names;
+                //
+                // for (name, value) in captured_env
+                //     .into_iter()
+                //     .collect::<Vec<_>>()
+                //     .into_iter()
+                //     .rev()
+                // {
+                //     names = names.insert(
+                //         name,
+                //         NamesEntry::FromParsed(reduce_expr(value, self), env.names),
+                //         self.allocs,
+                //     );
+                // }
+                //
 
-                for (name, value) in captured_env
-                    .into_iter()
-                    .collect::<Vec<_>>()
-                    .into_iter()
-                    .rev()
-                {
-                    names = names.insert(
-                        name,
-                        NamesEntry::FromParsed(reduce_expr(value, self), env.names),
-                        self.allocs,
-                    );
-                }
-
-                let extra_applied_names = grammar_env.len() - common_len;
-
-                let env = NamedEnv::<'arn, 'grm> {
-                    env_len: env.env_len + extra_applied_names,
-                    names,
-                    //TODO should these be preserved?
-                    hygienic_names: Default::default(),
-                };
-
-                let body = self.parsed_to_checked_with_env(b, env, jump_labels);
-                return self.apply_names(original_names, grammar_env, common_len, body);
+                // let extra_applied_names = grammar_env.len() - common_len;
+                //
+                // let env = NamedEnv::<'arn, 'grm> {
+                //     env_len: env.env_len + extra_applied_names,
+                //     names,
+                //     //TODO should these be preserved?
+                //     hygienic_names: Default::default(),
+                // };
+                //
+                // let body = self.parsed_to_checked_with_env(b, env, jump_labels);
+                // return self.apply_names(original_names, grammar_env, common_len, body);
             }
-            ParsedPrismExpr::GrammarValue(grammar) => CorePrismExpr::GrammarValue(grammar),
+            ParsedPrismExpr::GrammarValue(grammar) => {
+                env.insert_shift_label(jump_labels);
+                let grammar = grammar.map_actions(
+                    &|action| self.allocs.alloc(EnvWrapper1(action)).to_parsed(),
+                    self.allocs,
+                );
+                CorePrismExpr::GrammarValue(grammar)
+            }
             ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }
 
-    fn apply_names(
-        &mut self,
-        mut names: NamesEnv<'arn, 'grm>,
-        mut grammar_env: DbEnv<'arn>,
-        common_len: usize,
-        mut body: CoreIndex,
-    ) -> CoreIndex {
-        while grammar_env.len() > common_len {
-            let ((name, names_entry), names_rest) = names.split().unwrap();
-            let NamesEntry::FromEnv(prev_env_len) = names_entry else {
-                panic!("Got non-names entry")
-            };
-            names = names_rest;
-
-            let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
-            grammar_env = grammar_rest;
-
-            // Always 0 because grammar_env changes
-            let db_index = grammar_env.len() - prev_env_len;
-            assert_eq!(db_index, 0);
-
-            let typ = self.store_checked(
-                CorePrismExpr::Type,
-                ValueOrigin::SourceCode(Span::invalid()),
-            );
-            body = self.store_checked(
-                CorePrismExpr::Let(typ, body),
-                ValueOrigin::SourceCode(Span::invalid()),
-            );
-        }
-
-        body
-    }
+    // fn apply_names(
+    //     &mut self,
+    //     mut names: NamesEnv<'arn, 'grm>,
+    //     mut grammar_env: DbEnv<'arn>,
+    //     common_len: usize,
+    //     mut body: CoreIndex,
+    // ) -> CoreIndex {
+    //     while grammar_env.len() > common_len {
+    //         let ((name, names_entry), names_rest) = names.split().unwrap();
+    //         let NamesEntry::FromEnv(prev_env_len) = names_entry else {
+    //             panic!("Got non-names entry")
+    //         };
+    //         names = names_rest;
+    //
+    //         let (((), grammar_entry), grammar_rest) = grammar_env.split().unwrap();
+    //         grammar_env = grammar_rest;
+    //
+    //         // Always 0 because grammar_env changes
+    //         let db_index = grammar_env.len() - prev_env_len;
+    //         assert_eq!(db_index, 0);
+    //
+    //         let typ = self.store_checked(
+    //             CorePrismExpr::Type,
+    //             ValueOrigin::SourceCode(Span::invalid()),
+    //         );
+    //         body = self.store_checked(
+    //             CorePrismExpr::Let(typ, body),
+    //             ValueOrigin::SourceCode(Span::invalid()),
+    //         );
+    //     }
+    //
+    //     body
+    // }
 }

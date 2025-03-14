@@ -36,7 +36,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleAction::Construct {
                 ns: namespace,
                 name: constructor,
-                args: args,
+                args,
             } => {
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());

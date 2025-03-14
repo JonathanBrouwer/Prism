@@ -18,7 +18,7 @@ impl<'arn, 'grm: 'arn> ParsedPrismExpr<'arn, 'grm> {
             ParsedPrismExpr::Name(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarType => PrecedenceLevel::Base,
-            ParsedPrismExpr::ShiftTo(..) => PrecedenceLevel::Base,
+            ParsedPrismExpr::ShiftTo { .. } => PrecedenceLevel::Base,
         }
     }
 }
@@ -72,7 +72,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
             }
-            ParsedPrismExpr::ShiftTo(v, guid, vars, _) => {
+            ParsedPrismExpr::ShiftTo {
+                expr: v,
+                id: guid,
+                vars: vars,
+            } => {
                 writeln!(w, "[SHIFT TO {guid:?}]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;
