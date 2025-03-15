@@ -126,11 +126,16 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             "EnvCapture" => {
                 assert_eq!(args.len(), 2);
                 let value = args[0].into_value::<EnvWrapper>();
-                let env = args[1].into_value::<VarMap<'arn, 'grm>>();
+                let captured_env = args[1].into_value::<VarMap<'arn, 'grm>>();
 
                 let expr = *value.0.into_value::<ParsedIndex>();
 
-                ParsedPrismExpr::ShiftTo { expr, vars: *env }
+                ParsedPrismExpr::ShiftTo {
+                    expr,
+                    captured_env: *captured_env,
+                    adapt_env_len: value.1,
+                    grammar: value.2,
+                }
             }
             _ => unreachable!(),
         };
@@ -218,12 +223,17 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 
         // Insert the scope into the grammar, so we can find the scope again later in `reduce_expr`
         grammar.map_actions(
-            &|e| prism_env.allocs.alloc(EnvWrapper(e)).to_parsed(),
+            &|e| {
+                prism_env
+                    .allocs
+                    .alloc(EnvWrapper(e, eval_ctx.len(), grammar))
+                    .to_parsed()
+            },
             prism_env.allocs,
         )
     }
 }
 
 #[derive(Copy, Clone)]
-pub struct EnvWrapper<'arn, 'grm>(Parsed<'arn, 'grm>);
+pub struct EnvWrapper<'arn, 'grm>(Parsed<'arn, 'grm>, usize, &'arn GrammarFile<'arn, 'grm>);
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper<'arn, 'grm> {}

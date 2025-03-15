@@ -67,9 +67,9 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     Name(&'grm str),
     ShiftTo {
         expr: ParsedIndex,
-        // id: Guid,
-        vars: VarMap<'arn, 'grm>,
-        // entry: GrammarEnvEntry<'arn>,
+        captured_env: VarMap<'arn, 'grm>,
+        adapt_env_len: usize,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
     },
     GrammarValue(&'arn GrammarFile<'arn, 'grm>),
     GrammarType,

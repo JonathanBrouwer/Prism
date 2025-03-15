@@ -79,11 +79,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 }
             }
             ParsedPrismExpr::ShiftTo {
-                expr: b,
-                vars: captured_env,
+                expr,
+                captured_env,
+                adapt_env_len,
+                grammar,
             } => {
-                let mut names = env.names;
-                // let mut names = jump_labels[&guid];
+                let mut names = jump_labels[&(grammar as *const _)];
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -102,7 +103,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     hygienic_names: Default::default(),
                 };
 
-                return self.parsed_to_checked_with_env(b, env, jump_labels);
+                return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
             ParsedPrismExpr::GrammarValue(grammar) => {
                 env.insert_shift_label(grammar, jump_labels);

@@ -72,8 +72,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
             }
-            ParsedPrismExpr::ShiftTo { expr, vars } => {
-                writeln!(w, "[SHIFT]")?;
+            ParsedPrismExpr::ShiftTo {
+                expr,
+                captured_env: vars,
+                adapt_env_len,
+                ..
+            } => {
+                writeln!(w, "[SHIFT {adapt_env_len}]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;
                     if let Some(v) = v.try_into_value::<ParsedIndex>() {
