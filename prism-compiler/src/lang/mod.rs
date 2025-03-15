@@ -5,7 +5,6 @@ use prism_parser::core::allocs::Allocs;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::guid::Guid;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;

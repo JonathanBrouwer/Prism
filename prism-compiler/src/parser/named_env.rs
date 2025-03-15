@@ -1,9 +1,7 @@
-use crate::lang::CoreIndex;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use std::collections::HashMap;
 

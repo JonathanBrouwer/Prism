@@ -1,13 +1,8 @@
-use crate::lang::env::DbEnv;
 use crate::lang::error::TypeError;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
-use crate::parser::parse_expr::EnvWrapper;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
-use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::ParseResult;
-use prism_parser::parsable::guid::Guid;
 use std::collections::HashMap;
 
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {

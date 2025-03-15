@@ -7,12 +7,10 @@ use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
 use prism_parser::parser::VarMap;
 use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
-use std::collections::HashMap;
 
 pub type PrismEvalCtx<'arn> = GenericEnv<'arn, ParsedPlaceholder, Option<ParsedPlaceholder>>;
 

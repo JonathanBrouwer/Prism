@@ -72,10 +72,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
             }
-            ParsedPrismExpr::ShiftTo {
-                expr: v,
-                vars: vars,
-            } => {
+            ParsedPrismExpr::ShiftTo { expr, vars } => {
                 writeln!(w, "[SHIFT]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;
@@ -86,7 +83,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     writeln!(w)?;
                 }
-                self.parse_display(v, w, PrecedenceLevel::default())?;
+                self.parse_display(expr, w, PrecedenceLevel::default())?;
             }
         }
 
