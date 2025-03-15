@@ -7,7 +7,6 @@ use std::any::type_name;
 use std::iter;
 
 pub mod action_result;
-pub mod env_capture;
 pub mod guid;
 pub mod option;
 pub mod parsable_dyn;

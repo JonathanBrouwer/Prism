@@ -74,10 +74,9 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             ParsedPrismExpr::ShiftTo {
                 expr: v,
-                id: guid,
                 vars: vars,
             } => {
-                writeln!(w, "[SHIFT TO {guid:?}]")?;
+                writeln!(w, "[SHIFT]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;
                     if let Some(v) = v.try_into_value::<ParsedIndex>() {

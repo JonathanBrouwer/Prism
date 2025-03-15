@@ -2,6 +2,7 @@ use crate::lang::CoreIndex;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
 use prism_parser::env::GenericEnv;
+use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use std::collections::HashMap;
@@ -18,7 +19,6 @@ pub type NamesEnv<'arn, 'grm> = GenericEnv<'arn, &'arn str, NamesEntry<'arn, 'gr
 #[derive(Debug, Copy, Clone)]
 pub enum NamesEntry<'arn, 'grm> {
     FromEnv(usize),
-    FromEnvSubst(CoreIndex),
     FromParsed(Parsed<'arn, 'grm>, NamesEnv<'arn, 'grm>),
 }
 
@@ -63,8 +63,12 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         self.env_len == 0
     }
 
-    pub fn insert_shift_label(&self, jump_labels: &mut Vec<NamesEnv<'arn, 'grm>>) {
-        jump_labels.push(self.names);
+    pub fn insert_shift_label(
+        &self,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
+        jump_labels: &mut HashMap<*const GrammarFile<'arn, 'grm>, NamesEnv<'arn, 'grm>>,
+    ) {
+        jump_labels.insert(grammar as *const _, self.names);
     }
 
     pub fn shift_back(

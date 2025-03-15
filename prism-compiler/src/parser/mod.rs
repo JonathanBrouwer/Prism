@@ -1,6 +1,6 @@
 use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
-use crate::parser::parse_expr::{EnvWrapper2, GrammarEnvEntry, reduce_expr};
+use crate::parser::parse_expr::EnvWrapper;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
@@ -40,7 +40,7 @@ pub fn parse_prism_in_env<'p>(
     run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
         &GRAMMAR, "expr", program, env.allocs, parsables, env,
     )
-    .map(|v| *reduce_expr(v, env).into_value())
+    .map(|v| *v.into_value())
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -69,7 +69,7 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
     Name(&'grm str),
     ShiftTo {
         expr: ParsedIndex,
-        id: Guid,
+        // id: Guid,
         vars: VarMap<'arn, 'grm>,
         // entry: GrammarEnvEntry<'arn>,
     },

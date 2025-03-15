@@ -7,10 +7,10 @@ use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::env_capture::EnvCapture;
 use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
+use prism_parser::parser::VarMap;
 use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use std::collections::HashMap;
 
@@ -46,7 +46,8 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
                 return (dummy_named_env, dummy_db_env);
             };
             let value = value.into_value::<ParsedIndex>();
-            let value = prism_env.parsed_to_checked_with_env(*value, named_env, &mut Vec::new());
+            let value =
+                prism_env.parsed_to_checked_with_env(*value, named_env, &mut Default::default());
 
             let named_env = named_env.insert_name(key, input, prism_env.allocs);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env), prism_env.allocs);
@@ -75,9 +76,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = reduce_expr(args[0], prism_env)
-                    .into_value::<Input>()
-                    .as_str(_src);
+                let name = args[0].into_value::<Input>().as_str(_src);
                 if name == "_" {
                     ParsedPrismExpr::Free
                 } else {
@@ -86,41 +85,35 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = reduce_expr(args[0], prism_env)
-                    .into_value::<Input<'grm>>()
-                    .as_str(_src);
-                let v = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
-                let b = *reduce_expr(args[2], prism_env).into_value::<ParsedIndex>();
+                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let v = *args[1].into_value::<ParsedIndex>();
+                let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = reduce_expr(args[0], prism_env)
-                    .into_value::<Input<'grm>>()
-                    .as_str(_src);
-                let v = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
-                let b = *reduce_expr(args[2], prism_env).into_value::<ParsedIndex>();
+                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let v = *args[1].into_value::<ParsedIndex>();
+                let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = reduce_expr(args[0], prism_env)
-                    .into_value::<Input<'grm>>()
-                    .as_str(_src);
-                let b = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
+                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let b = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }
             "FnDestruct" => {
                 assert_eq!(args.len(), 2);
-                let f = *reduce_expr(args[0], prism_env).into_value::<ParsedIndex>();
-                let v = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
+                let f = *args[0].into_value::<ParsedIndex>();
+                let v = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnDestruct(f, v)
             }
             "TypeAssert" => {
                 assert_eq!(args.len(), 2);
 
-                let e = *reduce_expr(args[0], prism_env).into_value::<ParsedIndex>();
-                let typ = *reduce_expr(args[1], prism_env).into_value::<ParsedIndex>();
+                let e = *args[0].into_value::<ParsedIndex>();
+                let typ = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::TypeAssert(e, typ)
             }
             "GrammarValue" => {
@@ -131,6 +124,15 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             "GrammarType" => {
                 assert_eq!(args.len(), 0);
                 ParsedPrismExpr::GrammarType
+            }
+            "EnvCapture" => {
+                assert_eq!(args.len(), 2);
+                let value = args[0].into_value::<EnvWrapper>();
+                let env = args[1].into_value::<VarMap<'arn, 'grm>>();
+
+                let expr = *value.0.into_value::<ParsedIndex>();
+
+                ParsedPrismExpr::ShiftTo { expr, vars: *env }
             }
             _ => unreachable!(),
         };
@@ -204,8 +206,8 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut Vec::new());
-        let (reduced_value, reduced_env) = prism_env.beta_reduce_head(value, db_env);
+        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
+        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(value, db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
             panic!(
@@ -218,50 +220,12 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 
         // Insert the scope into the grammar, so we can find the scope again later in `reduce_expr`
         grammar.map_actions(
-            &|e| {
-                let w1 = e.into_value::<EnvWrapper1>();
-                prism_env.allocs.alloc(EnvWrapper2(w1.0)).to_parsed()
-            },
+            &|e| prism_env.allocs.alloc(EnvWrapper(e)).to_parsed(),
             prism_env.allocs,
         )
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct GrammarEnvEntry<'arn> {
-    pub grammar_env: DbEnv<'arn>,
-    pub common_len: usize,
-}
-
-pub fn reduce_expr<'arn, 'grm: 'arn>(
-    parsed: Parsed<'arn, 'grm>,
-    prism_env: &mut PrismEnv<'arn, 'grm>,
-) -> Parsed<'arn, 'grm> {
-    if let Some(capture) = parsed.try_into_value::<EnvCapture>() {
-        let value = capture.value.into_value::<EnvWrapper2>();
-
-        value.0
-
-        // let value = v.value.into_value::<ScopeEnter<'arn, 'grm>>();
-        // let env = v.env;
-        // let expr = *reduce_expr(value.0, prism_env).into_value::<ParsedIndex>();
-
-        // let grammar_env_entry = prism_env.grammar_envs.get(&guid).unwrap();
-        //
-        // let expr = prism_env.store_from_source(
-        //     ParsedPrismExpr::ShiftTo(expr, guid, env, *grammar_env_entry),
-        //     prism_env.parsed_spans[*expr],
-        // );
-        // Parsed::from_value(prism_env.allocs.alloc(expr))
-    } else {
-        parsed
-    }
-}
-
 #[derive(Copy, Clone)]
-pub struct EnvWrapper1<'arn, 'grm>(pub(crate) Parsed<'arn, 'grm>);
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper1<'arn, 'grm> {}
-
-#[derive(Copy, Clone)]
-pub struct EnvWrapper2<'arn, 'grm>(Parsed<'arn, 'grm>);
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper2<'arn, 'grm> {}
+pub struct EnvWrapper<'arn, 'grm>(Parsed<'arn, 'grm>);
+impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper<'arn, 'grm> {}

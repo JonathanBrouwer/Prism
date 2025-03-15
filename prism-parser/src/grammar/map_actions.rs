@@ -121,7 +121,10 @@ impl<'arn, 'grm: 'arn> RuleAction<'arn, 'grm> {
                 name,
                 args: allocs.alloc_extend(args.iter().map(|r| r.map_actions(map, allocs))),
             },
-            RuleAction::Value(v) => RuleAction::Value(map(v)),
+            RuleAction::Value { ns, value } => RuleAction::Value {
+                ns,
+                value: map(value),
+            },
         }
     }
 }

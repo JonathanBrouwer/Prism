@@ -1,4 +1,4 @@
-rule wrapped_expr = RuleAction::Value(e) <- e:expr;
+rule wrapped_expr = RuleAction::Value("Expr", e) <- e:expr;
 
 rule expr {
     group statement {
