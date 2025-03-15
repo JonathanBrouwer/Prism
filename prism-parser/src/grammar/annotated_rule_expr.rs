@@ -9,10 +9,12 @@ use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct AnnotatedRuleExpr<'arn, 'grm>(
-    #[serde(borrow, with = "leak_slice")] pub &'arn [RuleAnnotation<'grm>],
-    #[serde(borrow, with = "leak")] pub &'arn RuleExpr<'arn, 'grm>,
-);
+pub struct AnnotatedRuleExpr<'arn, 'grm> {
+    #[serde(borrow, with = "leak_slice")]
+    pub annotations: &'arn [RuleAnnotation<'grm>],
+    #[serde(borrow, with = "leak")]
+    pub expr: &'arn RuleExpr<'arn, 'grm>,
+}
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for AnnotatedRuleExpr<'arn, 'grm> {}
 impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn, 'grm> {
@@ -27,15 +29,15 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn
         _env: &mut Env,
     ) -> Self {
         assert_eq!("AnnotatedExpr", constructor);
-        Self(
-            _allocs.alloc_extend(
+        Self {
+            annotations: _allocs.alloc_extend(
                 _args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)
                     .map(|annot| *annot.into_value::<RuleAnnotation>()),
             ),
-            _args[1].into_value::<RuleExpr<'arn, 'grm>>(),
-        )
+            expr: _args[1].into_value::<RuleExpr<'arn, 'grm>>(),
+        }
     }
 }

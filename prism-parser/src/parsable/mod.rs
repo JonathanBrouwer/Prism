@@ -7,7 +7,6 @@ use std::any::type_name;
 use std::iter;
 
 pub mod action_result;
-pub mod env_capture;
 pub mod guid;
 pub mod option;
 pub mod parsable_dyn;
@@ -61,7 +60,6 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
-        _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm> {

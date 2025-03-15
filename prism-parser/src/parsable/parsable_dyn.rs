@@ -32,7 +32,6 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         eval_ctx: Parsed<'arn, 'grm>,
         placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
-        allocs: Allocs<'arn>,
         src: &'grm str,
         env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm>,
@@ -95,7 +94,6 @@ fn eval_to_grammar_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     eval_ctx: Parsed<'arn, 'grm>,
     placeholders: &PlaceholderStore<'arn, 'grm, Env>,
     // Env
-    allocs: Allocs<'arn>,
     src: &'grm str,
     env: &mut Env,
 ) -> &'arn GrammarFile<'arn, 'grm> {
@@ -104,5 +102,5 @@ fn eval_to_grammar_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     } else {
         *eval_ctx.into_value()
     };
-    P::eval_to_grammar(v.into_value(), eval_ctx, placeholders, allocs, src, env)
+    P::eval_to_grammar(v.into_value(), eval_ctx, placeholders, src, env)
 }

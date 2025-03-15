@@ -390,20 +390,18 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 )
                 .negative_lookahead(pos)
                 .map(|()| PR::with_rtrn(Void.to_parsed())),
-            RuleExpr::AtAdapt(ns, grammar, body) => {
+            RuleExpr::AtAdapt {
+                ns,
+                name: grammar,
+                expr: body,
+            } => {
                 let ns = self
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let grammar = vars.get(grammar).unwrap();
-                let grammar = (ns.eval_to_grammar)(
-                    grammar,
-                    eval_ctx,
-                    &self.placeholders,
-                    self.alloc,
-                    self.input,
-                    penv,
-                );
+                let grammar =
+                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, self.input, penv);
 
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states

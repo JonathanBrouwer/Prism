@@ -63,7 +63,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let typ = self.simplify_inner(typ, s, var_map);
                 CorePrismExpr::TypeAssert(e, typ)
             }
-            CorePrismExpr::GrammarValue(p, g) => CorePrismExpr::GrammarValue(p, g),
+            CorePrismExpr::GrammarValue(p) => CorePrismExpr::GrammarValue(p),
             CorePrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
         self.store_checked(e_new, self.checked_origins[*i])

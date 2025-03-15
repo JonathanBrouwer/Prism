@@ -86,7 +86,7 @@ fn next(i: &mut usize, env: &mut PrismEnv, env_size: &mut Vec<usize>) -> bool {
                 continue;
             }
             CorePrismExpr::Shift(_, _) => unreachable!(),
-            CorePrismExpr::GrammarValue(_, _) => unreachable!(),
+            CorePrismExpr::GrammarValue(_) => unreachable!(),
             CorePrismExpr::GrammarType => unreachable!(),
         };
         return true;

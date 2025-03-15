@@ -38,7 +38,12 @@ pub enum RuleExpr<'arn, 'grm> {
     SliceInput(#[serde(with = "leak")] &'arn Self),
     PosLookahead(#[serde(with = "leak")] &'arn Self),
     NegLookahead(#[serde(with = "leak")] &'arn Self),
-    AtAdapt(&'grm str, &'grm str, #[serde(with = "leak")] &'arn Self),
+    AtAdapt {
+        ns: &'grm str,
+        name: &'grm str,
+        #[serde(with = "leak")]
+        expr: &'arn Self,
+    },
     Guid,
 }
 
@@ -103,11 +108,11 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
                         .map(|sub| *sub.into_value::<RuleExpr>()),
                 ),
             },
-            "AtAdapt" => RuleExpr::AtAdapt(
-                parse_identifier(args[0], src),
-                parse_identifier(args[1], src),
-                args[2].into_value::<RuleExpr>(),
-            ),
+            "AtAdapt" => RuleExpr::AtAdapt {
+                ns: parse_identifier(args[0], src),
+                name: parse_identifier(args[1], src),
+                expr: args[2].into_value::<RuleExpr>(),
+            },
             _ => unreachable!(),
         }
     }

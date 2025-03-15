@@ -93,22 +93,32 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
     ) -> PResult<Parsed<'arn, 'grm>, E> {
         match es {
             [] => PResult::new_err(E::new(pos), pos),
-            [(AnnotatedRuleExpr(annots, expr), rule_ctx), rest @ ..] => {
+            [
+                (AnnotatedRuleExpr { annotations, expr }, rule_ctx),
+                rest @ ..,
+            ] => {
                 let rule_ctx = rule_ctx.into_iter();
                 let rule_args_iter = rule_args.into_iter();
                 let vars: VarMap<'arn, 'grm> =
                     VarMap::from_iter(rule_args_iter.chain(rule_ctx), self.alloc);
 
-                let res = self
-                    .parse_sub_annotations(
-                        rules, blocks, rule_args, annots, expr, vars, pos, context, penv, eval_ctx,
+                self.parse_sub_annotations(
+                    rules,
+                    blocks,
+                    rule_args,
+                    annotations,
+                    expr,
+                    vars,
+                    pos,
+                    context,
+                    penv,
+                    eval_ctx,
+                )
+                .merge_choice_chain(|| {
+                    self.parse_sub_constructors(
+                        rules, blocks, rule_args, rest, pos, context, penv, eval_ctx,
                     )
-                    .merge_choice_chain(|| {
-                        self.parse_sub_constructors(
-                            rules, blocks, rule_args, rest, pos, context, penv, eval_ctx,
-                        )
-                    });
-                res
+                })
             }
         }
     }

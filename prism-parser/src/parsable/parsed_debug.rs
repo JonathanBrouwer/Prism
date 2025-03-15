@@ -1,9 +1,9 @@
 use crate::core::input::Input;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::action_result::ActionResult;
-use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
+use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
@@ -19,8 +19,8 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
                         .join(", ")
                 ),
             }
-        } else if let Some(env) = self.try_into_value::<EnvCapture<'arn, 'grm>>() {
-            format!("Env({})", env.value.to_debug_string(src))
+        } else if let Some(_env) = self.try_into_value::<VarMap<'arn, 'grm>>() {
+            "[VARS]".to_string()
         } else if let Some(ll) = self.try_into_value::<ParsedList<'arn, 'grm>>() {
             format!(
                 "[{}]",

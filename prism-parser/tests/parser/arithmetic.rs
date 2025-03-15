@@ -8,7 +8,7 @@ rule block {
     b <- "grammar" "{" g:grammar(wrapped_expr) "}" ";" b:#adapt(GrammarFile,  g, block);
     expr;
 }
-rule wrapped_expr = RuleAction::Value(v) <- v:expr;
+rule wrapped_expr = RuleAction::Value("ActionResult", v) <- v:expr;
 
 rule expr {
     group additive {
@@ -41,7 +41,7 @@ passing tests:
         }
     };
     1 - 2
-    "### => "Env(Add(Num('1'), Block(UnaryMinus(Num('2')))))"
+    "### => "EnvCapture(Add(Num('1'), Block(UnaryMinus(Num('2')))), [VARS])"
 
 failing tests:
 }

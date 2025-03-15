@@ -9,9 +9,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "RunVar": {
                   "rule": "grammar",
                   "args": [
@@ -24,7 +24,7 @@
                   ]
                 }
               }
-            ]
+            }
           ]
         }
       ],
@@ -44,9 +44,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -76,19 +76,19 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "GrammarFile",
-                      "GrammarFile",
-                      [
+                    "Construct": {
+                      "ns": "GrammarFile",
+                      "name": "GrammarFile",
+                      "args": [
                         {
                           "Name": "rs"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -108,9 +108,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -183,10 +183,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "Rule",
-                      "Rule",
-                      [
+                    "Construct": {
+                      "ns": "Rule",
+                      "name": "Rule",
+                      "args": [
                         {
                           "Name": "name"
                         },
@@ -200,14 +200,14 @@
                           "Name": "blocks"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -263,95 +263,95 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "Rule",
-                      "Rule",
-                      [
+                    "Construct": {
+                      "ns": "Rule",
+                      "name": "Rule",
+                      "args": [
                         {
                           "Name": "name"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Nil",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Nil",
+                            "args": []
+                          }
                         },
                         {
                           "Name": "params"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Cons",
-                            [
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Cons",
+                            "args": [
                               {
-                                "Construct": [
-                                  "RuleBlock",
-                                  "Block",
-                                  [
+                                "Construct": {
+                                  "ns": "RuleBlock",
+                                  "name": "Block",
+                                  "args": [
                                     {
                                       "InputLiteral": ""
                                     },
                                     {
-                                      "Construct": [
-                                        "ParsedList",
-                                        "Nil",
-                                        []
-                                      ]
+                                      "Construct": {
+                                        "ns": "ParsedList",
+                                        "name": "Nil",
+                                        "args": []
+                                      }
                                     },
                                     {
-                                      "Construct": [
-                                        "ParsedList",
-                                        "Cons",
-                                        [
+                                      "Construct": {
+                                        "ns": "ParsedList",
+                                        "name": "Cons",
+                                        "args": [
                                           {
-                                            "Construct": [
-                                              "AnnotatedRuleExpr",
-                                              "AnnotatedExpr",
-                                              [
+                                            "Construct": {
+                                              "ns": "AnnotatedRuleExpr",
+                                              "name": "AnnotatedExpr",
+                                              "args": [
                                                 {
-                                                  "Construct": [
-                                                    "ParsedList",
-                                                    "Nil",
-                                                    []
-                                                  ]
+                                                  "Construct": {
+                                                    "ns": "ParsedList",
+                                                    "name": "Nil",
+                                                    "args": []
+                                                  }
                                                 },
                                                 {
                                                   "Name": "expr"
                                                 }
                                               ]
-                                            ]
+                                            }
                                           },
                                           {
-                                            "Construct": [
-                                              "ParsedList",
-                                              "Nil",
-                                              []
-                                            ]
+                                            "Construct": {
+                                              "ns": "ParsedList",
+                                              "name": "Nil",
+                                              "args": []
+                                            }
                                           }
                                         ]
-                                      ]
+                                      }
                                     }
                                   ]
-                                ]
+                                }
                               },
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               }
                             ]
-                          ]
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -366,9 +366,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -405,24 +405,24 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": ""
                   },
                   {
-                    "Construct": [
-                      "ParsedList",
-                      "Nil",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "ParsedList",
+                      "name": "Nil",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -442,9 +442,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Repeat": {
                   "expr": {
                     "RunVar": {
@@ -466,10 +466,10 @@
                   }
                 }
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -490,44 +490,44 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "ParsedList",
-                      "Cons",
-                      [
+                    "Construct": {
+                      "ns": "ParsedList",
+                      "name": "Cons",
+                      "args": [
                         {
-                          "Construct": [
-                            "RuleBlock",
-                            "Block",
-                            [
+                          "Construct": {
+                            "ns": "RuleBlock",
+                            "name": "Block",
+                            "args": [
                               {
                                 "InputLiteral": ""
                               },
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               },
                               {
                                 "Name": "c"
                               }
                             ]
-                          ]
+                          }
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Nil",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Nil",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -547,9 +547,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -622,10 +622,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleBlock",
-                      "Block",
-                      [
+                    "Construct": {
+                      "ns": "RuleBlock",
+                      "name": "Block",
+                      "args": [
                         {
                           "Name": "n"
                         },
@@ -636,14 +636,14 @@
                           "Name": "c"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -695,10 +695,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleBlock",
-                      "Block",
-                      [
+                    "Construct": {
+                      "ns": "RuleBlock",
+                      "name": "Block",
+                      "args": [
                         {
                           "Name": "n"
                         },
@@ -706,18 +706,18 @@
                           "Name": "a"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Nil",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Nil",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -737,9 +737,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Repeat": {
                   "expr": {
                     "RunVar": {
@@ -761,7 +761,7 @@
                   }
                 }
               }
-            ]
+            }
           ]
         }
       ],
@@ -781,9 +781,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -843,10 +843,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "AnnotatedRuleExpr",
-                      "AnnotatedExpr",
-                      [
+                    "Construct": {
+                      "ns": "AnnotatedRuleExpr",
+                      "name": "AnnotatedExpr",
+                      "args": [
                         {
                           "Name": "ans"
                         },
@@ -854,11 +854,11 @@
                           "Name": "e"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -873,9 +873,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -911,22 +911,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAnnotation",
-                      "Error",
-                      [
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "Error",
+                      "args": [
                         {
                           "Name": "err"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -945,18 +945,18 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAnnotation",
-                      "DisableLayout",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "DisableLayout",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -975,18 +975,18 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAnnotation",
-                      "EnableLayout",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "EnableLayout",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1005,18 +1005,18 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAnnotation",
-                      "DisableRecovery",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "DisableRecovery",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1035,15 +1035,15 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAnnotation",
-                      "EnableRecovery",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "EnableRecovery",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -1063,9 +1063,59 @@
           "name": "action",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "NameBind": [
+                          "r",
+                          {
+                            "RunVar": {
+                              "rule": "#this",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "=>"
+                      },
+                      {
+                        "NameBind": [
+                          "a",
+                          {
+                            "RunVar": {
+                              "rule": "action",
+                              "args": []
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Action",
+                      "args": [
+                        {
+                          "Name": "r"
+                        },
+                        {
+                          "Name": "a"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1097,10 +1147,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Action",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Action",
+                      "args": [
                         {
                           "Name": "r"
                         },
@@ -1108,20 +1158,20 @@
                           "Name": "a"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "choice",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -1144,28 +1194,28 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Choice",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Choice",
+                      "args": [
                         {
                           "Name": "es"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "sequence",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -1191,28 +1241,28 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Sequence",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Sequence",
+                      "args": [
                         {
                           "Name": "es"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "bind",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1244,10 +1294,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "NameBind",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "NameBind",
+                      "args": [
                         {
                           "Name": "n"
                         },
@@ -1255,20 +1305,20 @@
                           "Name": "e"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "repeat",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1289,10 +1339,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "r"
                         },
@@ -1300,36 +1350,36 @@
                           "InputLiteral": "0"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "None",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "None",
+                            "args": []
+                          }
                         },
                         {
-                          "Construct": [
-                            "RuleExpr",
-                            "Sequence",
-                            [
+                          "Construct": {
+                            "ns": "RuleExpr",
+                            "name": "Sequence",
+                            "args": [
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               }
                             ]
-                          ]
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1350,10 +1400,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "r"
                         },
@@ -1361,36 +1411,36 @@
                           "InputLiteral": "1"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "None",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "None",
+                            "args": []
+                          }
                         },
                         {
-                          "Construct": [
-                            "RuleExpr",
-                            "Sequence",
-                            [
+                          "Construct": {
+                            "ns": "RuleExpr",
+                            "name": "Sequence",
+                            "args": [
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               }
                             ]
-                          ]
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1411,10 +1461,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "r"
                         },
@@ -1422,46 +1472,46 @@
                           "InputLiteral": "0"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "Some",
-                            [
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "Some",
+                            "args": [
                               {
                                 "InputLiteral": "1"
                               }
                             ]
-                          ]
+                          }
                         },
                         {
-                          "Construct": [
-                            "RuleExpr",
-                            "Sequence",
-                            [
+                          "Construct": {
+                            "ns": "RuleExpr",
+                            "name": "Sequence",
+                            "args": [
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               }
                             ]
-                          ]
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "base",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -1475,22 +1525,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Literal",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Literal",
+                      "args": [
                         {
                           "Name": "s"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1514,22 +1564,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "CharClass",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "CharClass",
+                      "args": [
                         {
                           "Name": "c"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1563,22 +1613,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "SliceInput",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "SliceInput",
+                      "args": [
                         {
                           "Name": "r"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1612,22 +1662,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "PosLookahead",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "PosLookahead",
+                      "args": [
                         {
                           "Name": "r"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1661,22 +1711,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "NegLookahead",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "NegLookahead",
+                      "args": [
                         {
                           "Name": "r"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1711,27 +1761,27 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "#guid"
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Guid",
-                      []
-                    ]
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Guid",
+                      "args": []
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1793,10 +1843,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "AtAdapt",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "AtAdapt",
+                      "args": [
                         {
                           "Name": "ns"
                         },
@@ -1807,14 +1857,14 @@
                           "Name": "n"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1873,10 +1923,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "RunVar",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "RunVar",
+                      "args": [
                         {
                           "Name": "n"
                         },
@@ -1884,14 +1934,14 @@
                           "Name": "as"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -1905,29 +1955,29 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "RunVar",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "RunVar",
+                      "args": [
                         {
                           "Name": "n"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Nil",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Nil",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -1988,10 +2038,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "e"
                         },
@@ -1999,24 +2049,24 @@
                           "InputLiteral": "0"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "None",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "None",
+                            "args": []
+                          }
                         },
                         {
                           "Name": "d"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2077,10 +2127,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "e"
                         },
@@ -2088,24 +2138,24 @@
                           "InputLiteral": "1"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "None",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "None",
+                            "args": []
+                          }
                         },
                         {
                           "Name": "d"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2180,10 +2230,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "e"
                         },
@@ -2191,24 +2241,24 @@
                           "Name": "min"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "None",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "None",
+                            "args": []
+                          }
                         },
                         {
                           "Name": "d"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2291,10 +2341,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Repeat",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Repeat",
+                      "args": [
                         {
                           "Name": "e"
                         },
@@ -2302,28 +2352,28 @@
                           "Name": "min"
                         },
                         {
-                          "Construct": [
-                            "OptionU64",
-                            "Some",
-                            [
+                          "Construct": {
+                            "ns": "OptionU64",
+                            "name": "Some",
+                            "args": [
                               {
                                 "Name": "max"
                               }
                             ]
-                          ]
+                          }
                         },
                         {
                           "Name": "d"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2344,34 +2394,34 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleExpr",
-                      "Action",
-                      [
+                    "Construct": {
+                      "ns": "RuleExpr",
+                      "name": "Action",
+                      "args": [
                         {
-                          "Construct": [
-                            "RuleExpr",
-                            "Sequence",
-                            [
+                          "Construct": {
+                            "ns": "RuleExpr",
+                            "name": "Sequence",
+                            "args": [
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Nil",
-                                  []
-                                ]
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Nil",
+                                  "args": []
+                                }
                               }
                             ]
-                          ]
+                          }
                         },
                         {
                           "Name": "a"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2386,9 +2436,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Choice": [
                   {
                     "RunVar": {
@@ -2404,7 +2454,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2419,9 +2469,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2465,10 +2515,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "CharClass",
-                      "CharClass",
-                      [
+                    "Construct": {
+                      "ns": "CharClass",
+                      "name": "CharClass",
+                      "args": [
                         {
                           "Name": "negate"
                         },
@@ -2476,11 +2526,11 @@
                           "Name": "ps"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2495,9 +2545,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2541,10 +2591,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "CharClassRange",
-                      "Range",
-                      [
+                    "Construct": {
+                      "ns": "CharClassRange",
+                      "name": "Range",
+                      "args": [
                         {
                           "Name": "c1"
                         },
@@ -2552,14 +2602,14 @@
                           "Name": "c2"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2583,10 +2633,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "CharClassRange",
-                      "Range",
-                      [
+                    "Construct": {
+                      "ns": "CharClassRange",
+                      "name": "Range",
+                      "args": [
                         {
                           "Name": "c"
                         },
@@ -2594,11 +2644,11 @@
                           "Name": "c"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2613,9 +2663,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "CharClass": {
                   "neg": true,
                   "ranges": [
@@ -2634,16 +2684,16 @@
                   ]
                 }
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "RunVar": {
                   "rule": "char_escapes",
                   "args": []
                 }
               }
-            ]
+            }
           ]
         }
       ],
@@ -2658,15 +2708,15 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [
+            {
+              "annotations": [
                 {
                   "Error": "String"
                 },
                 "DisableLayout",
                 "DisableRecovery"
               ],
-              {
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -2705,7 +2755,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2720,9 +2770,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "CharClass": {
                   "neg": true,
                   "ranges": [
@@ -2741,16 +2791,16 @@
                   ]
                 }
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "RunVar": {
                   "rule": "char_escapes",
                   "args": []
                 }
               }
-            ]
+            }
           ]
         }
       ],
@@ -2765,9 +2815,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "\\\\n"
@@ -2777,10 +2827,10 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "\\\\r"
@@ -2790,10 +2840,10 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "\\\\\\\\"
@@ -2803,10 +2853,10 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "\\\\\\\""
@@ -2816,10 +2866,10 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "\\\\\\'"
@@ -2829,7 +2879,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2844,9 +2894,9 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "CharClass": {
                   "neg": false,
                   "ranges": [
@@ -2865,10 +2915,10 @@
                   ]
                 }
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Sequence": [
                   {
                     "Literal": "//"
@@ -2898,10 +2948,10 @@
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Sequence": [
                   {
                     "Literal": "/*"
@@ -2935,7 +2985,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -2950,15 +3000,15 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [
+            {
+              "annotations": [
                 {
                   "Error": "Integer"
                 },
                 "DisableLayout",
                 "DisableRecovery"
               ],
-              {
+              "expr": {
                 "SliceInput": {
                   "Repeat": {
                     "expr": {
@@ -2980,7 +3030,7 @@
                   }
                 }
               }
-            ]
+            }
           ]
         }
       ],
@@ -2995,15 +3045,15 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [
+            {
+              "annotations": [
                 {
                   "Error": "Identifier"
                 },
                 "DisableLayout",
                 "DisableRecovery"
               ],
-              {
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -3113,7 +3163,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],
@@ -3128,54 +3178,54 @@
           "name": "",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "end"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "str"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "rule"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "ast"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "neg"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "pos"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "group"
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Literal": "adapt"
               }
-            ]
+            }
           ]
         }
       ],
@@ -3190,9 +3240,9 @@
           "name": "cons",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -3224,10 +3274,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "Construct",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "Construct",
+                      "args": [
                         {
                           "InputLiteral": "ParsedList"
                         },
@@ -3235,58 +3285,58 @@
                           "InputLiteral": "Cons"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Cons",
-                            [
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Cons",
+                            "args": [
                               {
                                 "Name": "h"
                               },
                               {
-                                "Construct": [
-                                  "ParsedList",
-                                  "Cons",
-                                  [
+                                "Construct": {
+                                  "ns": "ParsedList",
+                                  "name": "Cons",
+                                  "args": [
                                     {
                                       "Name": "t"
                                     },
                                     {
-                                      "Construct": [
-                                        "ParsedList",
-                                        "Nil",
-                                        []
-                                      ]
+                                      "Construct": {
+                                        "ns": "ParsedList",
+                                        "name": "Nil",
+                                        "args": []
+                                      }
                                     }
                                   ]
-                                ]
+                                }
                               }
                             ]
-                          ]
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ]
+            }
           ]
         },
         {
           "name": "base",
           "adapt": false,
           "constructors": [
-            [
-              [],
-              {
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Literal": "[]"
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "Construct",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "Construct",
+                      "args": [
                         {
                           "InputLiteral": "ParsedList"
                         },
@@ -3294,21 +3344,21 @@
                           "InputLiteral": "Nil"
                         },
                         {
-                          "Construct": [
-                            "ParsedList",
-                            "Nil",
-                            []
-                          ]
+                          "Construct": {
+                            "ns": "ParsedList",
+                            "name": "Nil",
+                            "args": []
+                          }
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -3366,10 +3416,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "Construct",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "Construct",
+                      "args": [
                         {
                           "Name": "ns"
                         },
@@ -3380,14 +3430,14 @@
                           "Name": "as"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -3431,10 +3481,10 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "Construct",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "Construct",
+                      "args": [
                         {
                           "InputLiteral": ""
                         },
@@ -3445,14 +3495,14 @@
                           "Name": "as"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -3466,22 +3516,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "InputLiteral",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "InputLiteral",
+                      "args": [
                         {
                           "Name": "s"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "NameBind": [
@@ -3495,22 +3545,22 @@
                     ]
                   },
                   {
-                    "Construct": [
-                      "RuleAction",
-                      "Name",
-                      [
+                    "Construct": {
+                      "ns": "RuleAction",
+                      "name": "Name",
+                      "args": [
                         {
                           "Name": "n"
                         }
                       ]
-                    ]
+                    }
                   }
                 ]
               }
-            ],
-            [
-              [],
-              {
+            },
+            {
+              "annotations": [],
+              "expr": {
                 "Action": [
                   {
                     "Sequence": [
@@ -3538,7 +3588,7 @@
                   }
                 ]
               }
-            ]
+            }
           ]
         }
       ],

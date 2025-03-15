@@ -18,7 +18,7 @@ impl<'arn, 'grm: 'arn> ParsedPrismExpr<'arn, 'grm> {
             ParsedPrismExpr::Name(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarType => PrecedenceLevel::Base,
-            ParsedPrismExpr::ShiftTo(..) => PrecedenceLevel::Base,
+            ParsedPrismExpr::ShiftTo { .. } => PrecedenceLevel::Base,
         }
     }
 }
@@ -66,14 +66,19 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 write!(w, ": ")?;
                 self.parse_display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            ParsedPrismExpr::GrammarValue(_, guid) => {
-                write!(w, "[GRAMMAR {guid:?}]")?;
+            ParsedPrismExpr::GrammarValue(_) => {
+                write!(w, "[GRAMMAR]")?;
             }
             ParsedPrismExpr::GrammarType => {
                 write!(w, "Grammar")?;
             }
-            ParsedPrismExpr::ShiftTo(v, guid, vars, _) => {
-                writeln!(w, "[SHIFT TO {guid:?}]")?;
+            ParsedPrismExpr::ShiftTo {
+                expr,
+                captured_env: vars,
+                adapt_env_len,
+                ..
+            } => {
+                writeln!(w, "[SHIFT {adapt_env_len}]")?;
                 for (n, v) in vars {
                     write!(w, "  * {n} = ")?;
                     if let Some(v) = v.try_into_value::<ParsedIndex>() {
@@ -83,7 +88,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                     writeln!(w)?;
                 }
-                self.parse_display(v, w, PrecedenceLevel::default())?;
+                self.parse_display(expr, w, PrecedenceLevel::default())?;
             }
         }
 

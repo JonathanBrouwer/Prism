@@ -42,7 +42,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
         &'arn self,
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
-        _allocs: Allocs<'arn>,
         _src: &'grm str,
         _env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm> {

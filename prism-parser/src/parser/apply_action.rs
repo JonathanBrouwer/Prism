@@ -5,7 +5,6 @@ use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::ParseResult;
-use crate::parsable::env_capture::EnvCapture;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
@@ -33,7 +32,11 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctxs.insert(n, (eval_ctx, placeholder));
                 }
             }
-            RuleAction::Construct(namespace, constructor, args) => {
+            RuleAction::Construct {
+                ns: namespace,
+                name: constructor,
+                args,
+            } => {
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());
                 for _arg in args.iter() {
@@ -86,7 +89,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     penv,
                 );
             }
-            RuleAction::Value(_) => {
+            RuleAction::Value { .. } => {
                 //TODO
             }
         }
@@ -108,23 +111,30 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 }
             }
             RuleAction::InputLiteral(lit) => self.alloc.alloc(Input::Literal(*lit)).to_parsed(),
-            RuleAction::Construct(namespace, name, args) => {
+            RuleAction::Construct { ns, name, args } => {
                 let ns = self
                     .parsables
-                    .get(namespace)
-                    .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
+                    .get(ns)
+                    .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let args_vals = self
                     .alloc
                     .alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
                 (ns.from_construct)(span, name, args_vals, self.alloc, self.input, penv)
             }
-            RuleAction::Value(parsed) => self
-                .alloc
-                .alloc(EnvCapture {
-                    env: vars,
-                    value: *parsed,
-                })
-                .to_parsed(),
+            RuleAction::Value { ns, value } => {
+                let ns = self
+                    .parsables
+                    .get(ns)
+                    .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
+                (ns.from_construct)(
+                    span,
+                    "EnvCapture",
+                    &[*value, self.alloc.alloc(vars).to_parsed()],
+                    self.alloc,
+                    self.input,
+                    penv,
+                )
+            }
         }
     }
 }

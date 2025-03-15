@@ -12,13 +12,17 @@ use serde::{Deserialize, Serialize};
 pub enum RuleAction<'arn, 'grm> {
     Name(&'grm str),
     InputLiteral(EscapedString<'grm>),
-    Construct(
-        &'grm str,
-        &'grm str,
-        #[serde(with = "leak_slice")] &'arn [Self],
-    ),
+    Construct {
+        ns: &'grm str,
+        name: &'grm str,
+        #[serde(with = "leak_slice")]
+        args: &'arn [Self],
+    },
     #[serde(skip)]
-    Value(Parsed<'arn, 'grm>),
+    Value {
+        ns: &'grm str,
+        value: Parsed<'arn, 'grm>,
+    },
 }
 
 impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAction<'arn, 'grm> {}
@@ -28,26 +32,29 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
     fn from_construct(
         _span: Span,
         constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        src: &'grm str,
         _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Construct" => RuleAction::Construct(
-                parse_identifier(_args[0], _src),
-                parse_identifier(_args[1], _src),
-                _allocs.alloc_extend(
-                    _args[2]
+            "Construct" => RuleAction::Construct {
+                ns: parse_identifier(args[0], src),
+                name: parse_identifier(args[1], src),
+                args: _allocs.alloc_extend(
+                    args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|((), v)| v)
                         .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
                 ),
-            ),
-            "InputLiteral" => RuleAction::InputLiteral(parse_string(_args[0], _src)),
-            "Name" => RuleAction::Name(parse_identifier(_args[0], _src)),
-            "Value" => RuleAction::Value(_args[0]),
+            },
+            "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
+            "Name" => RuleAction::Name(parse_identifier(args[0], src)),
+            "Value" => RuleAction::Value {
+                ns: parse_identifier(args[0], src),
+                value: args[1],
+            },
             _ => unreachable!(),
         }
     }

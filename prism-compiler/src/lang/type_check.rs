@@ -113,7 +113,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CorePrismExpr::Shift(v, shift) => {
                 CorePrismExpr::Shift(self._type_check(v, env.shift(shift)), shift)
             }
-            CorePrismExpr::GrammarValue(_, _) => CorePrismExpr::GrammarType,
+            CorePrismExpr::GrammarValue(_) => CorePrismExpr::GrammarType,
             CorePrismExpr::GrammarType => CorePrismExpr::Type,
         };
         let tid = self.store_checked(t, ValueOrigin::TypeOf(i));

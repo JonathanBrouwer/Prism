@@ -18,16 +18,16 @@ impl<'arn, 'grm: 'arn> CorePrismExpr<'arn, 'grm> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
-            CorePrismExpr::Let(_, _) => PrecedenceLevel::Let,
-            CorePrismExpr::FnConstruct(_) => PrecedenceLevel::Construct,
-            CorePrismExpr::FnType(_, _) => PrecedenceLevel::FnType,
-            CorePrismExpr::TypeAssert(_, _) => PrecedenceLevel::TypeAssert,
-            CorePrismExpr::FnDestruct(_, _) => PrecedenceLevel::Destruct,
+            CorePrismExpr::Let(..) => PrecedenceLevel::Let,
+            CorePrismExpr::FnConstruct(..) => PrecedenceLevel::Construct,
+            CorePrismExpr::FnType(..) => PrecedenceLevel::FnType,
+            CorePrismExpr::TypeAssert(..) => PrecedenceLevel::TypeAssert,
+            CorePrismExpr::FnDestruct(..) => PrecedenceLevel::Destruct,
             CorePrismExpr::Free => PrecedenceLevel::Base,
-            CorePrismExpr::Shift(_, _) => PrecedenceLevel::Base,
+            CorePrismExpr::Shift(..) => PrecedenceLevel::Base,
             CorePrismExpr::Type => PrecedenceLevel::Base,
-            CorePrismExpr::DeBruijnIndex(_) => PrecedenceLevel::Base,
-            CorePrismExpr::GrammarValue(_, _) => PrecedenceLevel::Base,
+            CorePrismExpr::DeBruijnIndex(..) => PrecedenceLevel::Base,
+            CorePrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             CorePrismExpr::GrammarType => PrecedenceLevel::Base,
         }
     }
@@ -80,7 +80,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            CorePrismExpr::GrammarValue(_, _) => {
+            CorePrismExpr::GrammarValue(_) => {
                 write!(w, "[GRAMMAR]")?;
             }
             CorePrismExpr::GrammarType => {

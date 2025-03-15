@@ -1,12 +1,10 @@
 use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
-use crate::parser::parse_expr::{GrammarEnvEntry, ScopeEnter, reduce_expr};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::guid::Guid;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
@@ -36,12 +34,11 @@ pub fn parse_prism_in_env<'p>(
 
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
-    parsables.insert("ScopeEnter", ParsableDyn::new::<ScopeEnter>());
 
     run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
         &GRAMMAR, "expr", program, env.allocs, parsables, env,
     )
-    .map(|v| *reduce_expr(v, env).into_value())
+    .map(|v| *v.into_value())
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -68,8 +65,13 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
 
     // Temporary expressions after parsing
     Name(&'grm str),
-    ShiftTo(ParsedIndex, Guid, VarMap<'arn, 'grm>, GrammarEnvEntry<'arn>),
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>, Guid),
+    ShiftTo {
+        expr: ParsedIndex,
+        captured_env: VarMap<'arn, 'grm>,
+        adapt_env_len: usize,
+        grammar: &'arn GrammarFile<'arn, 'grm>,
+    },
+    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
     GrammarType,
 }
 
