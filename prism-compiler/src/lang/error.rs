@@ -22,7 +22,7 @@ pub enum TypeError {
         expected_type: CoreIndex,
     },
     IndexOutOfBound(CoreIndex),
-    InfiniteType(CoreIndex, CoreIndex),
+    RecursionLimit(CoreIndex, CoreIndex),
     BadInfer {
         free_var: CoreIndex,
         inferred_var: CoreIndex,
@@ -136,28 +136,27 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .with_label(label_fn)
                     .finish()
             }
-            TypeError::InfiniteType(left, right) => {
-                let (left_span, left_description) = self.label_value(*left)?;
-                let (right_span, right_description) = self.label_value(*left)?;
-
-                let constraints = self
-                    .queued_beq_free
-                    .iter()
-                    .flat_map(|(i, cs)| cs.iter().map(move |c| format!("{:?} = {:?}", i, c.1.0)))
-                    .collect::<Vec<_>>()
-                    .join(",");
-
-                report.with_message("Constraint creates an infinite type")
-                    .with_label(Label::new(left_span).with_message(format!("Left side of constraint from {left_description}: {}", self.index_to_sm_string(*left))))
-                    .with_label(Label::new(right_span).with_message(format!("Right side of constraint from {right_description}: {}", self.index_to_sm_string(*right))))
-                    .with_help(format!("If this doesn't obviously create an infinite type, I'm sorry. This is probably because of the following hidden constraints: [{constraints}]"))
-                    .finish()
-            }
             TypeError::BadInfer { .. } => report.finish(),
             TypeError::UnknownName(name) => report
                 .with_message("Undefined name within this scope.")
                 .with_label(Label::new(*name).with_message("This name is undefined."))
                 .finish(),
+            TypeError::RecursionLimit(left, right) => {
+                let (left_span, left_description) = self.label_value(*left)?;
+                let (right_span, right_description) = self.label_value(*left)?;
+
+                report
+                    .with_message("Constraint hit recursion limit")
+                    .with_label(Label::new(left_span).with_message(format!(
+                        "Left side of constraint from {left_description}: {}",
+                        self.index_to_sm_string(*left)
+                    )))
+                    .with_label(Label::new(right_span).with_message(format!(
+                        "Right side of constraint from {right_description}: {}",
+                        self.index_to_sm_string(*right)
+                    )))
+                    .finish()
+            }
         })
     }
 

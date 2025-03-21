@@ -18,6 +18,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         if !self.expect_beq_internal(
             (expr_type, s, &mut HashMap::new()),
             (expected_type, s, &mut HashMap::new()),
+            0,
         ) {
             self.errors.push(TypeError::ExpectTypeAssert {
                 expr,
@@ -34,7 +35,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CorePrismExpr::Type => {}
             CorePrismExpr::Free => {
                 self.checked_values[*i] = CorePrismExpr::Type;
-                if !self.handle_constraints(i, s) {
+                if !self.handle_constraints(i, s, 0) {
                     self.errors.push(TypeError::ExpectType(io));
                 }
             }
@@ -62,6 +63,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 if !self.expect_beq_internal(
                     (f_at, sr, &mut HashMap::new()),
                     (at, s, &mut HashMap::new()),
+                    0,
                 ) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
@@ -79,6 +81,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let is_beq_free = self.expect_beq_free(
                     (f_rt, sr.cons(RType(id), self.allocs), &mut var_map1),
                     (rt, s.cons(RType(id), self.allocs), &mut var_map2),
+                    0,
                 );
                 assert!(is_beq_free);
             }
@@ -89,7 +92,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
-                if !self.handle_constraints(fr, sr) {
+                if !self.handle_constraints(fr, sr, 0) {
                     self.errors.push(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
@@ -100,6 +103,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let is_beq_free = self.expect_beq_free(
                     (at, s, &mut HashMap::new()),
                     (f_at, sr, &mut HashMap::new()),
+                    0,
                 );
                 assert!(is_beq_free);
                 self.toxic_values.clear();
@@ -112,6 +116,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let is_beq_free = self.expect_beq_free(
                     (f_rt, sr.cons(RType(id), self.allocs), &mut var_map1),
                     (rt, s.cons(RType(id), self.allocs), &mut var_map2),
+                    0,
                 );
                 assert!(is_beq_free);
             }
