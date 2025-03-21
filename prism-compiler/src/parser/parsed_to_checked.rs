@@ -78,6 +78,16 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
+            ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
+            ParsedPrismExpr::GrammarValue(grammar) => {
+                env.insert_shift_label(grammar, jump_labels);
+
+                // Create \f. f g
+                let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
+                CorePrismExpr::FnConstruct(
+                    self.store_checked(CorePrismExpr::GrammarValue(grammar), origin),
+                )
+            }
             ParsedPrismExpr::ShiftTo {
                 expr,
                 captured_env,
@@ -105,16 +115,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
-            ParsedPrismExpr::GrammarValue(grammar) => {
-                env.insert_shift_label(grammar, jump_labels);
-
-                // Create \f. f g
-                let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
-                CorePrismExpr::FnConstruct(
-                    self.store_checked(CorePrismExpr::GrammarValue(grammar), origin),
-                )
-            }
-            ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
         self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
     }
