@@ -1,5 +1,6 @@
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
+use prism_parser::core::input_table::InputTable;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsed::Parsed;
@@ -26,7 +27,12 @@ pub enum NamesEntry<'arn, 'grm> {
 }
 
 impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
-    pub fn insert_name(&self, name: &'arn str, input: &'arn str, allocs: Allocs<'arn>) -> Self {
+    pub fn insert_name(
+        &self,
+        name: &'arn str,
+        input: &InputTable<'grm>,
+        allocs: Allocs<'arn>,
+    ) -> Self {
         let mut s = self.insert_name_at(name, self.env_len, input, allocs);
         s.env_len += 1;
         s
@@ -36,7 +42,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
         &self,
         name: &'arn str,
         depth: usize,
-        input: &'arn str,
+        input: &InputTable<'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {
         let names = self.names.insert(name, NamesEntry::FromEnv(depth), allocs);
@@ -77,7 +83,7 @@ impl<'arn, 'grm: 'arn> NamedEnv<'arn, 'grm> {
     pub fn shift_back(
         &self,
         old_names: NamesEnv<'arn, 'grm>,
-        input: &'arn str,
+        input: &InputTable<'grm>,
         allocs: Allocs<'arn>,
     ) -> Self {
         let mut new_env = Self {

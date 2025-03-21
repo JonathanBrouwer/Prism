@@ -25,11 +25,12 @@ impl<'grm> ParseError for EmptyError<'grm> {
     }
 
     fn report(&self, _enable_debug: bool) -> Report<'static, Span> {
-        Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()))
-            .with_message("Parsing error in this file")
-            .with_help(
-                "Parsing was run in fast-mode, rerun without fast-mode to get more error details",
-            )
-            .finish()
+        todo!()
+        // Report::build(ReportKind::Error, Span::new(Pos::start_of(), Pos::start_of()))
+        //     .with_message("Parsing error occured")
+        //     .with_help(
+        //         "Parsing was run in fast-mode, rerun without fast-mode to get more error details",
+        //     )
+        //     .finish()
     }
 }

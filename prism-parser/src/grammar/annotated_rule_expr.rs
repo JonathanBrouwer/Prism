@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
@@ -25,7 +26,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for AnnotatedRuleExpr<'arn
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!("AnnotatedExpr", constructor);

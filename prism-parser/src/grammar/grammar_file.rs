@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::rule::Rule;
 use crate::grammar::serde_leak::*;
@@ -23,7 +24,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
@@ -42,7 +43,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
         &'arn self,
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm> {
         self

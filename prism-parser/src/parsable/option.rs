@@ -1,5 +1,6 @@
 use crate::core::allocs::Allocs;
 use crate::core::input::Input;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
@@ -13,7 +14,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for Option<u64> {
         constructor: &'grm str,
         _args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> Self {
         match constructor {

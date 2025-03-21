@@ -1,4 +1,5 @@
 use crate::core::input::Input;
+use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
@@ -17,6 +18,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
         &mut self,
         rule: &RuleAction<'arn, 'grm>,
         penv: &mut Env,
+        pos: Pos,
 
         placeholder: ParsedPlaceholder,
         eval_ctx: Parsed<'arn, 'grm>,
@@ -61,7 +63,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctx,
                     &placeholders,
                     self.alloc,
-                    self.input,
+                    &self.input,
                     penv,
                 );
 
@@ -76,7 +78,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     )
                     .zip(&placeholders)
                 {
-                    self.pre_apply_action(arg, penv, *placeholder, env, eval_ctxs);
+                    self.pre_apply_action(arg, penv, pos, *placeholder, env, eval_ctxs);
                 }
             }
             RuleAction::InputLiteral(lit) => {
@@ -84,8 +86,9 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 self.placeholders.place_into_empty(
                     placeholder,
                     parsed,
+                    pos.span_to(pos),
                     self.alloc,
-                    self.input,
+                    &self.input,
                     penv,
                 );
             }
@@ -119,7 +122,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                 let args_vals = self
                     .alloc
                     .alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
-                (ns.from_construct)(span, name, args_vals, self.alloc, self.input, penv)
+                (ns.from_construct)(span, name, args_vals, self.alloc, &self.input, penv)
             }
             RuleAction::Value { ns, value } => {
                 let ns = self
@@ -131,7 +134,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     "EnvCapture",
                     &[*value, self.alloc.alloc(vars).to_parsed()],
                     self.alloc,
-                    self.input,
+                    &self.input,
                     penv,
                 )
             }

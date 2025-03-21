@@ -1,6 +1,7 @@
 use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
 use prism_parser::core::allocs::Allocs;
+use prism_parser::core::input_table::InputTable;
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;
@@ -30,13 +31,19 @@ pub fn parse_prism_in_env<'p>(
     program: &'p str,
     env: &mut PrismEnv<'_, 'p>,
 ) -> Result<ParsedIndex, AggregatedParseError<'p, SetError<'p>>> {
-    env.input = program;
+    let file = env.input.push_file(program);
 
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
     run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
-        &GRAMMAR, "expr", program, env.allocs, parsables, env,
+        &GRAMMAR,
+        "expr",
+        env.input.clone(),
+        file,
+        env.allocs,
+        parsables,
+        env,
     )
     .map(|v| *v.into_value())
 }
@@ -77,7 +84,7 @@ pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
 
 pub struct PrismParseEnv<'arn, 'grm: 'arn> {
     // Allocs
-    pub input: &'grm str,
+    pub input: InputTable<'grm>,
     pub allocs: Allocs<'arn>,
 
     // Value store

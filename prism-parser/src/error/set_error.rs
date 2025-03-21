@@ -71,7 +71,7 @@ impl<'grm> ParseError for SetError<'grm> {
                             .collect::<Vec<_>>()
                             .join(" / ")
                     ))
-                    .with_order(-(<Pos as Into<usize>>::into(start) as i32)),
+                    .with_order(-(start.idx_in_file() as i32)),
             );
         }
 

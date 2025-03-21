@@ -4,6 +4,7 @@ use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input::Input;
+use prism_parser::core::input_table::InputTable;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -17,7 +18,7 @@ pub type PrismEvalCtx<'arn> = GenericEnv<'arn, ParsedPlaceholder, Option<ParsedP
 pub fn eval_ctx_to_envs<'arn, 'grm>(
     env: PrismEvalCtx<'arn>,
     placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-    input: &'grm str,
+    input: &InputTable<'grm>,
     prism_env: &mut PrismEnv<'arn, 'grm>,
 ) -> (NamedEnv<'arn, 'grm>, DbEnv<'arn>) {
     match env.split() {
@@ -63,7 +64,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> Self {
         let expr: ParsedPrismExpr<'arn, 'grm> = match constructor {
@@ -148,7 +149,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         parent_ctx: Self::EvalCtx,
         args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut PrismEnv<'arn, 'grm>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         match constructor {
@@ -201,7 +202,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         &'arn self,
         eval_ctx: Self::EvalCtx,
         placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-        src: &'grm str,
+        src: &InputTable<'grm>,
         prism_env: &mut PrismEnv<'arn, 'grm>,
     ) -> &'arn GrammarFile<'arn, 'grm> {
         // Create context, ignore any errors that occur in this process

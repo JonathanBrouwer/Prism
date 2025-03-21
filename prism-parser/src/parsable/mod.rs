@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
@@ -34,7 +35,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _args: &[Parsed<'arn, 'grm>],
         // Env
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> Self {
         panic!(
@@ -49,7 +50,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _arg_placeholders: &[ParsedPlaceholder],
         // Env
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         iter::empty()
@@ -60,7 +61,7 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
         _eval_ctx: Self::EvalCtx,
         _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
-        _src: &'grm str,
+        _src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm> {
         unreachable!()

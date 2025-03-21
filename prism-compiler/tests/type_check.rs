@@ -16,7 +16,7 @@ fn test_ok([test]: [&str; 1]) {
     let mut env = PrismEnv::new(Allocs::new(&bump));
     let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
     let input = env.parsed_to_checked(input);
-    let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
+    let typ = env.type_check(input).unwrap_or_eprint(&mut env);
 
     let expected_typ = parse_prism_in_env(expected_typ_str, &mut env).unwrap_or_eprint();
     let expected_typ = env.parsed_to_checked(expected_typ);

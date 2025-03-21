@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::parsed::Parsed;
@@ -13,7 +14,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         allocs: Allocs<'arn>,
-        src: &'grm str,
+        src: &InputTable<'grm>,
         env: &mut Env,
     ) -> Parsed<'arn, 'grm>,
 
@@ -23,7 +24,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         arg_placeholders: &[ParsedPlaceholder],
         // Env
         allocs: Allocs<'arn>,
-        src: &'grm str,
+        src: &InputTable<'grm>,
         env: &mut Env,
     ) -> Vec<Parsed<'arn, 'grm>>,
 
@@ -32,7 +33,7 @@ pub struct ParsableDyn<'arn, 'grm, Env> {
         eval_ctx: Parsed<'arn, 'grm>,
         placeholders: &PlaceholderStore<'arn, 'grm, Env>,
         // Env
-        src: &'grm str,
+        src: &InputTable<'grm>,
         env: &mut Env,
     ) -> &'arn GrammarFile<'arn, 'grm>,
 }
@@ -60,7 +61,7 @@ fn from_construct_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     constructor: &'grm str,
     args: &[Parsed<'arn, 'grm>],
     allocs: Allocs<'arn>,
-    src: &'grm str,
+    src: &InputTable<'grm>,
     env: &mut Env,
 ) -> Parsed<'arn, 'grm> {
     Parsed::from_value(allocs.alloc(P::from_construct(span, constructor, args, allocs, src, env)))
@@ -72,7 +73,7 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     arg_placeholders: &[ParsedPlaceholder],
     // Env
     allocs: Allocs<'arn>,
-    src: &'grm str,
+    src: &InputTable<'grm>,
     env: &mut Env,
 ) -> Vec<Parsed<'arn, 'grm>> {
     let parent_ctx = match parent_ctx.try_into_value::<P::EvalCtx>() {
@@ -94,7 +95,7 @@ fn eval_to_grammar_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     eval_ctx: Parsed<'arn, 'grm>,
     placeholders: &PlaceholderStore<'arn, 'grm, Env>,
     // Env
-    src: &'grm str,
+    src: &InputTable<'grm>,
     env: &mut Env,
 ) -> &'arn GrammarFile<'arn, 'grm> {
     let eval_ctx = if eval_ctx.try_into_value::<Void>().is_some() {

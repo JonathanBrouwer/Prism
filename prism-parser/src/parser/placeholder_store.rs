@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
@@ -65,8 +66,9 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
         &mut self,
         cur: ParsedPlaceholder,
         value: Parsed<'arn, 'grm>,
+        span: Span,
         allocs: Allocs<'arn>,
-        src: &'grm str,
+        src: &InputTable<'grm>,
         env: &mut Env,
     ) {
         // Store value
@@ -88,7 +90,6 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
 
         // Construct value
         let parent = self.store[parent_idx.0].construct_info.as_ref().unwrap();
-        let span = Span::invalid();
         let args = parent
             .children
             .iter()
@@ -98,7 +99,7 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
             (parent.parsable_dyn.from_construct)(span, parent.constructor, &args, allocs, src, env);
 
         // Place value, which will recurse if needed
-        self.place_into_empty(parent_idx, value, allocs, src, env);
+        self.place_into_empty(parent_idx, value, span, allocs, src, env);
     }
 }
 

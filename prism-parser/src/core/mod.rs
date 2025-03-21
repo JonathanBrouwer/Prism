@@ -3,6 +3,7 @@ pub mod allocs;
 pub mod cache;
 pub mod context;
 pub mod input;
+pub mod input_table;
 pub mod pos;
 pub mod presult;
 pub mod primitives;

@@ -24,7 +24,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ),
             ),
@@ -32,14 +32,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(a, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ),
             ),
             ParsedPrismExpr::FnConstruct(n, b) => {
                 CorePrismExpr::FnConstruct(self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ))
             }
@@ -87,13 +87,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
                                 expr,
-                                env.shift_back(old_names, self.input, self.allocs),
+                                env.shift_back(old_names, &self.input, self.allocs),
                                 jump_labels,
                             );
                         } else {
                             unreachable!(
                                 "Found name `{name}` referring to {}",
-                                parsed.to_debug_string(self.input)
+                                parsed.to_debug_string(&self.input)
                             );
                         }
                     }

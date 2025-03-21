@@ -1,4 +1,5 @@
 use crate::core::input::Input;
+use crate::core::input_table::InputTable;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::guid::Guid;
@@ -7,7 +8,7 @@ use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 
 impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
-    pub fn to_debug_string(&self, src: &str) -> String {
+    pub fn to_debug_string(&self, src: &InputTable<'grm>) -> String {
         if let Some(ar) = self.try_into_value::<ActionResult>() {
             match ar {
                 ActionResult::Construct(_, c, es) => format!(

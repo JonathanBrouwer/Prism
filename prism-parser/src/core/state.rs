@@ -1,5 +1,6 @@
 use crate::core::allocs::Allocs;
 use crate::core::cache::{CacheKey, CacheVal, ParserCacheEntry};
+use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::error::ParseError;
 use crate::parsable::parsable_dyn::ParsableDyn;
@@ -12,7 +13,7 @@ pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     cache_stack: Vec<CacheKey>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn>,
-    pub input: &'grm str,
+    pub input: &'grm InputTable<'grm>,
     // For generating guids
     pub guid_counter: usize,
     // For recovery
@@ -24,7 +25,7 @@ pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
 
 impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
     pub fn new(
-        input: &'grm str,
+        input: &'grm InputTable<'grm>,
         alloc: Allocs<'arn>,
         parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
     ) -> Self {

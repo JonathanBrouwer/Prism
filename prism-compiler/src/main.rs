@@ -41,7 +41,7 @@ fn main() {
             env.index_to_br_string(i)
         ),
         Err(e) => {
-            e.eprint(&mut env, &program).unwrap();
+            e.eprint(&mut env).unwrap();
             return;
         }
     }

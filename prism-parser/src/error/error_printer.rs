@@ -1,3 +1,4 @@
+use crate::core::input_table::InputTableIndex;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
@@ -63,17 +64,17 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
 }
 
 impl ariadne::Span for Span {
-    type SourceId = ();
+    type SourceId = InputTableIndex;
 
     fn source(&self) -> &Self::SourceId {
-        &()
+        &self.start.file_ref()
     }
 
     fn start(&self) -> usize {
-        self.start.into()
+        self.start.idx_in_file()
     }
 
     fn end(&self) -> usize {
-        self.end.into()
+        self.end.idx_in_file()
     }
 }

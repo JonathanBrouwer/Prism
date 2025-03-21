@@ -142,7 +142,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     rules, blocks, rule_args, rest, expr, vars, pos, context, penv, eval_ctx,
                 );
                 res.add_label_explicit(ErrorLabel::Explicit(
-                    pos.span_to(res.end_pos().next(self.input).0),
+                    pos.span_to(res.end_pos().next(&self.input).0),
                     *err_label,
                 ));
                 res

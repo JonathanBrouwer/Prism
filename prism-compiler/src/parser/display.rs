@@ -84,7 +84,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     if let Some(v) = v.try_into_value::<ParsedIndex>() {
                         self.parse_display(*v, w, PrecedenceLevel::Base)?;
                     } else {
-                        write!(w, "{}", v.to_debug_string(self.input))?;
+                        write!(w, "{}", v.to_debug_string(&self.input))?;
                     }
                     writeln!(w)?;
                 }

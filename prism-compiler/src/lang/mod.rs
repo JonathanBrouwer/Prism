@@ -2,6 +2,7 @@ use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
+use prism_parser::core::input_table::InputTable;
 use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -71,7 +72,7 @@ pub enum CorePrismExpr<'arn, 'grm: 'arn> {
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Allocs
-    pub input: &'grm str,
+    pub input: InputTable<'grm>,
     pub allocs: Allocs<'arn>,
 
     // Parsed Values
@@ -93,7 +94,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            input: "",
+            input: InputTable::default(),
             allocs,
 
             parsed_values: Default::default(),
@@ -112,12 +113,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         self.store_parsed(e, span)
     }
 
-    pub fn store_test(&mut self, e: CorePrismExpr<'arn, 'grm>) -> CoreIndex {
-        self.store_checked(
-            e,
-            ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
-        )
-    }
+    // pub fn store_test(&mut self, e: CorePrismExpr<'arn, 'grm>) -> CoreIndex {
+    //     self.store_checked(
+    //         e,
+    //         ValueOrigin::SourceCode(Span::new())
+    //     )
+    // }
 
     fn store_parsed(&mut self, e: ParsedPrismExpr<'arn, 'grm>, origin: Span) -> ParsedIndex {
         self.parsed_values.push(e);

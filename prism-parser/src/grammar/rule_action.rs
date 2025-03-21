@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::{parse_identifier, parse_string};
@@ -34,7 +35,7 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm>
         constructor: &'grm str,
         args: &[Parsed<'arn, 'grm>],
         _allocs: Allocs<'arn>,
-        src: &'grm str,
+        src: &InputTable<'grm>,
         _env: &mut Env,
     ) -> Self {
         match constructor {

@@ -301,13 +301,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctx,
                     &mut HashMap::new(),
                 );
-                res.map(|res| {
+                res.map_with_span(|res, span| {
                     if let Some(placeholder) = placeholder {
                         self.placeholders.place_into_empty(
                             placeholder,
                             res.rtrn,
+                            span,
                             self.alloc,
-                            self.input,
+                            &self.input,
                             penv,
                         );
                     }
@@ -321,7 +322,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleExpr::Action(sub, action) => {
                 let mut eval_ctxs = HashMap::new();
                 let root_placeholder = self.placeholders.push_empty();
-                self.pre_apply_action(action, penv, root_placeholder, eval_ctx, &mut eval_ctxs);
+                self.pre_apply_action(
+                    action,
+                    penv,
+                    pos,
+                    root_placeholder,
+                    eval_ctx,
+                    &mut eval_ctxs,
+                );
 
                 let res = self.parse_expr(
                     sub,
@@ -401,7 +409,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let grammar = vars.get(grammar).unwrap();
                 let grammar =
-                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, self.input, penv);
+                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
 
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states
