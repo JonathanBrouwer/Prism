@@ -76,6 +76,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         for _ in 0..grammar_env_len {
                             e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
                         }
+                        let free_return_type = self.store_checked(CorePrismExpr::Free, origin);
+                        let grammar_expr = self.store_checked(
+                            CorePrismExpr::FnDestruct(grammar_expr, free_return_type),
+                            origin,
+                        );
                         CorePrismExpr::FnDestruct(grammar_expr, e)
                     }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
@@ -103,16 +108,19 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarValue(grammar) => {
                 env.insert_shift_label(grammar, jump_labels);
 
-                // Create \f. f g [env0] [env1] ...
+                // Create \T: Type. \f. ((f [env0] [env1] grammar ...): T)
                 let mut e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
                 for i in 0..env.len() {
-                    let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 1), origin);
+                    // +2 to skip `T` and `f`
+                    let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 2), origin);
                     e = self.store_checked(CorePrismExpr::FnDestruct(e, v), origin);
                 }
                 let g = self.store_checked(CorePrismExpr::GrammarValue(grammar), origin);
                 let e = self.store_checked(CorePrismExpr::FnDestruct(e, g), origin);
-
-                CorePrismExpr::FnConstruct(e)
+                let body_type = self.store_checked(CorePrismExpr::DeBruijnIndex(1), origin);
+                let e = self.store_checked(CorePrismExpr::TypeAssert(e, body_type), origin);
+                let f = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                CorePrismExpr::FnConstruct(f)
             }
             ParsedPrismExpr::ShiftTo {
                 expr,

@@ -223,6 +223,11 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         for _ in 0..grammar_fn_env.len() {
             e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
         }
+        let free_returntype = prism_env.store_checked(CorePrismExpr::Free, origin);
+        let grammar_fn_value = prism_env.store_checked(
+            CorePrismExpr::FnDestruct(grammar_fn_value, free_returntype),
+            origin,
+        );
         let e = prism_env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
 
         // Evaluate this further

@@ -1,3 +1,4 @@
+### Input
 let x = Type;
 adapt grammar {
     adapt rule expr {
@@ -7,3 +8,9 @@ adapt grammar {
     }
 };
 %
+
+### Eval
+Type
+
+### Type
+Type
