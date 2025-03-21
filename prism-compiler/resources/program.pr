@@ -1,3 +1,6 @@
+let x = Type;
+let x = Type;
+let x = Type;
 adapt grammar {
     adapt rule expr {
         adapt group base {

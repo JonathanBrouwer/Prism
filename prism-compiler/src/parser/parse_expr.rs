@@ -214,17 +214,18 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
         let origin = prism_env.checked_origins[original_e.0];
 
-        // panic!("{}", prism_env.index_to_string(original_e));
+        // Evaluate this to the grammar function
+        let (grammar_fn_value, grammar_fn_env) = prism_env.beta_reduce_head(original_e, db_env);
 
         // Create expression that takes first element from this function
         let e = prism_env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
         let mut e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
-        // for _ in 0..1 {
-        //     e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
-        // }
+        for _ in 0..grammar_fn_env.len() {
+            e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        }
+        let e = prism_env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
 
-        let e = prism_env.store_checked(CorePrismExpr::FnDestruct(original_e, e), origin);
-
+        // Evaluate this further
         let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(e, db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
