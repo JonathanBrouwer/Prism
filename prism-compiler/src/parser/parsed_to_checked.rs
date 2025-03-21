@@ -59,6 +59,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
                     Some(NamesEntry::FromGrammarEnv {
+                        grammar_env_len,
                         adapt_env_len,
                         prev_env_len,
                     }) => {
@@ -72,7 +73,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         let idx = prev_env_len + 1;
                         let e = self.store_checked(CorePrismExpr::DeBruijnIndex(idx), origin);
                         let mut e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
-                        for _ in 0..adapt_env_len {
+                        for _ in 0..grammar_env_len {
                             e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
                         }
                         CorePrismExpr::FnDestruct(grammar_expr, e)
@@ -131,6 +132,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     names = names.insert(
                         name,
                         NamesEntry::FromGrammarEnv {
+                            grammar_env_len: old_names.len(),
                             adapt_env_len,
                             prev_env_len: i,
                         },

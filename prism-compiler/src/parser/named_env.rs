@@ -18,6 +18,7 @@ pub type NamesEnv<'arn, 'grm> = GenericEnv<'arn, &'arn str, NamesEntry<'arn, 'gr
 pub enum NamesEntry<'arn, 'grm> {
     FromEnv(usize),
     FromGrammarEnv {
+        grammar_env_len: usize,
         adapt_env_len: usize,
         prev_env_len: usize,
     },
