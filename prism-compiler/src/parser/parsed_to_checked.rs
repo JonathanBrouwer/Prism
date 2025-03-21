@@ -82,11 +82,16 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             ParsedPrismExpr::GrammarValue(grammar) => {
                 env.insert_shift_label(grammar, jump_labels);
 
-                // Create \f. f g
+                // Create \f. f g [env0] [env1] ...
                 let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
-                let e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+                let mut e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+                for i in 0..env.len() {
+                    let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 1), origin);
+                    e = self.store_checked(CorePrismExpr::FnDestruct(e, v), origin);
+                }
                 let g = self.store_checked(CorePrismExpr::GrammarValue(grammar), origin);
                 let e = self.store_checked(CorePrismExpr::FnDestruct(e, g), origin);
+
                 CorePrismExpr::FnConstruct(e)
             }
             ParsedPrismExpr::ShiftTo {

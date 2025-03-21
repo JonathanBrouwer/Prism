@@ -214,9 +214,15 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
         let origin = prism_env.checked_origins[original_e.0];
 
+        // panic!("{}", prism_env.index_to_string(original_e));
+
         // Create expression that takes first element from this function
         let e = prism_env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
-        let e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        let mut e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        // for _ in 0..1 {
+        //     e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        // }
+
         let e = prism_env.store_checked(CorePrismExpr::FnDestruct(original_e, e), origin);
 
         let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(e, db_env);
