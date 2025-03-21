@@ -158,10 +158,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.checked_values[*i2] = CorePrismExpr::Type;
                 self.handle_constraints(i2, s2)
             }
-            CorePrismExpr::GrammarType => {
-                self.checked_values[*i2] = CorePrismExpr::GrammarType;
-                self.handle_constraints(i2, s2)
-            }
             CorePrismExpr::Let(v1, b1) => {
                 let v2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
@@ -330,8 +326,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             CorePrismExpr::TypeAssert(v, _t) => {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
             }
-            CorePrismExpr::GrammarValue(..) => {
-                unreachable!("Should not occur in typechecked terms")
+            CorePrismExpr::GrammarType => {
+                self.checked_values[*i2] = CorePrismExpr::GrammarType;
+                self.handle_constraints(i2, s2)
+            }
+            CorePrismExpr::GrammarValue(g) => {
+                self.checked_values[*i2] = CorePrismExpr::GrammarValue(g);
+                self.handle_constraints(i2, s2)
             }
         }
     }

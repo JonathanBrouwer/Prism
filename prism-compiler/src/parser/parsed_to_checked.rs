@@ -16,6 +16,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         env: NamedEnv<'arn, 'grm>,
         jump_labels: &mut HashMap<*const GrammarFile<'arn, 'grm>, NamesEnv<'arn, 'grm>>,
     ) -> CoreIndex {
+        let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
         let e = match self.parsed_values[*i] {
             ParsedPrismExpr::Free => CorePrismExpr::Free,
             ParsedPrismExpr::Type => CorePrismExpr::Type,
@@ -54,10 +55,28 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 assert_ne!(name, "_");
 
                 match env.resolve_name_use(name) {
-                    Some(
-                        NamesEntry::FromEnv(prev_env_len)
-                        | NamesEntry::FromGrammarEnv { prev_env_len },
-                    ) => CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1),
+                    Some(NamesEntry::FromEnv(prev_env_len)) => {
+                        CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
+                    }
+                    Some(NamesEntry::FromGrammarEnv {
+                        adapt_env_len,
+                        prev_env_len,
+                    }) => {
+                        let adapt_env_len = adapt_env_len - 1;
+                        let grammar_expr = self.store_checked(
+                            CorePrismExpr::DeBruijnIndex(env.len() - adapt_env_len - 1),
+                            origin,
+                        );
+
+                        // println!("{adapt_env_len} {prev_env_len}");
+                        let idx = prev_env_len + 1;
+                        let e = self.store_checked(CorePrismExpr::DeBruijnIndex(idx), origin);
+                        let mut e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                        for _ in 0..adapt_env_len {
+                            e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                        }
+                        CorePrismExpr::FnDestruct(grammar_expr, e)
+                    }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
@@ -84,7 +103,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 env.insert_shift_label(grammar, jump_labels);
 
                 // Create \f. f g [env0] [env1] ...
-                let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
                 let mut e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
                 for i in 0..env.len() {
                     let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 1), origin);
@@ -112,7 +130,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                     names = names.insert(
                         name,
-                        NamesEntry::FromGrammarEnv { prev_env_len: i },
+                        NamesEntry::FromGrammarEnv {
+                            adapt_env_len,
+                            prev_env_len: i,
+                        },
                         self.allocs,
                     );
                 }
@@ -137,6 +158,6 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
         };
-        self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
+        self.store_checked(e, origin)
     }
 }
