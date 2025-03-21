@@ -31,7 +31,7 @@ fn main() {
 
     let idx = env.parsed_to_checked(idx);
     println!(
-        "> Program\n====================\n{}\n\n",
+        "> Core Program\n====================\n{}\n\n",
         env.index_to_string(idx),
     );
 
