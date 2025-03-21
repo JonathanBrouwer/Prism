@@ -10,22 +10,13 @@ use std::io::Read;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Specifies the path to an input .pr file. If None, it means stdin is used for input.
-    input: Option<String>,
-}
-
-fn read_from_stdin() -> Result<String, std::io::Error> {
-    let mut program = String::new();
-    std::io::stdin().read_to_string(&mut program)?;
-    Ok(program)
+    input: String,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let (program, _filename) = match args.input.as_ref() {
-        None => (read_from_stdin().unwrap(), "stdin"),
-        Some(file) => (std::fs::read_to_string(file).unwrap(), file.as_str()),
-    };
+    let program = std::fs::read_to_string(args.input).unwrap();
 
     let bump = Bump::new();
     let allocs = Allocs::new(&bump);
