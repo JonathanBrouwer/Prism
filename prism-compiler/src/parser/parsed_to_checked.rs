@@ -54,9 +54,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 assert_ne!(name, "_");
 
                 match env.resolve_name_use(name) {
-                    Some(NamesEntry::FromEnv(prev_env_len)) => {
-                        CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
-                    }
+                    Some(
+                        NamesEntry::FromEnv(prev_env_len)
+                        | NamesEntry::FromGrammarEnv { prev_env_len },
+                    ) => CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1),
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
@@ -100,7 +101,21 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 adapt_env_len,
                 grammar,
             } => {
-                let mut names = jump_labels[&(grammar as *const _)];
+                let old_names = jump_labels[&(grammar as *const _)];
+
+                let mut names = NamesEnv::default();
+                for (name, entry) in old_names.into_iter().collect::<Vec<_>>().into_iter().rev() {
+                    let NamesEntry::FromEnv(i) = entry else {
+                        //TODO this is probably possible to hit but niche
+                        unreachable!()
+                    };
+
+                    names = names.insert(
+                        name,
+                        NamesEntry::FromGrammarEnv { prev_env_len: i },
+                        self.allocs,
+                    );
+                }
 
                 for (name, value) in captured_env
                     .into_iter()
