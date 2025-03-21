@@ -84,9 +84,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 // Create \f. f g
                 let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
-                CorePrismExpr::FnConstruct(
-                    self.store_checked(CorePrismExpr::GrammarValue(grammar), origin),
-                )
+                let e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+                let g = self.store_checked(CorePrismExpr::GrammarValue(grammar), origin);
+                let e = self.store_checked(CorePrismExpr::FnDestruct(e, g), origin);
+                CorePrismExpr::FnConstruct(e)
             }
             ParsedPrismExpr::ShiftTo {
                 expr,
