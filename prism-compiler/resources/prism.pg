@@ -2,7 +2,7 @@ rule wrapped_expr = RuleAction::Value("Expr", e) <- e:expr;
 
 rule expr {
     group statement {
-        Expr::Let("_", e, b) <- "adapt" e:#next ";" b:#adapt(Expr, e, expr);
+        Expr::Let("___#GRAMMAR#___", e, b) <- "adapt" e:#next ";" el:$Expr::Name("___#GRAMMAR#___") b:#adapt(Expr, el, expr);
         Expr::Let(n, v, b)
             <- "let" n:identifier "=" v:#next ";" b:#this;
         Expr::Let(n, Expr::TypeAssert(v, t), b)

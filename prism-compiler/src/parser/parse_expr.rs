@@ -209,14 +209,35 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
-        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(value, db_env);
+        // Get original grammar function
+        let original_e =
+            prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
+        let origin = prism_env.checked_origins[original_e.0];
+
+        // Evaluate this to the grammar function
+        let (grammar_fn_value, grammar_fn_env) = prism_env.beta_reduce_head(original_e, db_env);
+
+        // Create expression that takes first element from this function
+        let e = prism_env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+        let mut e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        for _ in 0..grammar_fn_env.len() {
+            e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        }
+        let free_returntype = prism_env.store_checked(CorePrismExpr::Free, origin);
+        let grammar_fn_value = prism_env.store_checked(
+            CorePrismExpr::FnDestruct(grammar_fn_value, free_returntype),
+            origin,
+        );
+        let e = prism_env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
+
+        // Evaluate this further
+        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(e, db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
                 prism_env.parse_index_to_string(*self),
-                prism_env.index_to_string(value),
+                prism_env.index_to_string(e),
                 prism_env.index_to_string(reduced_value)
             )
         };

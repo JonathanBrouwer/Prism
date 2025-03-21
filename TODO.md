@@ -17,4 +17,4 @@ THE BIG TODO LIST:
 TODO:
 * Add `rule.group` syntax 
 * Swap syntax around actions
-* Change representation of grammars
+* Switch from toxix values to max depth?

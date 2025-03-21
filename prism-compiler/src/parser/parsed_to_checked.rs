@@ -16,6 +16,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         env: NamedEnv<'arn, 'grm>,
         jump_labels: &mut HashMap<*const GrammarFile<'arn, 'grm>, NamesEnv<'arn, 'grm>>,
     ) -> CoreIndex {
+        let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
         let e = match self.parsed_values[*i] {
             ParsedPrismExpr::Free => CorePrismExpr::Free,
             ParsedPrismExpr::Type => CorePrismExpr::Type,
@@ -57,6 +58,31 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
                         CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
+                    Some(NamesEntry::FromGrammarEnv {
+                        grammar_env_len,
+                        adapt_env_len,
+                        prev_env_len,
+                    }) => {
+                        let adapt_env_len = adapt_env_len - 1;
+                        let grammar_expr = self.store_checked(
+                            CorePrismExpr::DeBruijnIndex(env.len() - adapt_env_len - 1),
+                            origin,
+                        );
+
+                        // println!("{adapt_env_len} {prev_env_len}");
+                        let idx = prev_env_len + 1;
+                        let e = self.store_checked(CorePrismExpr::DeBruijnIndex(idx), origin);
+                        let mut e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                        for _ in 0..grammar_env_len {
+                            e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                        }
+                        let free_return_type = self.store_checked(CorePrismExpr::Free, origin);
+                        let grammar_expr = self.store_checked(
+                            CorePrismExpr::FnDestruct(grammar_expr, free_return_type),
+                            origin,
+                        );
+                        CorePrismExpr::FnDestruct(grammar_expr, e)
+                    }
                     Some(NamesEntry::FromParsed(parsed, old_names)) => {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
@@ -78,13 +104,49 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     }
                 }
             }
+            ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
+            ParsedPrismExpr::GrammarValue(grammar) => {
+                env.insert_shift_label(grammar, jump_labels);
+
+                // Create \T: Type. \f. ((f [env0] [env1] grammar ...): T)
+                let mut e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+                for i in 0..env.len() {
+                    // +2 to skip `T` and `f`
+                    let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 2), origin);
+                    e = self.store_checked(CorePrismExpr::FnDestruct(e, v), origin);
+                }
+                let g = self.store_checked(CorePrismExpr::GrammarValue(grammar), origin);
+                let e = self.store_checked(CorePrismExpr::FnDestruct(e, g), origin);
+                let body_type = self.store_checked(CorePrismExpr::DeBruijnIndex(1), origin);
+                let e = self.store_checked(CorePrismExpr::TypeAssert(e, body_type), origin);
+                let f = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                CorePrismExpr::FnConstruct(f)
+            }
             ParsedPrismExpr::ShiftTo {
                 expr,
                 captured_env,
                 adapt_env_len,
                 grammar,
             } => {
-                let mut names = jump_labels[&(grammar as *const _)];
+                let old_names = jump_labels[&(grammar as *const _)];
+
+                let mut names = NamesEnv::default();
+                for (name, entry) in old_names.into_iter().collect::<Vec<_>>().into_iter().rev() {
+                    let NamesEntry::FromEnv(i) = entry else {
+                        //TODO this is probably possible to hit but niche
+                        unreachable!()
+                    };
+
+                    names = names.insert(
+                        name,
+                        NamesEntry::FromGrammarEnv {
+                            grammar_env_len: old_names.len(),
+                            adapt_env_len,
+                            prev_env_len: i,
+                        },
+                        self.allocs,
+                    );
+                }
 
                 for (name, value) in captured_env
                     .into_iter()
@@ -105,12 +167,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
-            ParsedPrismExpr::GrammarValue(grammar) => {
-                env.insert_shift_label(grammar, jump_labels);
-                CorePrismExpr::GrammarValue(grammar)
-            }
-            ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
-        self.store_checked(e, ValueOrigin::SourceCode(self.parsed_spans[*i]))
+        self.store_checked(e, origin)
     }
 }

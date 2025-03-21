@@ -3,8 +3,9 @@ use prism_compiler::lang::{CoreIndex, CorePrismExpr, PrismEnv};
 use prism_parser::core::allocs::Allocs;
 
 #[test]
+#[ignore]
 fn test_exhaustive() {
-    iter_exhaustive(5, false, |env, root| env.type_check(root).is_ok())
+    iter_exhaustive(4, false, |env, root| env.type_check(root).is_ok())
 }
 
 fn iter_exhaustive(

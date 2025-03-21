@@ -6,6 +6,8 @@ use crate::lang::error::TypeError;
 use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
+const MAX_BEQ_DEPTH: usize = 256;
+
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     #[must_use]
     pub fn expect_beq_internal(
@@ -22,7 +24,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             DbEnv<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
+        depth: usize,
     ) -> bool {
+        if depth > MAX_BEQ_DEPTH {
+            self.errors.push(TypeError::RecursionLimit(i1o, i2o));
+            return true;
+        }
+
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1o, s1);
         let (i2, s2) = self.beta_reduce_head(i2o, s2);
@@ -54,7 +62,8 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             // Two function types are equal if their argument types and body types are equal
             (CorePrismExpr::FnType(a1, b1), CorePrismExpr::FnType(a2, b2)) => {
                 // Check that the argument types are equal
-                let a_equal = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
+                let a_equal =
+                    self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2), depth + 1);
 
                 // Insert the new variable into the scopes, and check if `b` is equal
                 let id = self.new_tc_id();
@@ -63,6 +72,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let b_equal = self.expect_beq_internal(
                     (b1, s1.cons(RType(id), self.allocs), var_map1),
                     (b2, s2.cons(RType(id), self.allocs), var_map2),
+                    depth + 1,
                 );
 
                 // Function types are equal if the arguments and body are equal
@@ -77,20 +87,23 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.expect_beq_internal(
                     (b1, s1.cons(RType(id), self.allocs), var_map1),
                     (b2, s2.cons(RType(id), self.allocs), var_map2),
+                    depth + 1,
                 )
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
             (CorePrismExpr::FnDestruct(f1, a1), CorePrismExpr::FnDestruct(f2, a2)) => {
-                let f_equal = self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2));
-                let b_equal = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
+                let f_equal =
+                    self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2), depth + 1);
+                let b_equal =
+                    self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2), depth + 1);
                 f_equal && b_equal
             }
             (_, CorePrismExpr::Free) => {
-                self.expect_beq_free((i1, s1, var_map1), (i2, s2, var_map2))
+                self.expect_beq_free((i1, s1, var_map1), (i2, s2, var_map2), depth + 1)
             }
             (CorePrismExpr::Free, _) => {
-                self.expect_beq_free((i2, s2, var_map2), (i1, s1, var_map1))
+                self.expect_beq_free((i2, s2, var_map2), (i1, s1, var_map1), depth + 1)
             }
             (CorePrismExpr::FnDestruct(f, _), _) => {
                 self.expect_beq_in_destruct(f, s1, var_map1, (i2, s2, var_map2))
@@ -127,10 +140,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         // We construct a value in scope 2 and set them equal
         let b = self.store_checked(CorePrismExpr::Shift(i2, 1), FreeSub(i2));
         let f = self.store_checked(CorePrismExpr::FnConstruct(b), FreeSub(i2));
-        self.expect_beq_internal((f1, f1s, var_map1), (f, s2, var_map2))
+        self.expect_beq_internal((f1, f1s, var_map1), (f, s2, var_map2), 0)
     }
 
     /// Precondition: i2 should be free
+    ///
     #[must_use]
     pub fn expect_beq_free(
         &mut self,
@@ -144,11 +158,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             DbEnv<'arn>,
             &mut HashMap<UniqueVariableId, usize>,
         ),
+        depth: usize,
     ) -> bool {
         assert!(matches!(self.checked_values[*i2], CorePrismExpr::Free));
-
-        if self.toxic_values.contains(&i1) {
-            self.errors.push(TypeError::InfiniteType(i1, i2));
+        if depth > MAX_BEQ_DEPTH {
+            self.errors.push(TypeError::RecursionLimit(i1, i2));
             return true;
         }
 
@@ -156,21 +170,18 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         match self.checked_values[*i1] {
             CorePrismExpr::Type => {
                 self.checked_values[*i2] = CorePrismExpr::Type;
-                self.handle_constraints(i2, s2)
-            }
-            CorePrismExpr::GrammarType => {
-                self.checked_values[*i2] = CorePrismExpr::GrammarType;
-                self.handle_constraints(i2, s2)
+                self.handle_constraints(i2, s2, depth + 1)
             }
             CorePrismExpr::Let(v1, b1) => {
                 let v2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 self.checked_values[*i2] = CorePrismExpr::Let(v2, b2);
 
-                let constraints_eq = self.handle_constraints(i2, s2);
+                let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
                 self.toxic_values.insert(i2);
-                let a_eq = self.expect_beq_internal((v1, s1, var_map1), (v2, s2, var_map2));
+                let a_eq =
+                    self.expect_beq_internal((v1, s1, var_map1), (v2, s2, var_map2), depth + 1);
 
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
@@ -178,6 +189,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let b_eq = self.expect_beq_internal(
                     (b1, s1.cons(RType(id), self.allocs), var_map1),
                     (b2, s2.cons(RType(id), self.allocs), var_map2),
+                    depth + 1,
                 );
 
                 constraints_eq && a_eq && b_eq
@@ -258,10 +270,10 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         true
                     }
                     RSubst(i1, s1) => {
-                        self.expect_beq_free((*i1, *s1, var_map1), (i2, s2, var_map2))
+                        self.expect_beq_free((*i1, *s1, var_map1), (i2, s2, var_map2), depth + 1)
                     }
                 };
-                let constraints_eq = self.handle_constraints(i2, s2);
+                let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
                 subst_equal && constraints_eq
             }
             CorePrismExpr::FnType(a1, b1) => {
@@ -269,16 +281,18 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 self.checked_values[*i2] = CorePrismExpr::FnType(a2, b2);
 
-                let constraints_eq = self.handle_constraints(i2, s2);
+                let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
                 self.toxic_values.insert(i2);
-                let a_eq = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
+                let a_eq =
+                    self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2), depth + 1);
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
                 let b_eq = self.expect_beq_internal(
                     (b1, s1.cons(RType(id), self.allocs), var_map1),
                     (b2, s2.cons(RType(id), self.allocs), var_map2),
+                    depth + 1,
                 );
 
                 constraints_eq && a_eq && b_eq
@@ -287,7 +301,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 self.checked_values[*i2] = CorePrismExpr::FnConstruct(b2);
 
-                let constraints_eq = self.handle_constraints(i2, s2);
+                let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
                 self.toxic_values.insert(i2);
 
@@ -297,6 +311,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let b_eq = self.expect_beq_internal(
                     (b1, s1.cons(RType(id), self.allocs), var_map1),
                     (b2, s2.cons(RType(id), self.allocs), var_map2),
+                    depth + 1,
                 );
 
                 constraints_eq && b_eq
@@ -306,11 +321,13 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let a2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
                 self.checked_values[*i2] = CorePrismExpr::FnDestruct(f2, a2);
 
-                let constraints_eq = self.handle_constraints(i2, s2);
+                let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
                 self.toxic_values.insert(i2);
-                let f_eq = self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2));
-                let a_eq = self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2));
+                let f_eq =
+                    self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2), depth + 1);
+                let a_eq =
+                    self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2), depth + 1);
                 constraints_eq && f_eq && a_eq
             }
             CorePrismExpr::Free => {
@@ -325,19 +342,24 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 true
             }
             CorePrismExpr::Shift(v1, i) => {
-                self.expect_beq_free((v1, s1.shift(i), var_map1), (i2, s2, var_map2))
+                self.expect_beq_free((v1, s1.shift(i), var_map1), (i2, s2, var_map2), depth + 1)
             }
             CorePrismExpr::TypeAssert(v, _t) => {
-                self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2))
+                self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2), depth + 1)
             }
-            CorePrismExpr::GrammarValue(..) => {
-                unreachable!("Should not occur in typechecked terms")
+            CorePrismExpr::GrammarType => {
+                self.checked_values[*i2] = CorePrismExpr::GrammarType;
+                self.handle_constraints(i2, s2, depth + 1)
+            }
+            CorePrismExpr::GrammarValue(g) => {
+                self.checked_values[*i2] = CorePrismExpr::GrammarValue(g);
+                self.handle_constraints(i2, s2, depth + 1)
             }
         }
     }
 
     #[must_use]
-    pub fn handle_constraints(&mut self, i2: CoreIndex, s2: DbEnv) -> bool {
+    pub fn handle_constraints(&mut self, i2: CoreIndex, s2: DbEnv, depth: usize) -> bool {
         let mut eq = true;
 
         // Check queued constraints
@@ -347,7 +369,11 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 assert_eq!(s2.len(), s2n.len());
 
                 //TODO performance: this causes expect_beq(i3, i2) to be executed
-                eq &= self.expect_beq_internal((i2, s2n, &mut var_map2n), (i3, s3, &mut var_map3));
+                eq &= self.expect_beq_internal(
+                    (i2, s2n, &mut var_map2n),
+                    (i3, s3, &mut var_map3),
+                    depth + 1,
+                );
             }
         }
 
