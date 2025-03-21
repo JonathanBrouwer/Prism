@@ -4,7 +4,6 @@ use prism_compiler::lang::PrismEnv;
 use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
-use std::io::Read;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

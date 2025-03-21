@@ -1,9 +1,3 @@
-let x = Type;
-adapt grammar {
-    adapt rule expr {
-        adapt group base {
-            x <- "%";
-        }
-    }
-};
-%
+let z = _ => Type;
+let g = f => f z;
+g (v => v)

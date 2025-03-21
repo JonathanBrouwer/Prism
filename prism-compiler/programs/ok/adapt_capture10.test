@@ -1,0 +1,16 @@
+### Input
+let z = _ => Type;
+adapt grammar {
+    adapt rule expr {
+        adapt group base {
+            z Type <- "%";
+        }
+    }
+};
+%
+
+### Eval
+Type
+
+### Type
+Type
