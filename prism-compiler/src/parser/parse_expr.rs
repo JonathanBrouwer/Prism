@@ -209,14 +209,23 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
         prism_env.errors.truncate(error_count);
 
-        let value = prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
-        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(value, db_env);
+        // Get original grammar function
+        let original_e =
+            prism_env.parsed_to_checked_with_env(*self, named_env, &mut Default::default());
+        let origin = prism_env.checked_origins[original_e.0];
+
+        // Create expression that takes first element from this function
+        let e = prism_env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+        let e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        let e = prism_env.store_checked(CorePrismExpr::FnDestruct(original_e, e), origin);
+
+        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(e, db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = prism_env.checked_values[reduced_value.0] else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
                 prism_env.parse_index_to_string(*self),
-                prism_env.index_to_string(value),
+                prism_env.index_to_string(e),
                 prism_env.index_to_string(reduced_value)
             )
         };

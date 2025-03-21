@@ -107,7 +107,12 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
             ParsedPrismExpr::GrammarValue(grammar) => {
                 env.insert_shift_label(grammar, jump_labels);
-                CorePrismExpr::GrammarValue(grammar)
+
+                // Create \f. f g
+                let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
+                CorePrismExpr::FnConstruct(
+                    self.store_checked(CorePrismExpr::GrammarValue(grammar), origin),
+                )
             }
             ParsedPrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
