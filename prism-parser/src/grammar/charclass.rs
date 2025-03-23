@@ -21,7 +21,7 @@ impl CharClass<'_> {
     }
 }
 
-impl<'arn> ParseResult for CharClass<'arn> {}
+impl ParseResult for CharClass<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
     type EvalCtx = ();
 

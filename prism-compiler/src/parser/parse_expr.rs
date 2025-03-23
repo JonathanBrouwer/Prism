@@ -258,4 +258,4 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
 
 #[derive(Copy, Clone)]
 pub struct EnvWrapper<'arn>(Parsed<'arn>, usize, &'arn GrammarFile<'arn>);
-impl<'arn> ParseResult for EnvWrapper<'arn> {}
+impl ParseResult for EnvWrapper<'_> {}

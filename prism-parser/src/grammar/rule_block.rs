@@ -17,7 +17,7 @@ pub struct RuleBlock<'arn> {
     pub constructors: &'arn [AnnotatedRuleExpr<'arn>],
 }
 
-impl<'arn> ParseResult for RuleBlock<'arn> {}
+impl ParseResult for RuleBlock<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for RuleBlock<'arn> {
     type EvalCtx = ();
 

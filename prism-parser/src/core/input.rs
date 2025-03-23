@@ -29,4 +29,4 @@ impl<'arn> Input<'arn> {
     }
 }
 
-impl<'arn> ParseResult for Input<'arn> {}
+impl ParseResult for Input<'_> {}

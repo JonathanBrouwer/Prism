@@ -20,7 +20,7 @@ pub struct Rule<'arn> {
     pub return_type: &'arn str,
 }
 
-impl<'arn> ParseResult for Rule<'arn> {}
+impl ParseResult for Rule<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
     type EvalCtx = ();
 

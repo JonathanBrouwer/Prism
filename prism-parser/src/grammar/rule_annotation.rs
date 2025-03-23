@@ -17,7 +17,7 @@ pub enum RuleAnnotation<'arn> {
     EnableRecovery,
 }
 
-impl<'arn> ParseResult for RuleAnnotation<'arn> {}
+impl ParseResult for RuleAnnotation<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
     type EvalCtx = ();
 

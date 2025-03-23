@@ -9,7 +9,7 @@ pub enum ActionResult<'arn> {
     Construct(Span, &'arn str, &'arn [Parsed<'arn>]),
 }
 
-impl<'arn> ParseResult for ActionResult<'arn> {}
+impl ParseResult for ActionResult<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for ActionResult<'arn> {
     type EvalCtx = ();
 

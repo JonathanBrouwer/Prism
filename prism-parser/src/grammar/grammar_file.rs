@@ -15,7 +15,7 @@ pub struct GrammarFile<'arn> {
     pub rules: &'arn [Rule<'arn>],
 }
 
-impl<'arn> ParseResult for GrammarFile<'arn> {}
+impl ParseResult for GrammarFile<'_> {}
 impl<'arn, Env> Parsable<'arn, Env> for GrammarFile<'arn> {
     type EvalCtx = ();
 
