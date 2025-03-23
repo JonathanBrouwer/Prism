@@ -13,7 +13,6 @@ pub mod option;
 pub mod parsable_dyn;
 pub mod parsed;
 pub mod parsed_debug;
-pub mod parsed_mut;
 pub mod void;
 
 pub trait ParseResult<'arn>: Sized + Sync + Send + Copy + 'arn {
