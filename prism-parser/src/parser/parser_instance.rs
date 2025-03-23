@@ -152,7 +152,7 @@ pub fn run_parser_rule<
     parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
     penv: &'a mut Env,
 ) -> Result<&'arn P, AggregatedParseError<'arn, E>> {
-    let mut input_table = InputTable::default();
+    let input_table = InputTable::default();
     let file = input_table.push_file(input);
 
     run_parser_rule_raw(

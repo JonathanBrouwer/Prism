@@ -5,7 +5,7 @@ use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 
-impl<'arn> ParseResult<'arn> for Option<u64> {}
+impl ParseResult<'_> for Option<u64> {}
 impl<'arn, Env> Parsable<'arn, Env> for Option<u64> {
     type EvalCtx = ();
 

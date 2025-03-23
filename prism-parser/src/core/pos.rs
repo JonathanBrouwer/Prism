@@ -2,7 +2,7 @@ use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Index, Sub};
+use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Pos(usize, InputTableIndex);

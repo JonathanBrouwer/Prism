@@ -21,7 +21,7 @@ pub trait ParseResult<'arn>: Sized + Sync + Send + Copy + 'arn {
     }
 }
 
-impl<'arn> ParseResult<'arn> for () {}
+impl ParseResult<'_> for () {}
 
 pub trait Parsable<'arn, Env>: ParseResult<'arn> + Sized + Sync + Send + Copy + 'arn {
     type EvalCtx: Default + Copy + ParseResult<'arn>;
@@ -73,8 +73,8 @@ mod tests {
     struct A;
     #[derive(Debug, Copy, Clone)]
     struct B;
-    impl<'arn> ParseResult<'arn> for A {}
-    impl<'arn> ParseResult<'arn> for B {}
+    impl ParseResult<'_> for A {}
+    impl ParseResult<'_> for B {}
 
     #[test]
     fn a_a_same() {

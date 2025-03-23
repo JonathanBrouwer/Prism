@@ -34,7 +34,7 @@ impl<'arn, Env, E: ParseError> ParserState<'arn, Env, E> {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             alloc,
-            input: input,
+            input,
             guid_counter: 0,
             recovery_points: HashMap::new(),
             parsables,

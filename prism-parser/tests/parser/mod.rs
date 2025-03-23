@@ -10,15 +10,13 @@ mod lookahead;
 mod minor;
 mod parametric;
 mod parser_tests;
-mod repeat;
-mod span_merging;
-
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {
         #[allow(unused_imports)]
         #[allow(unused_variables)]
         #[test]
         fn $name() {
+            use std::sync::Arc;
             use prism_parser::parser::parser_instance::run_parser_rule_raw;
             use prism_parser::parse_grammar;
             use prism_parser::grammar::grammar_file::GrammarFile;
@@ -38,6 +36,7 @@ macro_rules! parse_test {
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;
+            use prism_parser::core::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
             let bump = Bump::new();
@@ -52,21 +51,25 @@ macro_rules! parse_test {
 
             $({
             let input: &'static str = $input_pass;
+            let input_table = Arc::new(InputTable::default());
+            let file = input_table.push_file(input);
             println!("== Parsing (should be ok): {}", input);
 
 
-            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input, alloc, parsables.clone(), &mut ()).unwrap_or_eprint();
-            let got = got.to_debug_string(input);
+            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()).unwrap_or_eprint();
+            let got = got.to_debug_string(&input_table);
             assert_eq!($expected, got);
             })*
 
             $({
             let input: &'static str = $input_fail;
+            let input_table = Arc::new(InputTable::default());
+            let file = input_table.push_file(input);
             println!("== Parsing (should be fail): {}", input);
 
-            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input, alloc, parsables.clone(), &mut ()) {
+            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()) {
                 Ok(got) => {
-                    let got = got.to_debug_string(input);
+                    let got = got.to_debug_string(&input_table);
                     println!("Got: {:?}", got);
                     panic!();
                 }
@@ -84,5 +87,8 @@ macro_rules! parse_test {
         }
     }
 }
+mod repeat;
+
+mod span_merging;
 
 pub(crate) use parse_test;

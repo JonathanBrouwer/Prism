@@ -1,7 +1,6 @@
 use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use serde::{Deserialize, Serialize};
-use std::ops::Index;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
@@ -24,6 +23,10 @@ impl Span {
 
     pub fn len(self) -> usize {
         self.len
+    }
+
+    pub fn is_empty(self) -> bool {
+        self.len == 0
     }
 
     pub fn end_pos(self) -> Pos {

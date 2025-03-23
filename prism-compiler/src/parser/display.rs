@@ -4,7 +4,7 @@ use crate::lang::PrismEnv;
 use crate::lang::display::PrecedenceLevel;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 
-impl<'arn> ParsedPrismExpr<'arn> {
+impl ParsedPrismExpr<'_> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -23,7 +23,7 @@ impl<'arn> ParsedPrismExpr<'arn> {
     }
 }
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv<'_> {
     fn parse_display(
         &self,
         i: ParsedIndex,

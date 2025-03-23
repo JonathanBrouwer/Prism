@@ -1,9 +1,6 @@
-use crate::core::pos::Pos;
 use ariadne::{Cache, Source};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
-use std::ops::Index;
-use std::path::PathBuf;
 use std::sync::RwLock;
 
 #[derive(Default)]

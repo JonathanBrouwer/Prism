@@ -13,7 +13,7 @@ pub struct Parsed<'arn> {
     phantom_data: PhantomData<(&'arn (), &'arn ())>,
 }
 
-impl<'arn> Debug for Parsed<'arn> {
+impl Debug for Parsed<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parsed(ANONYMOUS PARSED OBJECT)")
     }

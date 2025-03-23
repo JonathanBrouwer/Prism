@@ -55,7 +55,7 @@ pub fn eval_ctx_to_envs<'arn>(
     }
 }
 
-impl<'arn> ParseResult<'arn> for ParsedIndex {}
+impl ParseResult<'_> for ParsedIndex {}
 impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
     type EvalCtx = PrismEvalCtx<'arn>;
 

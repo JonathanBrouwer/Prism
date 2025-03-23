@@ -14,7 +14,7 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl<'arn> CorePrismExpr<'arn> {
+impl CorePrismExpr<'_> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -33,7 +33,7 @@ impl<'arn> CorePrismExpr<'arn> {
     }
 }
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv<'_> {
     fn display(
         &self,
         i: CoreIndex,

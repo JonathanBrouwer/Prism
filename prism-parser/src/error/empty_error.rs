@@ -2,7 +2,7 @@ use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use ariadne::{Report, ReportKind};
+use ariadne::Report;
 use std::marker::PhantomData;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.

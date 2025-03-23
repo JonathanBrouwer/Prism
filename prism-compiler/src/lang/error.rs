@@ -1,8 +1,6 @@
 use crate::lang::CoreIndex;
 use crate::lang::{PrismEnv, ValueOrigin};
-use ariadne::{Color, Label, Report, ReportKind, Source};
-use prism_parser::core::input_table::InputTable;
-use prism_parser::core::pos::Pos;
+use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
 use std::io;
 
@@ -31,7 +29,7 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv<'_> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {
