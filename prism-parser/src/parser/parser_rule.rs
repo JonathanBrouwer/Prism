@@ -8,18 +8,18 @@ use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_rule(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn>,
         rule: RuleId,
-        args: &[Parsed<'arn, 'grm>],
+        args: &[Parsed<'arn>],
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
-        let rule_state: &'arn RuleState<'arn, 'grm> = rules
+        eval_ctx: Parsed<'arn>,
+    ) -> PResult<Parsed<'arn>, E> {
+        let rule_state: &'arn RuleState<'arn> = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 

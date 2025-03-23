@@ -5,10 +5,10 @@ use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKi
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
-pub enum ErrorLabel<'grm> {
-    Explicit(Span, EscapedString<'grm>),
-    Literal(Span, EscapedString<'grm>),
-    Debug(Span, &'grm str),
+pub enum ErrorLabel<'arn> {
+    Explicit(Span, EscapedString<'arn>),
+    Literal(Span, EscapedString<'arn>),
+    Debug(Span, &'arn str),
     FromConstruct(Span, String),
 }
 

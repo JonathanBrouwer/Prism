@@ -4,15 +4,15 @@ use crate::error::error_printer::ErrorLabel;
 use std::io;
 use std::sync::Arc;
 
-pub struct AggregatedParseError<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm> {
-    pub input: Arc<InputTable<'grm>>,
+pub struct AggregatedParseError<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> {
+    pub input: Arc<InputTable<'arn>>,
     pub errors: Vec<E>,
 }
 
-impl<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm> AggregatedParseError<'grm, E> {
+impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> AggregatedParseError<'arn, E> {
     pub fn eprint(&self) -> io::Result<()> {
         for e in &self.errors {
-            e.report(false).eprint::<&InputTable<'grm>>(&self.input)?
+            e.report(false).eprint::<&InputTable<'arn>>(&self.input)?
         }
         Ok(())
     }
@@ -22,8 +22,8 @@ pub trait ParseResultExt<T> {
     fn unwrap_or_eprint(self) -> T;
 }
 
-impl<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm, T> ParseResultExt<T>
-    for Result<T, AggregatedParseError<'grm, E>>
+impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn, T> ParseResultExt<T>
+    for Result<T, AggregatedParseError<'arn, E>>
 {
     fn unwrap_or_eprint(self) -> T {
         self.unwrap_or_else(|es| {

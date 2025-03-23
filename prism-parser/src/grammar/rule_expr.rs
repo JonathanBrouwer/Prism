@@ -13,14 +13,14 @@ use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub enum RuleExpr<'arn, 'grm> {
+pub enum RuleExpr<'arn> {
     RunVar {
-        rule: &'grm str,
+        rule: &'arn str,
         #[serde(with = "leak_slice")]
-        args: &'arn [RuleExpr<'arn, 'grm>],
+        args: &'arn [RuleExpr<'arn>],
     },
     CharClass(#[serde(with = "leak")] &'arn CharClass<'arn>),
-    Literal(EscapedString<'grm>),
+    Literal(EscapedString<'arn>),
     Repeat {
         #[serde(with = "leak")]
         expr: &'arn Self,
@@ -29,35 +29,35 @@ pub enum RuleExpr<'arn, 'grm> {
         #[serde(with = "leak")]
         delim: &'arn Self,
     },
-    Sequence(#[serde(with = "leak_slice")] &'arn [RuleExpr<'arn, 'grm>]),
-    Choice(#[serde(with = "leak_slice")] &'arn [RuleExpr<'arn, 'grm>]),
-    NameBind(&'grm str, #[serde(with = "leak")] &'arn Self),
+    Sequence(#[serde(with = "leak_slice")] &'arn [RuleExpr<'arn>]),
+    Choice(#[serde(with = "leak_slice")] &'arn [RuleExpr<'arn>]),
+    NameBind(&'arn str, #[serde(with = "leak")] &'arn Self),
     Action(
         #[serde(with = "leak")] &'arn Self,
-        #[serde(with = "leak")] &'arn RuleAction<'arn, 'grm>,
+        #[serde(with = "leak")] &'arn RuleAction<'arn>,
     ),
     SliceInput(#[serde(with = "leak")] &'arn Self),
     PosLookahead(#[serde(with = "leak")] &'arn Self),
     NegLookahead(#[serde(with = "leak")] &'arn Self),
     AtAdapt {
-        ns: &'grm str,
-        name: &'grm str,
+        ns: &'arn str,
+        name: &'arn str,
         #[serde(with = "leak")]
         expr: &'arn Self,
     },
     Guid,
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleExpr<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleExpr<'arn, 'grm> {
+impl<'arn> ParseResult<'arn> for RuleExpr<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {

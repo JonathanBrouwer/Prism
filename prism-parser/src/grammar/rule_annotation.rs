@@ -8,25 +8,25 @@ use crate::parsable::{Parsable, ParseResult};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Debug)]
-pub enum RuleAnnotation<'grm> {
+pub enum RuleAnnotation<'arn> {
     #[serde(borrow)]
-    Error(EscapedString<'grm>),
+    Error(EscapedString<'arn>),
     DisableLayout,
     EnableLayout,
     DisableRecovery,
     EnableRecovery,
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAnnotation<'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAnnotation<'grm> {
+impl<'arn> ParseResult<'arn> for RuleAnnotation<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {

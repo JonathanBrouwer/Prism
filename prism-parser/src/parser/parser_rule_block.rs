@@ -14,17 +14,17 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_rule_block(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+    ) -> PResult<Parsed<'arn>, E> {
         self.parse_cache_recurse(
             |state, pos| {
                 state.parse_sub_blocks(rules, blocks, rule_args, pos, context, penv, eval_ctx)
@@ -39,14 +39,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
     fn parse_sub_blocks(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+    ) -> PResult<Parsed<'arn>, E> {
         match blocks {
             [] => unreachable!(),
             [b] => self.parse_sub_constructors(
@@ -82,15 +82,15 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
     fn parse_sub_constructors(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
-        es: &'arn [Constructor<'arn, 'grm>],
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
+        es: &'arn [Constructor<'arn>],
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+    ) -> PResult<Parsed<'arn>, E> {
         match es {
             [] => PResult::new_err(E::new(pos), pos),
             [
@@ -99,7 +99,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             ] => {
                 let rule_ctx = rule_ctx.into_iter();
                 let rule_args_iter = rule_args.into_iter();
-                let vars: VarMap<'arn, 'grm> =
+                let vars: VarMap<'arn> =
                     VarMap::from_iter(rule_args_iter.chain(rule_ctx), self.alloc);
 
                 self.parse_sub_annotations(
@@ -125,17 +125,17 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
     fn parse_sub_annotations(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
-        annots: &'arn [RuleAnnotation<'grm>],
-        expr: &'arn RuleExpr<'arn, 'grm>,
-        vars: VarMap<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
+        annots: &'arn [RuleAnnotation<'arn>],
+        expr: &'arn RuleExpr<'arn>,
+        vars: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+    ) -> PResult<Parsed<'arn>, E> {
         match annots {
             [RuleAnnotation::Error(err_label), rest @ ..] => {
                 let mut res = self.parse_sub_annotations(

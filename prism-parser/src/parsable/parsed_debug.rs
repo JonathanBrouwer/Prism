@@ -7,8 +7,8 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 
-impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
-    pub fn to_debug_string(&self, src: &InputTable<'grm>) -> String {
+impl<'arn> Parsed<'arn> {
+    pub fn to_debug_string(&self, src: &InputTable<'arn>) -> String {
         if let Some(ar) = self.try_into_value::<ActionResult>() {
             match ar {
                 ActionResult::Construct(_, c, es) => format!(
@@ -20,9 +20,9 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
                         .join(", ")
                 ),
             }
-        } else if let Some(_env) = self.try_into_value::<VarMap<'arn, 'grm>>() {
+        } else if let Some(_env) = self.try_into_value::<VarMap<'arn>>() {
             "[VARS]".to_string()
-        } else if let Some(ll) = self.try_into_value::<ParsedList<'arn, 'grm>>() {
+        } else if let Some(ll) = self.try_into_value::<ParsedList<'arn>>() {
             format!(
                 "[{}]",
                 ll.into_iter()

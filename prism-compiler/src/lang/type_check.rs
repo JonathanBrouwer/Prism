@@ -6,7 +6,7 @@ use crate::lang::error::{AggregatedTypeError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr};
 use std::mem;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn type_check(&mut self, root: CoreIndex) -> Result<CoreIndex, AggregatedTypeError> {
         let ti = self._type_check(root, DbEnv::default());
 

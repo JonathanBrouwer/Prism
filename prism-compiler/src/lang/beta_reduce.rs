@@ -3,7 +3,7 @@ use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
 use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn beta_reduce(&mut self, i: CoreIndex) -> CoreIndex {
         self.beta_reduce_inner(i, DbEnv::default(), &mut HashMap::new())
     }
@@ -11,7 +11,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     fn beta_reduce_inner(
         &mut self,
         i: CoreIndex,
-        s: DbEnv,
+        s: DbEnv<'arn>,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CoreIndex {
         let (i, s) = self.beta_reduce_head(i, s);

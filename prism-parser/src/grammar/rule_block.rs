@@ -10,23 +10,23 @@ use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct RuleBlock<'arn, 'grm> {
-    pub name: &'grm str,
+pub struct RuleBlock<'arn> {
+    pub name: &'arn str,
     pub adapt: bool,
     #[serde(borrow, with = "leak_slice")]
-    pub constructors: &'arn [AnnotatedRuleExpr<'arn, 'grm>],
+    pub constructors: &'arn [AnnotatedRuleExpr<'arn>],
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleBlock<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleBlock<'arn, 'grm> {
+impl<'arn> ParseResult<'arn> for RuleBlock<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for RuleBlock<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Block");

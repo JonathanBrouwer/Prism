@@ -6,7 +6,7 @@ use crate::lang::error::TypeError;
 use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     /// Expect `i1` to be equal to `i2` in `s`
     pub fn expect_beq_assert(
         &mut self,
@@ -29,7 +29,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     }
 
     /// Expect `io` to be equal to `Type`.
-    pub fn expect_beq_type(&mut self, io: CoreIndex, s: DbEnv) {
+    pub fn expect_beq_type(&mut self, io: CoreIndex, s: DbEnv<'arn>) {
         let (i, s) = self.beta_reduce_head(io, s);
         match self.checked_values[*i] {
             CorePrismExpr::Type => {}

@@ -31,7 +31,7 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {

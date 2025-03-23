@@ -21,16 +21,16 @@ impl CharClass<'_> {
     }
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClass<'arn> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
+impl<'arn> ParseResult<'arn> for CharClass<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "CharClass");
@@ -54,16 +54,16 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClass<'arn> {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct CharClassRange(char, char);
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for CharClassRange {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClassRange {
+impl<'arn> ParseResult<'arn> for CharClassRange {}
+impl<'arn, Env> Parsable<'arn, Env> for CharClassRange {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Range");
@@ -74,6 +74,6 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for CharClassRange {
     }
 }
 
-fn parse_string_char<'arn, 'grm>(r: Parsed<'arn, 'grm>, src: &InputTable<'grm>) -> char {
+fn parse_string_char<'arn>(r: Parsed<'arn>, src: &InputTable<'arn>) -> char {
     r.into_value::<Input>().as_cow(src).chars().next().unwrap()
 }

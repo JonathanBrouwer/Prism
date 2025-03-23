@@ -5,20 +5,20 @@ use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 
 #[derive(Copy, Clone)]
-pub enum ActionResult<'arn, 'grm> {
-    Construct(Span, &'grm str, &'arn [Parsed<'arn, 'grm>]),
+pub enum ActionResult<'arn> {
+    Construct(Span, &'arn str, &'arn [Parsed<'arn>]),
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ActionResult<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for ActionResult<'arn, 'grm> {
+impl<'arn> ParseResult<'arn> for ActionResult<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for ActionResult<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         Self::Construct(

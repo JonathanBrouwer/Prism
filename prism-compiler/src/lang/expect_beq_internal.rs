@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 const MAX_BEQ_DEPTH: usize = 256;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     #[must_use]
     pub fn expect_beq_internal(
         &mut self,

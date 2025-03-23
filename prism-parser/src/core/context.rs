@@ -4,13 +4,13 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
-pub struct PR<'arn, 'grm> {
-    pub free: VarMap<'arn, 'grm>,
-    pub rtrn: Parsed<'arn, 'grm>,
+pub struct PR<'arn> {
+    pub free: VarMap<'arn>,
+    pub rtrn: Parsed<'arn>,
 }
 
-impl<'arn, 'grm> PR<'arn, 'grm> {
-    pub fn with_rtrn(rtrn: Parsed<'arn, 'grm>) -> Self {
+impl<'arn> PR<'arn> {
+    pub fn with_rtrn(rtrn: Parsed<'arn>) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,

@@ -3,7 +3,7 @@ use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::{CorePrismExpr, PrismEnv};
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CoreIndex,

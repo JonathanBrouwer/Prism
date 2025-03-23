@@ -11,4 +11,4 @@ pub mod parser_rule_expr;
 pub mod placeholder_store;
 pub mod rule_closure;
 
-pub type VarMap<'arn, 'grm> = GenericEnv<'arn, &'arn str, Parsed<'arn, 'grm>>;
+pub type VarMap<'arn> = GenericEnv<'arn, &'arn str, Parsed<'arn>>;

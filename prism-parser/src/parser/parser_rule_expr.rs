@@ -18,20 +18,20 @@ use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_expr(
         &mut self,
-        expr: &'arn RuleExpr<'arn, 'grm>,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
-        vars: VarMap<'arn, 'grm>,
+        expr: &'arn RuleExpr<'arn>,
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
+        vars: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, ParsedPlaceholder)>,
-    ) -> PResult<PR<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+        eval_ctxs: &mut HashMap<&'arn str, (Parsed<'arn>, ParsedPlaceholder)>,
+    ) -> PResult<PR<'arn>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
                 let mut arg_values = Vec::new();

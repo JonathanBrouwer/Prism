@@ -7,24 +7,24 @@ use crate::parsable::parsed::Parsed;
 #[derive(Copy, Clone, Debug)]
 pub struct ParsedPlaceholder(usize);
 
-struct StoreEntry<'arn, 'grm, Env> {
-    value: Option<Parsed<'arn, 'grm>>,
+struct StoreEntry<'arn, Env> {
+    value: Option<Parsed<'arn>>,
     parent: Option<ParsedPlaceholder>,
-    construct_info: Option<StoreEntryConstructInfo<'arn, 'grm, Env>>,
+    construct_info: Option<StoreEntryConstructInfo<'arn, Env>>,
 }
 
-struct StoreEntryConstructInfo<'arn, 'grm, Env> {
+struct StoreEntryConstructInfo<'arn, Env> {
     children: Vec<ParsedPlaceholder>,
     children_left: usize,
-    constructor: &'grm str,
-    parsable_dyn: ParsableDyn<'arn, 'grm, Env>,
+    constructor: &'arn str,
+    parsable_dyn: ParsableDyn<'arn, Env>,
 }
 
-pub struct PlaceholderStore<'arn, 'grm, Env> {
-    store: Vec<StoreEntry<'arn, 'grm, Env>>,
+pub struct PlaceholderStore<'arn, Env> {
+    store: Vec<StoreEntry<'arn, Env>>,
 }
 
-impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
+impl<'arn, Env> PlaceholderStore<'arn, Env> {
     pub fn push_empty(&mut self) -> ParsedPlaceholder {
         let len = self.store.len();
         self.store.push(StoreEntry {
@@ -38,8 +38,8 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
     pub fn place_construct_info(
         &mut self,
         cur: ParsedPlaceholder,
-        constructor: &'grm str,
-        parsable_dyn: ParsableDyn<'arn, 'grm, Env>,
+        constructor: &'arn str,
+        parsable_dyn: ParsableDyn<'arn, Env>,
         children: Vec<ParsedPlaceholder>,
     ) {
         // Store info in children
@@ -58,17 +58,17 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
         });
     }
 
-    pub fn get(&self, index: ParsedPlaceholder) -> Option<Parsed<'arn, 'grm>> {
+    pub fn get(&self, index: ParsedPlaceholder) -> Option<Parsed<'arn>> {
         self.store[index.0].value
     }
 
     pub fn place_into_empty(
         &mut self,
         cur: ParsedPlaceholder,
-        value: Parsed<'arn, 'grm>,
+        value: Parsed<'arn>,
         span: Span,
         allocs: Allocs<'arn>,
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         env: &mut Env,
     ) {
         // Store value
@@ -103,7 +103,7 @@ impl<'arn, 'grm, Env> PlaceholderStore<'arn, 'grm, Env> {
     }
 }
 
-impl<Env> Default for PlaceholderStore<'_, '_, Env> {
+impl<Env> Default for PlaceholderStore<'_, Env> {
     fn default() -> Self {
         Self { store: Vec::new() }
     }

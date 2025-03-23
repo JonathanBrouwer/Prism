@@ -15,12 +15,12 @@ use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStor
 
 pub type PrismEvalCtx<'arn> = GenericEnv<'arn, ParsedPlaceholder, Option<ParsedPlaceholder>>;
 
-pub fn eval_ctx_to_envs<'arn, 'grm>(
+pub fn eval_ctx_to_envs<'arn>(
     env: PrismEvalCtx<'arn>,
-    placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-    input: &InputTable<'grm>,
-    prism_env: &mut PrismEnv<'arn, 'grm>,
-) -> (NamedEnv<'arn, 'grm>, DbEnv<'arn>) {
+    placeholders: &PlaceholderStore<'arn, PrismEnv<'arn>>,
+    input: &InputTable<'arn>,
+    prism_env: &mut PrismEnv<'arn>,
+) -> (NamedEnv<'arn>, DbEnv<'arn>) {
     match env.split() {
         None => (NamedEnv::default(), DbEnv::default()),
         Some(((key, value), rest)) => {
@@ -55,19 +55,19 @@ pub fn eval_ctx_to_envs<'arn, 'grm>(
     }
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for ParsedIndex {}
-impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedIndex {
+impl<'arn> ParseResult<'arn> for ParsedIndex {}
+impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
     type EvalCtx = PrismEvalCtx<'arn>;
 
     fn from_construct(
         span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
-        prism_env: &mut PrismEnv<'arn, 'grm>,
+        _src: &InputTable<'arn>,
+        prism_env: &mut PrismEnv<'arn>,
     ) -> Self {
-        let expr: ParsedPrismExpr<'arn, 'grm> = match constructor {
+        let expr: ParsedPrismExpr<'arn> = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -84,21 +84,21 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = args[0].into_value::<Input<'grm>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
                 let b = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }
@@ -127,7 +127,7 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
             "EnvCapture" => {
                 assert_eq!(args.len(), 2);
                 let value = args[0].into_value::<EnvWrapper>();
-                let captured_env = args[1].into_value::<VarMap<'arn, 'grm>>();
+                let captured_env = args[1].into_value::<VarMap<'arn>>();
 
                 let expr = *value.0.into_value::<ParsedIndex>();
 
@@ -145,12 +145,12 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     }
 
     fn create_eval_ctx(
-        constructor: &'grm str,
+        constructor: &'arn str,
         parent_ctx: Self::EvalCtx,
         args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
-        _env: &mut PrismEnv<'arn, 'grm>,
+        _src: &InputTable<'arn>,
+        _env: &mut PrismEnv<'arn>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         match constructor {
             "Type" => {
@@ -201,10 +201,10 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
     fn eval_to_grammar(
         &'arn self,
         eval_ctx: Self::EvalCtx,
-        placeholders: &PlaceholderStore<'arn, 'grm, PrismEnv<'arn, 'grm>>,
-        src: &InputTable<'grm>,
-        prism_env: &mut PrismEnv<'arn, 'grm>,
-    ) -> &'arn GrammarFile<'arn, 'grm> {
+        placeholders: &PlaceholderStore<'arn, PrismEnv<'arn>>,
+        src: &InputTable<'arn>,
+        prism_env: &mut PrismEnv<'arn>,
+    ) -> &'arn GrammarFile<'arn> {
         // Create context, ignore any errors that occur in this process
         let error_count = prism_env.errors.len();
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
@@ -257,5 +257,5 @@ impl<'arn, 'grm: 'arn> Parsable<'arn, 'grm, PrismEnv<'arn, 'grm>> for ParsedInde
 }
 
 #[derive(Copy, Clone)]
-pub struct EnvWrapper<'arn, 'grm>(Parsed<'arn, 'grm>, usize, &'arn GrammarFile<'arn, 'grm>);
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for EnvWrapper<'arn, 'grm> {}
+pub struct EnvWrapper<'arn>(Parsed<'arn>, usize, &'arn GrammarFile<'arn>);
+impl<'arn> ParseResult<'arn> for EnvWrapper<'arn> {}

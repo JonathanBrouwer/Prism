@@ -57,7 +57,7 @@ impl Deref for CoreIndex {
 }
 
 #[derive(Copy, Clone)]
-pub enum CorePrismExpr<'arn, 'grm: 'arn> {
+pub enum CorePrismExpr<'arn> {
     Free,
     Type,
     Let(CoreIndex, CoreIndex),
@@ -67,21 +67,21 @@ pub enum CorePrismExpr<'arn, 'grm: 'arn> {
     FnDestruct(CoreIndex, CoreIndex),
     Shift(CoreIndex, usize),
     TypeAssert(CoreIndex, CoreIndex),
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarValue(&'arn GrammarFile<'arn>),
     GrammarType,
 }
 
-pub struct PrismEnv<'arn, 'grm: 'arn> {
+pub struct PrismEnv<'arn> {
     // Allocs
-    pub input: Arc<InputTable<'grm>>,
+    pub input: Arc<InputTable<'arn>>,
     pub allocs: Allocs<'arn>,
 
     // Parsed Values
-    pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
+    pub parsed_values: Vec<ParsedPrismExpr<'arn>>,
     pub parsed_spans: Vec<Span>,
 
     // Checked Values
-    pub checked_values: Vec<CorePrismExpr<'arn, 'grm>>,
+    pub checked_values: Vec<CorePrismExpr<'arn>>,
     pub checked_origins: Vec<ValueOrigin>,
     checked_types: HashMap<CoreIndex, CoreIndex>,
 
@@ -92,7 +92,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint<'arn>>>,
 }
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
             input: Arc::new(InputTable::default()),
@@ -110,28 +110,24 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         }
     }
 
-    pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn, 'grm>, span: Span) -> ParsedIndex {
+    pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn>, span: Span) -> ParsedIndex {
         self.store_parsed(e, span)
     }
 
-    // pub fn store_test(&mut self, e: CorePrismExpr<'arn, 'grm>) -> CoreIndex {
+    // pub fn store_test(&mut self, e: CorePrismExpr<'arn>) -> CoreIndex {
     //     self.store_checked(
     //         e,
     //         ValueOrigin::SourceCode(Span::new())
     //     )
     // }
 
-    fn store_parsed(&mut self, e: ParsedPrismExpr<'arn, 'grm>, origin: Span) -> ParsedIndex {
+    fn store_parsed(&mut self, e: ParsedPrismExpr<'arn>, origin: Span) -> ParsedIndex {
         self.parsed_values.push(e);
         self.parsed_spans.push(origin);
         ParsedIndex(self.parsed_values.len() - 1)
     }
 
-    pub fn store_checked(
-        &mut self,
-        e: CorePrismExpr<'arn, 'grm>,
-        origin: ValueOrigin,
-    ) -> CoreIndex {
+    pub fn store_checked(&mut self, e: CorePrismExpr<'arn>, origin: ValueOrigin) -> CoreIndex {
         self.checked_values.push(e);
         self.checked_origins.push(origin);
         CoreIndex(self.checked_values.len() - 1)
@@ -144,7 +140,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         self.tc_id = 0;
     }
 
-    pub fn erase_arena(self) -> PrismEnv<'grm, 'grm> {
+    pub fn erase_arena(self) -> PrismEnv<'arn> {
         todo!()
     }
 }

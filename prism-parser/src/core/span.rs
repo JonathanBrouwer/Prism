@@ -31,8 +31,8 @@ impl Span {
     }
 }
 
-impl<'grm> InputTable<'grm> {
-    pub fn slice(&self, span: Span) -> &'grm str {
+impl<'arn> InputTable<'arn> {
+    pub fn slice(&self, span: Span) -> &'arn str {
         let start = span.start.idx_in_file();
         &self.get_str(span.start.file())[start..start + span.len]
     }

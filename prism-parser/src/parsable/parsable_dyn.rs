@@ -8,46 +8,46 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
 #[allow(clippy::type_complexity)]
-pub struct ParsableDyn<'arn, 'grm, Env> {
+pub struct ParsableDyn<'arn, Env> {
     pub from_construct: fn(
         span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         env: &mut Env,
-    ) -> Parsed<'arn, 'grm>,
+    ) -> Parsed<'arn>,
 
     pub create_eval_ctx: fn(
-        constructor: &'grm str,
-        parent_ctx: Parsed<'arn, 'grm>,
+        constructor: &'arn str,
+        parent_ctx: Parsed<'arn>,
         arg_placeholders: &[ParsedPlaceholder],
         // Env
         allocs: Allocs<'arn>,
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         env: &mut Env,
-    ) -> Vec<Parsed<'arn, 'grm>>,
+    ) -> Vec<Parsed<'arn>>,
 
     pub eval_to_grammar: fn(
-        v: Parsed<'arn, 'grm>,
-        eval_ctx: Parsed<'arn, 'grm>,
-        placeholders: &PlaceholderStore<'arn, 'grm, Env>,
+        v: Parsed<'arn>,
+        eval_ctx: Parsed<'arn>,
+        placeholders: &PlaceholderStore<'arn, Env>,
         // Env
-        src: &InputTable<'grm>,
+        src: &InputTable<'arn>,
         env: &mut Env,
-    ) -> &'arn GrammarFile<'arn, 'grm>,
+    ) -> &'arn GrammarFile<'arn>,
 }
 
-impl<Env> Clone for ParsableDyn<'_, '_, Env> {
+impl<Env> Clone for ParsableDyn<'_, Env> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<Env> Copy for ParsableDyn<'_, '_, Env> {}
+impl<Env> Copy for ParsableDyn<'_, Env> {}
 
-impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
-    pub fn new<P: Parsable<'arn, 'grm, Env>>() -> Self {
+impl<'arn, Env> ParsableDyn<'arn, Env> {
+    pub fn new<P: Parsable<'arn, Env>>() -> Self {
         Self {
             from_construct: from_construct_dyn::<Env, P>,
             create_eval_ctx: create_eval_ctx_dyn::<Env, P>,
@@ -56,26 +56,26 @@ impl<'arn, 'grm: 'arn, Env> ParsableDyn<'arn, 'grm, Env> {
     }
 }
 
-fn from_construct_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
+fn from_construct_dyn<'arn, Env, P: Parsable<'arn, Env>>(
     span: Span,
-    constructor: &'grm str,
-    args: &[Parsed<'arn, 'grm>],
+    constructor: &'arn str,
+    args: &[Parsed<'arn>],
     allocs: Allocs<'arn>,
-    src: &InputTable<'grm>,
+    src: &InputTable<'arn>,
     env: &mut Env,
-) -> Parsed<'arn, 'grm> {
+) -> Parsed<'arn> {
     Parsed::from_value(allocs.alloc(P::from_construct(span, constructor, args, allocs, src, env)))
 }
 
-fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
-    constructor: &'grm str,
-    parent_ctx: Parsed<'arn, 'grm>,
+fn create_eval_ctx_dyn<'arn, Env, P: Parsable<'arn, Env>>(
+    constructor: &'arn str,
+    parent_ctx: Parsed<'arn>,
     arg_placeholders: &[ParsedPlaceholder],
     // Env
     allocs: Allocs<'arn>,
-    src: &InputTable<'grm>,
+    src: &InputTable<'arn>,
     env: &mut Env,
-) -> Vec<Parsed<'arn, 'grm>> {
+) -> Vec<Parsed<'arn>> {
     let parent_ctx = match parent_ctx.try_into_value::<P::EvalCtx>() {
         Some(v) => *v,
         None => P::EvalCtx::default(),
@@ -90,14 +90,14 @@ fn create_eval_ctx_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
     .collect()
 }
 
-fn eval_to_grammar_dyn<'arn, 'grm: 'arn, Env, P: Parsable<'arn, 'grm, Env>>(
-    v: Parsed<'arn, 'grm>,
-    eval_ctx: Parsed<'arn, 'grm>,
-    placeholders: &PlaceholderStore<'arn, 'grm, Env>,
+fn eval_to_grammar_dyn<'arn, Env, P: Parsable<'arn, Env>>(
+    v: Parsed<'arn>,
+    eval_ctx: Parsed<'arn>,
+    placeholders: &PlaceholderStore<'arn, Env>,
     // Env
-    src: &InputTable<'grm>,
+    src: &InputTable<'arn>,
     env: &mut Env,
-) -> &'arn GrammarFile<'arn, 'grm> {
+) -> &'arn GrammarFile<'arn> {
     let eval_ctx = if eval_ctx.try_into_value::<Void>().is_some() {
         P::EvalCtx::default()
     } else {

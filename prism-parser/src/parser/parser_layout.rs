@@ -10,12 +10,12 @@ use crate::parsable::ParseResult;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_with_layout<'a, O>(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        vars: VarMap<'arn, 'grm>,
-        sub: impl Fn(&mut ParserState<'arn, 'grm, Env, E>, Pos, &mut Env) -> PResult<O, E>,
+        rules: &'arn GrammarState<'arn>,
+        vars: VarMap<'arn>,
+        sub: impl Fn(&mut ParserState<'arn, Env, E>, Pos, &mut Env) -> PResult<O, E>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
@@ -70,8 +70,8 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
 
     pub fn parse_end_with_layout(
         &mut self,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        vars: VarMap<'arn, 'grm>,
+        rules: &'arn GrammarState<'arn>,
+        vars: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,

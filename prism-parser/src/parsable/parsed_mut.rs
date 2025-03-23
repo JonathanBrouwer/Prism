@@ -5,15 +5,15 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ptr::NonNull;
 
-pub struct ParsedMut<'arn, 'grm> {
+pub struct ParsedMut<'arn> {
     ptr: NonNull<()>,
     checksum: u64,
     pub(crate) name: &'static str,
-    phantom_data: PhantomData<(&'arn (), &'grm ())>,
+    phantom_data: PhantomData<(&'arn (), &'arn ())>,
 }
 
-impl<'arn, 'grm: 'arn> ParsedMut<'arn, 'grm> {
-    pub fn from_value<P: ParseResult<'arn, 'grm>>(p: &'arn mut P) -> Self {
+impl<'arn> ParsedMut<'arn> {
+    pub fn from_value<P: ParseResult<'arn>>(p: &'arn mut P) -> Self {
         ParsedMut {
             ptr: NonNull::from(p).cast(),
             checksum: checksum_parsable::<P>(),
@@ -22,7 +22,7 @@ impl<'arn, 'grm: 'arn> ParsedMut<'arn, 'grm> {
         }
     }
 
-    pub fn into_value<P: ParseResult<'arn, 'grm>>(self) -> &'arn mut P {
+    pub fn into_value<P: ParseResult<'arn>>(self) -> &'arn mut P {
         let name = self.name;
         self.try_into_value().unwrap_or_else(|| {
             panic!(
@@ -33,7 +33,7 @@ impl<'arn, 'grm: 'arn> ParsedMut<'arn, 'grm> {
         })
     }
 
-    pub fn into_value_mut<P: ParseResult<'arn, 'grm>>(&mut self) -> &mut &'arn mut P {
+    pub fn into_value_mut<P: ParseResult<'arn>>(&mut self) -> &mut &'arn mut P {
         let name = self.name;
         self.try_into_value_mut().unwrap_or_else(|| {
             panic!(
@@ -44,14 +44,14 @@ impl<'arn, 'grm: 'arn> ParsedMut<'arn, 'grm> {
         })
     }
 
-    pub fn try_into_value<P: ParseResult<'arn, 'grm>>(self) -> Option<&'arn mut P> {
+    pub fn try_into_value<P: ParseResult<'arn>>(self) -> Option<&'arn mut P> {
         if self.checksum != checksum_parsable::<P>() {
             return None;
         }
         Some(unsafe { self.ptr.cast::<P>().as_mut() })
     }
 
-    pub fn try_into_value_mut<P: ParseResult<'arn, 'grm>>(&mut self) -> Option<&mut &'arn mut P> {
+    pub fn try_into_value_mut<P: ParseResult<'arn>>(&mut self) -> Option<&mut &'arn mut P> {
         if self.checksum != checksum_parsable::<P>() {
             return None;
         }
@@ -63,6 +63,6 @@ impl<'arn, 'grm: 'arn> ParsedMut<'arn, 'grm> {
     }
 }
 
-unsafe impl Sync for ParsedMut<'_, '_> {}
+unsafe impl Sync for ParsedMut<'_> {}
 
-unsafe impl Send for ParsedMut<'_, '_> {}
+unsafe impl Send for ParsedMut<'_> {}

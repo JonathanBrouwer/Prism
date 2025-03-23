@@ -20,23 +20,23 @@ pub struct CacheKey {
     state: GrammarStateId,
     eval_ctx: usize,
 }
-pub type CacheVal<'arn, 'grm, E> = PResult<Parsed<'arn, 'grm>, E>;
+pub type CacheVal<'arn, E> = PResult<Parsed<'arn>, E>;
 
 pub struct ParserCacheEntry<PR> {
     pub read: bool,
     pub value: PR,
 }
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        mut sub: impl FnMut(&mut ParserState<'arn, 'grm, Env, E>, Pos) -> PResult<Parsed<'arn, 'grm>, E>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
+        mut sub: impl FnMut(&mut ParserState<'arn, Env, E>, Pos) -> PResult<Parsed<'arn>, E>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn, 'grm>, E> {
+    ) -> PResult<Parsed<'arn>, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
         for (name, value) in rule_args {

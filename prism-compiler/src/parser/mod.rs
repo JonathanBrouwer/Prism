@@ -19,7 +19,7 @@ pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
 
-pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
+pub static GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
     *parse_grammar::<SetError>(
         include_str!("../../resources/prism.pg"),
         Allocs::new_leaking(),
@@ -29,14 +29,14 @@ pub static GRAMMAR: LazyLock<GrammarFile<'static, 'static>> = LazyLock::new(|| {
 
 pub fn parse_prism_in_env<'p>(
     program: &'p str,
-    env: &mut PrismEnv<'_, 'p>,
+    env: &mut PrismEnv<'p>,
 ) -> Result<ParsedIndex, AggregatedParseError<'p, SetError<'p>>> {
     let file = env.input.push_file(program);
 
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-    run_parser_rule_raw::<PrismEnv<'_, 'p>, SetError>(
+    run_parser_rule_raw::<PrismEnv<'p>, SetError>(
         &GRAMMAR,
         "expr",
         env.input.clone(),
@@ -60,35 +60,35 @@ impl Deref for ParsedIndex {
 }
 
 #[derive(Copy, Clone)]
-pub enum ParsedPrismExpr<'arn, 'grm: 'arn> {
+pub enum ParsedPrismExpr<'arn> {
     // Real expressions
     Free,
     Type,
-    Let(&'grm str, ParsedIndex, ParsedIndex),
-    FnType(&'grm str, ParsedIndex, ParsedIndex),
-    FnConstruct(&'grm str, ParsedIndex),
+    Let(&'arn str, ParsedIndex, ParsedIndex),
+    FnType(&'arn str, ParsedIndex, ParsedIndex),
+    FnConstruct(&'arn str, ParsedIndex),
     FnDestruct(ParsedIndex, ParsedIndex),
     TypeAssert(ParsedIndex, ParsedIndex),
 
     // Temporary expressions after parsing
-    Name(&'grm str),
+    Name(&'arn str),
     ShiftTo {
         expr: ParsedIndex,
-        captured_env: VarMap<'arn, 'grm>,
+        captured_env: VarMap<'arn>,
         adapt_env_len: usize,
-        grammar: &'arn GrammarFile<'arn, 'grm>,
+        grammar: &'arn GrammarFile<'arn>,
     },
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarValue(&'arn GrammarFile<'arn>),
     GrammarType,
 }
 
-pub struct PrismParseEnv<'arn, 'grm: 'arn> {
+pub struct PrismParseEnv<'arn> {
     // Allocs
-    pub input: InputTable<'grm>,
+    pub input: InputTable<'arn>,
     pub allocs: Allocs<'arn>,
 
     // Value store
-    pub values: Vec<ParsedPrismExpr<'arn, 'grm>>,
+    pub values: Vec<ParsedPrismExpr<'arn>>,
     pub value_origins: Vec<Span>,
     pub errors: Vec<TypeError>,
 }

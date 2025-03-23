@@ -6,21 +6,21 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 #[derive(Copy, Clone)]
-pub struct Parsed<'arn, 'grm> {
+pub struct Parsed<'arn> {
     ptr: NonNull<()>,
     checksum: u64,
     pub(crate) name: &'static str,
-    phantom_data: PhantomData<(&'arn (), &'grm ())>,
+    phantom_data: PhantomData<(&'arn (), &'arn ())>,
 }
 
-impl<'arn, 'grm: 'arn> Debug for Parsed<'arn, 'grm> {
+impl<'arn> Debug for Parsed<'arn> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parsed(ANONYMOUS PARSED OBJECT)")
     }
 }
 
-impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
-    pub fn from_value<P: ParseResult<'arn, 'grm>>(p: &'arn P) -> Self {
+impl<'arn> Parsed<'arn> {
+    pub fn from_value<P: ParseResult<'arn>>(p: &'arn P) -> Self {
         Parsed {
             ptr: NonNull::from(p).cast(),
             checksum: checksum_parsable::<P>(),
@@ -29,7 +29,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         }
     }
 
-    pub fn into_value<P: ParseResult<'arn, 'grm>>(self) -> &'arn P {
+    pub fn into_value<P: ParseResult<'arn>>(self) -> &'arn P {
         self.try_into_value().unwrap_or_else(|| {
             panic!(
                 "Expected wrong king of Parsable. Expected {}, got {}",
@@ -39,7 +39,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
         })
     }
 
-    pub fn try_into_value<P: ParseResult<'arn, 'grm>>(self) -> Option<&'arn P> {
+    pub fn try_into_value<P: ParseResult<'arn>>(self) -> Option<&'arn P> {
         if self.checksum != checksum_parsable::<P>() {
             return None;
         }
@@ -51,7 +51,7 @@ impl<'arn, 'grm: 'arn> Parsed<'arn, 'grm> {
     }
 }
 
-pub fn checksum_parsable<'arn, 'grm: 'arn, P: ParseResult<'arn, 'grm> + 'arn>() -> u64 {
+pub fn checksum_parsable<'arn, P: ParseResult<'arn> + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
     hash.write(type_name::<P>().as_bytes());
@@ -59,6 +59,6 @@ pub fn checksum_parsable<'arn, 'grm: 'arn, P: ParseResult<'arn, 'grm> + 'arn>() 
     hash.finish()
 }
 
-unsafe impl Sync for Parsed<'_, '_> {}
+unsafe impl Sync for Parsed<'_> {}
 
-unsafe impl Send for Parsed<'_, '_> {}
+unsafe impl Send for Parsed<'_> {}

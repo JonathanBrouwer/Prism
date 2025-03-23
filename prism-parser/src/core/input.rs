@@ -5,20 +5,20 @@ use crate::parsable::ParseResult;
 use std::borrow::Cow;
 
 #[derive(Copy, Clone)]
-pub enum Input<'grm> {
+pub enum Input<'arn> {
     Value(Span),
-    Literal(EscapedString<'grm>),
+    Literal(EscapedString<'arn>),
 }
 
-impl<'grm> Input<'grm> {
-    pub fn as_cow(&self, src: &InputTable<'grm>) -> Cow<'grm, str> {
+impl<'arn> Input<'arn> {
+    pub fn as_cow(&self, src: &InputTable<'arn>) -> Cow<'arn, str> {
         match self {
             Self::Value(span) => Cow::Borrowed(src.slice(*span)),
             Self::Literal(s) => s.to_cow(),
         }
     }
 
-    pub fn as_str(self, src: &InputTable<'grm>) -> &'grm str {
+    pub fn as_str(self, src: &InputTable<'arn>) -> &'arn str {
         match self {
             Self::Value(span) => src.slice(span),
             Self::Literal(s) => match s.to_cow() {
@@ -29,4 +29,4 @@ impl<'grm> Input<'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for Input<'grm> {}
+impl<'arn> ParseResult<'arn> for Input<'arn> {}

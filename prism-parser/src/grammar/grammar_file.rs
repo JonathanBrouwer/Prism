@@ -10,21 +10,21 @@ use crate::parser::placeholder_store::PlaceholderStore;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct GrammarFile<'arn, 'grm> {
+pub struct GrammarFile<'arn> {
     #[serde(borrow, with = "leak_slice")]
-    pub rules: &'arn [Rule<'arn, 'grm>],
+    pub rules: &'arn [Rule<'arn>],
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for GrammarFile<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
+impl<'arn> ParseResult<'arn> for GrammarFile<'arn> {}
+impl<'arn, Env> Parsable<'arn, Env> for GrammarFile<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
@@ -42,10 +42,10 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
     fn eval_to_grammar(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
-        _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
-        _src: &InputTable<'grm>,
+        _placeholders: &PlaceholderStore<'arn, Env>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
-    ) -> &'arn GrammarFile<'arn, 'grm> {
+    ) -> &'arn GrammarFile<'arn> {
         self
     }
 }

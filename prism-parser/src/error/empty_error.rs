@@ -7,10 +7,10 @@ use std::marker::PhantomData;
 
 /// Empty error is an error type that keeps track of no data, meant to be performant.
 #[derive(Clone)]
-pub struct EmptyError<'grm>(PhantomData<&'grm str>);
+pub struct EmptyError<'arn>(PhantomData<&'arn str>);
 
-impl<'grm> ParseError for EmptyError<'grm> {
-    type L = ErrorLabel<'grm>;
+impl<'arn> ParseError for EmptyError<'arn> {
+    type L = ErrorLabel<'arn>;
 
     fn new(_: Pos) -> Self {
         Self(PhantomData)

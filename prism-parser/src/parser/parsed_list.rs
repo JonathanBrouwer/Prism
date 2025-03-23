@@ -5,24 +5,24 @@ use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 
-pub type ParsedList<'arn, 'grm> = GenericEnv<'arn, (), Parsed<'arn, 'grm>>;
+pub type ParsedList<'arn> = GenericEnv<'arn, (), Parsed<'arn>>;
 
-impl<'arn, 'grm, Env> Parsable<'arn, 'grm, Env> for ParsedList<'arn, 'grm> {
+impl<'arn, Env> Parsable<'arn, Env> for ParsedList<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'grm>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {
             "Cons" => {
                 assert_eq!(_args.len(), 2);
                 _args[1]
-                    .into_value::<ParsedList<'arn, 'grm>>()
+                    .into_value::<ParsedList<'arn>>()
                     .insert((), _args[0], _allocs)
             }
             "Nil" => ParsedList::default(),
