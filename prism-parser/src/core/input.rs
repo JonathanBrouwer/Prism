@@ -3,10 +3,6 @@ use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::parsable::ParseResult;
 use std::borrow::Cow;
-//
-// pub struct Input<'arn> {
-//     span: Span,
-// }
 
 #[derive(Copy, Clone)]
 pub enum Input<'arn> {
