@@ -20,7 +20,7 @@ impl<'arn> PrismEnv<'arn> {
             (expected_type, s, &mut HashMap::new()),
             0,
         ) {
-            self.errors.push(TypeError::ExpectTypeAssert {
+            self.push_type_error(TypeError::ExpectTypeAssert {
                 expr,
                 expr_type,
                 expected_type,
@@ -36,11 +36,11 @@ impl<'arn> PrismEnv<'arn> {
             CorePrismExpr::Free => {
                 self.checked_values[*i] = CorePrismExpr::Type;
                 if !self.handle_constraints(i, s, 0) {
-                    self.errors.push(TypeError::ExpectType(io));
+                    self.push_type_error(TypeError::ExpectType(io));
                 }
             }
             _ => {
-                self.errors.push(TypeError::ExpectType(io));
+                self.push_type_error(TypeError::ExpectType(io));
             }
         }
         self.toxic_values.clear();
@@ -65,7 +65,7 @@ impl<'arn> PrismEnv<'arn> {
                     (at, s, &mut HashMap::new()),
                     0,
                 ) {
-                    self.errors.push(TypeError::ExpectFnArg {
+                    self.push_type_error(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
                         arg_type: at,
@@ -93,7 +93,7 @@ impl<'arn> PrismEnv<'arn> {
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
                 if !self.handle_constraints(fr, sr, 0) {
-                    self.errors.push(TypeError::ExpectFnArg {
+                    self.push_type_error(TypeError::ExpectFnArg {
                         function_type: ft,
                         function_arg_type: f_at,
                         arg_type: at,
@@ -120,7 +120,7 @@ impl<'arn> PrismEnv<'arn> {
                 );
                 assert!(is_beq_free);
             }
-            _ => self.errors.push(TypeError::ExpectFn(ft)),
+            _ => self.push_type_error(TypeError::ExpectFn(ft)),
         }
 
         self.toxic_values.clear();

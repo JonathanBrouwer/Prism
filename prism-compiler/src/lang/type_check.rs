@@ -2,20 +2,13 @@ use crate::lang::PrismEnv;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::{AggregatedTypeError, TypeError};
+use crate::lang::error::{AggregatedTypeError, PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr};
 use std::mem;
 
 impl<'arn> PrismEnv<'arn> {
-    pub fn type_check(&mut self, root: CoreIndex) -> Result<CoreIndex, AggregatedTypeError> {
-        let ti = self._type_check(root, DbEnv::default());
-
-        let errors = mem::take(&mut self.errors);
-        if errors.is_empty() {
-            Ok(ti)
-        } else {
-            Err(AggregatedTypeError { errors })
-        }
+    pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {
+        self._type_check(root, DbEnv::default())
     }
 
     /// Type checkes `i` in scope `s`. Returns the type.
@@ -44,7 +37,7 @@ impl<'arn> PrismEnv<'arn> {
                 Some(CType(_, t) | CSubst(_, t)) => CorePrismExpr::Shift(t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
-                    self.errors.push(TypeError::IndexOutOfBound(i));
+                    self.push_type_error(TypeError::IndexOutOfBound(i));
                     return self.store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
             },
@@ -119,5 +112,9 @@ impl<'arn> PrismEnv<'arn> {
         let tid = self.store_checked(t, ValueOrigin::TypeOf(i));
         self.checked_types.insert(i, tid);
         tid
+    }
+
+    pub(super) fn push_type_error(&mut self, error: TypeError) {
+        self.errors.push(PrismError::TypeError(error))
     }
 }

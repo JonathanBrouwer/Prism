@@ -2,11 +2,36 @@ use crate::lang::CoreIndex;
 use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
-use std::io;
+use prism_parser::error::ParseError;
+use prism_parser::error::set_error::SetError;
+use std::{io, mem};
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
-#[derive(Debug)]
+pub enum PrismError<'arn> {
+    ParseError(SetError<'arn>),
+    TypeError(TypeError),
+}
+
+impl<'arn> PrismError<'arn> {
+    pub fn eprint(&self, env: &mut PrismEnv<'arn>) {
+        let report = match self {
+            PrismError::ParseError(e) => e.report(false),
+            PrismError::TypeError(e) => env.report(e).unwrap(),
+        };
+        report.eprint(&*env.input.inner()).unwrap();
+    }
+}
+
+impl<'arn> PrismEnv<'arn> {
+    pub fn eprint_errors(&mut self) {
+        let errors = mem::take(&mut self.errors);
+        for error in errors {
+            error.eprint(self);
+        }
+    }
+}
+
 pub enum TypeError {
     ExpectType(CoreIndex),
     ExpectFn(CoreIndex),

@@ -27,7 +27,7 @@ impl<'arn> PrismEnv<'arn> {
         depth: usize,
     ) -> bool {
         if depth > MAX_BEQ_DEPTH {
-            self.errors.push(TypeError::RecursionLimit(i1o, i2o));
+            self.push_type_error(TypeError::RecursionLimit(i1o, i2o));
             return true;
         }
 
@@ -162,7 +162,7 @@ impl<'arn> PrismEnv<'arn> {
     ) -> bool {
         assert!(matches!(self.checked_values[*i2], CorePrismExpr::Free));
         if depth > MAX_BEQ_DEPTH {
-            self.errors.push(TypeError::RecursionLimit(i1, i2));
+            self.push_type_error(TypeError::RecursionLimit(i1, i2));
             return true;
         }
 
@@ -199,14 +199,14 @@ impl<'arn> PrismEnv<'arn> {
                     &CType(id, _) => {
                         // We may have shifted away part of the env that we need during this beq
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
                             return true;
                         };
                         let CType(id2, _) = s2[v2] else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -222,14 +222,14 @@ impl<'arn> PrismEnv<'arn> {
                         // Same story as above, except we don't have the `id` to double check with here.
                         // The logic should still hold even without the sanity check though
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
                             return true;
                         };
                         let CSubst(_, _) = s2[v2] else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -242,7 +242,7 @@ impl<'arn> PrismEnv<'arn> {
                     &RType(id) => {
                         // If `id` still exists in s2, we will find it here
                         let Some(v2) = s2.len().checked_sub(var_map2[&id] + 1) else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -250,7 +250,7 @@ impl<'arn> PrismEnv<'arn> {
                         };
                         // Check if it still exists, if not we shifted it out and another entry came in the place for it
                         let RType(id2) = s2[v2] else {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -258,7 +258,7 @@ impl<'arn> PrismEnv<'arn> {
                             // TODO return true;
                         };
                         if id != id2 {
-                            self.errors.push(TypeError::BadInfer {
+                            self.push_type_error(TypeError::BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });

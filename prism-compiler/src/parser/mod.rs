@@ -1,9 +1,10 @@
-use crate::lang::error::TypeError;
-use crate::lang::{CoreIndex, PrismEnv};
+use crate::lang::error::{PrismError, TypeError};
+use crate::lang::{CoreIndex, PrismEnv, ValueOrigin};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
+use prism_parser::core::pos::Pos;
 use prism_parser::core::span::Span;
-use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
+use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
@@ -39,14 +40,11 @@ impl<'arn> PrismEnv<'arn> {
         self.input.push_file(data, path_name.into())
     }
 
-    pub fn parse_file(
-        &mut self,
-        file: InputTableIndex,
-    ) -> Result<ParsedIndex, AggregatedParseError<'arn, SetError<'arn>>> {
+    pub fn parse_file(&mut self, file: InputTableIndex) -> ParsedIndex {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
+        match run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
             &GRAMMAR,
             "expr",
             self.input.clone(),
@@ -55,7 +53,17 @@ impl<'arn> PrismEnv<'arn> {
             parsables,
             self,
         )
-        .map(|v| *v.into_value())
+        .map(|v| *v.into_value::<ParsedIndex>())
+        {
+            Ok(v) => v,
+            Err(es) => {
+                for e in es.errors {
+                    self.errors.push(PrismError::ParseError(e));
+                }
+                let placeholder_span = Pos::start_of(file).span_to(Pos::start_of(file));
+                self.store_from_source(ParsedPrismExpr::Free, placeholder_span)
+            }
+        }
     }
 }
 

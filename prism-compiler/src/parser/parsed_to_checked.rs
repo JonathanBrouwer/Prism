@@ -1,4 +1,4 @@
-use crate::lang::error::TypeError;
+use crate::lang::error::{PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
@@ -99,7 +99,9 @@ impl<'arn> PrismEnv<'arn> {
                     }
                     None => {
                         self.errors
-                            .push(TypeError::UnknownName(self.parsed_spans[*i]));
+                            .push(PrismError::TypeError(TypeError::UnknownName(
+                                self.parsed_spans[*i],
+                            )));
                         CorePrismExpr::Free
                     }
                 }

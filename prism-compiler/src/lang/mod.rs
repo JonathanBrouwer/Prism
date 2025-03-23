@@ -1,5 +1,5 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
-use crate::lang::error::TypeError;
+use crate::lang::error::{PrismError, TypeError};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
@@ -87,9 +87,10 @@ pub struct PrismEnv<'arn> {
 
     // State during type checking
     tc_id: usize,
-    pub errors: Vec<TypeError>,
     toxic_values: HashSet<CoreIndex>,
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint<'arn>>>,
+
+    pub errors: Vec<PrismError<'arn>>,
 }
 
 impl<'arn> PrismEnv<'arn> {

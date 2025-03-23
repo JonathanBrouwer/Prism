@@ -22,7 +22,7 @@ fn main() {
     let program = env.load_file(args.input.into());
 
     // Parse
-    let idx = env.parse_file(program).unwrap_or_eprint();
+    let idx = env.parse_file(program);
     println!(
         "> Parsed Program\n====================\n{}\n\n",
         env.parse_index_to_string(idx),
@@ -35,20 +35,21 @@ fn main() {
     );
 
     // Type check
-    match env.type_check(idx) {
-        Ok(i) => println!(
-            "> Type of program\n====================\n{}\n\n",
-            env.index_to_br_string(i)
-        ),
-        Err(e) => {
-            e.eprint(&mut env).unwrap();
-            return;
-        }
-    }
+    let type_idx = env.type_check(idx);
+    println!(
+        "> Type of program\n====================\n{}\n\n",
+        env.index_to_br_string(type_idx)
+    );
 
     // Eval
     println!(
         "> Evaluated\n====================\n{}\n\n",
         env.index_to_br_string(idx)
     );
+
+    // Errors
+    if !env.errors.is_empty() {
+        println!("> Errors\n====================\n",);
+        env.eprint_errors();
+    }
 }
