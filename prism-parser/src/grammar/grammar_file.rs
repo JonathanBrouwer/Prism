@@ -22,15 +22,15 @@ impl<'arn, Env> Parsable<'arn, Env> for GrammarFile<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'arn str,
-        _args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
+        args: &[Parsed<'arn>],
+        allocs: Allocs<'arn>,
         _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
         GrammarFile {
-            rules: _allocs.alloc_extend(
-                _args[0]
+            rules: allocs.alloc_extend(
+                args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)

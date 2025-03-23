@@ -24,21 +24,21 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleBlock<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'arn str,
-        _args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        args: &[Parsed<'arn>],
+        allocs: Allocs<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "Block");
         RuleBlock {
-            name: parse_identifier(_args[0], _src),
-            adapt: _args[1]
+            name: parse_identifier(args[0], src),
+            adapt: args[1]
                 .into_value::<ParsedList>()
                 .into_iter()
                 .next()
                 .is_some(),
-            constructors: _allocs.alloc_extend(
-                _args[2]
+            constructors: allocs.alloc_extend(
+                args[2]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)

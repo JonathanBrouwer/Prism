@@ -34,7 +34,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
         _span: Span,
         constructor: &'arn str,
         args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
+        allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
@@ -42,7 +42,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
             "Construct" => RuleAction::Construct {
                 ns: parse_identifier(args[0], src),
                 name: parse_identifier(args[1], src),
-                args: _allocs.alloc_extend(
+                args: allocs.alloc_extend(
                     args[2]
                         .into_value::<ParsedList>()
                         .into_iter()

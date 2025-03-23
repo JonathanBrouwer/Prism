@@ -12,19 +12,19 @@ impl<'arn, Env> Parsable<'arn, Env> for Option<u64> {
     fn from_construct(
         _span: Span,
         constructor: &'arn str,
-        _args: &[Parsed<'arn>],
+        args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {
             "None" => {
-                assert_eq!(_args.len(), 0);
+                assert_eq!(args.len(), 0);
                 Option::None
             }
             "Some" => {
-                assert_eq!(_args.len(), 1);
-                Option::Some(_args[0].into_value::<Input>().as_str(_src).parse().unwrap())
+                assert_eq!(args.len(), 1);
+                Option::Some(args[0].into_value::<Input>().as_str(src).parse().unwrap())
             }
             _ => unreachable!(),
         }

@@ -64,7 +64,7 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
         constructor: &'arn str,
         args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         prism_env: &mut PrismEnv<'arn>,
     ) -> Self {
         let expr: ParsedPrismExpr<'arn> = match constructor {
@@ -75,7 +75,7 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = args[0].into_value::<Input>().as_str(_src);
+                let name = args[0].into_value::<Input>().as_str(src);
                 if name == "_" {
                     ParsedPrismExpr::Free
                 } else {
@@ -84,21 +84,21 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = args[0].into_value::<Input<'arn>>().as_str(_src);
+                let name = args[0].into_value::<Input<'arn>>().as_str(src);
                 let b = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }
@@ -137,6 +137,11 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
                     adapt_env_len: value.1,
                     grammar: value.2,
                 }
+            }
+            "Include" => {
+                assert_eq!(args.len(), 1);
+                let n = args[0].into_value::<Input>().as_str(src);
+                todo!()
             }
             _ => unreachable!(),
         };
@@ -192,6 +197,10 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
             "GrammarType" => {
                 assert_eq!(args.len(), 0);
                 vec![]
+            }
+            "Include" => {
+                assert_eq!(args.len(), 1);
+                vec![None]
             }
             _ => unreachable!(),
         }

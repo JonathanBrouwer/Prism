@@ -14,3 +14,6 @@ bumpalo.workspace = true
 
 [dev-dependencies]
 test_each_file.workspace = true
+
+[lints.clippy]
+used_underscore_binding = "deny"

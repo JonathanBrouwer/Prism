@@ -30,6 +30,7 @@ rule expr {
         Expr::Type() <- "Type";
         Expr::GrammarType() <- "Grammar";
         Expr::GrammarValue(g) <- "grammar" "{" g:grammar(wrapped_expr) "}";
+        Expr::Include(n) <- "include" "!" "(" n:identifier ")";
         Expr::Name(n) <- n:identifier;
     }
 }

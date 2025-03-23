@@ -24,13 +24,13 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
     fn from_construct(
         _span: Span,
         constructor: &'arn str,
-        _args: &[Parsed<'arn>],
+        args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Error" => RuleAnnotation::Error(parse_string(_args[0], _src)),
+            "Error" => RuleAnnotation::Error(parse_string(args[0], src)),
             "DisableLayout" => RuleAnnotation::DisableLayout,
             "EnableLayout" => RuleAnnotation::EnableLayout,
             "DisableRecovery" => RuleAnnotation::DisableRecovery,

@@ -14,17 +14,13 @@ impl<'arn, Env> Parsable<'arn, Env> for ActionResult<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
-        _span: Span,
+        span: Span,
         constructor: &'arn str,
-        _args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
+        args: &[Parsed<'arn>],
+        allocs: Allocs<'arn>,
         _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        Self::Construct(
-            _span,
-            constructor,
-            _allocs.alloc_extend(_args.iter().copied()),
-        )
+        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().copied()))
     }
 }
