@@ -52,7 +52,7 @@ macro_rules! parse_test {
             $({
             let input: &'static str = $input_pass;
             let input_table = Arc::new(InputTable::default());
-            let file = input_table.push_file(input);
+            let file = input_table.push_file(input, "test_file".into());
             println!("== Parsing (should be ok): {}", input);
 
 
@@ -64,7 +64,7 @@ macro_rules! parse_test {
             $({
             let input: &'static str = $input_fail;
             let input_table = Arc::new(InputTable::default());
-            let file = input_table.push_file(input);
+            let file = input_table.push_file(input, "test_file".into());
             println!("== Parsing (should be fail): {}", input);
 
             match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()) {

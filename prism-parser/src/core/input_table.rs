@@ -1,7 +1,7 @@
 use ariadne::{Cache, Source};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
 
 #[derive(Default)]
