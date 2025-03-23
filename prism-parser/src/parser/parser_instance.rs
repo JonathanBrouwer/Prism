@@ -24,6 +24,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {
     state: ParserState<'arn, 'grm, Env, E>,
@@ -36,7 +37,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
     ParserInstance<'arn, 'grm, Env, E>
 {
     pub fn new(
-        input: &'grm InputTable<'grm>,
+        input: Arc<InputTable<'grm>>,
         allocs: Allocs<'arn>,
         from: &'arn GrammarFile<'arn, 'grm>,
         mut parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
@@ -57,7 +58,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
         parsables.insert("GrammarFile", ParsableDyn::new::<GrammarFile>());
         parsables.insert("OptionU64", ParsableDyn::new::<Option<u64>>());
 
-        let state = ParserState::new(&input, allocs, parsables);
+        let state = ParserState::new(input, allocs, parsables);
 
         let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, allocs);
         let visible_rules = VarMap::from_iter(
@@ -124,7 +125,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             .map(|(o, ())| o);
 
         result.collapse().map_err(|error| AggregatedParseError {
-            input: self.state.input,
+            input: self.state.input.clone(),
             errors: vec![error],
         })
     }
@@ -133,7 +134,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
 pub fn run_parser_rule_raw<'a, 'arn, 'grm, Env, E: ParseError<L = ErrorLabel<'grm>>>(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
-    input: &'grm InputTable<'grm>,
+    input: Arc<InputTable<'grm>>,
     file: InputTableIndex,
     allocs: Allocs<'arn>,
     parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
@@ -154,14 +155,24 @@ pub fn run_parser_rule<
 >(
     rules: &'arn GrammarFile<'arn, 'grm>,
     rule: &'grm str,
-    input: &'grm InputTable<'grm>,
-    file: InputTableIndex,
+    input: &'grm str,
     allocs: Allocs<'arn>,
     parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
     penv: &'a mut Env,
 ) -> Result<&'arn P, AggregatedParseError<'grm, E>> {
-    run_parser_rule_raw(rules, rule, input, file, allocs, parsables, penv)
-        .map(|parsed| parsed.into_value::<P>())
+    let mut input_table = InputTable::default();
+    let file = input_table.push_file(input);
+
+    run_parser_rule_raw(
+        rules,
+        rule,
+        Arc::new(input_table),
+        file,
+        allocs,
+        parsables,
+        penv,
+    )
+    .map(|parsed| parsed.into_value::<P>())
 }
 
 #[macro_export]

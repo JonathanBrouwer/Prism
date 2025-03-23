@@ -9,6 +9,7 @@ use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use std::sync::Arc;
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -72,7 +73,7 @@ pub enum CorePrismExpr<'arn, 'grm: 'arn> {
 
 pub struct PrismEnv<'arn, 'grm: 'arn> {
     // Allocs
-    pub input: InputTable<'grm>,
+    pub input: Arc<InputTable<'grm>>,
     pub allocs: Allocs<'arn>,
 
     // Parsed Values
@@ -94,7 +95,7 @@ pub struct PrismEnv<'arn, 'grm: 'arn> {
 impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            input: InputTable::default(),
+            input: Arc::new(InputTable::default()),
             allocs,
 
             parsed_values: Default::default(),

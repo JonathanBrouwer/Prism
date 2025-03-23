@@ -6,6 +6,7 @@ use crate::error::ParseError;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parser::placeholder_store::PlaceholderStore;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     // Cache for parser_cache_recurse
@@ -13,7 +14,7 @@ pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
     cache_stack: Vec<CacheKey>,
     // For allocating things that might be in the result
     pub alloc: Allocs<'arn>,
-    pub input: &'grm InputTable<'grm>,
+    pub input: Arc<InputTable<'grm>>,
     // For generating guids
     pub guid_counter: usize,
     // For recovery
@@ -25,7 +26,7 @@ pub struct ParserState<'arn, 'grm, Env, E: ParseError> {
 
 impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
     pub fn new(
-        input: &'grm InputTable<'grm>,
+        input: Arc<InputTable<'grm>>,
         alloc: Allocs<'arn>,
         parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
     ) -> Self {
@@ -33,7 +34,7 @@ impl<'arn, 'grm, Env, E: ParseError> ParserState<'arn, 'grm, Env, E> {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             alloc,
-            input,
+            input: input,
             guid_counter: 0,
             recovery_points: HashMap::new(),
             parsables,

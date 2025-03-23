@@ -2,9 +2,10 @@ use crate::core::input_table::InputTable;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use std::io;
+use std::sync::Arc;
 
 pub struct AggregatedParseError<'grm, E: ParseError<L = ErrorLabel<'grm>> + 'grm> {
-    pub input: &'grm InputTable<'grm>,
+    pub input: Arc<InputTable<'grm>>,
     pub errors: Vec<E>,
 }
 

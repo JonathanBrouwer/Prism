@@ -6,7 +6,7 @@ use std::ops::Index;
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
     pub start: Pos,
-    pub end: Pos,
+    pub end: Pos, //TODO len
 }
 
 impl Span {
@@ -15,10 +15,8 @@ impl Span {
     }
 }
 
-impl<'grm> Index<Span> for InputTable<'grm> {
-    type Output = &'grm str;
-
-    fn index(&self, index: Span) -> &Self::Output {
-        todo!()
+impl<'grm> InputTable<'grm> {
+    pub fn slice(&self, span: Span) -> &'grm str {
+        &self.get_str(span.start.file())[span.start.idx_in_file()..span.end.idx_in_file()]
     }
 }

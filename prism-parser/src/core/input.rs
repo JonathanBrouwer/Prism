@@ -13,14 +13,14 @@ pub enum Input<'grm> {
 impl<'grm> Input<'grm> {
     pub fn as_cow(&self, src: &InputTable<'grm>) -> Cow<'grm, str> {
         match self {
-            Self::Value(span) => Cow::Borrowed(&src[*span]),
+            Self::Value(span) => Cow::Borrowed(src.slice(*span)),
             Self::Literal(s) => s.to_cow(),
         }
     }
 
     pub fn as_str(self, src: &InputTable<'grm>) -> &'grm str {
         match self {
-            Self::Value(span) => &src[span],
+            Self::Value(span) => src.slice(span),
             Self::Literal(s) => match s.to_cow() {
                 Cow::Borrowed(s) => s,
                 Cow::Owned(_) => panic!("Tried to convert escaped literal to string"),

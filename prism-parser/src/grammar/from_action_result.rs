@@ -14,5 +14,5 @@ pub(crate) fn parse_string<'arn, 'grm>(
     let Input::Value(span) = r.into_value::<Input<'grm>>() else {
         panic!()
     };
-    EscapedString::from_escaped(&src[*span])
+    EscapedString::from_escaped(src.slice(*span))
 }
