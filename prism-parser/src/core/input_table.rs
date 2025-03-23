@@ -38,6 +38,10 @@ impl<'arn> InputTable<'arn> {
         self.inner.read().unwrap().files[idx.0].input
     }
 
+    pub fn get_path(&self, idx: InputTableIndex) -> PathBuf {
+        self.inner.read().unwrap().files[idx.0].path.clone()
+    }
+
     pub fn inner(&self) -> RwLockReadGuard<InputTableInner<'arn>> {
         self.inner.read().unwrap()
     }

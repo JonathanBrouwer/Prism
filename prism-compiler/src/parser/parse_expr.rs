@@ -141,7 +141,21 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
             "Include" => {
                 assert_eq!(args.len(), 1);
                 let n = args[0].into_value::<Input>().as_str(src);
-                todo!()
+
+                let current_file = span.start_pos().file();
+
+                let mut path = prism_env.input.get_path(current_file);
+                assert!(path.pop());
+                path.push(format!("{n}.pr"));
+
+                let next_file = prism_env.load_file(path);
+
+                //TODO properly do errors
+                let next_file = prism_env.parse_file(next_file).ok().unwrap();
+                let next_file = prism_env.parsed_to_checked(next_file);
+                let _next_file_type = prism_env.type_check(next_file).ok().unwrap();
+
+                ParsedPrismExpr::Include(n, next_file)
             }
             _ => unreachable!(),
         };
