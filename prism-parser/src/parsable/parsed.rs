@@ -20,7 +20,7 @@ impl Debug for Parsed<'_> {
 }
 
 impl<'arn> Parsed<'arn> {
-    pub fn from_value<P: ParseResult<'arn>>(p: &'arn P) -> Self {
+    pub fn from_value<P: ParseResult>(p: &'arn P) -> Self {
         Parsed {
             ptr: NonNull::from(p).cast(),
             checksum: checksum_parsable::<P>(),
@@ -29,7 +29,7 @@ impl<'arn> Parsed<'arn> {
         }
     }
 
-    pub fn into_value<P: ParseResult<'arn>>(self) -> &'arn P {
+    pub fn into_value<P: ParseResult>(self) -> &'arn P {
         self.try_into_value().unwrap_or_else(|| {
             panic!(
                 "Expected wrong king of Parsable. Expected {}, got {}",
@@ -39,7 +39,7 @@ impl<'arn> Parsed<'arn> {
         })
     }
 
-    pub fn try_into_value<P: ParseResult<'arn>>(self) -> Option<&'arn P> {
+    pub fn try_into_value<P: ParseResult>(self) -> Option<&'arn P> {
         if self.checksum != checksum_parsable::<P>() {
             return None;
         }
@@ -51,7 +51,7 @@ impl<'arn> Parsed<'arn> {
     }
 }
 
-pub fn checksum_parsable<'arn, P: ParseResult<'arn> + 'arn>() -> u64 {
+pub fn checksum_parsable<'arn, P: ParseResult + 'arn>() -> u64 {
     let mut hash = DefaultHasher::new();
 
     hash.write(type_name::<P>().as_bytes());

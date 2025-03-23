@@ -21,7 +21,7 @@ impl CharClass<'_> {
     }
 }
 
-impl<'arn> ParseResult<'arn> for CharClass<'arn> {}
+impl<'arn> ParseResult for CharClass<'arn> {}
 impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
     type EvalCtx = ();
 
@@ -54,7 +54,7 @@ impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct CharClassRange(char, char);
 
-impl ParseResult<'_> for CharClassRange {}
+impl ParseResult for CharClassRange {}
 impl<'arn, Env> Parsable<'arn, Env> for CharClassRange {
     type EvalCtx = ();
 

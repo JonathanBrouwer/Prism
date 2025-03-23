@@ -8,7 +8,7 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 
 #[allow(clippy::type_complexity)]
-pub struct ParsableDyn<'arn, Env> {
+pub struct ParsableDyn<'arn, Env: 'arn> {
     pub from_construct: fn(
         span: Span,
         constructor: &'arn str,
@@ -46,7 +46,7 @@ impl<Env> Clone for ParsableDyn<'_, Env> {
 
 impl<Env> Copy for ParsableDyn<'_, Env> {}
 
-impl<'arn, Env> ParsableDyn<'arn, Env> {
+impl<'arn, Env: 'arn> ParsableDyn<'arn, Env> {
     pub fn new<P: Parsable<'arn, Env>>() -> Self {
         Self {
             from_construct: from_construct_dyn::<Env, P>,
@@ -67,7 +67,7 @@ fn from_construct_dyn<'arn, Env, P: Parsable<'arn, Env>>(
     Parsed::from_value(allocs.alloc(P::from_construct(span, constructor, args, allocs, src, env)))
 }
 
-fn create_eval_ctx_dyn<'arn, Env, P: Parsable<'arn, Env>>(
+fn create_eval_ctx_dyn<'arn, Env: 'arn, P: Parsable<'arn, Env>>(
     constructor: &'arn str,
     parent_ctx: Parsed<'arn>,
     arg_placeholders: &[ParsedPlaceholder],

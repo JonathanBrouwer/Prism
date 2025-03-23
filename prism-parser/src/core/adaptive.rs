@@ -18,7 +18,7 @@ pub struct GrammarState<'arn> {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
-impl ParseResult<'_> for RuleId {}
+impl ParseResult for RuleId {}
 
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

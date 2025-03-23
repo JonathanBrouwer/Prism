@@ -11,4 +11,4 @@ pub struct RuleClosure<'arn> {
     pub vars: VarMap<'arn>,
 }
 
-impl<'arn> ParseResult<'arn> for RuleClosure<'arn> {}
+impl<'arn> ParseResult for RuleClosure<'arn> {}

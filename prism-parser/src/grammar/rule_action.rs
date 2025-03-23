@@ -26,7 +26,7 @@ pub enum RuleAction<'arn> {
     },
 }
 
-impl<'arn> ParseResult<'arn> for RuleAction<'arn> {}
+impl<'arn> ParseResult for RuleAction<'arn> {}
 impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
     type EvalCtx = ();
 

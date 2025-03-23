@@ -48,7 +48,7 @@ pub enum RuleExpr<'arn> {
     Guid,
 }
 
-impl<'arn> ParseResult<'arn> for RuleExpr<'arn> {}
+impl<'arn> ParseResult for RuleExpr<'arn> {}
 impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
     type EvalCtx = ();
 

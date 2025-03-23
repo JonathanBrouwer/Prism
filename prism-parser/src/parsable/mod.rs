@@ -15,16 +15,19 @@ pub mod parsed;
 pub mod parsed_debug;
 pub mod void;
 
-pub trait ParseResult<'arn>: Sized + Sync + Send + Copy + 'arn {
-    fn to_parsed(&'arn self) -> Parsed<'arn> {
+pub trait ParseResult: Sized + Sync + Send + Copy {
+    fn to_parsed<'arn>(&'arn self) -> Parsed<'arn>
+    where
+        Self: 'arn,
+    {
         Parsed::from_value(self)
     }
 }
 
-impl ParseResult<'_> for () {}
+impl ParseResult for () {}
 
-pub trait Parsable<'arn, Env>: ParseResult<'arn> + Sized + Sync + Send + Copy + 'arn {
-    type EvalCtx: Default + Copy + ParseResult<'arn>;
+pub trait Parsable<'arn, Env>: ParseResult + Sized + Sync + Send + Copy + 'arn {
+    type EvalCtx: Default + Copy + ParseResult;
 
     fn from_construct(
         _span: Span,
@@ -73,8 +76,8 @@ mod tests {
     struct A;
     #[derive(Debug, Copy, Clone)]
     struct B;
-    impl ParseResult<'_> for A {}
-    impl ParseResult<'_> for B {}
+    impl ParseResult for A {}
+    impl ParseResult for B {}
 
     #[test]
     fn a_a_same() {

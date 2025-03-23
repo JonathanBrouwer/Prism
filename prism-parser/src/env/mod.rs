@@ -8,8 +8,8 @@ use std::ptr::null;
 #[derive(Copy, Clone)]
 pub struct GenericEnv<'arn, N: Copy, V: Copy>(Option<&'arn GenericEnvNode<'arn, N, V>>, usize);
 
-impl<'arn, N: Copy + Sized + Sync + Send + 'arn, V: Copy + Sized + Sync + Send + 'arn>
-    ParseResult<'arn> for GenericEnv<'arn, N, V>
+impl<'arn, N: Copy + Sized + Sync + Send + 'arn, V: Copy + Sized + Sync + Send + 'arn> ParseResult
+    for GenericEnv<'arn, N, V>
 {
 }
 

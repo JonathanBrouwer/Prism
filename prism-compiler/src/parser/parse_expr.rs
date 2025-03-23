@@ -55,7 +55,7 @@ pub fn eval_ctx_to_envs<'arn>(
     }
 }
 
-impl ParseResult<'_> for ParsedIndex {}
+impl ParseResult for ParsedIndex {}
 impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
     type EvalCtx = PrismEvalCtx<'arn>;
 
@@ -258,4 +258,4 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
 
 #[derive(Copy, Clone)]
 pub struct EnvWrapper<'arn>(Parsed<'arn>, usize, &'arn GrammarFile<'arn>);
-impl<'arn> ParseResult<'arn> for EnvWrapper<'arn> {}
+impl<'arn> ParseResult for EnvWrapper<'arn> {}
