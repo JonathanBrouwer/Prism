@@ -1,39 +1,66 @@
 use ariadne::{Cache, Source};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
-use std::sync::RwLock;
+use std::path::{Path, PathBuf};
+use std::sync::{RwLock, RwLockReadGuard};
 
 #[derive(Default)]
 pub struct InputTable<'arn> {
-    files: RwLock<Vec<&'arn str>>,
+    inner: RwLock<InputTableInner<'arn>>,
+}
+
+#[derive(Default)]
+pub struct InputTableInner<'arn> {
+    files: Vec<InputTableEntry<'arn>>,
+}
+
+struct InputTableEntry<'arn> {
+    input: &'arn str,
+    path: PathBuf,
+    source: Source<&'arn str>,
 }
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct InputTableIndex(usize);
 
 impl<'arn> InputTable<'arn> {
-    pub fn push_file(&self, file: &'arn str) -> InputTableIndex {
-        let mut files = self.files.write().unwrap();
-        files.push(file);
-        InputTableIndex(files.len() - 1)
+    pub fn push_file(&self, file: &'arn str, path: PathBuf) -> InputTableIndex {
+        let mut inner = self.inner.write().unwrap();
+        inner.files.push(InputTableEntry {
+            input: file,
+            source: Source::from(file),
+            path,
+        });
+        InputTableIndex(inner.files.len() - 1)
     }
 
     pub fn get_str(&self, idx: InputTableIndex) -> &'arn str {
-        self.files.read().unwrap()[idx.0]
+        self.inner.read().unwrap().files[idx.0].input
+    }
+
+    pub fn inner(&self) -> RwLockReadGuard<InputTableInner<'arn>> {
+        self.inner.read().unwrap()
     }
 }
 
-impl<'arn> Cache<InputTableIndex> for &InputTable<'arn> {
+impl<'arn> Cache<InputTableIndex> for &InputTableInner<'arn> {
     type Storage = &'arn str;
 
     fn fetch(
         &mut self,
-        id: &InputTableIndex,
+        idx: &InputTableIndex,
     ) -> Result<&Source<Self::Storage>, Box<dyn Debug + '_>> {
-        todo!()
+        Ok(&self.files[idx.0].source)
     }
 
-    fn display<'a>(&self, id: &'a InputTableIndex) -> Option<Box<dyn Display + 'a>> {
-        todo!()
+    fn display<'a>(&self, idx: &'a InputTableIndex) -> Option<Box<dyn Display + 'a>> {
+        Some(Box::new(
+            self.files[idx.0]
+                .path
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+        ))
     }
 }

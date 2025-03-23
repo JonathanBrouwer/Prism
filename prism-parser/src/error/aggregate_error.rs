@@ -1,4 +1,4 @@
-use crate::core::input_table::InputTable;
+use crate::core::input_table::{InputTable, InputTableInner};
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use std::io;
@@ -12,7 +12,8 @@ pub struct AggregatedParseError<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn
 impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> AggregatedParseError<'arn, E> {
     pub fn eprint(&self) -> io::Result<()> {
         for e in &self.errors {
-            e.report(false).eprint::<&InputTable<'arn>>(&self.input)?
+            e.report(false)
+                .eprint::<&InputTableInner<'arn>>(&*self.input.inner())?
         }
         Ok(())
     }

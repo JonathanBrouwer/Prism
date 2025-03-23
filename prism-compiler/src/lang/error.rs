@@ -184,7 +184,7 @@ impl AggregatedTypeError {
     pub fn eprint(&self, env: &mut PrismEnv) -> io::Result<()> {
         let input = env.input.clone();
         for report in self.errors.iter().flat_map(|err| env.report(err)) {
-            report.eprint(&*input)?;
+            report.eprint(&*input.inner())?;
         }
         Ok(())
     }

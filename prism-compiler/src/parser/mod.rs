@@ -31,7 +31,7 @@ pub fn parse_prism_in_env<'p>(
     program: &'p str,
     env: &mut PrismEnv<'p>,
 ) -> Result<ParsedIndex, AggregatedParseError<'p, SetError<'p>>> {
-    let file = env.input.push_file(program);
+    let file = env.input.push_file(program, "program".into());
 
     let mut parsables = HashMap::new();
     parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());

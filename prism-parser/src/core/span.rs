@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
     start: Pos,
-    len: usize, //TODO len
+    len: usize,
 }
 
 impl Span {

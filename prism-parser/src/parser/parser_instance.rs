@@ -153,7 +153,7 @@ pub fn run_parser_rule<
     penv: &'a mut Env,
 ) -> Result<&'arn P, AggregatedParseError<'arn, E>> {
     let input_table = InputTable::default();
-    let file = input_table.push_file(input);
+    let file = input_table.push_file(input, "input".into());
 
     run_parser_rule_raw(
         rules,
