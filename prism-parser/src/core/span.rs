@@ -5,18 +5,35 @@ use std::ops::Index;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
-    pub start: Pos,
-    pub end: Pos, //TODO len
+    start: Pos,
+    len: usize, //TODO len
 }
 
 impl Span {
-    pub fn new(start: Pos, end: Pos) -> Self {
-        Span { start, end }
+    pub fn new(start: Pos, len: usize) -> Self {
+        Span { start, len }
+    }
+
+    pub fn start_pos(self) -> Pos {
+        self.start
+    }
+
+    pub fn start_pos_ref(&self) -> &Pos {
+        &self.start
+    }
+
+    pub fn len(self) -> usize {
+        self.len
+    }
+
+    pub fn end_pos(self) -> Pos {
+        self.start + self.len
     }
 }
 
 impl<'grm> InputTable<'grm> {
     pub fn slice(&self, span: Span) -> &'grm str {
-        &self.get_str(span.start.file())[span.start.idx_in_file()..span.end.idx_in_file()]
+        let start = span.start.idx_in_file();
+        &self.get_str(span.start.file())[start..start + span.len]
     }
 }

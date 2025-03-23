@@ -2,7 +2,7 @@ use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::ops::{Index, Sub};
+use std::ops::{Add, Index, Sub};
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Pos(usize, InputTableIndex);
@@ -25,7 +25,7 @@ impl Pos {
     }
 
     pub fn span_to(self, other: Self) -> Span {
-        Span::new(self, other)
+        Span::new(self, other - self)
     }
 
     pub fn next(self, input: &InputTable) -> (Self, Option<(Span, char)>) {
@@ -33,7 +33,7 @@ impl Pos {
             None => (self, None),
             Some(c) => (
                 Self(self.0 + c.len_utf8(), self.1),
-                Some((Span::new(self, Self(self.0 + c.len_utf8(), self.1)), c)),
+                Some((Span::new(self, c.len_utf8()), c)),
             ),
         }
     }
@@ -45,10 +45,19 @@ impl Display for Pos {
     }
 }
 
+impl Add<usize> for Pos {
+    type Output = Pos;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Pos(self.0 + rhs, self.1)
+    }
+}
+
 impl Sub<Pos> for Pos {
     type Output = usize;
 
     fn sub(self, rhs: Pos) -> Self::Output {
+        assert_eq!(self.1, rhs.1);
         self.0 - rhs.0
     }
 }

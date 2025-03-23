@@ -56,7 +56,7 @@ impl<'grm> ParseError for SetError<'grm> {
 
         let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
         for l in self.labels.iter().filter(|l| enable_debug || !l.is_debug()) {
-            labels_map.entry(l.span().start).or_default().push(l);
+            labels_map.entry(l.span().start_pos()).or_default().push(l);
         }
 
         //Add labels

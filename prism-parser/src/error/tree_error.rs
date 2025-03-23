@@ -112,7 +112,7 @@ impl<'grm> ParseError for TreeError<'grm> {
                             .join(" <- ")
                             .to_string(),
                     )
-                    .with_order(-(label.span().start.idx_in_file() as i32)),
+                    .with_order(-(label.span().start_pos().idx_in_file() as i32)),
             );
         }
 

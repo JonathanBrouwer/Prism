@@ -52,7 +52,7 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
         //Pointing label
         .with_label(
             Label::new(span)
-                .with_message(match span.end - span.start {
+                .with_message(match span.len() {
                     0 => "Failed to parse at this location",
                     1 => "This character was unparsable",
                     _ => "These characters were unparsable",
@@ -67,14 +67,14 @@ impl ariadne::Span for Span {
     type SourceId = InputTableIndex;
 
     fn source(&self) -> &Self::SourceId {
-        &self.start.file_ref()
+        self.start_pos_ref().file_ref()
     }
 
     fn start(&self) -> usize {
-        self.start.idx_in_file()
+        self.start_pos().idx_in_file()
     }
 
     fn end(&self) -> usize {
-        self.end.idx_in_file()
+        self.end_pos().idx_in_file()
     }
 }
