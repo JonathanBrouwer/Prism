@@ -1,7 +1,7 @@
-use crate::lang::PrismEnv;
 use crate::lang::error::TypeError;
+use crate::lang::{CoreIndex, PrismEnv};
 use prism_parser::core::allocs::Allocs;
-use prism_parser::core::input_table::InputTable;
+use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::{AggregatedParseError, ParseResultExt};
 use prism_parser::error::set_error::SetError;
@@ -12,6 +12,7 @@ use prism_parser::parser::VarMap;
 use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::ops::Deref;
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 mod display;
@@ -27,25 +28,35 @@ pub static GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
     .unwrap_or_eprint()
 });
 
-pub fn parse_prism_in_env<'p>(
-    program: &'p str,
-    env: &mut PrismEnv<'p>,
-) -> Result<ParsedIndex, AggregatedParseError<'p, SetError<'p>>> {
-    let file = env.input.push_file(program, "program".into());
+impl<'arn> PrismEnv<'arn> {
+    pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
+        let program = std::fs::read_to_string(&path).unwrap();
+        let program = self.allocs.alloc_str(&program);
+        self.input.push_file(program, path)
+    }
 
-    let mut parsables = HashMap::new();
-    parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
+    pub fn load_test(&mut self, data: &'arn str, path_name: &'static str) -> InputTableIndex {
+        self.input.push_file(data, path_name.into())
+    }
 
-    run_parser_rule_raw::<PrismEnv<'p>, SetError>(
-        &GRAMMAR,
-        "expr",
-        env.input.clone(),
-        file,
-        env.allocs,
-        parsables,
-        env,
-    )
-    .map(|v| *v.into_value())
+    pub fn parse_file(
+        &mut self,
+        file: InputTableIndex,
+    ) -> Result<ParsedIndex, AggregatedParseError<'arn, SetError<'arn>>> {
+        let mut parsables = HashMap::new();
+        parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
+
+        run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
+            &GRAMMAR,
+            "expr",
+            self.input.clone(),
+            file,
+            self.allocs,
+            parsables,
+            self,
+        )
+        .map(|v| *v.into_value())
+    }
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -80,6 +91,7 @@ pub enum ParsedPrismExpr<'arn> {
     },
     GrammarValue(&'arn GrammarFile<'arn>),
     GrammarType,
+    Include(&'arn str, CoreIndex),
 }
 
 pub struct PrismParseEnv<'arn> {

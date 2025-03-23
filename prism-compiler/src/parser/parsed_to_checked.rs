@@ -167,6 +167,7 @@ impl<'arn> PrismEnv<'arn> {
 
                 return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
+            ParsedPrismExpr::Include(_, v) => return v,
         };
         self.store_checked(e, origin)
     }

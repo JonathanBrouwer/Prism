@@ -19,6 +19,7 @@ impl ParsedPrismExpr<'_> {
             ParsedPrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarType => PrecedenceLevel::Base,
             ParsedPrismExpr::ShiftTo { .. } => PrecedenceLevel::Base,
+            ParsedPrismExpr::Include(..) => PrecedenceLevel::Base,
         }
     }
 }
@@ -89,6 +90,9 @@ impl PrismEnv<'_> {
                     writeln!(w)?;
                 }
                 self.parse_display(expr, w, PrecedenceLevel::default())?;
+            }
+            ParsedPrismExpr::Include(n, _) => {
+                write!(w, "include!({n})")?;
             }
         }
 

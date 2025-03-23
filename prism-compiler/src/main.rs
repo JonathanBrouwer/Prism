@@ -1,7 +1,6 @@
 use bumpalo::Bump;
 use clap::Parser;
 use prism_compiler::lang::PrismEnv;
-use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::allocs::Allocs;
 use prism_parser::error::aggregate_error::ParseResultExt;
 
@@ -15,14 +14,15 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let program = std::fs::read_to_string(args.input).unwrap();
-
     let bump = Bump::new();
     let allocs = Allocs::new(&bump);
     let mut env = PrismEnv::new(allocs);
 
+    //Load file
+    let program = env.load_file(args.input.into());
+
     // Parse
-    let idx = parse_prism_in_env(&program, &mut env).unwrap_or_eprint();
+    let idx = env.parse_file(program).unwrap_or_eprint();
     println!(
         "> Parsed Program\n====================\n{}\n\n",
         env.parse_index_to_string(idx),
