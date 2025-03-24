@@ -1,1 +1,44 @@
-include!(thing)
+// Define lists
+let List: (T: Type) -> Type
+    = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
+let nil: (T : Type) -> List T
+    = (T : Type) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => nil;
+let cons: (T : Type) -> (head: T) -> (tails: List T) -> List T
+    = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => cons head (tail Out nil cons);
+adapt grammar {
+    adapt rule expr {
+        adapt group base {
+            l <- "list" "!" "[" l:list "]";
+        }
+    }
+
+    adapt rule keyword {
+        "list";
+    }
+
+    rule list {
+        (cons _ e es) <- e:expr "," es:list;
+        (cons _ e (nil _)) <- e:expr;
+        (nil _) <- "";
+    }
+};
+
+// Define Bools
+
+
+// Define Nats
+let Nat = (T: Type) -> T -> (T -> T) -> T;
+let zero = (T: Type) => (z: T) => (s: T -> T) => z;
+let succ = (n: Nat) => (T: Type) => (z: T) => (s: T -> T) => s (n T z s);
+
+
+Type
+
+//let StructType: Type = (fields : List Type) -> Type;
+//let mk_struct: List Type -> StructType  =
+
+//let mk_struct2 = (A1: Type) (A2: Type) => (v1: A1) (v2: A2) => (T: Type) (f: A1 -> A2 -> T) => f v1 v2;
+
+//mk_struct2 (List
+
+//StructType list![Type, Type]
