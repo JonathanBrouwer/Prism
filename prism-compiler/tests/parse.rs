@@ -1,7 +1,6 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
 use prism_parser::core::allocs::Allocs;
-use prism_parser::error::aggregate_error::ParseResultExt;
 use test_each_file::test_each_file;
 
 fn test_ok([test]: [&str; 1]) {
@@ -12,7 +11,9 @@ fn test_ok([test]: [&str; 1]) {
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
     let input = env.load_test(input_str, "input");
-    let _input = env.parse_file(input).unwrap_or_eprint();
+    let _input = env.parse_file(input);
+
+    env.assert_no_errors();
 }
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test_ok }
 

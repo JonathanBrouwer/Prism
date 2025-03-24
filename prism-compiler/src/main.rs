@@ -2,7 +2,6 @@ use bumpalo::Bump;
 use clap::Parser;
 use prism_compiler::lang::PrismEnv;
 use prism_parser::core::allocs::Allocs;
-use prism_parser::error::aggregate_error::ParseResultExt;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -20,34 +19,26 @@ fn main() {
 
     //Load file
     let program = env.load_file(args.input.into());
+    let processed = env.process_file(program);
 
-    // Parse
-    let idx = env.parse_file(program);
+    // Print info
     println!(
         "> Parsed Program\n====================\n{}\n\n",
-        env.parse_index_to_string(idx),
+        env.parse_index_to_string(processed.parsed),
     );
-
-    let idx = env.parsed_to_checked(idx);
     println!(
         "> Core Program\n====================\n{}\n\n",
-        env.index_to_string(idx),
+        env.index_to_string(processed.core),
     );
-
-    // Type check
-    let type_idx = env.type_check(idx);
     println!(
         "> Type of program\n====================\n{}\n\n",
-        env.index_to_br_string(type_idx)
+        env.index_to_br_string(processed.typ)
     );
-
-    // Eval
     println!(
         "> Evaluated\n====================\n{}\n\n",
-        env.index_to_br_string(idx)
+        env.index_to_br_string(processed.core)
     );
 
-    // Errors
     if !env.errors.is_empty() {
         println!("> Errors\n====================\n",);
         env.eprint_errors();

@@ -10,7 +10,7 @@ impl<'arn> PrismEnv<'arn> {
         self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut Default::default())
     }
 
-    pub fn parsed_to_checked_with_env(
+    pub(super) fn parsed_to_checked_with_env(
         &mut self,
         i: ParsedIndex,
         env: NamedEnv<'arn>,

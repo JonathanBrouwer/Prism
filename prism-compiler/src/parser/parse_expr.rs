@@ -151,11 +151,9 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
                 let next_file = prism_env.load_file(path);
 
                 //TODO properly do errors
-                let next_file = prism_env.parse_file(next_file);
-                let next_file = prism_env.parsed_to_checked(next_file);
-                let _next_file_type = prism_env.type_check(next_file);
+                let processed_file = prism_env.process_file(next_file);
 
-                ParsedPrismExpr::Include(n, next_file)
+                ParsedPrismExpr::Include(n, processed_file.core)
             }
             _ => unreachable!(),
         };

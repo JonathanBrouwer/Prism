@@ -1,10 +1,11 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
-use crate::lang::error::{PrismError, TypeError};
+use crate::lang::error::PrismError;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
@@ -72,8 +73,11 @@ pub enum CorePrismExpr<'arn> {
 
 pub struct PrismEnv<'arn> {
     // Allocs
-    pub input: Arc<InputTable<'arn>>,
     pub allocs: Allocs<'arn>,
+
+    // File info
+    pub input: Arc<InputTable<'arn>>,
+    files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
 
     // Parsed Values
     pub parsed_values: Vec<ParsedPrismExpr<'arn>>,
@@ -93,6 +97,18 @@ pub struct PrismEnv<'arn> {
     pub errors: Vec<PrismError<'arn>>,
 }
 
+enum ProcessedFileTableEntry {
+    Processing,
+    Processed(ProcessedFile),
+}
+
+#[derive(Copy, Clone)]
+pub struct ProcessedFile {
+    pub parsed: ParsedIndex,
+    pub core: CoreIndex,
+    pub typ: CoreIndex,
+}
+
 impl<'arn> PrismEnv<'arn> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
@@ -109,7 +125,28 @@ impl<'arn> PrismEnv<'arn> {
             errors: Default::default(),
             toxic_values: Default::default(),
             queued_beq_free: Default::default(),
+            files: Default::default(),
         }
+    }
+
+    pub fn process_file(&mut self, file: InputTableIndex) -> ProcessedFile {
+        match self.files.entry(file) {
+            Entry::Occupied(v) => match v.get() {
+                ProcessedFileTableEntry::Processing => {
+                    panic!("Import cycle")
+                }
+                ProcessedFileTableEntry::Processed(p) => return *p,
+            },
+            Entry::Vacant(v) => v.insert(ProcessedFileTableEntry::Processing),
+        };
+
+        let parsed = self.parse_file(file);
+        let core = self.parsed_to_checked(parsed);
+        let typ = self.type_check(core);
+        let processed_file = ProcessedFile { parsed, core, typ };
+        self.files
+            .insert(file, ProcessedFileTableEntry::Processed(processed_file));
+        processed_file
     }
 
     pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn>, span: Span) -> ParsedIndex {

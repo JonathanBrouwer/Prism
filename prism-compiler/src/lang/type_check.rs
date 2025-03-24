@@ -2,9 +2,8 @@ use crate::lang::PrismEnv;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::{AggregatedTypeError, PrismError, TypeError};
+use crate::lang::error::{PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr};
-use std::mem;
 
 impl<'arn> PrismEnv<'arn> {
     pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {

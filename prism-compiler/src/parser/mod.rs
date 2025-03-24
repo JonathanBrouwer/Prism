@@ -1,5 +1,5 @@
 use crate::lang::error::{PrismError, TypeError};
-use crate::lang::{CoreIndex, PrismEnv, ValueOrigin};
+use crate::lang::{CoreIndex, PrismEnv};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
@@ -13,7 +13,7 @@ use prism_parser::parser::VarMap;
 use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::ops::Deref;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::LazyLock;
 
 mod display;
@@ -33,11 +33,11 @@ impl<'arn> PrismEnv<'arn> {
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
         let program = std::fs::read_to_string(&path).unwrap();
         let program = self.allocs.alloc_str(&program);
-        self.input.push_file(program, path)
+        self.input.get_or_push_file(program, path)
     }
 
     pub fn load_test(&mut self, data: &'arn str, path_name: &'static str) -> InputTableIndex {
-        self.input.push_file(data, path_name.into())
+        self.input.get_or_push_file(data, path_name.into())
     }
 
     pub fn parse_file(&mut self, file: InputTableIndex) -> ParsedIndex {

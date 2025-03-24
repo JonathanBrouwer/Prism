@@ -24,8 +24,14 @@ struct InputTableEntry<'arn> {
 pub struct InputTableIndex(usize);
 
 impl<'arn> InputTable<'arn> {
-    pub fn push_file(&self, file: &'arn str, path: PathBuf) -> InputTableIndex {
+    pub fn get_or_push_file(&self, file: &'arn str, path: PathBuf) -> InputTableIndex {
         let mut inner = self.inner.write().unwrap();
+
+        // If there is already a file with this path, don't load it again
+        if let Some(prev) = inner.files.iter().position(|e| e.path == path) {
+            return InputTableIndex(prev);
+        }
+
         inner.files.push(InputTableEntry {
             input: file,
             source: Source::from(file),

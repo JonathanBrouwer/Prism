@@ -4,7 +4,7 @@ use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
 use prism_parser::error::ParseError;
 use prism_parser::error::set_error::SetError;
-use std::{io, mem};
+use std::mem;
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
@@ -28,6 +28,13 @@ impl<'arn> PrismEnv<'arn> {
         let errors = mem::take(&mut self.errors);
         for error in errors {
             error.eprint(self);
+        }
+    }
+
+    pub fn assert_no_errors(&mut self) {
+        if self.errors.len() > 0 {
+            self.eprint_errors();
+            panic!("Errors encounterd, see above");
         }
     }
 }
@@ -198,32 +205,5 @@ impl PrismEnv<'_> {
             }
         };
         Some((span, origin_description))
-    }
-}
-
-pub struct AggregatedTypeError {
-    pub errors: Vec<TypeError>,
-}
-
-impl AggregatedTypeError {
-    pub fn eprint(&self, env: &mut PrismEnv) -> io::Result<()> {
-        let input = env.input.clone();
-        for report in self.errors.iter().flat_map(|err| env.report(err)) {
-            report.eprint(&*input.inner())?;
-        }
-        Ok(())
-    }
-}
-
-pub trait TypeResultExt<T> {
-    fn unwrap_or_eprint(self, env: &mut PrismEnv) -> T;
-}
-
-impl<T> TypeResultExt<T> for Result<T, AggregatedTypeError> {
-    fn unwrap_or_eprint(self, env: &mut PrismEnv) -> T {
-        self.unwrap_or_else(|es| {
-            es.eprint(env).unwrap();
-            panic!("Failed to type check")
-        })
     }
 }
