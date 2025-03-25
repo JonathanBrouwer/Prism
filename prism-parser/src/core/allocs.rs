@@ -21,6 +21,10 @@ impl<'arn> Allocs<'arn> {
         self.bump.alloc(t)
     }
 
+    pub fn alloc_str(&self, s: &str) -> &'arn mut str {
+        self.bump.alloc_str(s)
+    }
+
     pub fn alloc_extend<T: Copy, I: IntoIterator<Item = T, IntoIter: ExactSizeIterator>>(
         &self,
         iter: I,

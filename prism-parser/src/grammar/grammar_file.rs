@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::rule::Rule;
 use crate::grammar::serde_leak::*;
@@ -9,27 +10,27 @@ use crate::parser::placeholder_store::PlaceholderStore;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
-pub struct GrammarFile<'arn, 'grm> {
+pub struct GrammarFile<'arn> {
     #[serde(borrow, with = "leak_slice")]
-    pub rules: &'arn [Rule<'arn, 'grm>],
+    pub rules: &'arn [Rule<'arn>],
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for GrammarFile<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm> {
+impl ParseResult for GrammarFile<'_> {}
+impl<'arn, Env> Parsable<'arn, Env> for GrammarFile<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
-        _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
+        allocs: Allocs<'arn>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor, "GrammarFile");
         GrammarFile {
-            rules: _allocs.alloc_extend(
-                _args[0]
+            rules: allocs.alloc_extend(
+                args[0]
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)
@@ -41,10 +42,10 @@ impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for GrammarFile<'arn, 'grm
     fn eval_to_grammar(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
-        _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
-        _src: &'grm str,
+        _placeholders: &PlaceholderStore<'arn, Env>,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
-    ) -> &'arn GrammarFile<'arn, 'grm> {
+    ) -> &'arn GrammarFile<'arn> {
         self
     }
 }

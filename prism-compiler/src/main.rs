@@ -1,9 +1,7 @@
 use bumpalo::Bump;
 use clap::Parser;
 use prism_compiler::lang::PrismEnv;
-use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::allocs::Allocs;
-use prism_parser::error::aggregate_error::ParseResultExt;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -15,40 +13,36 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let program = std::fs::read_to_string(args.input).unwrap();
-
     let bump = Bump::new();
     let allocs = Allocs::new(&bump);
     let mut env = PrismEnv::new(allocs);
 
-    // Parse
-    let idx = parse_prism_in_env(&program, &mut env).unwrap_or_eprint();
+    //Load file
+    let program = env.load_file(args.input.into());
+    let processed = env.process_file(program);
+
+    // Print info
     println!(
         "> Parsed Program\n====================\n{}\n\n",
-        env.parse_index_to_string(idx),
+        env.parse_index_to_string(processed.parsed),
     );
-
-    let idx = env.parsed_to_checked(idx);
     println!(
         "> Core Program\n====================\n{}\n\n",
-        env.index_to_string(idx),
+        env.index_to_string(processed.core),
     );
 
-    // Type check
-    match env.type_check(idx) {
-        Ok(i) => println!(
+    if !env.errors.is_empty() {
+        println!("> Errors\n====================\n",);
+        env.eprint_errors();
+    } else {
+        println!(
             "> Type of program\n====================\n{}\n\n",
-            env.index_to_br_string(i)
-        ),
-        Err(e) => {
-            e.eprint(&mut env, &program).unwrap();
-            return;
-        }
-    }
+            env.index_to_br_string(processed.typ)
+        );
 
-    // Eval
-    println!(
-        "> Evaluated\n====================\n{}\n\n",
-        env.index_to_br_string(idx)
-    );
+        println!(
+            "> Evaluated\n====================\n{}\n\n",
+            env.index_to_br_string(processed.core)
+        );
+    }
 }

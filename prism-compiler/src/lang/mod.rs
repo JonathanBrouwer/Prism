@@ -1,13 +1,15 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
-use crate::lang::error::TypeError;
+use crate::lang::error::PrismError;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
-use prism_parser::core::pos::Pos;
+use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use std::sync::Arc;
 
 mod beta_reduce;
 mod beta_reduce_head;
@@ -55,7 +57,7 @@ impl Deref for CoreIndex {
 }
 
 #[derive(Copy, Clone)]
-pub enum CorePrismExpr<'arn, 'grm: 'arn> {
+pub enum CorePrismExpr<'arn> {
     Free,
     Type,
     Let(CoreIndex, CoreIndex),
@@ -65,39 +67,57 @@ pub enum CorePrismExpr<'arn, 'grm: 'arn> {
     FnDestruct(CoreIndex, CoreIndex),
     Shift(CoreIndex, usize),
     TypeAssert(CoreIndex, CoreIndex),
-    GrammarValue(&'arn GrammarFile<'arn, 'grm>),
+    GrammarValue(&'arn GrammarFile<'arn>),
     GrammarType,
 }
 
-pub struct PrismEnv<'arn, 'grm: 'arn> {
+pub struct PrismEnv<'arn> {
     // Allocs
-    pub input: &'grm str,
     pub allocs: Allocs<'arn>,
 
+    // File info
+    pub input: Arc<InputTable<'arn>>,
+    files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
+
     // Parsed Values
-    pub parsed_values: Vec<ParsedPrismExpr<'arn, 'grm>>,
+    pub parsed_values: Vec<ParsedPrismExpr<'arn>>,
     pub parsed_spans: Vec<Span>,
 
     // Checked Values
-    pub checked_values: Vec<CorePrismExpr<'arn, 'grm>>,
+    pub checked_roots: HashMap<InputTableIndex, CoreIndex>,
+    pub checked_values: Vec<CorePrismExpr<'arn>>,
     pub checked_origins: Vec<ValueOrigin>,
     checked_types: HashMap<CoreIndex, CoreIndex>,
 
     // State during type checking
     tc_id: usize,
-    pub errors: Vec<TypeError>,
     toxic_values: HashSet<CoreIndex>,
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint<'arn>>>,
+
+    pub errors: Vec<PrismError<'arn>>,
 }
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+enum ProcessedFileTableEntry {
+    Processing,
+    Processed(ProcessedFile),
+}
+
+#[derive(Copy, Clone)]
+pub struct ProcessedFile {
+    pub parsed: ParsedIndex,
+    pub core: CoreIndex,
+    pub typ: CoreIndex,
+}
+
+impl<'arn> PrismEnv<'arn> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            input: "",
+            input: Arc::new(InputTable::default()),
             allocs,
 
             parsed_values: Default::default(),
             parsed_spans: Default::default(),
+            checked_roots: Default::default(),
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),
@@ -105,31 +125,41 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             errors: Default::default(),
             toxic_values: Default::default(),
             queued_beq_free: Default::default(),
+            files: Default::default(),
         }
     }
 
-    pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn, 'grm>, span: Span) -> ParsedIndex {
+    pub fn process_file(&mut self, file: InputTableIndex) -> ProcessedFile {
+        match self.files.entry(file) {
+            Entry::Occupied(v) => match v.get() {
+                ProcessedFileTableEntry::Processing => {
+                    panic!("Import cycle")
+                }
+                ProcessedFileTableEntry::Processed(p) => return *p,
+            },
+            Entry::Vacant(v) => v.insert(ProcessedFileTableEntry::Processing),
+        };
+
+        let parsed = self.parse_file(file);
+        let core = self.parsed_to_checked(parsed);
+        let typ = self.type_check(core);
+        let processed_file = ProcessedFile { parsed, core, typ };
+        self.files
+            .insert(file, ProcessedFileTableEntry::Processed(processed_file));
+        processed_file
+    }
+
+    pub fn store_from_source(&mut self, e: ParsedPrismExpr<'arn>, span: Span) -> ParsedIndex {
         self.store_parsed(e, span)
     }
 
-    pub fn store_test(&mut self, e: CorePrismExpr<'arn, 'grm>) -> CoreIndex {
-        self.store_checked(
-            e,
-            ValueOrigin::SourceCode(Span::new(Pos::start(), Pos::start())),
-        )
-    }
-
-    fn store_parsed(&mut self, e: ParsedPrismExpr<'arn, 'grm>, origin: Span) -> ParsedIndex {
+    fn store_parsed(&mut self, e: ParsedPrismExpr<'arn>, origin: Span) -> ParsedIndex {
         self.parsed_values.push(e);
         self.parsed_spans.push(origin);
         ParsedIndex(self.parsed_values.len() - 1)
     }
 
-    pub fn store_checked(
-        &mut self,
-        e: CorePrismExpr<'arn, 'grm>,
-        origin: ValueOrigin,
-    ) -> CoreIndex {
+    pub fn store_checked(&mut self, e: CorePrismExpr<'arn>, origin: ValueOrigin) -> CoreIndex {
         self.checked_values.push(e);
         self.checked_origins.push(origin);
         CoreIndex(self.checked_values.len() - 1)
@@ -142,7 +172,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
         self.tc_id = 0;
     }
 
-    pub fn erase_arena(self) -> PrismEnv<'grm, 'grm> {
+    pub fn erase_arena(self) -> PrismEnv<'arn> {
         todo!()
     }
 }

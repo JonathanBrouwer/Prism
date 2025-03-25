@@ -3,7 +3,7 @@ use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
 use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl PrismEnv<'_> {
     pub fn simplify(&mut self, i: CoreIndex) -> CoreIndex {
         self.simplify_inner(i, DbEnv::default(), &mut HashMap::new())
     }

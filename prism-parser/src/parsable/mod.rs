@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
@@ -12,29 +13,29 @@ pub mod option;
 pub mod parsable_dyn;
 pub mod parsed;
 pub mod parsed_debug;
-pub mod parsed_mut;
 pub mod void;
 
-pub trait ParseResult<'arn, 'grm: 'arn>: Sized + Sync + Send + Copy + 'arn {
-    fn to_parsed(&'arn self) -> Parsed<'arn, 'grm> {
+pub trait ParseResult: Sized + Sync + Send + Copy {
+    fn to_parsed<'arn>(&'arn self) -> Parsed<'arn>
+    where
+        Self: 'arn,
+    {
         Parsed::from_value(self)
     }
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for () {}
+impl ParseResult for () {}
 
-pub trait Parsable<'arn, 'grm: 'arn, Env>:
-    ParseResult<'arn, 'grm> + Sized + Sync + Send + Copy + 'arn
-{
-    type EvalCtx: Default + Copy + ParseResult<'arn, 'grm>;
+pub trait Parsable<'arn, Env>: ParseResult + Sized + Sync + Send + Copy + 'arn {
+    type EvalCtx: Default + Copy + ParseResult;
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        _args: &[Parsed<'arn, 'grm>],
+        constructor: &'arn str,
+        _args: &[Parsed<'arn>],
         // Env
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         panic!(
@@ -44,12 +45,12 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     }
 
     fn create_eval_ctx(
-        _constructor: &'grm str,
+        _constructor: &'arn str,
         _parent_ctx: Self::EvalCtx,
         _arg_placeholders: &[ParsedPlaceholder],
         // Env
         _allocs: Allocs<'arn>,
-        _src: &'grm str,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         iter::empty()
@@ -58,11 +59,11 @@ pub trait Parsable<'arn, 'grm: 'arn, Env>:
     fn eval_to_grammar(
         &'arn self,
         _eval_ctx: Self::EvalCtx,
-        _placeholders: &PlaceholderStore<'arn, 'grm, Env>,
+        _placeholders: &PlaceholderStore<'arn, Env>,
         // Env
-        _src: &'grm str,
+        _src: &InputTable<'arn>,
         _env: &mut Env,
-    ) -> &'arn GrammarFile<'arn, 'grm> {
+    ) -> &'arn GrammarFile<'arn> {
         unreachable!()
     }
 }
@@ -75,8 +76,8 @@ mod tests {
     struct A;
     #[derive(Debug, Copy, Clone)]
     struct B;
-    impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for A {}
-    impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for B {}
+    impl ParseResult for A {}
+    impl ParseResult for B {}
 
     #[test]
     fn a_a_same() {

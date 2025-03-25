@@ -10,15 +10,15 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 #[derive(Copy, Clone)]
-pub struct GrammarState<'arn, 'grm> {
-    rules: &'arn [&'arn RuleState<'arn, 'grm>],
+pub struct GrammarState<'arn> {
+    rules: &'arn [&'arn RuleState<'arn>],
     last_mut_pos: Option<Pos>,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleId {}
+impl ParseResult for RuleId {}
 
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -26,19 +26,19 @@ impl Display for RuleId {
     }
 }
 
-impl Default for GrammarState<'_, '_> {
+impl Default for GrammarState<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
 #[derive(Debug)]
-pub enum AdaptError<'grm> {
-    InvalidRuleMutation(&'grm str),
+pub enum AdaptError<'arn> {
+    InvalidRuleMutation(&'arn str),
     SamePos(Pos),
 }
 
-impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
+impl<'arn> GrammarState<'arn> {
     pub fn new() -> Self {
         Self {
             rules: &[],
@@ -50,11 +50,11 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
     /// To unify rules, use the names of the rules in `ctx`
     pub fn adapt_with(
         &self,
-        grammar: &'arn GrammarFile<'arn, 'grm>,
-        ctx: VarMap<'arn, 'grm>,
+        grammar: &'arn GrammarFile<'arn>,
+        ctx: VarMap<'arn>,
         pos: Option<Pos>,
         alloc: Allocs<'arn>,
-    ) -> Result<(Self, VarMap<'arn, 'grm>), AdaptError<'grm>> {
+    ) -> Result<(Self, VarMap<'arn>), AdaptError<'arn>> {
         // If we already tried to adapt at this position before, crash to prevent infinite loop
         if let Some(pos) = pos {
             if let Some(last_mut_pos) = self.last_mut_pos {
@@ -101,17 +101,14 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
         ))
     }
 
-    pub fn new_with(
-        grammar: &'arn GrammarFile<'arn, 'grm>,
-        alloc: Allocs<'arn>,
-    ) -> (Self, VarMap<'arn, 'grm>) {
+    pub fn new_with(grammar: &'arn GrammarFile<'arn>, alloc: Allocs<'arn>) -> (Self, VarMap<'arn>) {
         // We create a new grammar by adapting an empty one
         GrammarState::new()
             .adapt_with(grammar, VarMap::default(), None, alloc)
             .unwrap()
     }
 
-    pub fn get(&self, rule: RuleId) -> Option<&RuleState<'arn, 'grm>> {
+    pub fn get(&self, rule: RuleId) -> Option<&RuleState<'arn>> {
         self.rules.get(rule.0).map(|v| &**v)
     }
 
@@ -124,21 +121,21 @@ impl<'arn, 'grm: 'arn> GrammarState<'arn, 'grm> {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
-pub type ArgsSlice<'arn, 'grm> = &'arn [(&'grm str, &'grm str)];
+pub type ArgsSlice<'arn> = &'arn [(&'arn str, &'arn str)];
 
 #[derive(Copy, Clone)]
-pub struct RuleState<'arn, 'grm> {
-    pub name: &'grm str,
-    pub args: ArgsSlice<'arn, 'grm>,
-    pub blocks: &'arn [BlockState<'arn, 'grm>],
+pub struct RuleState<'arn> {
+    pub name: &'arn str,
+    pub args: ArgsSlice<'arn>,
+    pub blocks: &'arn [BlockState<'arn>],
 }
 
 pub enum UpdateError {
     ToposortCycle,
 }
 
-impl<'arn, 'grm> RuleState<'arn, 'grm> {
-    pub fn new_empty(name: &'grm str, args: ArgsSlice<'arn, 'grm>) -> Self {
+impl<'arn> RuleState<'arn> {
+    pub fn new_empty(name: &'arn str, args: ArgsSlice<'arn>) -> Self {
         Self {
             name,
             blocks: &[],
@@ -148,8 +145,8 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
 
     pub fn update(
         &self,
-        r: &'arn Rule<'arn, 'grm>,
-        ctx: VarMap<'arn, 'grm>,
+        r: &'arn Rule<'arn>,
+        ctx: VarMap<'arn>,
         allocs: Allocs<'arn>,
     ) -> Result<Self, UpdateError> {
         assert_eq!(self.name, r.name);
@@ -193,19 +190,15 @@ impl<'arn, 'grm> RuleState<'arn, 'grm> {
 }
 
 #[derive(Copy, Clone)]
-pub struct BlockState<'arn, 'grm> {
-    pub name: &'grm str,
-    pub constructors: &'arn [Constructor<'arn, 'grm>],
+pub struct BlockState<'arn> {
+    pub name: &'arn str,
+    pub constructors: &'arn [Constructor<'arn>],
 }
 
-pub type Constructor<'arn, 'grm> = (&'arn AnnotatedRuleExpr<'arn, 'grm>, VarMap<'arn, 'grm>);
+pub type Constructor<'arn> = (&'arn AnnotatedRuleExpr<'arn>, VarMap<'arn>);
 
-impl<'arn, 'grm> BlockState<'arn, 'grm> {
-    pub fn new(
-        block: &'arn RuleBlock<'arn, 'grm>,
-        ctx: VarMap<'arn, 'grm>,
-        allocs: Allocs<'arn>,
-    ) -> Self {
+impl<'arn> BlockState<'arn> {
+    pub fn new(block: &'arn RuleBlock<'arn>, ctx: VarMap<'arn>, allocs: Allocs<'arn>) -> Self {
         Self {
             name: block.name,
             constructors: allocs.alloc_extend(block.constructors.iter().map(|r| (r, ctx))),
@@ -215,8 +208,8 @@ impl<'arn, 'grm> BlockState<'arn, 'grm> {
     #[must_use]
     pub fn update(
         &self,
-        b: &'arn RuleBlock<'arn, 'grm>,
-        ctx: VarMap<'arn, 'grm>,
+        b: &'arn RuleBlock<'arn>,
+        ctx: VarMap<'arn>,
         allocs: Allocs<'arn>,
     ) -> Self {
         assert_eq!(self.name, b.name);

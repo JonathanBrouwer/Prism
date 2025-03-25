@@ -1,10 +1,7 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::DbEnv;
-use prism_compiler::lang::error::TypeResultExt;
-use prism_compiler::parser::parse_prism_in_env;
 use prism_parser::core::allocs::Allocs;
-use prism_parser::error::aggregate_error::ParseResultExt;
 use test_each_file::test_each_file;
 
 fn test_ok([test]: [&str; 1]) {
@@ -14,12 +11,17 @@ fn test_ok([test]: [&str; 1]) {
 
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
-    let input = parse_prism_in_env(input_str, &mut env).unwrap_or_eprint();
-    let input = env.parsed_to_checked(input);
-    let typ = env.type_check(input).unwrap_or_eprint(&mut env, input_str);
 
-    let expected_typ = parse_prism_in_env(expected_typ_str, &mut env).unwrap_or_eprint();
+    let input = env.load_test(input_str, "input");
+    let input = env.parse_file(input);
+    let input = env.parsed_to_checked(input);
+    let typ = env.type_check(input);
+
+    let expected_typ = env.load_test(expected_typ_str, "expected_typ");
+    let expected_typ = env.parse_file(expected_typ);
     let expected_typ = env.parsed_to_checked(expected_typ);
+
+    env.assert_no_errors();
 
     assert!(
         env.is_beta_equal(typ, DbEnv::default(), expected_typ, DbEnv::default()),
@@ -38,10 +40,12 @@ test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok 
 fn test_fail([test]: [&str; 1]) {
     let bump = Bump::new();
     let mut env = PrismEnv::new(Allocs::new(&bump));
-    let input = parse_prism_in_env(test, &mut env).unwrap_or_eprint();
+    let input = env.load_test(test, "input");
+    let input = env.parse_file(input);
     let input = env.parsed_to_checked(input);
+    let typ = env.type_check(input);
 
-    if let Ok(typ) = env.type_check(input) {
+    if env.errors.is_empty() {
         eprint!(
             "Expected type checking to fail:\n\n------\n{}\n------ Term reduces to -->\n{}\n------\n\n------\n{}\n------ Type of term reduces to -->\n{}\n------\n\n.",
             env.index_to_sm_string(input),

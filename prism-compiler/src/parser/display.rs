@@ -4,7 +4,7 @@ use crate::lang::PrismEnv;
 use crate::lang::display::PrecedenceLevel;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 
-impl<'arn, 'grm: 'arn> ParsedPrismExpr<'arn, 'grm> {
+impl ParsedPrismExpr<'_> {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -19,11 +19,12 @@ impl<'arn, 'grm: 'arn> ParsedPrismExpr<'arn, 'grm> {
             ParsedPrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
             ParsedPrismExpr::GrammarType => PrecedenceLevel::Base,
             ParsedPrismExpr::ShiftTo { .. } => PrecedenceLevel::Base,
+            ParsedPrismExpr::Include(..) => PrecedenceLevel::Base,
         }
     }
 }
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl PrismEnv<'_> {
     fn parse_display(
         &self,
         i: ParsedIndex,
@@ -84,11 +85,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     if let Some(v) = v.try_into_value::<ParsedIndex>() {
                         self.parse_display(*v, w, PrecedenceLevel::Base)?;
                     } else {
-                        write!(w, "{}", v.to_debug_string(self.input))?;
+                        write!(w, "{}", v.to_debug_string(&self.input))?;
                     }
                     writeln!(w)?;
                 }
                 self.parse_display(expr, w, PrecedenceLevel::default())?;
+            }
+            ParsedPrismExpr::Include(n, _) => {
+                write!(w, "include!({n})")?;
             }
         }
 

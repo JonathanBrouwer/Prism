@@ -1,13 +1,44 @@
 use crate::lang::CoreIndex;
 use crate::lang::{PrismEnv, ValueOrigin};
-use ariadne::{Color, Label, Report, ReportKind, Source};
-use prism_parser::core::pos::Pos;
+use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
-use std::io;
+use prism_parser::error::ParseError;
+use prism_parser::error::set_error::SetError;
+use std::mem;
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
-#[derive(Debug)]
+pub enum PrismError<'arn> {
+    ParseError(SetError<'arn>),
+    TypeError(TypeError),
+}
+
+impl<'arn> PrismError<'arn> {
+    pub fn eprint(&self, env: &mut PrismEnv<'arn>) {
+        let report = match self {
+            PrismError::ParseError(e) => e.report(false),
+            PrismError::TypeError(e) => env.report(e).unwrap(),
+        };
+        report.eprint(&*env.input.inner()).unwrap();
+    }
+}
+
+impl<'arn> PrismEnv<'arn> {
+    pub fn eprint_errors(&mut self) {
+        let errors = mem::take(&mut self.errors);
+        for error in errors {
+            error.eprint(self);
+        }
+    }
+
+    pub fn assert_no_errors(&mut self) {
+        if self.errors.len() > 0 {
+            self.eprint_errors();
+            panic!("Errors encounterd, see above");
+        }
+    }
+}
+
 pub enum TypeError {
     ExpectType(CoreIndex),
     ExpectFn(CoreIndex),
@@ -30,9 +61,8 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl PrismEnv<'_> {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
-        let report = Report::build(ReportKind::Error, Span::new(Pos::start(), Pos::start()));
         Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
@@ -42,7 +72,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     unreachable!()
                 };
 
-                report
+                Report::build(ReportKind::Error, span)
                     .with_message("Expected type")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a type, found value of type: {}",
@@ -63,7 +93,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     unreachable!()
                 };
 
-                report
+                Report::build(ReportKind::Error, span_expr)
                     .with_message("Type assertion failed")
                     .with_label(Label::new(span_expr).with_message(format!(
                         "This value has type: {}",
@@ -80,7 +110,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     unreachable!()
                 };
 
-                report
+                Report::build(ReportKind::Error, span)
                     .with_message(format!("De Bruijn index `{}` out of bounds", *i))
                     .with_label(Label::new(span).with_message("This index is out of bounds."))
                     .finish()
@@ -92,7 +122,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
                     unreachable!()
                 };
-                report
+                Report::build(ReportKind::Error, span)
                     .with_message("Expected function")
                     .with_label(Label::new(span).with_message(format!(
                         "Expected a function, found value of type: {}",
@@ -130,14 +160,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                     .with_order(1)
                     .with_color(SECONDARY_COLOR);
 
-                report
+                Report::build(ReportKind::Error, span)
                     .with_message("Argument type mismatch in function application")
                     .with_label(label_arg)
                     .with_label(label_fn)
                     .finish()
             }
-            TypeError::BadInfer { .. } => report.finish(),
-            TypeError::UnknownName(name) => report
+            TypeError::BadInfer { .. } => panic!(),
+            TypeError::UnknownName(name) => Report::build(ReportKind::Error, *name)
                 .with_message("Undefined name within this scope.")
                 .with_label(Label::new(*name).with_message("This name is undefined."))
                 .finish(),
@@ -145,7 +175,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 let (left_span, left_description) = self.label_value(*left)?;
                 let (right_span, right_description) = self.label_value(*left)?;
 
-                report
+                Report::build(ReportKind::Error, left_span)
                     .with_message("Constraint hit recursion limit")
                     .with_label(Label::new(left_span).with_message(format!(
                         "Left side of constraint from {left_description}: {}",
@@ -175,32 +205,5 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
             }
         };
         Some((span, origin_description))
-    }
-}
-
-pub struct AggregatedTypeError {
-    pub errors: Vec<TypeError>,
-}
-
-impl AggregatedTypeError {
-    pub fn eprint(&self, env: &mut PrismEnv, input: &str) -> io::Result<()> {
-        let mut input = Source::from(input);
-        for report in self.errors.iter().flat_map(|err| env.report(err)) {
-            report.eprint(&mut input)?;
-        }
-        Ok(())
-    }
-}
-
-pub trait TypeResultExt<T> {
-    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T;
-}
-
-impl<T> TypeResultExt<T> for Result<T, AggregatedTypeError> {
-    fn unwrap_or_eprint(self, env: &mut PrismEnv, input: &str) -> T {
-        self.unwrap_or_else(|es| {
-            es.eprint(env, input).unwrap();
-            panic!("Failed to type check")
-        })
     }
 }

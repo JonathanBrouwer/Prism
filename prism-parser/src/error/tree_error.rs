@@ -48,13 +48,13 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone)]
-pub struct TreeError<'grm> {
+pub struct TreeError<'arn> {
     pub pos: Pos,
-    pub labels: ErrorTree<ErrorLabel<'grm>>,
+    pub labels: ErrorTree<ErrorLabel<'arn>>,
 }
 
-impl<'grm> TreeError<'grm> {
-    fn add_label(&mut self, label: ErrorLabel<'grm>) {
+impl<'arn> TreeError<'arn> {
+    fn add_label(&mut self, label: ErrorLabel<'arn>) {
         let mut tree = ErrorTree(None, vec![]);
         mem::swap(&mut self.labels, &mut tree);
         tree = tree.label(label);
@@ -62,8 +62,8 @@ impl<'grm> TreeError<'grm> {
     }
 }
 
-impl<'grm> ParseError for TreeError<'grm> {
-    type L = ErrorLabel<'grm>;
+impl<'arn> ParseError for TreeError<'arn> {
+    type L = ErrorLabel<'arn>;
 
     fn new(pos: Pos) -> Self {
         Self {
@@ -112,7 +112,7 @@ impl<'grm> ParseError for TreeError<'grm> {
                             .join(" <- ")
                             .to_string(),
                     )
-                    .with_order(-(<Pos as Into<usize>>::into(label.span().start) as i32)),
+                    .with_order(-(label.span().start_pos().idx_in_file() as i32)),
             );
         }
 

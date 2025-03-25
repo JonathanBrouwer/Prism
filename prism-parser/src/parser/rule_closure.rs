@@ -4,11 +4,11 @@ use crate::parsable::ParseResult;
 use crate::parser::VarMap;
 
 #[derive(Copy, Clone)]
-pub struct RuleClosure<'arn, 'grm> {
-    pub expr: &'arn RuleExpr<'arn, 'grm>,
-    pub blocks: &'arn [BlockState<'arn, 'grm>],
-    pub rule_args: VarMap<'arn, 'grm>,
-    pub vars: VarMap<'arn, 'grm>,
+pub struct RuleClosure<'arn> {
+    pub expr: &'arn RuleExpr<'arn>,
+    pub blocks: &'arn [BlockState<'arn>],
+    pub rule_args: VarMap<'arn>,
+    pub vars: VarMap<'arn>,
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleClosure<'arn, 'grm> {}
+impl ParseResult for RuleClosure<'_> {}

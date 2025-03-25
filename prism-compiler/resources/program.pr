@@ -1,1 +1,48 @@
-(v: _) -> v v
+// Define lists
+let List: (T: Type) -> Type
+    = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
+let nil: (T : Type) -> List T
+    = (T : Type) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => nil;
+let cons: (T : Type) -> (head: T) -> (tails: List T) -> List T
+    = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => cons head (tail Out nil cons);
+adapt grammar {
+    adapt rule expr {
+        adapt group base {
+            l <- "list" "!" "[" l:list "]";
+        }
+    }
+
+    adapt rule keyword {
+        "list";
+    }
+
+    rule list {
+        (cons _ e es) <- e:expr "," es:list;
+        (cons _ e (nil _)) <- e:expr;
+        (nil _) <- "";
+    }
+};
+
+// Define Bools
+let Bool = (T: Type) -> T -> T -> T;
+let true: Bool = (T: Type) => (v1: T) => (v2: T) => v1;
+let false: Bool = (T: Type) => (v1: T) => (v2: T) => v2;
+
+// Define Nats
+let Nat = (T: Type) -> T -> (T -> T) -> T;
+let zero = (T: Type) => (z: T) => (s: T -> T) => z;
+let succ = (n: Nat) => (T: Type) => (z: T) => (s: T -> T) => s (n T z s);
+
+
+
+// Define structs
+let mk_struct2
+    = (A1: Type) (A2: Type) => (v1: A1) (v2: A2) => (T: Type) (f: A1 -> A2 -> T) => f v1 v2;
+let s = mk_struct2 Bool Nat;
+let sv = s true zero;
+let sv1 = sv Bool (a b => a);
+
+
+sv1
+
+

@@ -1,13 +1,14 @@
+use crate::core::input_table::InputTableIndex;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
-pub enum ErrorLabel<'grm> {
-    Explicit(Span, EscapedString<'grm>),
-    Literal(Span, EscapedString<'grm>),
-    Debug(Span, &'grm str),
+pub enum ErrorLabel<'arn> {
+    Explicit(Span, EscapedString<'arn>),
+    Literal(Span, EscapedString<'arn>),
+    Debug(Span, &'arn str),
     FromConstruct(Span, String),
 }
 
@@ -51,7 +52,7 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
         //Pointing label
         .with_label(
             Label::new(span)
-                .with_message(match span.end - span.start {
+                .with_message(match span.len() {
                     0 => "Failed to parse at this location",
                     1 => "This character was unparsable",
                     _ => "These characters were unparsable",
@@ -63,17 +64,17 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
 }
 
 impl ariadne::Span for Span {
-    type SourceId = ();
+    type SourceId = InputTableIndex;
 
     fn source(&self) -> &Self::SourceId {
-        &()
+        self.start_pos_ref().file_ref()
     }
 
     fn start(&self) -> usize {
-        self.start.into()
+        self.start_pos().idx_in_file()
     }
 
     fn end(&self) -> usize {
-        self.end.into()
+        self.end_pos().idx_in_file()
     }
 }

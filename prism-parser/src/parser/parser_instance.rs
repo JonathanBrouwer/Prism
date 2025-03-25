@@ -2,6 +2,7 @@ use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 use crate::core::allocs::Allocs;
 use crate::core::context::ParserContext;
+use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
@@ -23,29 +24,25 @@ use crate::parsable::{Parsable, ParseResult};
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 use std::collections::HashMap;
+use std::sync::Arc;
 
-pub struct ParserInstance<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> {
-    state: ParserState<'arn, 'grm, Env, E>,
+pub struct ParserInstance<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> {
+    state: ParserState<'arn, Env, E>,
 
-    grammar_state: &'arn GrammarState<'arn, 'grm>,
-    rules: VarMap<'arn, 'grm>,
+    grammar_state: &'arn GrammarState<'arn>,
+    rules: VarMap<'arn>,
 }
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
-    ParserInstance<'arn, 'grm, Env, E>
-{
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E> {
     pub fn new(
-        input: &'grm str,
+        input: Arc<InputTable<'arn>>,
         allocs: Allocs<'arn>,
-        from: &'arn GrammarFile<'arn, 'grm>,
-        mut parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
-    ) -> Result<Self, AdaptError<'grm>> {
-        parsables.insert(
-            "ActionResult",
-            ParsableDyn::new::<ActionResult<'arn, 'grm>>(),
-        );
-        parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn, 'grm>>());
-        parsables.insert("RuleAction", ParsableDyn::new::<RuleAction<'arn, 'grm>>());
+        from: &'arn GrammarFile<'arn>,
+        mut parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
+    ) -> Result<Self, AdaptError<'arn>> {
+        parsables.insert("ActionResult", ParsableDyn::new::<ActionResult<'arn>>());
+        parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn>>());
+        parsables.insert("RuleAction", ParsableDyn::new::<RuleAction<'arn>>());
         parsables.insert("CharClass", ParsableDyn::new::<CharClass>());
         parsables.insert("CharClassRange", ParsableDyn::new::<CharClassRange>());
         parsables.insert("RuleAnnotation", ParsableDyn::new::<RuleAnnotation>());
@@ -88,14 +85,13 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
     }
 }
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
-    ParserInstance<'arn, 'grm, Env, E>
-{
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E> {
     pub fn run(
         &mut self,
-        rule: &'grm str,
+        rule: &'arn str,
+        file: InputTableIndex,
         penv: &mut Env,
-    ) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
+    ) -> Result<Parsed<'arn>, AggregatedParseError<'arn, E>> {
         let rule = *self
             .rules
             .get(rule)
@@ -105,7 +101,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             self.grammar_state,
             rule,
             &[],
-            Pos::start(),
+            Pos::start_of(file),
             ParserContext::new(),
             penv,
             Void.to_parsed(),
@@ -122,41 +118,53 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>>
             .map(|(o, ())| o);
 
         result.collapse().map_err(|error| AggregatedParseError {
-            input: self.state.input,
+            input: self.state.input.clone(),
             errors: vec![error],
         })
     }
 }
 
-pub fn run_parser_rule_raw<'arn, 'grm, Env, E: ParseError<L = ErrorLabel<'grm>>>(
-    rules: &'arn GrammarFile<'arn, 'grm>,
-    rule: &'grm str,
-    input: &'grm str,
+pub fn run_parser_rule_raw<'a, 'arn, Env, E: ParseError<L = ErrorLabel<'arn>>>(
+    rules: &'arn GrammarFile<'arn>,
+    rule: &'arn str,
+    input: Arc<InputTable<'arn>>,
+    file: InputTableIndex,
     allocs: Allocs<'arn>,
-    parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
-    penv: &mut Env,
-) -> Result<Parsed<'arn, 'grm>, AggregatedParseError<'grm, E>> {
-    let mut instance: ParserInstance<'arn, 'grm, Env, E> =
+    parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
+    penv: &'a mut Env,
+) -> Result<Parsed<'arn>, AggregatedParseError<'arn, E>> {
+    let mut instance: ParserInstance<'arn, Env, E> =
         ParserInstance::new(input, allocs, rules, parsables).unwrap();
-    instance.run(rule, penv)
+    instance.run(rule, file, penv)
 }
 
 pub fn run_parser_rule<
+    'a,
     'arn,
-    'grm,
     Env,
-    P: Parsable<'arn, 'grm, Env>,
-    E: ParseError<L = ErrorLabel<'grm>>,
+    P: Parsable<'arn, Env>,
+    E: ParseError<L = ErrorLabel<'arn>>,
 >(
-    rules: &'arn GrammarFile<'arn, 'grm>,
-    rule: &'grm str,
-    input: &'grm str,
+    rules: &'arn GrammarFile<'arn>,
+    rule: &'arn str,
+    input: &'arn str,
     allocs: Allocs<'arn>,
-    parsables: HashMap<&'grm str, ParsableDyn<'arn, 'grm, Env>>,
-    penv: &mut Env,
-) -> Result<&'arn P, AggregatedParseError<'grm, E>> {
-    run_parser_rule_raw(rules, rule, input, allocs, parsables, penv)
-        .map(|parsed| parsed.into_value::<P>())
+    parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
+    penv: &'a mut Env,
+) -> Result<&'arn P, AggregatedParseError<'arn, E>> {
+    let input_table = InputTable::default();
+    let file = input_table.get_or_push_file(input, "input".into());
+
+    run_parser_rule_raw(
+        rules,
+        rule,
+        Arc::new(input_table),
+        file,
+        allocs,
+        parsables,
+        penv,
+    )
+    .map(|parsed| parsed.into_value::<P>())
 }
 
 #[macro_export]

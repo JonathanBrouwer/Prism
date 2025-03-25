@@ -1,17 +1,19 @@
+use crate::core::input_table::{InputTable, InputTableInner};
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use ariadne::Source;
 use std::io;
+use std::sync::Arc;
 
-pub struct AggregatedParseError<'p, E: ParseError<L = ErrorLabel<'p>> + 'p> {
-    pub input: &'p str,
+pub struct AggregatedParseError<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> {
+    pub input: Arc<InputTable<'arn>>,
     pub errors: Vec<E>,
 }
 
-impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p> AggregatedParseError<'p, E> {
+impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> AggregatedParseError<'arn, E> {
     pub fn eprint(&self) -> io::Result<()> {
         for e in &self.errors {
-            e.report(false).eprint(Source::from(self.input))?
+            e.report(false)
+                .eprint::<&InputTableInner<'arn>>(&*self.input.inner())?
         }
         Ok(())
     }
@@ -21,8 +23,8 @@ pub trait ParseResultExt<T> {
     fn unwrap_or_eprint(self) -> T;
 }
 
-impl<'p, E: ParseError<L = ErrorLabel<'p>> + 'p, T> ParseResultExt<T>
-    for Result<T, AggregatedParseError<'p, E>>
+impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn, T> ParseResultExt<T>
+    for Result<T, AggregatedParseError<'arn, E>>
 {
     fn unwrap_or_eprint(self) -> T {
         self.unwrap_or_else(|es| {

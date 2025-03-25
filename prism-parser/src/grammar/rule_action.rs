@@ -1,4 +1,5 @@
 use crate::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::from_action_result::{parse_identifier, parse_string};
@@ -9,44 +10,44 @@ use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum RuleAction<'arn, 'grm> {
-    Name(&'grm str),
-    InputLiteral(EscapedString<'grm>),
+pub enum RuleAction<'arn> {
+    Name(&'arn str),
+    InputLiteral(EscapedString<'arn>),
     Construct {
-        ns: &'grm str,
-        name: &'grm str,
+        ns: &'arn str,
+        name: &'arn str,
         #[serde(with = "leak_slice")]
         args: &'arn [Self],
     },
     #[serde(skip)]
     Value {
-        ns: &'grm str,
-        value: Parsed<'arn, 'grm>,
+        ns: &'arn str,
+        value: Parsed<'arn>,
     },
 }
 
-impl<'arn, 'grm: 'arn> ParseResult<'arn, 'grm> for RuleAction<'arn, 'grm> {}
-impl<'arn, 'grm: 'arn, Env> Parsable<'arn, 'grm, Env> for RuleAction<'arn, 'grm> {
+impl ParseResult for RuleAction<'_> {}
+impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
-        constructor: &'grm str,
-        args: &[Parsed<'arn, 'grm>],
-        _allocs: Allocs<'arn>,
-        src: &'grm str,
+        constructor: &'arn str,
+        args: &[Parsed<'arn>],
+        allocs: Allocs<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         match constructor {
             "Construct" => RuleAction::Construct {
                 ns: parse_identifier(args[0], src),
                 name: parse_identifier(args[1], src),
-                args: _allocs.alloc_extend(
+                args: allocs.alloc_extend(
                     args[2]
                         .into_value::<ParsedList>()
                         .into_iter()
                         .map(|((), v)| v)
-                        .map(|sub| *sub.into_value::<RuleAction<'arn, 'grm>>()),
+                        .map(|sub| *sub.into_value::<RuleAction<'arn>>()),
                 ),
             },
             "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),

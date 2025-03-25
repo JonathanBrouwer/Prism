@@ -1,20 +1,20 @@
-use crate::lang::error::TypeError;
+use crate::lang::error::{PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
+impl<'arn> PrismEnv<'arn> {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CoreIndex {
         self.parsed_to_checked_with_env(i, NamedEnv::default(), &mut Default::default())
     }
 
-    pub fn parsed_to_checked_with_env(
+    pub(super) fn parsed_to_checked_with_env(
         &mut self,
         i: ParsedIndex,
-        env: NamedEnv<'arn, 'grm>,
-        jump_labels: &mut HashMap<*const GrammarFile<'arn, 'grm>, NamesEnv<'arn, 'grm>>,
+        env: NamedEnv<'arn>,
+        jump_labels: &mut HashMap<*const GrammarFile<'arn>, NamesEnv<'arn>>,
     ) -> CoreIndex {
         let origin = ValueOrigin::SourceCode(self.parsed_spans[*i]);
         let e = match self.parsed_values[*i] {
@@ -24,7 +24,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ),
             ),
@@ -32,14 +32,14 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                 self.parsed_to_checked_with_env(a, env, jump_labels),
                 self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ),
             ),
             ParsedPrismExpr::FnConstruct(n, b) => {
                 CorePrismExpr::FnConstruct(self.parsed_to_checked_with_env(
                     b,
-                    env.insert_name(n, self.input, self.allocs),
+                    env.insert_name(n, &self.input, self.allocs),
                     jump_labels,
                 ))
             }
@@ -87,19 +87,21 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         if let Some(&expr) = parsed.try_into_value::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
                                 expr,
-                                env.shift_back(old_names, self.input, self.allocs),
+                                env.shift_back(old_names, &self.input, self.allocs),
                                 jump_labels,
                             );
                         } else {
                             unreachable!(
                                 "Found name `{name}` referring to {}",
-                                parsed.to_debug_string(self.input)
+                                parsed.to_debug_string(&self.input)
                             );
                         }
                     }
                     None => {
                         self.errors
-                            .push(TypeError::UnknownName(self.parsed_spans[*i]));
+                            .push(PrismError::TypeError(TypeError::UnknownName(
+                                self.parsed_spans[*i],
+                            )));
                         CorePrismExpr::Free
                     }
                 }
@@ -158,7 +160,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
                         names.insert(name, NamesEntry::FromParsed(value, env.names), self.allocs);
                 }
 
-                let env = NamedEnv::<'arn, 'grm> {
+                let env = NamedEnv::<'arn> {
                     env_len: env.env_len,
                     names,
                     //TODO should these be preserved?
@@ -167,6 +169,7 @@ impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
 
                 return self.parsed_to_checked_with_env(expr, env, jump_labels);
             }
+            ParsedPrismExpr::Include(_, v) => return v,
         };
         self.store_checked(e, origin)
     }

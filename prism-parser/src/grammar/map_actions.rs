@@ -7,10 +7,10 @@ use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
 
-impl<'arn, 'grm: 'arn> GrammarFile<'arn, 'grm> {
+impl<'arn> GrammarFile<'arn> {
     pub fn map_actions(
         &'arn self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> &'arn Self {
         allocs.alloc(Self {
@@ -19,10 +19,10 @@ impl<'arn, 'grm: 'arn> GrammarFile<'arn, 'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> Rule<'arn, 'grm> {
+impl<'arn> Rule<'arn> {
     pub fn map_actions(
         self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> Self {
         Self {
@@ -32,10 +32,10 @@ impl<'arn, 'grm: 'arn> Rule<'arn, 'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> RuleBlock<'arn, 'grm> {
+impl<'arn> RuleBlock<'arn> {
     pub fn map_actions(
         self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> Self {
         Self {
@@ -46,10 +46,10 @@ impl<'arn, 'grm: 'arn> RuleBlock<'arn, 'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> AnnotatedRuleExpr<'arn, 'grm> {
+impl<'arn> AnnotatedRuleExpr<'arn> {
     pub fn map_actions(
         self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> Self {
         Self {
@@ -59,10 +59,10 @@ impl<'arn, 'grm: 'arn> AnnotatedRuleExpr<'arn, 'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> RuleExpr<'arn, 'grm> {
+impl<'arn> RuleExpr<'arn> {
     pub fn map_actions(
         &'arn self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> &'arn Self {
         allocs.alloc(match self {
@@ -107,10 +107,10 @@ impl<'arn, 'grm: 'arn> RuleExpr<'arn, 'grm> {
     }
 }
 
-impl<'arn, 'grm: 'arn> RuleAction<'arn, 'grm> {
+impl<'arn> RuleAction<'arn> {
     pub fn map_actions(
         self,
-        map: &impl Fn(Parsed<'arn, 'grm>) -> Parsed<'arn, 'grm>,
+        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
         allocs: Allocs<'arn>,
     ) -> Self {
         match self {

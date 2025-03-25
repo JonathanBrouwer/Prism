@@ -18,20 +18,20 @@ use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
 
-impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'arn, 'grm, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_expr(
         &mut self,
-        expr: &'arn RuleExpr<'arn, 'grm>,
-        rules: &'arn GrammarState<'arn, 'grm>,
-        blocks: &'arn [BlockState<'arn, 'grm>],
-        rule_args: VarMap<'arn, 'grm>,
-        vars: VarMap<'arn, 'grm>,
+        expr: &'arn RuleExpr<'arn>,
+        rules: &'arn GrammarState<'arn>,
+        blocks: &'arn [BlockState<'arn>],
+        rule_args: VarMap<'arn>,
+        vars: VarMap<'arn>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn, 'grm>,
-        eval_ctxs: &mut HashMap<&'grm str, (Parsed<'arn, 'grm>, ParsedPlaceholder)>,
-    ) -> PResult<PR<'arn, 'grm>, E> {
+        eval_ctx: Parsed<'arn>,
+        eval_ctxs: &mut HashMap<&'arn str, (Parsed<'arn>, ParsedPlaceholder)>,
+    ) -> PResult<PR<'arn>, E> {
         match expr {
             RuleExpr::RunVar { rule, args } => {
                 let mut arg_values = Vec::new();
@@ -301,13 +301,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     eval_ctx,
                     &mut HashMap::new(),
                 );
-                res.map(|res| {
+                res.map_with_span(|res, span| {
                     if let Some(placeholder) = placeholder {
                         self.placeholders.place_into_empty(
                             placeholder,
                             res.rtrn,
+                            span,
                             self.alloc,
-                            self.input,
+                            &self.input,
                             penv,
                         );
                     }
@@ -321,7 +322,14 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
             RuleExpr::Action(sub, action) => {
                 let mut eval_ctxs = HashMap::new();
                 let root_placeholder = self.placeholders.push_empty();
-                self.pre_apply_action(action, penv, root_placeholder, eval_ctx, &mut eval_ctxs);
+                self.pre_apply_action(
+                    action,
+                    penv,
+                    pos,
+                    root_placeholder,
+                    eval_ctx,
+                    &mut eval_ctxs,
+                );
 
                 let res = self.parse_expr(
                     sub,
@@ -401,7 +409,7 @@ impl<'arn, 'grm: 'arn, Env, E: ParseError<L = ErrorLabel<'grm>>> ParserState<'ar
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let grammar = vars.get(grammar).unwrap();
                 let grammar =
-                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, self.input, penv);
+                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
 
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states

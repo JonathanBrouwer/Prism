@@ -3,8 +3,14 @@ use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::{CorePrismExpr, PrismEnv};
 
-impl<'arn, 'grm: 'arn> PrismEnv<'arn, 'grm> {
-    pub fn is_beta_equal(&mut self, i1: CoreIndex, s1: DbEnv, i2: CoreIndex, s2: DbEnv) -> bool {
+impl<'arn> PrismEnv<'arn> {
+    pub fn is_beta_equal(
+        &mut self,
+        i1: CoreIndex,
+        s1: DbEnv<'arn>,
+        i2: CoreIndex,
+        s2: DbEnv<'arn>,
+    ) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1);
         let (i2, s2) = self.beta_reduce_head(i2, s2);

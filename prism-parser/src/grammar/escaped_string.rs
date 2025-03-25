@@ -4,14 +4,14 @@ use std::fmt::{Display, Formatter};
 use std::str::Chars;
 
 #[derive(Debug, Copy, Clone, Hash, Serialize, Deserialize, Eq, PartialEq)]
-pub struct EscapedString<'grm>(&'grm str);
+pub struct EscapedString<'arn>(&'arn str);
 
-impl<'grm> EscapedString<'grm> {
-    pub fn from_escaped(s: &'grm str) -> Self {
+impl<'arn> EscapedString<'arn> {
+    pub fn from_escaped(s: &'arn str) -> Self {
         Self(s)
     }
 
-    pub fn to_cow(&self) -> Cow<'grm, str> {
+    pub fn to_cow(&self) -> Cow<'arn, str> {
         if self.0.contains('\\') {
             Cow::Owned(self.chars().collect())
         } else {
@@ -30,7 +30,7 @@ impl Display for EscapedString<'_> {
     }
 }
 
-struct EscapedStringIter<'grm>(Chars<'grm>);
+struct EscapedStringIter<'arn>(Chars<'arn>);
 
 impl Iterator for EscapedStringIter<'_> {
     type Item = char;

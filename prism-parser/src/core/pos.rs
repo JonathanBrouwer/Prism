@@ -1,36 +1,41 @@
+use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::ops::Sub;
+use std::ops::{Add, Sub};
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Pos(usize);
+pub struct Pos(usize, InputTableIndex);
 
 impl Pos {
-    pub fn start() -> Self {
-        Self(0)
+    pub fn start_of(idx: InputTableIndex) -> Self {
+        Self(0, idx)
     }
 
-    pub fn end(input: &str) -> Self {
-        Self(input.len())
+    pub fn file(self) -> InputTableIndex {
+        self.1
+    }
+
+    pub fn file_ref(&self) -> &InputTableIndex {
+        &self.1
+    }
+
+    pub fn idx_in_file(self) -> usize {
+        self.0
     }
 
     pub fn span_to(self, other: Self) -> Span {
-        Span::new(self, other)
+        Span::new(self, other - self)
     }
 
-    pub fn next(self, input: &str) -> (Self, Option<(Span, char)>) {
-        match input[self.0..].chars().next() {
+    pub fn next(self, input: &InputTable) -> (Self, Option<(Span, char)>) {
+        match input.get_str(self.1)[self.0..].chars().next() {
             None => (self, None),
             Some(c) => (
-                Self(self.0 + c.len_utf8()),
-                Some((Span::new(self, Self(self.0 + c.len_utf8())), c)),
+                Self(self.0 + c.len_utf8(), self.1),
+                Some((Span::new(self, c.len_utf8()), c)),
             ),
         }
-    }
-
-    pub const fn invalid() -> Self {
-        Self(usize::MAX)
     }
 }
 
@@ -40,16 +45,19 @@ impl Display for Pos {
     }
 }
 
+impl Add<usize> for Pos {
+    type Output = Pos;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Pos(self.0 + rhs, self.1)
+    }
+}
+
 impl Sub<Pos> for Pos {
     type Output = usize;
 
     fn sub(self, rhs: Pos) -> Self::Output {
+        assert_eq!(self.1, rhs.1);
         self.0 - rhs.0
-    }
-}
-
-impl From<Pos> for usize {
-    fn from(val: Pos) -> Self {
-        val.0
     }
 }
