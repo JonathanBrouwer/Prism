@@ -1,1 +1,1 @@
-(v: Type) -> Type
+(A B : Type) => A

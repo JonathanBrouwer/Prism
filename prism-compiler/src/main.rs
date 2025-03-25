@@ -30,15 +30,16 @@ fn main() {
         "> Core Program\n====================\n{}\n\n",
         env.index_to_string(processed.core),
     );
-    println!(
-        "> Type of program\n====================\n{}\n\n",
-        env.index_to_br_string(processed.typ)
-    );
 
     if !env.errors.is_empty() {
         println!("> Errors\n====================\n",);
         env.eprint_errors();
     } else {
+        println!(
+            "> Type of program\n====================\n{}\n\n",
+            env.index_to_br_string(processed.typ)
+        );
+
         println!(
             "> Evaluated\n====================\n{}\n\n",
             env.index_to_br_string(processed.core)
