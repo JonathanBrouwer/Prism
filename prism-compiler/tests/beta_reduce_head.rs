@@ -26,9 +26,9 @@ fn test([test]: [&str; 1]) {
         env.is_beta_equal(input, DbEnv::default(), expected_eval, DbEnv::default()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
-        env.index_to_br_string(input),
+        env.index_to_br_string(input, DbEnv::default()),
         env.index_to_sm_string(expected_eval),
-        env.index_to_br_string(expected_eval),
+        env.index_to_br_string(expected_eval, DbEnv::default()),
     );
 }
 

@@ -1,6 +1,7 @@
 use std::fmt::Write;
 
 use crate::lang::CoreIndex;
+use crate::lang::env::DbEnv;
 use crate::lang::{CorePrismExpr, PrismEnv};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
@@ -33,7 +34,7 @@ impl CorePrismExpr<'_> {
     }
 }
 
-impl PrismEnv<'_> {
+impl<'arn> PrismEnv<'arn> {
     fn display(
         &self,
         i: CoreIndex,
@@ -107,8 +108,8 @@ impl PrismEnv<'_> {
         self.index_to_string(i)
     }
 
-    pub fn index_to_br_string(&mut self, i: CoreIndex) -> String {
-        let i = self.beta_reduce(i);
+    pub fn index_to_br_string(&mut self, i: CoreIndex, env: DbEnv<'arn>) -> String {
+        let i = self.beta_reduce(i, env);
         self.index_to_string(i)
     }
 }

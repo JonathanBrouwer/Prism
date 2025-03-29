@@ -4,28 +4,14 @@ let Bool = (T: Type) -> T -> T -> T;
 let true: Bool = (T: Type) => (v1: T) => (v2: T) => v1;
 let false: Bool = (T: Type) => (v1: T) => (v2: T) => v2;
 
-//let Pair = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
-let PairInductor =
-    (T1: Type) => (T2 : (T1 -> Type)) =>
-    (Out: (v1: T1) -> (v2: T2 v1) -> Type) ->
-    (destruct: (v1: T1) -> (v2: T2 v1) -> Out v1 v2) ->
-    (v1: T1) -> (v2: T2 v1) ->
-    Out v1 v2;
-let mk_pair: (T1: Type) -> (T2 : (T1 -> Type)) -> (v1: T1) -> (v2: T2 v1) -> PairInductor T1 T2 =
-    (T1: Type) => (T2 : (T1 -> Type))
-    => (v1: T1) => (v2: T2 v1)
-    => (Out: (v1: T1) -> (v2: T2 v1) -> Type)
-    => (destruct: (v1: T1) -> (v2: T2 v1) -> Out v1 v2)
-    => (v1: T1) => (v2: T2 v1)
+let Pair
+    : (T1: Type) -> (T2 : (T1 -> Type)) -> Type
+    = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
+let pair
+    : (T1: Type) -> (T2 : (T1 -> Type)) -> (v1: T1) -> (v2: T2 v1) -> Pair T1 T2
+    = (T1: Type) => (T2 : (T1 -> Type)) => (v1: T1) => (v2: T2 v1)
+    => (Out: Type) => (destruct: ((v1: T1) -> (v2: T2 v1) -> Out))
     => destruct v1 v2;
 
-mk_pair
-//let fst: (T1: Type) => (T2 : (T1 -> Type)) -> PairInductor T1 T2 -> T1 = _;
 
-
-//let pair: PairInductor Bool (_ => Bool) = mk_pair _ _ true false;
-
-
-//fst Bool (_ => Bool) pair
-
-// https://chatgpt.com/c/67e29aa5-0c38-800e-ab08-b3e5b7d815a0
+pair Bool ((v1: Bool) => v1 Type Bool Type) true false

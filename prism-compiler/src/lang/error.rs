@@ -1,4 +1,5 @@
 use crate::lang::CoreIndex;
+use crate::lang::env::DbEnv;
 use crate::lang::{PrismEnv, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
@@ -10,7 +11,7 @@ const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 pub enum PrismError<'arn> {
     ParseError(SetError<'arn>),
-    TypeError(TypeError),
+    TypeError(TypeError<'arn>),
 }
 
 impl<'arn> PrismError<'arn> {
@@ -39,13 +40,13 @@ impl<'arn> PrismEnv<'arn> {
     }
 }
 
-pub enum TypeError {
+pub enum TypeError<'arn> {
     ExpectType(CoreIndex),
     ExpectFn(CoreIndex),
     ExpectFnArg {
-        function_type: CoreIndex,
-        function_arg_type: CoreIndex,
-        arg_type: CoreIndex,
+        function_type: (CoreIndex, DbEnv<'arn>),
+        function_arg_type: (CoreIndex, DbEnv<'arn>),
+        arg_type: (CoreIndex, DbEnv<'arn>),
     },
     ExpectTypeAssert {
         expr: CoreIndex,
@@ -61,8 +62,8 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl PrismEnv<'_> {
-    pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
+impl<'arn> PrismEnv<'arn> {
+    pub fn report(&mut self, error: &TypeError<'arn>) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
@@ -135,27 +136,17 @@ impl PrismEnv<'_> {
                 function_arg_type,
                 arg_type,
             } => {
-                let ValueOrigin::TypeOf(j) = self.checked_origins[**arg_type] else {
-                    unreachable!()
-                };
-                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
-                    unreachable!()
-                };
+                let span = self.source_span(arg_type.0);
                 let label_arg = Label::new(span).with_message(format!(
                     "This argument has type: {}",
-                    self.index_to_sm_string(*arg_type)
+                    self.index_to_br_string(arg_type.0, arg_type.1)
                 ));
 
-                let ValueOrigin::TypeOf(j) = self.checked_origins[**function_type] else {
-                    unreachable!()
-                };
-                let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
-                    unreachable!()
-                };
+                let span = self.source_span(function_type.0);
                 let label_fn = Label::new(span)
                     .with_message(format!(
                         "This function takes arguments of type: {}",
-                        self.index_to_sm_string(*function_arg_type)
+                        self.index_to_br_string(function_arg_type.0, function_arg_type.1)
                     ))
                     .with_order(1)
                     .with_color(SECONDARY_COLOR);
@@ -205,5 +196,15 @@ impl PrismEnv<'_> {
             }
         };
         Some((span, origin_description))
+    }
+
+    fn source_span(&self, idx: CoreIndex) -> Span {
+        let ValueOrigin::TypeOf(j) = self.checked_origins[idx.0] else {
+            unreachable!()
+        };
+        let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
+            unreachable!()
+        };
+        span
     }
 }

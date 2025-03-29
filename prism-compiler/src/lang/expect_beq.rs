@@ -66,9 +66,9 @@ impl<'arn> PrismEnv<'arn> {
                     0,
                 ) {
                     self.push_type_error(TypeError::ExpectFnArg {
-                        function_type: ft,
-                        function_arg_type: f_at,
-                        arg_type: at,
+                        function_type: (ft, s),
+                        function_arg_type: (f_at, s),
+                        arg_type: (at, s),
                     })
                 }
                 self.toxic_values.clear();
@@ -94,9 +94,9 @@ impl<'arn> PrismEnv<'arn> {
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
                 if !self.handle_constraints(fr, sr, 0) {
                     self.push_type_error(TypeError::ExpectFnArg {
-                        function_type: ft,
-                        function_arg_type: f_at,
-                        arg_type: at,
+                        function_type: (ft, s),
+                        function_arg_type: (f_at, s),
+                        arg_type: (at, s),
                     })
                 }
 

@@ -113,7 +113,7 @@ impl<'arn> PrismEnv<'arn> {
         tid
     }
 
-    pub(super) fn push_type_error(&mut self, error: TypeError) {
+    pub(super) fn push_type_error(&mut self, error: TypeError<'arn>) {
         self.errors.push(PrismError::TypeError(error))
     }
 }

@@ -110,5 +110,5 @@ pub struct PrismParseEnv<'arn> {
     // Value store
     pub values: Vec<ParsedPrismExpr<'arn>>,
     pub value_origins: Vec<Span>,
-    pub errors: Vec<TypeError>,
+    pub errors: Vec<TypeError<'arn>>,
 }

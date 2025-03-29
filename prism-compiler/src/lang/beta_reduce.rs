@@ -4,8 +4,8 @@ use crate::lang::{CorePrismExpr, PrismEnv};
 use std::collections::HashMap;
 
 impl<'arn> PrismEnv<'arn> {
-    pub fn beta_reduce(&mut self, i: CoreIndex) -> CoreIndex {
-        self.beta_reduce_inner(i, DbEnv::default(), &mut HashMap::new())
+    pub fn beta_reduce(&mut self, i: CoreIndex, env: DbEnv<'arn>) -> CoreIndex {
+        self.beta_reduce_inner(i, env, &mut HashMap::new())
     }
 
     fn beta_reduce_inner(
