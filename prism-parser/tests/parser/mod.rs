@@ -13,8 +13,7 @@ mod parser_tests;
 mod repeat;
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {
-        #[allow(unused_imports)]
-        #[allow(unused_variables)]
+        #[allow(unused)]
         #[test]
         fn $name() {
             use std::sync::Arc;

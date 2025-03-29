@@ -35,8 +35,6 @@ impl<'arn> Parsed<'arn> {
             format!("Guid({})", guid.0)
         } else if let Some(input) = self.try_into_value::<Input>() {
             format!("\'{}\'", input.to_string(src))
-        } else if let Some(input) = self.try_into_value::<RuleAction>() {
-            format!("{input:?}")
         } else {
             format!("Unknown value of type {}", self.name)
         }

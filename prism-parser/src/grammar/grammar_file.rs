@@ -9,7 +9,7 @@ use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::PlaceholderStore;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct GrammarFile<'arn> {
     #[serde(borrow, with = "leak_slice")]
     pub rules: &'arn [Rule<'arn>],

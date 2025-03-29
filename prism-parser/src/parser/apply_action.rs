@@ -1,4 +1,3 @@
-use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
@@ -14,7 +13,7 @@ use std::collections::HashMap;
 use std::iter;
 
 impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
-    pub fn pre_apply_action(
+    pub fn pre_apply_action<'a>(
         &mut self,
         rule: &RuleAction<'arn>,
         penv: &mut Env,
@@ -26,6 +25,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     ) {
         match rule {
             RuleAction::Name(n) => {
+                let n = n.as_str(&self.input);
                 if eval_ctxs.contains_key(n) {
                     // Ctx is ambiguous
                     //TODO if both ctxs are identical, we can continue
@@ -107,10 +107,10 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     ) -> Parsed<'arn> {
         match rule {
             RuleAction::Name(name) => {
-                if let Some(ar) = vars.get(name) {
+                if let Some(ar) = vars.get(name.as_str(&self.input)) {
                     ar
                 } else {
-                    panic!("Name '{name}' not in context")
+                    panic!("Name '{}' not in context", name.as_str(&self.input))
                 }
             }
             RuleAction::InputLiteral(lit) => self.alloc.alloc(*lit).to_parsed(),
