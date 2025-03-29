@@ -140,10 +140,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     let mut res = res.map(|_| {
                         PR::with_rtrn(state.alloc.alloc(Input::from_span(span)).to_parsed())
                     });
-                    res.add_label_implicit(ErrorLabel::Literal(
-                        span,
-                        literal.to_string(&state.input),
-                    ));
+                    res.add_label_implicit(ErrorLabel::Literal(span, *literal));
                     res
                 },
                 pos,

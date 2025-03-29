@@ -1,6 +1,6 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::PrismError;
-use crate::parser::{ParsedIndex, ParsedPrismExpr};
+use crate::parser::{GRAMMAR, ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
@@ -112,7 +112,7 @@ pub struct ProcessedFile {
 impl<'arn> PrismEnv<'arn> {
     pub fn new(allocs: Allocs<'arn>) -> Self {
         Self {
-            input: Arc::new(InputTable::default()),
+            input: Arc::new(GRAMMAR.0.deep_clone()),
             allocs,
 
             parsed_values: Default::default(),

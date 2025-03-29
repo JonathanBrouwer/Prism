@@ -12,7 +12,7 @@ pub struct AggregatedParseError<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn
 impl<'arn, E: ParseError<L = ErrorLabel<'arn>> + 'arn> AggregatedParseError<'arn, E> {
     pub fn eprint(&self) -> io::Result<()> {
         for e in &self.errors {
-            e.report(false)
+            e.report(false, &self.input)
                 .eprint::<&InputTableInner<'arn>>(&*self.input.inner())?
         }
         Ok(())

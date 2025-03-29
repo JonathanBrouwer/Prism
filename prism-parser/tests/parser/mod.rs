@@ -41,7 +41,7 @@ macro_rules! parse_test {
             let syntax: &'static str = $syntax;
             let bump = OwnedAllocs::default();
             let alloc = Allocs::new(&bump);
-            let grammar: &GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
+            let (input_table, grammar) = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
 
             let mut parsables = HashMap::new();
             parsables.insert(
@@ -51,7 +51,6 @@ macro_rules! parse_test {
 
             $({
             let input: &'static str = $input_pass;
-            let input_table = Arc::new(InputTable::default());
             let file = input_table.get_or_push_file(input, "test_file".into());
             println!("== Parsing (should be ok): {}", input);
 
@@ -63,7 +62,6 @@ macro_rules! parse_test {
 
             $({
             let input: &'static str = $input_fail;
-            let input_table = Arc::new(InputTable::default());
             let file = input_table.get_or_push_file(input, "test_file".into());
             println!("== Parsing (should be fail): {}", input);
 

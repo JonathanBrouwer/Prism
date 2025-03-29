@@ -1,14 +1,13 @@
-use crate::core::input_table::InputTableIndex;
+use crate::core::input::Input;
+use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
-use std::fmt::{Display, Formatter};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'arn> {
     Explicit(Span, String),
-    Literal(Span, String),
+    Literal(Span, Input),
     Debug(Span, &'arn str),
-    FromConstruct(Span, String),
 }
 
 impl ErrorLabel<'_> {
@@ -17,7 +16,6 @@ impl ErrorLabel<'_> {
             ErrorLabel::Explicit(s, _) => *s,
             ErrorLabel::Literal(s, _) => *s,
             ErrorLabel::Debug(s, _) => *s,
-            ErrorLabel::FromConstruct(s, _) => *s,
         }
     }
 
@@ -26,18 +24,14 @@ impl ErrorLabel<'_> {
             ErrorLabel::Explicit(_, _) => false,
             ErrorLabel::Literal(_, _) => false,
             ErrorLabel::Debug(_, _) => true,
-            ErrorLabel::FromConstruct(_, _) => false,
         }
     }
-}
 
-impl Display for ErrorLabel<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    pub fn to_string(&self, input: &InputTable) -> String {
         match self {
-            ErrorLabel::Explicit(_, s) => write!(f, "{s}"),
-            ErrorLabel::Literal(_, s) => write!(f, "'{s}'"),
-            ErrorLabel::Debug(_, s) => write!(f, "[{s}]"),
-            ErrorLabel::FromConstruct(_, s) => write!(f, "{s}"),
+            ErrorLabel::Explicit(_, s) => s.to_string(),
+            ErrorLabel::Literal(_, s) => s.to_string(input),
+            ErrorLabel::Debug(_, s) => format!("[{s}]"),
         }
     }
 }

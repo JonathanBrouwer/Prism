@@ -19,7 +19,7 @@ failing tests:
 }
 
 parse_test! {
-name: literasl_indirect
+name: literal_indirect
 syntax: r#"
     rule start = lol;
 

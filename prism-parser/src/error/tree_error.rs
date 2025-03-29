@@ -1,3 +1,4 @@
+use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
@@ -89,7 +90,7 @@ impl<'arn> ParseError for TreeError<'arn> {
         }
     }
 
-    fn report(&self, enable_debug: bool) -> Report<'static, Span> {
+    fn report(&self, enable_debug: bool, input: &InputTable) -> Report<'static, Span> {
         let mut report: ReportBuilder<Span> = base_report(self.pos.span_to(self.pos));
 
         //Add labels
@@ -107,7 +108,7 @@ impl<'arn> ParseError for TreeError<'arn> {
                 Label::new(label.span())
                     .with_message(
                         path.iter()
-                            .map(|v| v.to_string())
+                            .map(|v| v.to_string(input))
                             .collect::<Vec<_>>()
                             .join(" <- ")
                             .to_string(),

@@ -22,11 +22,12 @@ impl<'arn> Default for InputTable<'arn> {
 
 pub const META_INPUT_INDEX: InputTableIndex = InputTableIndex(0);
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct InputTableInner<'arn> {
     files: Vec<InputTableEntry<'arn>>,
 }
 
+#[derive(Clone)]
 struct InputTableEntry<'arn> {
     input: &'arn str,
     path: PathBuf,
@@ -37,6 +38,15 @@ struct InputTableEntry<'arn> {
 pub struct InputTableIndex(usize);
 
 impl<'arn> InputTable<'arn> {
+    pub fn deep_clone<'brn>(&self) -> InputTable<'brn>
+    where
+        'arn: 'brn,
+    {
+        InputTable {
+            inner: RwLock::new(self.inner.read().unwrap().clone()),
+        }
+    }
+
     pub fn get_or_push_file(&self, file: &'arn str, path: PathBuf) -> InputTableIndex {
         let mut inner = self.inner.write().unwrap();
 

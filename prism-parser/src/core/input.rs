@@ -9,7 +9,7 @@ use std::iter;
 use std::marker::PhantomData;
 use std::str::Chars;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Input {
     span: Span,
     has_escapes: bool,

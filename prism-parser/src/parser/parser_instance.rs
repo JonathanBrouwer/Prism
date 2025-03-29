@@ -151,20 +151,20 @@ pub fn run_parser_rule<
     allocs: Allocs<'arn>,
     parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
     penv: &'a mut Env,
-) -> Result<&'arn P, AggregatedParseError<'arn, E>> {
-    let input_table = InputTable::default();
+) -> Result<(Arc<InputTable<'arn>>, &'arn P), AggregatedParseError<'arn, E>> {
+    let input_table = Arc::new(InputTable::default());
     let file = input_table.get_or_push_file(input, "input".into());
 
     run_parser_rule_raw(
         rules,
         rule,
-        Arc::new(input_table),
+        input_table.clone(),
         file,
         allocs,
         parsables,
         penv,
     )
-    .map(|parsed| parsed.into_value::<P>())
+    .map(|parsed| (input_table, parsed.into_value::<P>()))
 }
 
 #[macro_export]

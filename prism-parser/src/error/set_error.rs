@@ -1,3 +1,4 @@
+use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
@@ -51,7 +52,7 @@ impl<'arn> ParseError for SetError<'arn> {
         }
     }
 
-    fn report(&self, enable_debug: bool) -> Report<'static, Span> {
+    fn report(&self, enable_debug: bool, input: &InputTable) -> Report<'static, Span> {
         let mut report = base_report(self.pos.span_to(self.pos));
 
         let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
@@ -67,7 +68,7 @@ impl<'arn> ParseError for SetError<'arn> {
                         "Tried parsing {}",
                         labels
                             .iter()
-                            .map(|v| v.to_string())
+                            .map(|v| v.to_string(input))
                             .collect::<Vec<_>>()
                             .join(" / ")
                     ))

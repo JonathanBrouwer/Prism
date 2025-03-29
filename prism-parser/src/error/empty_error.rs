@@ -1,3 +1,4 @@
+use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
@@ -24,7 +25,7 @@ impl<'arn> ParseError for EmptyError<'arn> {
         Self(PhantomData)
     }
 
-    fn report(&self, _enable_debug: bool) -> Report<'static, Span> {
+    fn report(&self, _enable_debug: bool, input: &InputTable) -> Report<'static, Span> {
         todo!()
         // Report::build(ReportKind::Error, Span::new(Pos::start_of(), Pos::start_of()))
         //     .with_message("Parsing error occured")

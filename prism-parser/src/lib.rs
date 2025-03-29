@@ -2,9 +2,10 @@
 #![allow(clippy::too_many_arguments)]
 
 use std::collections::HashMap;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
 use self::core::allocs::Allocs;
+use crate::core::input_table::InputTable;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
@@ -27,7 +28,7 @@ pub static META_GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
 pub fn parse_grammar<'arn, E: ParseError<L = ErrorLabel<'arn>>>(
     grammar: &'arn str,
     allocs: Allocs<'arn>,
-) -> Result<&'arn GrammarFile<'arn>, AggregatedParseError<'arn, E>> {
+) -> Result<(Arc<InputTable<'arn>>, &'arn GrammarFile<'arn>), AggregatedParseError<'arn, E>> {
     run_parser_rule::<(), GrammarFile<'arn>, E>(
         &META_GRAMMAR,
         "toplevel",

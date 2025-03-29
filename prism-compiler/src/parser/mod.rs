@@ -14,20 +14,22 @@ use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
 mod display;
 pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
 
-pub static GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
-    *parse_grammar::<SetError>(
-        include_str!("../../resources/prism.pg"),
-        Allocs::new_leaking(),
-    )
-    .unwrap_or_eprint()
-});
+pub static GRAMMAR: LazyLock<(InputTable<'static>, &'static GrammarFile<'static>)> =
+    LazyLock::new(|| {
+        let (table, grammar) = parse_grammar::<SetError>(
+            include_str!("../../resources/prism.pg"),
+            Allocs::new_leaking(),
+        )
+        .unwrap_or_eprint();
+        (table.deep_clone(), grammar)
+    });
 
 impl<'arn> PrismEnv<'arn> {
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
@@ -45,7 +47,7 @@ impl<'arn> PrismEnv<'arn> {
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
         match run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
-            &GRAMMAR,
+            &GRAMMAR.1,
             "expr",
             self.input.clone(),
             file,
