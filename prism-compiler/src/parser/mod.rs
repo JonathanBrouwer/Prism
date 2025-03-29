@@ -101,14 +101,3 @@ pub enum ParsedPrismExpr<'arn> {
     GrammarType,
     Include(&'arn str, CoreIndex),
 }
-
-pub struct PrismParseEnv<'arn> {
-    // Allocs
-    pub input: InputTable<'arn>,
-    pub allocs: Allocs<'arn>,
-
-    // Value store
-    pub values: Vec<ParsedPrismExpr<'arn>>,
-    pub value_origins: Vec<Span>,
-    pub errors: Vec<TypeError<'arn>>,
-}
