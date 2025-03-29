@@ -3,7 +3,7 @@ use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
-use crate::grammar::from_action_result::parse_identifier;
+use crate::grammar::identifier::parse_identifier_old;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
@@ -80,7 +80,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
                 ),
             ),
             "NameBind" => RuleExpr::NameBind(
-                parse_identifier(args[0], src),
+                parse_identifier_old(args[0], src),
                 args[1].into_value::<RuleExpr>(),
             ),
             "Repeat" => RuleExpr::Repeat {
@@ -96,7 +96,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
             "NegLookahead" => RuleExpr::NegLookahead(args[0].into_value::<RuleExpr>()),
             "Guid" => RuleExpr::Guid,
             "RunVar" => RuleExpr::RunVar {
-                rule: parse_identifier(args[0], src),
+                rule: parse_identifier_old(args[0], src),
                 args: allocs.alloc_extend(
                     args[1]
                         .into_value::<ParsedList>()
@@ -106,8 +106,8 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
                 ),
             },
             "AtAdapt" => RuleExpr::AtAdapt {
-                ns: parse_identifier(args[0], src),
-                name: parse_identifier(args[1], src),
+                ns: parse_identifier_old(args[0], src),
+                name: parse_identifier_old(args[1], src),
                 expr: args[2].into_value::<RuleExpr>(),
             },
             _ => unreachable!(),

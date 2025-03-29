@@ -132,7 +132,8 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 vars,
                 |state, start_pos, _penv| {
                     let mut res = PResult::new_empty((), start_pos);
-                    for char in literal.chars(&state.input) {
+                    let input = state.input.clone();
+                    for char in literal.chars(&input) {
                         let new_res = state.parse_char(|c| *c == char, res.end_pos());
                         res = res.merge_seq(new_res).map(|_| ());
                     }

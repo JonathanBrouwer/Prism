@@ -34,7 +34,7 @@ impl<'de> Deserialize<'de> for Input {
     }
 }
 
-impl<'arn> Input {
+impl Input {
     pub fn from_span(span: Span) -> Self {
         Self {
             span,
@@ -42,12 +42,16 @@ impl<'arn> Input {
         }
     }
 
-    pub fn to_string(self, input: &InputTable<'arn>) -> String {
+    pub fn span(self) -> Span {
+        self.span
+    }
+
+    pub fn to_string(self, input: &InputTable) -> String {
         self.chars(input).collect()
     }
 
-    pub fn chars(self, input: &InputTable<'arn>) -> impl Iterator<Item = char> + use<'arn> {
-        struct EscapedStringIter<'arn>(Chars<'arn>, bool);
+    pub fn chars<'a>(self, input: &'a InputTable) -> impl Iterator<Item = char> + use<'a> {
+        struct EscapedStringIter<'a>(Chars<'a>, bool);
         impl Iterator for EscapedStringIter<'_> {
             type Item = char;
 
@@ -69,7 +73,7 @@ impl<'arn> Input {
         EscapedStringIter(input.slice(self.span).chars(), self.has_escapes)
     }
 
-    pub fn as_str(self, input: &InputTable<'arn>) -> &'arn str {
+    pub fn as_str<'a>(self, input: &InputTable<'a>) -> &'a str {
         let slice = input.slice(self.span);
         assert!(!self.has_escapes || !slice.contains('\\'));
         slice

@@ -1,7 +1,7 @@
 use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::from_action_result::parse_identifier;
+use crate::grammar::identifier::parse_identifier_old;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
@@ -35,7 +35,7 @@ impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
         assert_eq!(constructor, "Rule");
 
         Rule {
-            name: parse_identifier(args[0], src),
+            name: parse_identifier_old(args[0], src),
             adapt: args[1]
                 .into_value::<ParsedList>()
                 .into_iter()
@@ -46,7 +46,7 @@ impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)
-                    .map(|n| ("ActionResult", parse_identifier(n, src))),
+                    .map(|n| ("ActionResult", parse_identifier_old(n, src))),
             ),
             blocks: allocs.alloc_extend(
                 args[3]

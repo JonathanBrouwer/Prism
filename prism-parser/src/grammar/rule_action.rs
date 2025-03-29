@@ -2,7 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::from_action_result::parse_identifier;
+use crate::grammar::identifier::parse_identifier_old;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
@@ -40,8 +40,8 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
     ) -> Self {
         match constructor {
             "Construct" => RuleAction::Construct {
-                ns: parse_identifier(args[0], src),
-                name: parse_identifier(args[1], src),
+                ns: parse_identifier_old(args[0], src),
+                name: parse_identifier_old(args[1], src),
                 args: allocs.alloc_extend(
                     args[2]
                         .into_value::<ParsedList>()
@@ -53,9 +53,9 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
             "InputLiteral" => {
                 RuleAction::InputLiteral(args[0].into_value::<Input>().parse_escaped_string())
             }
-            "Name" => RuleAction::Name(parse_identifier(args[0], src)),
+            "Name" => RuleAction::Name(parse_identifier_old(args[0], src)),
             "Value" => RuleAction::Value {
-                ns: parse_identifier(args[0], src),
+                ns: parse_identifier_old(args[0], src),
                 value: args[1],
             },
             _ => unreachable!(),
