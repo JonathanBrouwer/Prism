@@ -2,7 +2,7 @@ use bumpalo::Bump;
 use clap::Parser;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::DbEnv;
-use prism_parser::core::allocs::Allocs;
+use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -14,7 +14,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let bump = Bump::new();
+    let bump = OwnedAllocs::default();
     let allocs = Allocs::new(&bump);
     let mut env = PrismEnv::new(allocs);
 

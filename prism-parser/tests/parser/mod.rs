@@ -32,14 +32,14 @@ macro_rules! parse_test {
             use prism_parser::grammar::rule_action::RuleAction;
             use prism_parser::error::aggregate_error::ParseResultExt;
             use bumpalo::Bump;
-            use prism_parser::core::allocs::Allocs;
+            use prism_parser::core::allocs::{Allocs, OwnedAllocs};
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;
             use prism_parser::core::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
-            let bump = Bump::new();
+            let bump = OwnedAllocs::default();
             let alloc = Allocs::new(&bump);
             let grammar: &GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
 

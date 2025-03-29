@@ -1,6 +1,6 @@
 use bumpalo::Bump;
 use prism_parser::META_GRAMMAR;
-use prism_parser::core::allocs::Allocs;
+use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -11,7 +11,7 @@ pub fn test_bootstrap() {
     let grammar: &'static GrammarFile = &META_GRAMMAR;
 
     let input = include_str!("../resources/meta.pg");
-    let bump = Bump::new();
+    let bump = OwnedAllocs::default();
     let alloc = Allocs::new(&bump);
     let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
 

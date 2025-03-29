@@ -1,6 +1,6 @@
 use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
-use prism_parser::core::allocs::Allocs;
+use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use test_each_file::test_each_file;
 
 fn test_ok([test]: [&str; 1]) {
@@ -8,7 +8,7 @@ fn test_ok([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (_eval, _expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let bump = Bump::new();
+    let bump = OwnedAllocs::default();
     let mut env = PrismEnv::new(Allocs::new(&bump));
     let input = env.load_test(input_str, "input");
     let _input = env.parse_file(input);

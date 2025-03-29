@@ -1,0 +1,11 @@
+[package]
+name = "prism-lsp"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+prism-compiler.workspace = true
+tower-lsp-server.workspace = true
+tokio.workspace = true

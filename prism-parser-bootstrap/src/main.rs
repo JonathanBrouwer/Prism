@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use bumpalo::Bump;
-use prism_parser::core::allocs::Allocs;
+use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parse_grammar;
@@ -15,7 +15,7 @@ fn main() {
 
 fn normal() {
     let input = include_str!("../resources/meta.pg");
-    let bump = Bump::new();
+    let bump = OwnedAllocs::default();
     let alloc = Allocs::new(&bump);
     let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
 
@@ -49,7 +49,7 @@ fn normal() {
 //     );
 //     let result: ActionResult<'_, 'static> = bincode::deserialize(temp).unwrap();
 //
-//     let bump = Bump::new();
+//     let bump = OwnedAllocs::default();
 //     let alloc = Allocs::new(&bump);
 //     let grammar2: GrammarFile = parse_grammarfile(&result, input, alloc, |ar, src| {
 //         parse_rule_action(ar, src, alloc)

@@ -170,7 +170,7 @@ pub fn run_parser_rule<
 #[macro_export]
 macro_rules! run_parser_rule_here {
     ($id: ident = $rules: expr, $rule: expr, $error: ty, $input: expr) => {
-        let bump = ::bumpalo::Bump::new();
+        let bump = ::bumpalo::OwnedAllocs::default();
         let alloc = $crate::core::allocs::Allocs::new(&bump);
         let mut instance =
             $crate::parser::parser_instance::ParserInstance::<$error>::new($input, alloc, $rules)
