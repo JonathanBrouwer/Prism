@@ -25,20 +25,6 @@ impl<'arn> Serialize for Input {
     }
 }
 
-// impl<'de> Deserialize<'de> for Input {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         let s: &'de str = Deserialize::deserialize(deserializer)?;
-//         let meta_str_start = META_GRAMMAR_STR.find(s).unwrap();
-//         Ok(Input {
-//             span: Span::new(Pos::start_of(META_INPUT_INDEX) + meta_str_start, s.len()),
-//             has_escapes: true,
-//         })
-//     }
-// }
-
 impl<'arn> Input {
     pub fn from_span(span: Span) -> Self {
         Self {
