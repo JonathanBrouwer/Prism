@@ -121,14 +121,11 @@
                             "Repeat": {
                               "expr": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      182,
-                                      0
-                                    ],
-                                    "len": 5
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    182,
+                                    0
+                                  ],
+                                  "len": 5
                                 }
                               },
                               "min": 0,
@@ -142,14 +139,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              191,
-                              0
-                            ],
-                            "len": 4
-                          },
-                          "has_escapes": true
+                          "start": [
+                            191,
+                            0
+                          ],
+                          "len": 4
                         }
                       },
                       {
@@ -176,14 +170,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              234,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            234,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -206,14 +197,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              264,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            264,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -249,14 +237,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              387,
-                              0
-                            ],
-                            "len": 4
-                          },
-                          "has_escapes": true
+                          "start": [
+                            387,
+                            0
+                          ],
+                          "len": 4
                         }
                       },
                       {
@@ -283,14 +268,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              430,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            430,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -313,14 +295,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              458,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            458,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -355,14 +334,11 @@
                                   "args": [
                                     {
                                       "InputLiteral": {
-                                        "span": {
-                                          "start": [
-                                            319,
-                                            0
-                                          ],
-                                          "len": 0
-                                        },
-                                        "has_escapes": true
+                                        "start": [
+                                          319,
+                                          0
+                                        ],
+                                        "len": 0
                                       }
                                     },
                                     {
@@ -446,14 +422,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              500,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            500,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -471,14 +444,11 @@
                               "max": null,
                               "delim": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      531,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    531,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             }
@@ -487,14 +457,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              539,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            539,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -511,14 +478,11 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          554,
-                          0
-                        ],
-                        "len": 0
-                      },
-                      "has_escapes": true
+                      "start": [
+                        554,
+                        0
+                      ],
+                      "len": 0
                     }
                   },
                   {
@@ -609,14 +573,11 @@
                             "args": [
                               {
                                 "InputLiteral": {
-                                  "span": {
-                                    "start": [
-                                      634,
-                                      0
-                                    ],
-                                    "len": 0
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    634,
+                                    0
+                                  ],
+                                  "len": 0
                                 }
                               },
                               {
@@ -677,14 +638,11 @@
                             "Repeat": {
                               "expr": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      749,
-                                      0
-                                    ],
-                                    "len": 5
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    749,
+                                    0
+                                  ],
+                                  "len": 5
                                 }
                               },
                               "min": 0,
@@ -698,14 +656,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              758,
-                              0
-                            ],
-                            "len": 5
-                          },
-                          "has_escapes": true
+                          "start": [
+                            758,
+                            0
+                          ],
+                          "len": 5
                         }
                       },
                       {
@@ -732,14 +687,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              786,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            786,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -762,14 +714,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              819,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            819,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -807,14 +756,11 @@
                             "Repeat": {
                               "expr": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      860,
-                                      0
-                                    ],
-                                    "len": 5
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    860,
+                                    0
+                                  ],
+                                  "len": 5
                                 }
                               },
                               "min": 0,
@@ -828,14 +774,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              869,
-                              0
-                            ],
-                            "len": 5
-                          },
-                          "has_escapes": true
+                          "start": [
+                            869,
+                            0
+                          ],
+                          "len": 5
                         }
                       },
                       {
@@ -862,14 +805,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              897,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            897,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1019,14 +959,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1102,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1102,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1070,50 +1007,38 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1136,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1136,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1140,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1140,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1144,
-                              0
-                            ],
-                            "len": 5
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1144,
+                            0
+                          ],
+                          "len": 5
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1152,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1152,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -1129,26 +1054,20 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1168,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1168,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1172,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1172,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1175,50 +1094,38 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1211,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1211,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1215,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1215,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1219,
-                              0
-                            ],
-                            "len": 14
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1219,
+                            0
+                          ],
+                          "len": 14
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1236,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1236,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1241,50 +1148,38 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1280,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1280,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1284,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1284,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1288,
-                              0
-                            ],
-                            "len": 13
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1288,
+                            0
+                          ],
+                          "len": 13
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1304,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1304,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1307,50 +1202,38 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1347,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1347,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1351,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1351,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1355,
-                              0
-                            ],
-                            "len": 16
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1355,
+                            0
+                          ],
+                          "len": 16
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1374,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1374,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1373,50 +1256,38 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1420,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1420,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1424,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1424,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1428,
-                              0
-                            ],
-                            "len": 15
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1428,
+                            0
+                          ],
+                          "len": 15
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1446,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1446,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1469,14 +1340,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1577,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1577,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -1528,14 +1396,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1635,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1635,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -1593,14 +1458,11 @@
                           "max": null,
                           "delim": {
                             "Literal": {
-                              "span": {
-                                "start": [
-                                  1724,
-                                  0
-                                ],
-                                "len": 1
-                              },
-                              "has_escapes": true
+                              "start": [
+                                1724,
+                                0
+                              ],
+                              "len": 1
                             }
                           }
                         }
@@ -1693,14 +1555,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              1906,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            1906,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -1758,14 +1617,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2031,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2031,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1780,14 +1636,11 @@
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                1972,
-                                0
-                              ],
-                              "len": 1
-                            },
-                            "has_escapes": true
+                            "start": [
+                              1972,
+                              0
+                            ],
+                            "len": 1
                           }
                         },
                         {
@@ -1837,14 +1690,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2123,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2123,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1859,14 +1709,11 @@
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                2064,
-                                0
-                              ],
-                              "len": 1
-                            },
-                            "has_escapes": true
+                            "start": [
+                              2064,
+                              0
+                            ],
+                            "len": 1
                           }
                         },
                         {
@@ -1916,14 +1763,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2218,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2218,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -1938,14 +1782,11 @@
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                2156,
-                                0
-                              ],
-                              "len": 1
-                            },
-                            "has_escapes": true
+                            "start": [
+                              2156,
+                              0
+                            ],
+                            "len": 1
                           }
                         },
                         {
@@ -1955,14 +1796,11 @@
                             "args": [
                               {
                                 "InputLiteral": {
-                                  "span": {
-                                    "start": [
-                                      2177,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    2177,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             ]
@@ -2032,14 +1870,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2323,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2323,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2055,14 +1890,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2339,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2339,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2089,26 +1921,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2379,
-                              0
-                            ],
-                            "len": 4
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2379,
+                            0
+                          ],
+                          "len": 4
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2386,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2386,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2131,14 +1957,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2411,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2411,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2165,26 +1988,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2453,
-                              0
-                            ],
-                            "len": 4
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2453,
+                            0
+                          ],
+                          "len": 4
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2460,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2460,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2207,14 +2024,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2485,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2485,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2241,26 +2055,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2527,
-                              0
-                            ],
-                            "len": 4
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2527,
+                            0
+                          ],
+                          "len": 4
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2534,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2534,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2283,14 +2091,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2559,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2559,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2317,14 +2122,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2577,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2577,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2347,14 +2149,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2602,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2602,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2371,14 +2170,11 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          2635,
-                          0
-                        ],
-                        "len": 5
-                      },
-                      "has_escapes": true
+                      "start": [
+                        2635,
+                        0
+                      ],
+                      "len": 5
                     }
                   },
                   {
@@ -2399,26 +2195,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2683,
-                              0
-                            ],
-                            "len": 6
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2683,
+                            0
+                          ],
+                          "len": 6
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2692,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2692,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2434,14 +2224,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2710,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2710,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2457,14 +2244,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2727,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2727,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2487,14 +2271,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2752,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2752,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2546,14 +2327,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2822,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2822,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2578,14 +2356,11 @@
                               "max": null,
                               "delim": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      2857,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    2857,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             }
@@ -2594,14 +2369,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2865,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2865,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2667,26 +2439,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2981,
-                              0
-                            ],
-                            "len": 7
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2981,
+                            0
+                          ],
+                          "len": 7
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              2991,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            2991,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2709,14 +2475,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3016,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3016,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2739,38 +2502,29 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3041,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3041,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3045,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3045,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3049,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3049,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2785,14 +2539,11 @@
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                2951,
-                                0
-                              ],
-                              "len": 1
-                            },
-                            "has_escapes": true
+                            "start": [
+                              2951,
+                              0
+                            ],
+                            "len": 1
                           }
                         },
                         {
@@ -2819,26 +2570,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3112,
-                              0
-                            ],
-                            "len": 7
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3112,
+                            0
+                          ],
+                          "len": 7
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3122,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3122,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2861,14 +2606,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3147,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3147,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -2891,38 +2633,29 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3172,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3172,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3176,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3176,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3180,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3180,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -2937,14 +2670,11 @@
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                3082,
-                                0
-                              ],
-                              "len": 1
-                            },
-                            "has_escapes": true
+                            "start": [
+                              3082,
+                              0
+                            ],
+                            "len": 1
                           }
                         },
                         {
@@ -2971,26 +2701,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3243,
-                              0
-                            ],
-                            "len": 7
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3243,
+                            0
+                          ],
+                          "len": 7
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3253,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3253,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3013,14 +2737,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3278,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3278,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3043,14 +2764,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3303,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3303,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3066,38 +2784,29 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3319,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3319,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3323,
-                              0
-                            ],
-                            "len": 3
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3323,
+                            0
+                          ],
+                          "len": 3
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3329,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3329,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -3137,26 +2846,20 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3395,
-                              0
-                            ],
-                            "len": 7
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3395,
+                            0
+                          ],
+                          "len": 7
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3405,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3405,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3179,14 +2882,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3430,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3430,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3209,14 +2909,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3455,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3455,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3232,14 +2929,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3471,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3471,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3255,14 +2949,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3487,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3487,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -3306,14 +2997,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3547,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3547,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -3384,26 +3072,20 @@
                   },
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          3605,
-                          0
-                        ],
-                        "len": 5
-                      },
-                      "has_escapes": true
+                      "start": [
+                        3605,
+                        0
+                      ],
+                      "len": 5
                     }
                   },
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          3615,
-                          0
-                        ],
-                        "len": 5
-                      },
-                      "has_escapes": true
+                      "start": [
+                        3615,
+                        0
+                      ],
+                      "len": 5
                     }
                   }
                 ]
@@ -3436,14 +3118,11 @@
                             "Repeat": {
                               "expr": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      3689,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    3689,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               },
                               "min": 0,
@@ -3470,14 +3149,11 @@
                               "max": null,
                               "delim": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      3721,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    3721,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             }
@@ -3525,14 +3201,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3792,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3792,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -3548,38 +3221,29 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3815,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3815,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3820,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3820,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3824,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3824,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -3595,14 +3259,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3847,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3847,
+                            0
+                          ],
+                          "len": 2
                         }
                       }
                     ]
@@ -3632,14 +3293,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3888,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3888,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -3655,14 +3313,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              3910,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            3910,
+                            0
+                          ],
+                          "len": 2
                         }
                       }
                     ]
@@ -3747,14 +3402,11 @@
               "annotations": [
                 {
                   "Error": {
-                    "span": {
-                      "start": [
-                        4017,
-                        0
-                      ],
-                      "len": 6
-                    },
-                    "has_escapes": true
+                    "start": [
+                      4017,
+                      0
+                    ],
+                    "len": 6
                   }
                 },
                 "DisableLayout",
@@ -3766,14 +3418,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              4083,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            4083,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -3800,14 +3449,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              4106,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            4106,
+                            0
+                          ],
+                          "len": 2
                         }
                       }
                     ]
@@ -3883,26 +3529,20 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4212,
-                          0
-                        ],
-                        "len": 3
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4212,
+                        0
+                      ],
+                      "len": 3
                     }
                   },
                   {
                     "InputLiteral": {
-                      "span": {
-                        "start": [
-                          4204,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4204,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -3914,26 +3554,20 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4231,
-                          0
-                        ],
-                        "len": 3
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4231,
+                        0
+                      ],
+                      "len": 3
                     }
                   },
                   {
                     "InputLiteral": {
-                      "span": {
-                        "start": [
-                          4223,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4223,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -3945,26 +3579,20 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4250,
-                          0
-                        ],
-                        "len": 4
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4250,
+                        0
+                      ],
+                      "len": 4
                     }
                   },
                   {
                     "InputLiteral": {
-                      "span": {
-                        "start": [
-                          4242,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4242,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -3976,26 +3604,20 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4270,
-                          0
-                        ],
-                        "len": 4
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4270,
+                        0
+                      ],
+                      "len": 4
                     }
                   },
                   {
                     "InputLiteral": {
-                      "span": {
-                        "start": [
-                          4262,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4262,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -4007,26 +3629,20 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4290,
-                          0
-                        ],
-                        "len": 4
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4290,
+                        0
+                      ],
+                      "len": 4
                     }
                   },
                   {
                     "InputLiteral": {
-                      "span": {
-                        "start": [
-                          4282,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4282,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -4074,14 +3690,11 @@
                 "Sequence": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4383,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4383,
+                        0
+                      ],
+                      "len": 2
                     }
                   },
                   {
@@ -4106,14 +3719,11 @@
                   },
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4397,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4397,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -4125,14 +3735,11 @@
                 "Sequence": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4432,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4432,
+                        0
+                      ],
+                      "len": 2
                     }
                   },
                   {
@@ -4142,14 +3749,11 @@
                           {
                             "NegLookahead": {
                               "Literal": {
-                                "span": {
-                                  "start": [
-                                    4443,
-                                    0
-                                  ],
-                                  "len": 2
-                                },
-                                "has_escapes": true
+                                "start": [
+                                  4443,
+                                  0
+                                ],
+                                "len": 2
                               }
                             }
                           },
@@ -4170,14 +3774,11 @@
                   },
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          4455,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        4455,
+                        0
+                      ],
+                      "len": 2
                     }
                   }
                 ]
@@ -4201,14 +3802,11 @@
               "annotations": [
                 {
                   "Error": {
-                    "span": {
-                      "start": [
-                        4491,
-                        0
-                      ],
-                      "len": 7
-                    },
-                    "has_escapes": true
+                    "start": [
+                      4491,
+                      0
+                    ],
+                    "len": 7
                   }
                 },
                 "DisableLayout",
@@ -4255,14 +3853,11 @@
               "annotations": [
                 {
                   "Error": {
-                    "span": {
-                      "start": [
-                        4606,
-                        0
-                      ],
-                      "len": 10
-                    },
-                    "has_escapes": true
+                    "start": [
+                      4606,
+                      0
+                    ],
+                    "len": 10
                   }
                 },
                 "DisableLayout",
@@ -4397,14 +3992,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4832,
-                      0
-                    ],
-                    "len": 3
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4832,
+                    0
+                  ],
+                  "len": 3
                 }
               }
             },
@@ -4412,14 +4004,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4843,
-                      0
-                    ],
-                    "len": 3
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4843,
+                    0
+                  ],
+                  "len": 3
                 }
               }
             },
@@ -4427,14 +4016,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4854,
-                      0
-                    ],
-                    "len": 4
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4854,
+                    0
+                  ],
+                  "len": 4
                 }
               }
             },
@@ -4442,14 +4028,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4866,
-                      0
-                    ],
-                    "len": 3
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4866,
+                    0
+                  ],
+                  "len": 3
                 }
               }
             },
@@ -4457,14 +4040,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4877,
-                      0
-                    ],
-                    "len": 3
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4877,
+                    0
+                  ],
+                  "len": 3
                 }
               }
             },
@@ -4472,14 +4052,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4888,
-                      0
-                    ],
-                    "len": 3
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4888,
+                    0
+                  ],
+                  "len": 3
                 }
               }
             },
@@ -4487,14 +4064,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4899,
-                      0
-                    ],
-                    "len": 5
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4899,
+                    0
+                  ],
+                  "len": 5
                 }
               }
             },
@@ -4502,14 +4076,11 @@
               "annotations": [],
               "expr": {
                 "Literal": {
-                  "span": {
-                    "start": [
-                      4912,
-                      0
-                    ],
-                    "len": 5
-                  },
-                  "has_escapes": true
+                  "start": [
+                    4912,
+                    0
+                  ],
+                  "len": 5
                 }
               }
             }
@@ -4546,14 +4117,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5038,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5038,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -4576,26 +4144,20 @@
                       "args": [
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                4991,
-                                0
-                              ],
-                              "len": 10
-                            },
-                            "has_escapes": true
+                            "start": [
+                              4991,
+                              0
+                            ],
+                            "len": 10
                           }
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                5005,
-                                0
-                              ],
-                              "len": 4
-                            },
-                            "has_escapes": true
+                            "start": [
+                              5005,
+                              0
+                            ],
+                            "len": 4
                           }
                         },
                         {
@@ -4645,14 +4207,11 @@
                 "Action": [
                   {
                     "Literal": {
-                      "span": {
-                        "start": [
-                          5133,
-                          0
-                        ],
-                        "len": 2
-                      },
-                      "has_escapes": true
+                      "start": [
+                        5133,
+                        0
+                      ],
+                      "len": 2
                     }
                   },
                   {
@@ -4662,26 +4221,20 @@
                       "args": [
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                5105,
-                                0
-                              ],
-                              "len": 10
-                            },
-                            "has_escapes": true
+                            "start": [
+                              5105,
+                              0
+                            ],
+                            "len": 10
                           }
                         },
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                5119,
-                                0
-                              ],
-                              "len": 3
-                            },
-                            "has_escapes": true
+                            "start": [
+                              5119,
+                              0
+                            ],
+                            "len": 3
                           }
                         },
                         {
@@ -4716,14 +4269,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5197,
-                              0
-                            ],
-                            "len": 2
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5197,
+                            0
+                          ],
+                          "len": 2
                         }
                       },
                       {
@@ -4739,14 +4289,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5215,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5215,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -4764,14 +4311,11 @@
                               "max": null,
                               "delim": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      5244,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    5244,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             }
@@ -4780,14 +4324,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5252,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5252,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -4831,14 +4372,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5314,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5314,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -4856,14 +4394,11 @@
                               "max": null,
                               "delim": {
                                 "Literal": {
-                                  "span": {
-                                    "start": [
-                                      5343,
-                                      0
-                                    ],
-                                    "len": 1
-                                  },
-                                  "has_escapes": true
+                                  "start": [
+                                    5343,
+                                    0
+                                  ],
+                                  "len": 1
                                 }
                               }
                             }
@@ -4872,14 +4407,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5351,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5351,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]
@@ -4891,14 +4423,11 @@
                       "args": [
                         {
                           "InputLiteral": {
-                            "span": {
-                              "start": [
-                                5287,
-                                0
-                              ],
-                              "len": 0
-                            },
-                            "has_escapes": true
+                            "start": [
+                              5287,
+                              0
+                            ],
+                            "len": 0
                           }
                         },
                         {
@@ -4979,14 +4508,11 @@
                     "Sequence": [
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5464,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5464,
+                            0
+                          ],
+                          "len": 1
                         }
                       },
                       {
@@ -5002,14 +4528,11 @@
                       },
                       {
                         "Literal": {
-                          "span": {
-                            "start": [
-                              5483,
-                              0
-                            ],
-                            "len": 1
-                          },
-                          "has_escapes": true
+                          "start": [
+                            5483,
+                            0
+                          ],
+                          "len": 1
                         }
                       }
                     ]

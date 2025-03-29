@@ -1,13 +1,10 @@
-use crate::META_GRAMMAR_STR;
 use crate::core::input_table::{InputTable, META_INPUT_INDEX};
-use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::parsable::ParseResult;
-use serde::ser::SerializeStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::Chars;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Input {
     span: Span,
     has_escapes: bool,
@@ -18,10 +15,22 @@ impl<'arn> Serialize for Input {
     where
         S: Serializer,
     {
-        let mut state = Serializer::serialize_struct(serializer, "Input", 2)?;
-        state.serialize_field("span", &self.span.unsafe_set_file(META_INPUT_INDEX))?;
-        state.serialize_field("has_escapes", &self.has_escapes)?;
-        state.end()
+        assert!(self.has_escapes);
+        self.span
+            .unsafe_set_file(META_INPUT_INDEX)
+            .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Input {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(Input {
+            span: Span::deserialize(deserializer)?,
+            has_escapes: true,
+        })
     }
 }
 
