@@ -82,7 +82,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 }
             }
             RuleAction::InputLiteral(lit) => {
-                let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
+                let parsed = self.alloc.alloc(*lit).to_parsed();
                 self.placeholders.place_into_empty(
                     placeholder,
                     parsed,
@@ -113,7 +113,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     panic!("Name '{name}' not in context")
                 }
             }
-            RuleAction::InputLiteral(lit) => self.alloc.alloc(Input::Literal(*lit)).to_parsed(),
+            RuleAction::InputLiteral(lit) => self.alloc.alloc(*lit).to_parsed(),
             RuleAction::Construct { ns, name, args } => {
                 let ns = self
                     .parsables

@@ -75,5 +75,5 @@ impl<'arn, Env> Parsable<'arn, Env> for CharClassRange {
 }
 
 fn parse_string_char<'arn>(r: Parsed<'arn>, src: &InputTable<'arn>) -> char {
-    r.into_value::<Input>().as_cow(src).chars().next().unwrap()
+    r.into_value::<Input>().chars(src).next().unwrap()
 }

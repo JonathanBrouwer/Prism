@@ -1,24 +1,22 @@
 use crate::core::allocs::Allocs;
+use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_string;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Debug)]
-pub enum RuleAnnotation<'arn> {
-    #[serde(borrow)]
-    Error(EscapedString<'arn>),
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub enum RuleAnnotation {
+    Error(Input),
     DisableLayout,
     EnableLayout,
     DisableRecovery,
     EnableRecovery,
 }
 
-impl ParseResult for RuleAnnotation<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
+impl ParseResult for RuleAnnotation {}
+impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation {
     type EvalCtx = ();
 
     fn from_construct(
@@ -30,7 +28,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
         _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Error" => RuleAnnotation::Error(parse_string(args[0], src)),
+            "Error" => RuleAnnotation::Error(args[0].into_value::<Input>().parse_escaped_string()),
             "DisableLayout" => RuleAnnotation::DisableLayout,
             "EnableLayout" => RuleAnnotation::EnableLayout,
             "DisableRecovery" => RuleAnnotation::DisableRecovery,

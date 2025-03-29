@@ -128,7 +128,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
         rules: &'arn GrammarState<'arn>,
         blocks: &'arn [BlockState<'arn>],
         rule_args: VarMap<'arn>,
-        annots: &'arn [RuleAnnotation<'arn>],
+        annots: &'arn [RuleAnnotation],
         expr: &'arn RuleExpr<'arn>,
         vars: VarMap<'arn>,
         pos: Pos,
@@ -143,7 +143,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 );
                 res.add_label_explicit(ErrorLabel::Explicit(
                     pos.span_to(res.end_pos().next(&self.input).0),
-                    *err_label,
+                    err_label.to_string(&self.input),
                 ));
                 res
             }

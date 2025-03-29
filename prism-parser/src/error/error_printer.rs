@@ -1,13 +1,12 @@
 use crate::core::input_table::InputTableIndex;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
 pub enum ErrorLabel<'arn> {
-    Explicit(Span, EscapedString<'arn>),
-    Literal(Span, EscapedString<'arn>),
+    Explicit(Span, String),
+    Literal(Span, String),
     Debug(Span, &'arn str),
     FromConstruct(Span, String),
 }

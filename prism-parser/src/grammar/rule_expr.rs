@@ -3,8 +3,7 @@ use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::{parse_identifier, parse_string};
+use crate::grammar::from_action_result::parse_identifier;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
@@ -20,7 +19,7 @@ pub enum RuleExpr<'arn> {
         args: &'arn [RuleExpr<'arn>],
     },
     CharClass(#[serde(with = "leak")] &'arn CharClass<'arn>),
-    Literal(EscapedString<'arn>),
+    Literal(Input),
     Repeat {
         #[serde(with = "leak")]
         expr: &'arn Self,
@@ -90,7 +89,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
                 max: *args[2].into_value::<Option<u64>>(),
                 delim: args[3].into_value::<RuleExpr>(),
             },
-            "Literal" => RuleExpr::Literal(parse_string(args[0], src)),
+            "Literal" => RuleExpr::Literal(args[0].into_value::<Input>().parse_escaped_string()),
             "CharClass" => RuleExpr::CharClass(args[0].into_value::<CharClass>()),
             "SliceInput" => RuleExpr::SliceInput(args[0].into_value::<RuleExpr>()),
             "PosLookahead" => RuleExpr::PosLookahead(args[0].into_value::<RuleExpr>()),

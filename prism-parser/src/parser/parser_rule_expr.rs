@@ -6,7 +6,6 @@ use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use crate::grammar::escaped_string::EscapedString;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::ParseResult;
 use crate::parsable::guid::Guid;
@@ -17,6 +16,7 @@ use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
+use std::os::linux::raw::stat;
 
 impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
     pub fn parse_expr(
@@ -124,20 +124,26 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     context,
                     penv,
                 )
-                .map(|(span, _)| PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())),
+                .map(|(span, _)| {
+                    PR::with_rtrn(self.alloc.alloc(Input::from_span(span)).to_parsed())
+                }),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
                 |state, start_pos, _penv| {
                     let mut res = PResult::new_empty((), start_pos);
-                    for char in literal.chars() {
+                    for char in literal.chars(&state.input) {
                         let new_res = state.parse_char(|c| *c == char, res.end_pos());
                         res = res.merge_seq(new_res).map(|_| ());
                     }
                     let span = start_pos.span_to(res.end_pos());
-                    let mut res = res
-                        .map(|_| PR::with_rtrn(state.alloc.alloc(Input::Value(span)).to_parsed()));
-                    res.add_label_implicit(ErrorLabel::Literal(span, *literal));
+                    let mut res = res.map(|_| {
+                        PR::with_rtrn(state.alloc.alloc(Input::from_span(span)).to_parsed())
+                    });
+                    res.add_label_implicit(ErrorLabel::Literal(
+                        span,
+                        literal.to_string(&state.input),
+                    ));
                     res
                 },
                 pos,
@@ -366,7 +372,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     &mut HashMap::new(),
                 );
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(self.alloc.alloc(Input::Value(span)).to_parsed())
+                    PR::with_rtrn(self.alloc.alloc(Input::from_span(span)).to_parsed())
                 })
             }
             RuleExpr::PosLookahead(sub) => self
@@ -420,9 +426,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                         let mut e = E::new(pos);
                         e.add_label_implicit(ErrorLabel::Explicit(
                             pos.span_to(pos),
-                            EscapedString::from_escaped(
-                                "language grammar to be correct, but adaptation created cycle in block order.",
-                            ),
+                            "language grammar to be correct, but adaptation created cycle in block order.".to_string(),
                         ));
                         return PResult::new_err(e, pos);
                     }

@@ -1,3 +1,4 @@
+#![feature(substr_range)]
 #![allow(clippy::too_many_arguments)]
 
 use std::collections::HashMap;
@@ -17,6 +18,7 @@ pub mod grammar;
 pub mod parsable;
 pub mod parser;
 
+pub const META_GRAMMAR_STR: &'static str = include_str!("../resources/meta.pg");
 pub static META_GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
     let meta_grammar = include_bytes!("../resources/bootstrap.msgpack");
     rmp_serde::decode::from_slice(meta_grammar).unwrap()

@@ -84,21 +84,21 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'arn>>().as_str(src);
+                let name = args[0].into_value::<Input>().as_str(src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = args[0].into_value::<Input<'arn>>().as_str(src);
+                let name = args[0].into_value::<Input>().as_str(src);
                 let v = *args[1].into_value::<ParsedIndex>();
                 let b = *args[2].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = args[0].into_value::<Input<'arn>>().as_str(src);
+                let name = args[0].into_value::<Input>().as_str(src);
                 let b = *args[1].into_value::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }

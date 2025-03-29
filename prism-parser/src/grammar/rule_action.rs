@@ -1,8 +1,8 @@
 use crate::core::allocs::Allocs;
+use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::{parse_identifier, parse_string};
+use crate::grammar::from_action_result::parse_identifier;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum RuleAction<'arn> {
     Name(&'arn str),
-    InputLiteral(EscapedString<'arn>),
+    InputLiteral(Input),
     Construct {
         ns: &'arn str,
         name: &'arn str,
@@ -50,7 +50,9 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
                         .map(|sub| *sub.into_value::<RuleAction<'arn>>()),
                 ),
             },
-            "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
+            "InputLiteral" => {
+                RuleAction::InputLiteral(args[0].into_value::<Input>().parse_escaped_string())
+            }
             "Name" => RuleAction::Name(parse_identifier(args[0], src)),
             "Value" => RuleAction::Value {
                 ns: parse_identifier(args[0], src),

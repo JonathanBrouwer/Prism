@@ -1,13 +1,26 @@
+use crate::META_GRAMMAR_STR;
 use ariadne::{Cache, Source};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
 use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
 
-#[derive(Default)]
 pub struct InputTable<'arn> {
     inner: RwLock<InputTableInner<'arn>>,
 }
+
+impl<'arn> Default for InputTable<'arn> {
+    fn default() -> Self {
+        let s = Self {
+            inner: Default::default(),
+        };
+        let meta_idx = s.get_or_push_file(META_GRAMMAR_STR, "$META_GRAMMAR$".into());
+        assert_eq!(meta_idx, META_INPUT_INDEX);
+        s
+    }
+}
+
+pub const META_INPUT_INDEX: InputTableIndex = InputTableIndex(0);
 
 #[derive(Default)]
 pub struct InputTableInner<'arn> {

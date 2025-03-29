@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct AnnotatedRuleExpr<'arn> {
     #[serde(borrow, with = "leak_slice")]
-    pub annotations: &'arn [RuleAnnotation<'arn>],
+    pub annotations: &'arn [RuleAnnotation],
     #[serde(borrow, with = "leak")]
     pub expr: &'arn RuleExpr<'arn>,
 }

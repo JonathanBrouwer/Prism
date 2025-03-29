@@ -1,8 +1,8 @@
 use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Span {
     start: Pos,
     len: usize,
