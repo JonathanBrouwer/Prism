@@ -10,6 +10,7 @@ mod lookahead;
 mod minor;
 mod parametric;
 mod parser_tests;
+mod repeat;
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {
         #[allow(unused_imports)]
@@ -49,10 +50,12 @@ macro_rules! parse_test {
                 ParsableDyn::new::<ActionResult>(),
             );
 
+            let mut counter = 0;
             $({
             let input: &'static str = $input_pass;
-            let file = input_table.get_or_push_file(input, "test_file".into());
-            println!("== Parsing (should be ok): {}", input);
+            let file = input_table.get_or_push_file(input, format!("test_file_ok{counter}").into());
+            println!("== Parsing {counter} (should be ok): {}", input);
+            counter += 1;
 
 
             let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()).unwrap_or_eprint();
@@ -60,10 +63,12 @@ macro_rules! parse_test {
             assert_eq!($expected, got);
             })*
 
+            let mut counter = 0;
             $({
             let input: &'static str = $input_fail;
-            let file = input_table.get_or_push_file(input, "test_file".into());
-            println!("== Parsing (should be fail): {}", input);
+            let file = input_table.get_or_push_file(input, format!("test_file_err{counter}").into());
+            println!("== Parsing {counter} (should be fail): {}", input);
+            counter += 1;
 
             match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()) {
                 Ok(got) => {
@@ -85,7 +90,6 @@ macro_rules! parse_test {
         }
     }
 }
-mod repeat;
 
 mod span_merging;
 

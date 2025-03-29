@@ -147,24 +147,14 @@ pub fn run_parser_rule<
 >(
     rules: &'arn GrammarFile<'arn>,
     rule: &'arn str,
-    input: &'arn str,
+    input_table: Arc<InputTable<'arn>>,
+    file: InputTableIndex,
     allocs: Allocs<'arn>,
     parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
     penv: &'a mut Env,
-) -> Result<(Arc<InputTable<'arn>>, &'arn P), AggregatedParseError<'arn, E>> {
-    let input_table = Arc::new(InputTable::default());
-    let file = input_table.get_or_push_file(input, "input".into());
-
-    run_parser_rule_raw(
-        rules,
-        rule,
-        input_table.clone(),
-        file,
-        allocs,
-        parsables,
-        penv,
-    )
-    .map(|parsed| (input_table, parsed.into_value::<P>()))
+) -> Result<&'arn P, AggregatedParseError<'arn, E>> {
+    run_parser_rule_raw(rules, rule, input_table, file, allocs, parsables, penv)
+        .map(|parsed| parsed.into_value::<P>())
 }
 
 #[macro_export]

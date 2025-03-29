@@ -1,8 +1,8 @@
-use crate::core::input_table::InputTable;
+use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
     start: Pos,
     len: usize,
@@ -31,6 +31,13 @@ impl Span {
 
     pub fn end_pos(self) -> Pos {
         self.start + self.len
+    }
+
+    pub fn unsafe_set_file(self, file: InputTableIndex) -> Self {
+        Self {
+            start: Pos::start_of(file) + self.start.idx_in_file(),
+            len: self.len,
+        }
     }
 }
 

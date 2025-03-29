@@ -1,15 +1,13 @@
+use crate::META_GRAMMAR_STR;
 use crate::core::input_table::{InputTable, META_INPUT_INDEX};
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::parsable::ParseResult;
-use crate::{META_GRAMMAR, META_GRAMMAR_STR};
+use serde::ser::SerializeStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::borrow::Cow;
-use std::iter;
-use std::marker::PhantomData;
 use std::str::Chars;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize)]
 pub struct Input {
     span: Span,
     has_escapes: bool,
@@ -20,23 +18,26 @@ impl<'arn> Serialize for Input {
     where
         S: Serializer,
     {
-        todo!()
+        let mut state = Serializer::serialize_struct(serializer, "Input", 2)?;
+        state.serialize_field("span", &self.span.unsafe_set_file(META_INPUT_INDEX))?;
+        state.serialize_field("has_escapes", &self.has_escapes)?;
+        state.end()
     }
 }
 
-impl<'de> Deserialize<'de> for Input {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s: &'de str = Deserialize::deserialize(deserializer)?;
-        let meta_str_start = META_GRAMMAR_STR.find(s).unwrap();
-        Ok(Input {
-            span: Span::new(Pos::start_of(META_INPUT_INDEX) + meta_str_start, s.len()),
-            has_escapes: true,
-        })
-    }
-}
+// impl<'de> Deserialize<'de> for Input {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         let s: &'de str = Deserialize::deserialize(deserializer)?;
+//         let meta_str_start = META_GRAMMAR_STR.find(s).unwrap();
+//         Ok(Input {
+//             span: Span::new(Pos::start_of(META_INPUT_INDEX) + meta_str_start, s.len()),
+//             has_escapes: true,
+//         })
+//     }
+// }
 
 impl<'arn> Input {
     pub fn from_span(span: Span) -> Self {

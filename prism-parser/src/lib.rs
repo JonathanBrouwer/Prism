@@ -29,12 +29,16 @@ pub fn parse_grammar<'arn, E: ParseError<L = ErrorLabel<'arn>>>(
     grammar: &'arn str,
     allocs: Allocs<'arn>,
 ) -> Result<(Arc<InputTable<'arn>>, &'arn GrammarFile<'arn>), AggregatedParseError<'arn, E>> {
+    let input_table = Arc::new(InputTable::default());
+    let file = input_table.get_or_push_file(grammar, "$GRAMMAR$".into());
     run_parser_rule::<(), GrammarFile<'arn>, E>(
         &META_GRAMMAR,
         "toplevel",
-        grammar,
+        input_table.clone(),
+        file,
         allocs,
         HashMap::new(),
         &mut (),
     )
+    .map(|v| (input_table, v))
 }

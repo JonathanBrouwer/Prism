@@ -17,7 +17,7 @@ pub enum PrismError<'arn> {
 impl<'arn> PrismError<'arn> {
     pub fn eprint(&self, env: &mut PrismEnv<'arn>) {
         let report = match self {
-            PrismError::ParseError(e) => e.report(false),
+            PrismError::ParseError(e) => e.report(false, &env.input),
             PrismError::TypeError(e) => env.report(e).unwrap(),
         };
         report.eprint(&*env.input.inner()).unwrap();
