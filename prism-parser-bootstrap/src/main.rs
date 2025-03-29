@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn normal() {
-    let input = include_str!("../resources/meta.pg");
+    let input = include_str!("../../prism-parser/resources/meta.pg");
     let bump = OwnedAllocs::default();
     let alloc = Allocs::new(&bump);
     let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint();
