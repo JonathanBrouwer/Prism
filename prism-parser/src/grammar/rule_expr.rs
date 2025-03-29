@@ -61,10 +61,7 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleExpr<'arn> {
         _env: &mut Env,
     ) -> Self {
         match constructor {
-            "Action" => RuleExpr::Action(
-                allocs.alloc(args[0].into_value()),
-                allocs.alloc(args[1].into_value()),
-            ),
+            "Action" => RuleExpr::Action(args[0].into_value(), args[1].into_value()),
             "Choice" => RuleExpr::Choice(
                 allocs.alloc_extend(
                     args[0]
