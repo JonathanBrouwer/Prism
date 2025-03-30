@@ -8,6 +8,7 @@ use prism_parser::core::input_table::InputTable;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use prism_parser::grammar::identifier::Identifier;
 use prism_parser::parsable::parsed::Parsed;
 use prism_parser::parsable::{Parsable, ParseResult};
 use prism_parser::parser::VarMap;
@@ -67,7 +68,7 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
         src: &InputTable<'arn>,
         prism_env: &mut PrismEnv<'arn>,
     ) -> Self {
-        let expr: ParsedPrismExpr<'arn> = match constructor {
+        let expr: ParsedPrismExpr<'arn> = match constructor.as_str(src) {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -166,10 +167,10 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
         parent_ctx: Self::EvalCtx,
         args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut PrismEnv<'arn>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        match constructor {
+        match constructor.as_str(src) {
             "Type" => {
                 assert_eq!(args.len(), 0);
                 vec![]

@@ -10,7 +10,7 @@ use std::mem;
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
 pub enum PrismError<'arn> {
-    ParseError(SetError<'arn>),
+    ParseError(SetError),
     TypeError(TypeError<'arn>),
 }
 
