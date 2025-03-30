@@ -18,7 +18,7 @@ use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
 use std::os::linux::raw::stat;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
     pub fn parse_expr(
         &mut self,
         expr: &'arn RuleExpr<'arn>,
@@ -37,7 +37,8 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 let mut arg_values = Vec::new();
                 for arg in *args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = arg {
-                        if args.is_empty() && !["#this", "#next"].contains(r) {
+                        let r = r.as_str(&self.input);
+                        if args.is_empty() && !["#this", "#next"].contains(&r) {
                             vars.get(r).unwrap()
                         } else {
                             self.alloc
@@ -64,8 +65,9 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 }
 
                 // Handle #this and #next logic
-                if *rule == "#this" || *rule == "#next" {
-                    let blocks = match *rule {
+                let rule = rule.as_str(&self.input);
+                if rule == "#this" || rule == "#next" {
+                    let blocks = match rule {
                         "#this" => blocks,
                         "#next" => &blocks[1..],
                         _ => unreachable!(),
@@ -141,7 +143,10 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     let mut res = res.map(|_| {
                         PR::with_rtrn(state.alloc.alloc(Input::from_span(span)).to_parsed())
                     });
-                    res.add_label_implicit(ErrorLabel::Literal(span, *literal));
+                    res.add_label_implicit(ErrorLabel::Literal(
+                        span,
+                        literal.to_string(&state.input),
+                    ));
                     res
                 },
                 pos,
@@ -225,7 +230,10 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     // The i != 0 check is to make sure to take the delim into account
                     if i != 0 && res.end_pos() <= pos {
                         let mut e = E::new(pos);
-                        e.add_label_explicit(ErrorLabel::Debug(pos.span_to(pos), "INFLOOP"));
+                        e.add_label_explicit(ErrorLabel::Debug(
+                            pos.span_to(pos),
+                            "INFLOOP".to_string(),
+                        ));
                         return PResult::new_err(e, pos);
                     }
                 }
@@ -286,6 +294,8 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 res
             }
             RuleExpr::NameBind(name, sub) => {
+                let name = name.as_str(&self.input);
+
                 let (eval_ctx, placeholder) =
                     if let Some((eval_ctx, placeholder)) = eval_ctxs.get(name) {
                         (*eval_ctx, Some(*placeholder))
@@ -407,6 +417,9 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 name: grammar,
                 expr: body,
             } => {
+                let ns = ns.as_str(&self.input);
+                let grammar = grammar.as_str(&self.input);
+
                 let ns = self
                     .parsables
                     .get(ns)
@@ -418,7 +431,13 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states
                 //TODO this should not use `vars`, but instead the global scope in which this rule is defined
-                let (rules, _) = match rules.adapt_with(grammar, vars, Some(pos), self.alloc) {
+                let (rules, _) = match rules.adapt_with(
+                    grammar,
+                    vars,
+                    Some(pos),
+                    self.alloc,
+                    &self.input,
+                ) {
                     Ok(rules) => rules,
                     Err(_) => {
                         let mut e = E::new(pos);
@@ -434,7 +453,10 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 let mut res = self.parse_expr(
                     body, rules, blocks, rule_args, vars, pos, context, penv, eval_ctx, eval_ctxs,
                 );
-                res.add_label_implicit(ErrorLabel::Debug(pos.span_to(pos), "adaptation"));
+                res.add_label_implicit(ErrorLabel::Debug(
+                    pos.span_to(pos),
+                    "adaptation".to_string(),
+                ));
                 res
             }
             RuleExpr::Guid => {

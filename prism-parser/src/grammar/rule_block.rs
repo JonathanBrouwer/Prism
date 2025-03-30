@@ -2,7 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
-use crate::grammar::identifier::parse_identifier_old;
+use crate::grammar::identifier::{Identifier, parse_identifier};
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct RuleBlock<'arn> {
-    pub name: &'arn str,
+    pub name: Identifier,
     pub adapt: bool,
     #[serde(borrow, with = "leak_slice")]
     pub constructors: &'arn [AnnotatedRuleExpr<'arn>],
@@ -23,15 +23,15 @@ impl<'arn, Env> Parsable<'arn, Env> for RuleBlock<'arn> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        assert_eq!(constructor, "Block");
+        assert_eq!(constructor.as_str(src), "Block");
         RuleBlock {
-            name: parse_identifier_old(args[0], src),
+            name: parse_identifier(args[0]),
             adapt: args[1]
                 .into_value::<ParsedList>()
                 .into_iter()

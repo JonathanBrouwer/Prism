@@ -32,13 +32,6 @@ impl Span {
     pub fn end_pos(self) -> Pos {
         self.start + self.len
     }
-
-    pub fn unsafe_set_file(self, file: InputTableIndex) -> Self {
-        Self {
-            start: Pos::start_of(file) + self.start.idx_in_file(),
-            len: self.len,
-        }
-    }
 }
 
 impl<'arn> InputTable<'arn> {

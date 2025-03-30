@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::identifier::Identifier;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::void::Void;
 use crate::parsable::{Parsable, ParseResult};
@@ -11,7 +12,7 @@ use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 pub struct ParsableDyn<'arn, Env: 'arn> {
     pub from_construct: fn(
         span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
@@ -19,7 +20,7 @@ pub struct ParsableDyn<'arn, Env: 'arn> {
     ) -> Parsed<'arn>,
 
     pub create_eval_ctx: fn(
-        constructor: &'arn str,
+        constructor: Identifier,
         parent_ctx: Parsed<'arn>,
         arg_placeholders: &[ParsedPlaceholder],
         // Env
@@ -58,7 +59,7 @@ impl<'arn, Env: 'arn> ParsableDyn<'arn, Env> {
 
 fn from_construct_dyn<'arn, Env, P: Parsable<'arn, Env>>(
     span: Span,
-    constructor: &'arn str,
+    constructor: Identifier,
     args: &[Parsed<'arn>],
     allocs: Allocs<'arn>,
     src: &InputTable<'arn>,
@@ -68,7 +69,7 @@ fn from_construct_dyn<'arn, Env, P: Parsable<'arn, Env>>(
 }
 
 fn create_eval_ctx_dyn<'arn, Env: 'arn, P: Parsable<'arn, Env>>(
-    constructor: &'arn str,
+    constructor: Identifier,
     parent_ctx: Parsed<'arn>,
     arg_placeholders: &[ParsedPlaceholder],
     // Env

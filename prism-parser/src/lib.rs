@@ -25,7 +25,7 @@ pub static META_GRAMMAR: LazyLock<GrammarFile<'static>> = LazyLock::new(|| {
     rmp_serde::decode::from_slice(meta_grammar).unwrap()
 });
 
-pub fn parse_grammar<'arn, E: ParseError<L = ErrorLabel<'arn>>>(
+pub fn parse_grammar<'arn, E: ParseError<L = ErrorLabel>>(
     grammar: &'arn str,
     allocs: Allocs<'arn>,
 ) -> Result<(Arc<InputTable<'arn>>, &'arn GrammarFile<'arn>), AggregatedParseError<'arn, E>> {

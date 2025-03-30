@@ -13,7 +13,7 @@ impl<'arn> Parsed<'arn> {
             match ar {
                 ActionResult::Construct(_, c, es) => format!(
                     "{}({})",
-                    c,
+                    c.as_str(src),
                     es.iter()
                         .map(|e| e.to_debug_string(src))
                         .collect::<Vec<String>>()

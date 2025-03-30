@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 pub struct EmptyError<'arn>(PhantomData<&'arn str>);
 
 impl<'arn> ParseError for EmptyError<'arn> {
-    type L = ErrorLabel<'arn>;
+    type L = ErrorLabel;
 
     fn new(_: Pos) -> Self {
         Self(PhantomData)

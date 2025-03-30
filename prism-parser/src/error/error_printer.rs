@@ -1,16 +1,17 @@
 use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
+use crate::grammar::identifier::Identifier;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
-pub enum ErrorLabel<'arn> {
+pub enum ErrorLabel {
     Explicit(Span, String),
-    Literal(Span, Input),
-    Debug(Span, &'arn str),
+    Literal(Span, String),
+    Debug(Span, String),
 }
 
-impl ErrorLabel<'_> {
+impl ErrorLabel {
     pub(crate) fn span(&self) -> Span {
         match self {
             ErrorLabel::Explicit(s, _) => *s,
@@ -30,8 +31,8 @@ impl ErrorLabel<'_> {
     pub fn to_string(&self, input: &InputTable) -> String {
         match self {
             ErrorLabel::Explicit(_, s) => s.to_string(),
-            ErrorLabel::Literal(_, s) => s.to_string(input),
-            ErrorLabel::Debug(_, s) => format!("[{s}]"),
+            ErrorLabel::Literal(_, s) => s.to_string(),
+            ErrorLabel::Debug(_, s) => format!("[{}]", s.to_string()),
         }
     }
 }

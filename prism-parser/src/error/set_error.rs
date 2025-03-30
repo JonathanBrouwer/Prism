@@ -8,14 +8,14 @@ use std::collections::{BTreeMap, HashSet};
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]
-pub struct SetError<'arn> {
+pub struct SetError {
     pub pos: Pos,
-    pub labels: HashSet<ErrorLabel<'arn>>,
+    pub labels: HashSet<ErrorLabel>,
     pub explicit: bool,
 }
 
-impl<'arn> ParseError for SetError<'arn> {
-    type L = ErrorLabel<'arn>;
+impl ParseError for SetError {
+    type L = ErrorLabel;
 
     fn new(span: Pos) -> Self {
         Self {

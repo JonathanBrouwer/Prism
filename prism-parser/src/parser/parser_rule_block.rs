@@ -14,7 +14,7 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
     pub fn parse_rule_block(
         &mut self,
         rules: &'arn GrammarState<'arn>,

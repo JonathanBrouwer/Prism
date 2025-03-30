@@ -8,7 +8,7 @@ use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
     pub fn parse_rule(
         &mut self,
         rules: &'arn GrammarState<'arn>,
@@ -27,7 +27,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
             rule_state.args.len(),
             args.len(),
             "Invalid arguments to rule {}, expected {}, got {}",
-            rule_state.name,
+            rule_state.name.as_str(&self.input),
             rule_state.args.len(),
             args.len()
         );
@@ -35,7 +35,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
             rule_state
                 .args
                 .iter()
-                .map(|(_arg_type, arg_name)| *arg_name)
+                .map(|(_arg_type, arg_name)| arg_name.as_str(&self.input))
                 .zip(args.iter().cloned()),
             self.alloc,
         );
@@ -51,7 +51,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
         );
         res.add_label_implicit(ErrorLabel::Debug(
             pos.span_to(res.end_pos()),
-            rule_state.name,
+            rule_state.name.as_str(&self.input).to_string(),
         ));
         res.map(|pr| pr)
     }

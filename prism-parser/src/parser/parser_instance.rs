@@ -26,20 +26,20 @@ use crate::parser::parsed_list::ParsedList;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub struct ParserInstance<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> {
+pub struct ParserInstance<'arn, Env, E: ParseError<L = ErrorLabel>> {
     state: ParserState<'arn, Env, E>,
 
     grammar_state: &'arn GrammarState<'arn>,
     rules: VarMap<'arn>,
 }
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserInstance<'arn, Env, E> {
     pub fn new(
         input: Arc<InputTable<'arn>>,
         allocs: Allocs<'arn>,
         from: &'arn GrammarFile<'arn>,
         mut parsables: HashMap<&'arn str, ParsableDyn<'arn, Env>>,
-    ) -> Result<Self, AdaptError<'arn>> {
+    ) -> Result<Self, AdaptError> {
         parsables.insert("ActionResult", ParsableDyn::new::<ActionResult<'arn>>());
         parsables.insert("ParsedList", ParsableDyn::new::<ParsedList<'arn>>());
         parsables.insert("RuleAction", ParsableDyn::new::<RuleAction<'arn>>());
@@ -55,7 +55,8 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E
 
         let state = ParserState::new(input, allocs, parsables);
 
-        let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, allocs);
+        let (grammar_state, meta_vars) =
+            GrammarState::new_with(&META_GRAMMAR, allocs, &state.input);
         let visible_rules = VarMap::from_iter(
             [
                 (
@@ -75,7 +76,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E
         );
 
         let (grammar_state, rules) =
-            grammar_state.adapt_with(from, visible_rules, None, state.alloc)?;
+            grammar_state.adapt_with(from, visible_rules, None, state.alloc, &state.input)?;
 
         Ok(Self {
             state,
@@ -85,7 +86,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E
     }
 }
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserInstance<'arn, Env, E> {
     pub fn run(
         &mut self,
         rule: &'arn str,
@@ -124,7 +125,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserInstance<'arn, Env, E
     }
 }
 
-pub fn run_parser_rule_raw<'a, 'arn, Env, E: ParseError<L = ErrorLabel<'arn>>>(
+pub fn run_parser_rule_raw<'a, 'arn, Env, E: ParseError<L = ErrorLabel>>(
     rules: &'arn GrammarFile<'arn>,
     rule: &'arn str,
     input: Arc<InputTable<'arn>>,
@@ -138,13 +139,7 @@ pub fn run_parser_rule_raw<'a, 'arn, Env, E: ParseError<L = ErrorLabel<'arn>>>(
     instance.run(rule, file, penv)
 }
 
-pub fn run_parser_rule<
-    'a,
-    'arn,
-    Env,
-    P: Parsable<'arn, Env>,
-    E: ParseError<L = ErrorLabel<'arn>>,
->(
+pub fn run_parser_rule<'a, 'arn, Env, P: Parsable<'arn, Env>, E: ParseError<L = ErrorLabel>>(
     rules: &'arn GrammarFile<'arn>,
     rule: &'arn str,
     input_table: Arc<InputTable<'arn>>,

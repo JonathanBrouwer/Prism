@@ -1,7 +1,7 @@
 use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::identifier::parse_identifier_old;
+use crate::grammar::identifier::{Identifier, parse_identifier};
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
@@ -11,13 +11,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct Rule<'arn> {
-    pub name: &'arn str,
+    pub name: Identifier,
     pub adapt: bool,
-    #[serde(with = "leak_slice")]
-    pub args: &'arn [(&'arn str, &'arn str)],
+    #[serde(borrow, with = "leak_slice")]
+    pub args: &'arn [(Identifier, Identifier)],
     #[serde(borrow, with = "leak_slice")]
     pub blocks: &'arn [RuleBlock<'arn>],
-    pub return_type: &'arn str,
+    pub return_type: Identifier,
 }
 
 impl ParseResult for Rule<'_> {}
@@ -26,16 +26,16 @@ impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        assert_eq!(constructor, "Rule");
+        assert_eq!(constructor.as_str(src), "Rule");
 
         Rule {
-            name: parse_identifier_old(args[0], src),
+            name: parse_identifier(args[0]),
             adapt: args[1]
                 .into_value::<ParsedList>()
                 .into_iter()
@@ -46,7 +46,7 @@ impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
                     .into_value::<ParsedList>()
                     .into_iter()
                     .map(|((), v)| v)
-                    .map(|n| ("ActionResult", parse_identifier_old(n, src))),
+                    .map(|n| (Identifier::from_const("ActionResult"), parse_identifier(n))),
             ),
             blocks: allocs.alloc_extend(
                 args[3]
@@ -55,7 +55,7 @@ impl<'arn, Env> Parsable<'arn, Env> for Rule<'arn> {
                     .map(|((), v)| v)
                     .map(|block| *block.into_value::<RuleBlock>()),
             ),
-            return_type: "ActionResult",
+            return_type: Identifier::from_const("ActionResult"),
         }
     }
 }

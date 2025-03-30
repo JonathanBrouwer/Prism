@@ -1,6 +1,7 @@
 use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
+use crate::grammar::identifier::Identifier;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 
@@ -16,7 +17,7 @@ struct StoreEntry<'arn, Env> {
 struct StoreEntryConstructInfo<'arn, Env> {
     children: Vec<ParsedPlaceholder>,
     children_left: usize,
-    constructor: &'arn str,
+    constructor: Identifier,
     parsable_dyn: ParsableDyn<'arn, Env>,
 }
 
@@ -38,7 +39,7 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
     pub fn place_construct_info(
         &mut self,
         cur: ParsedPlaceholder,
-        constructor: &'arn str,
+        constructor: Identifier,
         parsable_dyn: ParsableDyn<'arn, Env>,
         children: Vec<ParsedPlaceholder>,
     ) {

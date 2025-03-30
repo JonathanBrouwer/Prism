@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
+use crate::grammar::identifier::Identifier;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
 use std::any::type_name;
@@ -31,21 +32,22 @@ pub trait Parsable<'arn, Env>: ParseResult + Sized + Sync + Send + Copy + 'arn {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         _args: &[Parsed<'arn>],
         // Env
         _allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
         panic!(
-            "Cannot parse a {} from a {constructor} constructor",
-            type_name::<Self>()
+            "Cannot parse a {} from a {} constructor",
+            type_name::<Self>(),
+            constructor.as_str(src)
         )
     }
 
     fn create_eval_ctx(
-        _constructor: &'arn str,
+        _constructor: Identifier,
         _parent_ctx: Self::EvalCtx,
         _arg_placeholders: &[ParsedPlaceholder],
         // Env

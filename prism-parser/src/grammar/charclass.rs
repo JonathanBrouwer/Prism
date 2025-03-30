@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
+use crate::grammar::identifier::Identifier;
 use crate::grammar::serde_leak::*;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
@@ -27,13 +28,13 @@ impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        input: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        assert_eq!(constructor, "CharClass");
+        assert_eq!(constructor.as_str(input), "CharClass");
         CharClass {
             neg: args[0]
                 .into_value::<ParsedList>()
@@ -60,13 +61,13 @@ impl<'arn, Env> Parsable<'arn, Env> for CharClassRange {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        assert_eq!(constructor, "Range");
+        assert_eq!(constructor.as_str(src), "Range");
         CharClassRange(
             parse_string_char(args[0], src),
             parse_string_char(args[1], src),

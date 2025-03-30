@@ -49,13 +49,13 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone)]
-pub struct TreeError<'arn> {
+pub struct TreeError {
     pub pos: Pos,
-    pub labels: ErrorTree<ErrorLabel<'arn>>,
+    pub labels: ErrorTree<ErrorLabel>,
 }
 
-impl<'arn> TreeError<'arn> {
-    fn add_label(&mut self, label: ErrorLabel<'arn>) {
+impl TreeError {
+    fn add_label(&mut self, label: ErrorLabel) {
         let mut tree = ErrorTree(None, vec![]);
         mem::swap(&mut self.labels, &mut tree);
         tree = tree.label(label);
@@ -63,8 +63,8 @@ impl<'arn> TreeError<'arn> {
     }
 }
 
-impl<'arn> ParseError for TreeError<'arn> {
-    type L = ErrorLabel<'arn>;
+impl ParseError for TreeError {
+    type L = ErrorLabel;
 
     fn new(pos: Pos) -> Self {
         Self {

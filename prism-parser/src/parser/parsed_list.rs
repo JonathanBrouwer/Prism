@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::env::GenericEnv;
+use crate::grammar::identifier::Identifier;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 
@@ -12,13 +13,13 @@ impl<'arn, Env> Parsable<'arn, Env> for ParsedList<'arn> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        match constructor {
+        match constructor.as_str(src) {
             "Cons" => {
                 assert_eq!(args.len(), 2);
                 args[1]

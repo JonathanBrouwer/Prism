@@ -1,6 +1,7 @@
 use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
+use crate::grammar::identifier::Identifier;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::grammar::serde_leak::*;
@@ -23,13 +24,13 @@ impl<'arn, Env> Parsable<'arn, Env> for AnnotatedRuleExpr<'arn> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        input: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        assert_eq!("AnnotatedExpr", constructor);
+        assert_eq!("AnnotatedExpr", constructor.as_str(input));
         Self {
             annotations: allocs.alloc_extend(
                 args[0]

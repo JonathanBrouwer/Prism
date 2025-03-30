@@ -61,7 +61,7 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
 
     fn from_construct(
         span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
@@ -162,7 +162,7 @@ impl<'arn> Parsable<'arn, PrismEnv<'arn>> for ParsedIndex {
     }
 
     fn create_eval_ctx(
-        constructor: &'arn str,
+        constructor: Identifier,
         parent_ctx: Self::EvalCtx,
         args: &[ParsedPlaceholder],
         allocs: Allocs<'arn>,

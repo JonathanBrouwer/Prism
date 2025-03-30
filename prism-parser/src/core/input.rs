@@ -1,10 +1,10 @@
-use crate::core::input_table::{InputTable, META_INPUT_INDEX};
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::parsable::ParseResult;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::Chars;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug)]
 pub struct Input {
     span: Span,
     has_escapes: bool,
@@ -16,9 +16,7 @@ impl<'arn> Serialize for Input {
         S: Serializer,
     {
         assert!(self.has_escapes);
-        self.span
-            .unsafe_set_file(META_INPUT_INDEX)
-            .serialize(serializer)
+        self.span.serialize(serializer)
     }
 }
 

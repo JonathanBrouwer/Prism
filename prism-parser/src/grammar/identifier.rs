@@ -1,19 +1,28 @@
+use crate::META_GRAMMAR_STR;
 use crate::core::input::Input;
 use crate::core::input_table::{InputTable, META_INPUT_INDEX};
 use crate::core::pos::Pos;
 use crate::core::span::Span;
+use crate::grammar::serde_leak::leak;
 use crate::parsable::parsed::Parsed;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Copy, Clone)]
-pub struct Identifier(Span, &'static str);
+#[derive(Copy, Clone, Debug)]
+pub enum Identifier {
+    FromSource(Span),
+    Const(&'static str),
+}
 
 impl Identifier {
     pub fn as_str<'arn>(self, input: &InputTable<'arn>) -> &'arn str {
-        if self.0.len() == usize::MAX {
-            return self.1;
+        match self {
+            Identifier::FromSource(span) => input.slice(span),
+            Identifier::Const(c) => c,
         }
-        input.slice(self.0)
+    }
+
+    pub fn from_const(s: &'static str) -> Self {
+        Self::Const(s)
     }
 }
 
@@ -22,9 +31,14 @@ impl<'arn> Serialize for Identifier {
     where
         S: Serializer,
     {
-        self.0
-            .unsafe_set_file(META_INPUT_INDEX)
-            .serialize(serializer)
+        let s = match self {
+            Identifier::FromSource(v) => {
+                &META_GRAMMAR_STR
+                    [v.start_pos().idx_in_file()..v.start_pos().idx_in_file() + v.len()]
+            }
+            Identifier::Const(c) => c,
+        };
+        s.serialize(serializer)
     }
 }
 
@@ -33,18 +47,11 @@ impl<'de> Deserialize<'de> for Identifier {
     where
         D: Deserializer<'de>,
     {
-        // let s: &'de str = Deserialize::deserialize(deserializer)?;
-        // let s = s.to_string().leak();
-        // Ok(Self(Span::new(Pos::start_of(META_INPUT_INDEX), usize::MAX), s))
-
-        Ok(Self(Span::deserialize(deserializer)?, ""))
+        let s: &'de str = Deserialize::deserialize(deserializer)?;
+        Ok(Self::Const(s.to_string().leak()))
     }
 }
 
-pub(crate) fn parse_identifier<'arn>(r: Parsed<'arn>, src: &InputTable<'arn>) -> Identifier {
-    Identifier(r.into_value::<Input>().span(), "")
-}
-
-pub(crate) fn parse_identifier_old<'arn>(r: Parsed<'arn>, src: &InputTable<'arn>) -> &'arn str {
-    r.into_value::<Input>().as_str(src)
+pub(crate) fn parse_identifier<'arn>(r: Parsed<'arn>) -> Identifier {
+    Identifier::FromSource(r.into_value::<Input>().span())
 }

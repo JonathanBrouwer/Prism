@@ -10,7 +10,7 @@ use crate::parsable::ParseResult;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
     pub fn parse_with_layout<'a, O>(
         &mut self,
         rules: &'arn GrammarState<'arn>,

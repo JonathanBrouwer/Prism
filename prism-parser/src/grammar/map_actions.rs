@@ -71,7 +71,7 @@ impl<'arn> RuleExpr<'arn> {
                 allocs.alloc(action.map_actions(map, allocs)),
             ),
             RuleExpr::RunVar { rule, args } => RuleExpr::RunVar {
-                rule,
+                rule: *rule,
                 args: allocs.alloc_extend(args.iter().map(|r| *r.map_actions(map, allocs))),
             },
             RuleExpr::Repeat {
@@ -92,14 +92,14 @@ impl<'arn> RuleExpr<'arn> {
                 allocs.alloc_extend(es.iter().map(|r| *r.map_actions(map, allocs))),
             ),
             RuleExpr::NameBind(name, expr) => {
-                RuleExpr::NameBind(name, expr.map_actions(map, allocs))
+                RuleExpr::NameBind(*name, expr.map_actions(map, allocs))
             }
             RuleExpr::SliceInput(expr) => RuleExpr::SliceInput(expr.map_actions(map, allocs)),
             RuleExpr::PosLookahead(expr) => RuleExpr::PosLookahead(expr.map_actions(map, allocs)),
             RuleExpr::NegLookahead(expr) => RuleExpr::NegLookahead(expr.map_actions(map, allocs)),
             RuleExpr::AtAdapt { ns, name, expr } => RuleExpr::AtAdapt {
-                ns,
-                name,
+                ns: *ns,
+                name: *name,
                 expr: expr.map_actions(map, allocs),
             },
             RuleExpr::CharClass(_) | RuleExpr::Literal(_) | RuleExpr::Guid => return self,

@@ -2,6 +2,7 @@ use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
+use crate::grammar::identifier::Identifier;
 use crate::parsable::parsed::Parsed;
 use crate::parsable::{Parsable, ParseResult};
 
@@ -11,13 +12,13 @@ impl<'arn, Env> Parsable<'arn, Env> for Option<u64> {
 
     fn from_construct(
         _span: Span,
-        constructor: &'arn str,
+        constructor: Identifier,
         args: &[Parsed<'arn>],
         _allocs: Allocs<'arn>,
         src: &InputTable<'arn>,
         _env: &mut Env,
     ) -> Self {
-        match constructor {
+        match constructor.as_str(src) {
             "None" => {
                 assert_eq!(args.len(), 0);
                 Option::None
