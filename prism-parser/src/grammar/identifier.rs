@@ -1,9 +1,7 @@
 use crate::META_GRAMMAR_STR;
 use crate::core::input::Input;
-use crate::core::input_table::{InputTable, META_INPUT_INDEX};
-use crate::core::pos::Pos;
+use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::serde_leak::leak;
 use crate::parsable::parsed::Parsed;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -26,7 +24,7 @@ impl Identifier {
     }
 }
 
-impl<'arn> Serialize for Identifier {
+impl Serialize for Identifier {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

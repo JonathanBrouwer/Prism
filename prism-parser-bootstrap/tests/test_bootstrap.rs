@@ -1,4 +1,3 @@
-use bumpalo::Bump;
 use prism_parser::META_GRAMMAR;
 use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use prism_parser::error::aggregate_error::ParseResultExt;

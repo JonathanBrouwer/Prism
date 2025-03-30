@@ -1,6 +1,5 @@
 use crate::META_GRAMMAR_STR;
 use ariadne::{Cache, Source};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Display};
 use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};

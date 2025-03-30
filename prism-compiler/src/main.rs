@@ -1,4 +1,3 @@
-use bumpalo::Bump;
 use clap::Parser;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::DbEnv;

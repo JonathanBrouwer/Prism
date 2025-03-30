@@ -1,9 +1,8 @@
-use crate::lang::error::{PrismError, TypeError};
+use crate::lang::error::PrismError;
 use crate::lang::{CoreIndex, PrismEnv};
 use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
-use prism_parser::core::span::Span;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -14,7 +13,7 @@ use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::{Arc, LazyLock};
+use std::sync::LazyLock;
 
 mod display;
 pub mod named_env;
@@ -47,7 +46,7 @@ impl<'arn> PrismEnv<'arn> {
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
         match run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
-            &GRAMMAR.1,
+            GRAMMAR.1,
             "expr",
             self.input.clone(),
             file,

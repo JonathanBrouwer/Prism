@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::iter;
 
 impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
-    pub fn pre_apply_action<'a>(
+    pub fn pre_apply_action(
         &mut self,
         rule: &RuleAction<'arn>,
         penv: &mut Env,

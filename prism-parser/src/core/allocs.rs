@@ -6,7 +6,7 @@ pub struct OwnedAllocs {
 }
 
 impl OwnedAllocs {
-    pub fn borrow(&self) -> &Herd {
+    fn borrow(&self) -> &Herd {
         &self.herd
     }
 }

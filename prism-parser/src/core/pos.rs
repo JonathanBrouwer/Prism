@@ -1,7 +1,7 @@
 use crate::core::input_table::META_INPUT_INDEX;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 

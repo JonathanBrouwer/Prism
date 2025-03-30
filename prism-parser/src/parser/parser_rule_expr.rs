@@ -16,7 +16,6 @@ use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
-use std::os::linux::raw::stat;
 
 impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
     pub fn parse_expr(

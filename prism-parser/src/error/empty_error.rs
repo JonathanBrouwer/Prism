@@ -25,13 +25,7 @@ impl<'arn> ParseError for EmptyError<'arn> {
         Self(PhantomData)
     }
 
-    fn report(&self, _enable_debug: bool, input: &InputTable) -> Report<'static, Span> {
-        todo!()
-        // Report::build(ReportKind::Error, Span::new(Pos::start_of(), Pos::start_of()))
-        //     .with_message("Parsing error occured")
-        //     .with_help(
-        //         "Parsing was run in fast-mode, rerun without fast-mode to get more error details",
-        //     )
-        //     .finish()
+    fn report(&self, _enable_debug: bool, _input: &InputTable) -> Report<'static, Span> {
+        unreachable!()
     }
 }

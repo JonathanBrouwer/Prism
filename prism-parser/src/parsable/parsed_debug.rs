@@ -1,6 +1,5 @@
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
-use crate::grammar::rule_action::RuleAction;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;

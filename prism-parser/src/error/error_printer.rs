@@ -1,7 +1,5 @@
-use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
-use crate::grammar::identifier::Identifier;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
@@ -28,11 +26,11 @@ impl ErrorLabel {
         }
     }
 
-    pub fn to_string(&self, input: &InputTable) -> String {
+    pub fn to_string(&self, _input: &InputTable) -> String {
         match self {
             ErrorLabel::Explicit(_, s) => s.to_string(),
             ErrorLabel::Literal(_, s) => s.to_string(),
-            ErrorLabel::Debug(_, s) => format!("[{}]", s.to_string()),
+            ErrorLabel::Debug(_, s) => format!("[{}]", s),
         }
     }
 }

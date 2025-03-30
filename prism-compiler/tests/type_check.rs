@@ -1,4 +1,3 @@
-use bumpalo::Bump;
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::DbEnv;
 use prism_parser::core::allocs::{Allocs, OwnedAllocs};

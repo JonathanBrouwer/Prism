@@ -33,7 +33,7 @@ impl<'arn> PrismEnv<'arn> {
     }
 
     pub fn assert_no_errors(&mut self) {
-        if self.errors.len() > 0 {
+        if !self.errors.is_empty() {
             self.eprint_errors();
             panic!("Errors encounterd, see above");
         }

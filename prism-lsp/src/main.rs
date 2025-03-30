@@ -1,5 +1,3 @@
-use prism_compiler::lang::PrismEnv;
-use tokio::sync::RwLock;
 use tower_lsp_server::jsonrpc::Result;
 use tower_lsp_server::lsp_types::*;
 use tower_lsp_server::{Client, LanguageServer, LspService, Server};
@@ -10,7 +8,7 @@ struct Backend {
 }
 
 impl LanguageServer for Backend {
-    async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
+    async fn initialize(&self, _params: InitializeParams) -> Result<InitializeResult> {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         self.client
             .log_message(MessageType::INFO, format!("Started Prism LSP v{VERSION}!"))
@@ -31,7 +29,6 @@ impl LanguageServer for Backend {
                 ),
                 ..Default::default()
             },
-            ..Default::default()
         })
     }
 
@@ -39,7 +36,7 @@ impl LanguageServer for Backend {
         Ok(())
     }
 
-    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
+    async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
         Ok(Some(Hover {
             contents: HoverContents::Scalar(MarkedString::String("You're hovering!".to_string())),
             range: None,
@@ -48,7 +45,7 @@ impl LanguageServer for Backend {
 
     async fn semantic_tokens_full(
         &self,
-        params: SemanticTokensParams,
+        _params: SemanticTokensParams,
     ) -> Result<Option<SemanticTokensResult>> {
         todo!()
     }

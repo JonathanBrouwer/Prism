@@ -10,7 +10,7 @@ pub struct Input {
     has_escapes: bool,
 }
 
-impl<'arn> Serialize for Input {
+impl Serialize for Input {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

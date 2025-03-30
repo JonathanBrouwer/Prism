@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use bumpalo::Bump;
 use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
