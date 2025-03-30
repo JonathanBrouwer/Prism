@@ -1,6 +1,6 @@
 use crate::META_GRAMMAR_STR;
 use ariadne::{Cache, Source};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::{Debug, Display};
 use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
@@ -34,80 +34,8 @@ struct InputTableEntry<'arn> {
     source: Source<&'arn str>,
 }
 
-#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize)]
-pub struct InputTableIndex(#[serde(skip)] usize);
-
-#[doc(hidden)]
-#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
-const _: () = {
-    #[allow(unused_extern_crates, clippy::useless_attribute)]
-    extern crate serde as _serde;
-    #[automatically_derived]
-    impl<'de> _serde::Deserialize<'de> for InputTableIndex {
-        fn deserialize<__D>(__deserializer: __D) -> _serde::__private::Result<Self, __D::Error>
-        where
-            __D: _serde::Deserializer<'de>,
-        {
-            #[doc(hidden)]
-            struct __Visitor<'de> {
-                marker: _serde::__private::PhantomData<InputTableIndex>,
-                lifetime: _serde::__private::PhantomData<&'de ()>,
-            }
-            #[automatically_derived]
-            impl<'de> _serde::de::Visitor<'de> for __Visitor<'de> {
-                type Value = InputTableIndex;
-                fn expecting(
-                    &self,
-                    __formatter: &mut _serde::__private::Formatter,
-                ) -> _serde::__private::fmt::Result {
-                    _serde::__private::Formatter::write_str(
-                        __formatter,
-                        "tuple struct InputTableIndex",
-                    )
-                }
-                #[inline]
-                fn visit_newtype_struct<__E>(
-                    self,
-                    __e: __E,
-                ) -> _serde::__private::Result<Self::Value, __E::Error>
-                where
-                    __E: _serde::Deserializer<'de>,
-                {
-                    let __field0: usize = <usize as _serde::Deserialize>::deserialize(__e)?;
-                    _serde::__private::Ok(InputTableIndex(__field0))
-                }
-                #[inline]
-                fn visit_seq<__A>(
-                    self,
-                    mut __seq: __A,
-                ) -> _serde::__private::Result<Self::Value, __A::Error>
-                where
-                    __A: _serde::de::SeqAccess<'de>,
-                {
-                    let __field0 = match _serde::de::SeqAccess::next_element::<usize>(&mut __seq)? {
-                        _serde::__private::Some(__value) => __value,
-                        _serde::__private::None => {
-                            return _serde::__private::Err(_serde::de::Error::invalid_length(
-                                0usize,
-                                &"tuple struct InputTableIndex with 1 element",
-                            ));
-                        }
-                    };
-                    _serde::__private::Ok(InputTableIndex(__field0))
-                }
-            }
-            let x = _serde::Deserializer::deserialize_newtype_struct(
-                __deserializer,
-                "InputTableIndex",
-                __Visitor {
-                    marker: _serde::__private::PhantomData::<InputTableIndex>,
-                    lifetime: _serde::__private::PhantomData,
-                },
-            )?;
-            Ok(Self(0))
-        }
-    }
-};
+#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug)]
+pub struct InputTableIndex(usize);
 
 impl<'arn> InputTable<'arn> {
     pub fn deep_clone<'brn>(&self) -> InputTable<'brn>

@@ -1,11 +1,19 @@
+use crate::core::input_table::META_INPUT_INDEX;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
+fn meta_input_index() -> InputTableIndex {
+    META_INPUT_INDEX
+}
+
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Pos(usize, InputTableIndex);
+pub struct Pos(
+    usize,
+    #[serde(skip, default = "meta_input_index")] InputTableIndex,
+);
 
 impl Pos {
     pub fn start_of(idx: InputTableIndex) -> Self {
