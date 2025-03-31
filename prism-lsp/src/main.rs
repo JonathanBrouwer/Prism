@@ -1,10 +1,12 @@
+use prism_compiler::lang::PrismEnv;
+use tokio::sync::RwLock;
 use tower_lsp_server::jsonrpc::Result;
 use tower_lsp_server::lsp_types::*;
 use tower_lsp_server::{Client, LanguageServer, LspService, Server};
 
 struct Backend {
     client: Client,
-    // prism_env: RwLock<PrismEnv>,
+    prism_env: RwLock<PrismEnv>,
 }
 
 impl LanguageServer for Backend {
@@ -56,6 +58,9 @@ async fn main() {
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
 
-    let (service, socket) = LspService::new(|client| Backend { client });
+    let (service, socket) = LspService::new(|client| Backend {
+        client,
+        prism_env: RwLock::new(PrismEnv::new()),
+    });
     Server::new(stdin, stdout, socket).serve(service).await;
 }
