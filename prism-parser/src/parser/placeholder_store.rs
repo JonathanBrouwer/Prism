@@ -1,4 +1,3 @@
-use crate::core::allocs::Allocs;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::identifier::Identifier;
@@ -8,24 +7,24 @@ use crate::parsable::parsed::Parsed;
 #[derive(Copy, Clone, Debug)]
 pub struct ParsedPlaceholder(usize);
 
-struct StoreEntry<'arn, Env> {
-    value: Option<Parsed<'arn>>,
+struct StoreEntry<Env> {
+    value: Option<Parsed>,
     parent: Option<ParsedPlaceholder>,
-    construct_info: Option<StoreEntryConstructInfo<'arn, Env>>,
+    construct_info: Option<StoreEntryConstructInfo<Env>>,
 }
 
-struct StoreEntryConstructInfo<'arn, Env> {
+struct StoreEntryConstructInfo<Env> {
     children: Vec<ParsedPlaceholder>,
     children_left: usize,
     constructor: Identifier,
-    parsable_dyn: ParsableDyn<'arn, Env>,
+    parsable_dyn: ParsableDyn<Env>,
 }
 
-pub struct PlaceholderStore<'arn, Env> {
-    store: Vec<StoreEntry<'arn, Env>>,
+pub struct PlaceholderStore<Env> {
+    store: Vec<StoreEntry<Env>>,
 }
 
-impl<'arn, Env> PlaceholderStore<'arn, Env> {
+impl<Env> PlaceholderStore<Env> {
     pub fn push_empty(&mut self) -> ParsedPlaceholder {
         let len = self.store.len();
         self.store.push(StoreEntry {
@@ -40,7 +39,7 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         &mut self,
         cur: ParsedPlaceholder,
         constructor: Identifier,
-        parsable_dyn: ParsableDyn<'arn, Env>,
+        parsable_dyn: ParsableDyn<Env>,
         children: Vec<ParsedPlaceholder>,
     ) {
         // Store info in children
@@ -59,17 +58,17 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         });
     }
 
-    pub fn get(&self, index: ParsedPlaceholder) -> Option<Parsed<'arn>> {
-        self.store[index.0].value
+    pub fn get(&self, index: ParsedPlaceholder) -> Option<&Parsed> {
+        self.store[index.0].value.as_ref()
     }
 
     pub fn place_into_empty(
         &mut self,
         cur: ParsedPlaceholder,
-        value: Parsed<'arn>,
+        value: Parsed,
         span: Span,
-        allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
+
+        src: &InputTable,
         env: &mut Env,
     ) {
         // Store value
@@ -94,17 +93,16 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         let args = parent
             .children
             .iter()
-            .map(|c| self.store[c.0].value.unwrap())
+            .map(|c| self.store[c.0].value.as_ref().unwrap().clone())
             .collect::<Vec<_>>();
-        let value =
-            (parent.parsable_dyn.from_construct)(span, parent.constructor, &args, allocs, src, env);
+        let value = (parent.parsable_dyn.from_construct)(span, parent.constructor, &args, src, env);
 
         // Place value, which will recurse if needed
-        self.place_into_empty(parent_idx, value, span, allocs, src, env);
+        self.place_into_empty(parent_idx, value, span, src, env);
     }
 }
 
-impl<Env> Default for PlaceholderStore<'_, Env> {
+impl<Env> Default for PlaceholderStore<Env> {
     fn default() -> Self {
         Self { store: Vec::new() }
     }

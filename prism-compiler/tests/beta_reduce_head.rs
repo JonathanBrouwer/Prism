@@ -1,6 +1,5 @@
 use prism_compiler::lang::PrismEnv;
 use prism_compiler::lang::env::DbEnv;
-use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use test_each_file::test_each_file;
 
 fn test([test]: [&str; 1]) {
@@ -8,8 +7,7 @@ fn test([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (eval_str, _expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let bump = OwnedAllocs::default();
-    let mut env = PrismEnv::new(Allocs::new(&bump));
+    let mut env = PrismEnv::new();
 
     let input = env.load_test(input_str, "input");
     let input = env.parse_file(input);
@@ -22,12 +20,12 @@ fn test([test]: [&str; 1]) {
     env.assert_no_errors();
 
     assert!(
-        env.is_beta_equal(input, DbEnv::default(), expected_eval, DbEnv::default()),
+        env.is_beta_equal(input, &DbEnv::default(), expected_eval, &DbEnv::default()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
         env.index_to_sm_string(input),
-        env.index_to_br_string(input, DbEnv::default()),
+        env.index_to_br_string(input, &DbEnv::default()),
         env.index_to_sm_string(expected_eval),
-        env.index_to_br_string(expected_eval, DbEnv::default()),
+        env.index_to_br_string(expected_eval, &DbEnv::default()),
     );
 }
 

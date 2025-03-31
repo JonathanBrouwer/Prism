@@ -5,14 +5,14 @@ use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr};
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv {
     pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {
-        self._type_check(root, DbEnv::default())
+        self._type_check(root, &DbEnv::default())
     }
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: CoreIndex, env: DbEnv<'arn>) -> CoreIndex {
+    fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
         // We should only type check values from the source code
         assert!(matches!(
             self.checked_origins[*i],
@@ -29,11 +29,11 @@ impl<'arn> PrismEnv<'arn> {
                     v = self.store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
 
-                let bt = self._type_check(b, env.cons(CSubst(v, vt), self.allocs));
+                let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
                 CorePrismExpr::Let(v, bt)
             }
             CorePrismExpr::DeBruijnIndex(index) => match env.get_idx(index) {
-                Some(CType(_, t) | CSubst(_, t)) => CorePrismExpr::Shift(t, index + 1),
+                Some(CType(_, t) | CSubst(_, t)) => CorePrismExpr::Shift(*t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
                     self.push_type_error(TypeError::IndexOutOfBound(i));
@@ -49,20 +49,20 @@ impl<'arn> PrismEnv<'arn> {
                 }
 
                 let err_count = self.errors.len();
-                let bs = env.cons(CType(self.new_tc_id(), a), self.allocs);
-                let bt = self._type_check(b, bs);
+                let bs = env.cons(CType(self.new_tc_id(), a));
+                let bt = self._type_check(b, &bs);
 
                 // Check if `b` typechecked without errors.
                 if self.errors.len() == err_count {
-                    self.expect_beq_type(bt, bs);
+                    self.expect_beq_type(bt, &bs);
                 }
 
                 CorePrismExpr::Type
             }
             CorePrismExpr::FnConstruct(b) => {
                 let a = self.store_checked(CorePrismExpr::Free, ValueOrigin::FreeSub(i));
-                let bs = env.cons(CType(self.new_tc_id(), a), self.allocs);
-                let bt = self._type_check(b, bs);
+                let bs = env.cons(CType(self.new_tc_id(), a));
+                let bt = self._type_check(b, &bs);
                 CorePrismExpr::FnType(a, bt)
             }
             CorePrismExpr::FnDestruct(f, mut a) => {
@@ -103,7 +103,7 @@ impl<'arn> PrismEnv<'arn> {
                 CorePrismExpr::Free
             }
             CorePrismExpr::Shift(v, shift) => {
-                CorePrismExpr::Shift(self._type_check(v, env.shift(shift)), shift)
+                CorePrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
             }
             CorePrismExpr::GrammarValue(_) => CorePrismExpr::GrammarType,
             CorePrismExpr::GrammarType => CorePrismExpr::Type,
@@ -113,7 +113,7 @@ impl<'arn> PrismEnv<'arn> {
         tid
     }
 
-    pub(super) fn push_type_error(&mut self, error: TypeError<'arn>) {
+    pub(super) fn push_type_error(&mut self, error: TypeError) {
         self.errors.push(PrismError::TypeError(error))
     }
 }

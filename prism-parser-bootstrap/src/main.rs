@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use prism_parser::core::allocs::{Allocs, OwnedAllocs};
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::parse_grammar;
@@ -14,9 +13,7 @@ fn main() {
 
 fn normal() {
     let input = include_str!("../../prism-parser/resources/meta.pg");
-    let bump = OwnedAllocs::default();
-    let alloc = Allocs::new(&bump);
-    let grammar2 = parse_grammar::<SetError>(input, alloc).unwrap_or_eprint().1;
+    let grammar2 = parse_grammar::<SetError>(input).unwrap_or_eprint().1;
 
     // let grammar: &'static GrammarFile = &META_GRAMMAR;
     // assert_eq!(grammar, &grammar2); // Safety check
@@ -31,7 +28,7 @@ fn normal() {
 //     let input = include_str!("../resources/meta.pg");
 //
 //     run_parser_rule_here!(result = &META_GRAMMAR, "toplevel", SetError, input);
-//     let result = result.unwrap_or_eprint().into_value::<ActionResult<'arn>>();
+//     let result = result.unwrap_or_eprint().into_value::<ActionResult>();
 //
 //     let mut file = File::create("prism-parser-bootstrap/resources/temp.bincode").unwrap();
 //     bincode::serialize_into(&mut file, &result).unwrap();
@@ -50,8 +47,8 @@ fn normal() {
 //
 //     let bump = OwnedAllocs::default();
 //     let alloc = Allocs::new(&bump);
-//     let grammar2: GrammarFile = parse_grammarfile(&result, input, alloc, |ar, src| {
-//         parse_rule_action(ar, src, alloc)
+//     let grammar2: GrammarFile = parse_grammarfile(&result, input, |ar, src| {
+//         parse_rule_action(ar, src)
 //     })
 //     .unwrap();
 //     let mut file = File::create("prism-parser/resources/bootstrap.json").unwrap();

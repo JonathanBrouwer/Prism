@@ -1,21 +1,19 @@
-use crate::core::allocs::Allocs;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::identifier::Identifier;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
 
-impl ParseResult for Option<u64> {}
-impl<'arn, Env> Parsable<'arn, Env> for Option<u64> {
+impl<Env> Parsable<Env> for Option<u64> {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
         constructor: Identifier,
-        args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
+        args: &[Parsed],
+
+        src: &InputTable,
         _env: &mut Env,
     ) -> Self {
         match constructor.as_str(src) {
@@ -25,7 +23,7 @@ impl<'arn, Env> Parsable<'arn, Env> for Option<u64> {
             }
             "Some" => {
                 assert_eq!(args.len(), 1);
-                Option::Some(args[0].into_value::<Input>().as_str(src).parse().unwrap())
+                Option::Some(args[0].value_ref::<Input>().as_str(src).parse().unwrap())
             }
             _ => unreachable!(),
         }

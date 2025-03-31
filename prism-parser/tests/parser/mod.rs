@@ -31,17 +31,13 @@ macro_rules! parse_test {
             use prism_parser::error::set_error::SetError;
             use prism_parser::grammar::rule_action::RuleAction;
             use prism_parser::error::aggregate_error::ParseResultExt;
-            use bumpalo::Bump;
-            use prism_parser::core::allocs::{Allocs, OwnedAllocs};
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;
             use prism_parser::core::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
-            let bump = OwnedAllocs::default();
-            let alloc = Allocs::new(&bump);
-            let (input_table, grammar) = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
+            let (input_table, grammar) = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
 
             let mut parsables = HashMap::new();
             parsables.insert(
@@ -52,12 +48,12 @@ macro_rules! parse_test {
             let mut counter = 0;
             $({
             let input: &'static str = $input_pass;
-            let file = input_table.get_or_push_file(input, format!("test_file_ok{counter}").into());
+            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_ok{counter}").into());
             println!("== Parsing {counter} (should be ok): {}", input);
             counter += 1;
 
 
-            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()).unwrap_or_eprint();
+            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ()).unwrap_or_eprint();
             let got = got.to_debug_string(&input_table);
             assert_eq!($expected, got);
             })*
@@ -65,11 +61,11 @@ macro_rules! parse_test {
             let mut counter = 0;
             $({
             let input: &'static str = $input_fail;
-            let file = input_table.get_or_push_file(input, format!("test_file_err{counter}").into());
+            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_err{counter}").into());
             println!("== Parsing {counter} (should be fail): {}", input);
             counter += 1;
 
-            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()) {
+            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ()) {
                 Ok(got) => {
                     let got = got.to_debug_string(&input_table);
                     println!("Got: {:?}", got);

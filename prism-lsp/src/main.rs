@@ -4,7 +4,7 @@ use tower_lsp_server::{Client, LanguageServer, LspService, Server};
 
 struct Backend {
     client: Client,
-    // prism_env: RwLock<PrismEnv<'arn>>,
+    // prism_env: RwLock<PrismEnv>,
 }
 
 impl LanguageServer for Backend {

@@ -1,62 +1,60 @@
-use crate::core::allocs::Allocs;
+use std::sync::Arc;
+
+use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::identifier::{Identifier, parse_identifier};
-use crate::grammar::serde_leak::*;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
-pub enum RuleAction<'arn> {
+#[derive(Serialize, Deserialize)]
+pub enum RuleAction {
     Name(Identifier),
     InputLiteral(Input),
     Construct {
         ns: Identifier,
         name: Identifier,
-        #[serde(with = "leak_slice", borrow)]
-        args: &'arn [Self],
+        args: Arc<[Arc<Self>]>,
     },
     #[serde(skip)]
     Value {
         ns: Identifier,
-        value: Parsed<'arn>,
+        value: Parsed,
     },
 }
 
-impl ParseResult for RuleAction<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
+impl<Env> Parsable<Env> for RuleAction {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
         constructor: Identifier,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
+        args: &[Parsed],
+        src: &InputTable,
         _env: &mut Env,
     ) -> Self {
         match constructor.as_str(src) {
             "Construct" => RuleAction::Construct {
-                ns: parse_identifier(args[0]),
-                name: parse_identifier(args[1]),
-                args: allocs.alloc_extend(
+                ns: parse_identifier(&args[0]),
+                name: parse_identifier(&args[1]),
+                args: alloc_extend(
                     args[2]
-                        .into_value::<ParsedList>()
-                        .into_iter()
+                        .value_ref::<ParsedList>()
+                        .iter()
                         .map(|((), v)| v)
-                        .map(|sub| *sub.into_value::<RuleAction<'arn>>()),
+                        .map(|sub| sub.value_cloned::<RuleAction>()),
                 ),
             },
             "InputLiteral" => {
-                RuleAction::InputLiteral(args[0].into_value::<Input>().parse_escaped_string())
+                RuleAction::InputLiteral(args[0].value_ref::<Input>().parse_escaped_string())
             }
-            "Name" => RuleAction::Name(parse_identifier(args[0])),
+            "Name" => RuleAction::Name(parse_identifier(&args[0])),
             "Value" => RuleAction::Value {
-                ns: parse_identifier(args[0]),
-                value: args[1],
+                ns: parse_identifier(&args[0]),
+                value: args[1].clone(),
             },
             _ => unreachable!(),
         }

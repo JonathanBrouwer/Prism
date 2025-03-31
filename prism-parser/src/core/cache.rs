@@ -1,4 +1,5 @@
 use crate::core::adaptive::{BlockState, GrammarStateId};
+use crate::core::arc_ref::BorrowedArcSlice;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -10,8 +11,9 @@ use crate::error::{ParseError, err_combine_opt};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use std::hash::{DefaultHasher, Hasher};
+use std::sync::Arc;
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct CacheKey {
     pos: Pos,
     block: usize,     // Start of blocks ptr to usize
@@ -20,27 +22,27 @@ pub struct CacheKey {
     state: GrammarStateId,
     eval_ctx: usize,
 }
-pub type CacheVal<'arn, E> = PResult<Parsed<'arn>, E>;
+pub type CacheVal<E> = PResult<Parsed, E>;
 
 pub struct ParserCacheEntry<PR> {
     pub read: bool,
     pub value: PR,
 }
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
+impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        mut sub: impl FnMut(&mut ParserState<'arn, Env, E>, Pos) -> PResult<Parsed<'arn>, E>,
-        blocks: &'arn [BlockState<'arn>],
-        rule_args: VarMap<'arn>,
+        mut sub: impl FnMut(&mut ParserState<Env, E>, Pos) -> PResult<Parsed, E>,
+        blocks: BorrowedArcSlice<Arc<BlockState>>,
+        rule_args: &VarMap,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+    ) -> PResult<Parsed, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
-        for (name, value) in rule_args {
-            args_hash.write(name.as_bytes());
+        for (name, value) in rule_args.iter() {
+            args_hash.write(name.as_str(&self.input).as_bytes());
             args_hash.write_usize(value.as_ptr().as_ptr() as usize);
         }
 
@@ -86,7 +88,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
                     loop {
                         //Insert the current seed into the cache
                         self.cache_state_revert(cache_state);
-                        self.cache_insert(key.clone(), POk(o, spos, epos, be.clone()));
+                        self.cache_insert(key.clone(), POk(o.clone(), spos, epos, be.clone()));
 
                         //Grow the seed
                         let new_res = sub(self, pos_start);

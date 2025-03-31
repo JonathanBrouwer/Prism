@@ -6,33 +6,32 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 
-impl<'arn> Parsed<'arn> {
-    pub fn to_debug_string(&self, src: &InputTable<'arn>) -> String {
-        if let Some(ar) = self.try_into_value::<ActionResult>() {
-            match ar {
-                ActionResult::Construct(_, c, es) => format!(
-                    "{}({})",
-                    c.as_str(src),
-                    es.iter()
-                        .map(|e| e.to_debug_string(src))
-                        .collect::<Vec<String>>()
-                        .join(", ")
-                ),
-            }
-        } else if let Some(_env) = self.try_into_value::<VarMap<'arn>>() {
+impl Parsed {
+    pub fn to_debug_string(&self, src: &InputTable) -> String {
+        if let Some(ar) = self.try_value_ref::<ActionResult>() {
+            format!(
+                "{}({})",
+                ar.constructor.as_str(src),
+                ar.args
+                    .iter()
+                    .map(|e| e.to_debug_string(src))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+        } else if let Some(_env) = self.try_value_ref::<VarMap>() {
             "[VARS]".to_string()
-        } else if let Some(ll) = self.try_into_value::<ParsedList<'arn>>() {
+        } else if let Some(ll) = self.try_value_ref::<ParsedList>() {
             format!(
                 "[{}]",
-                ll.into_iter()
+                ll.iter()
                     .map(|((), v)| v)
                     .map(|e| e.to_debug_string(src))
                     .collect::<Vec<String>>()
                     .join(", ")
             )
-        } else if let Some(guid) = self.try_into_value::<Guid>() {
+        } else if let Some(guid) = self.try_value_ref::<Guid>() {
             format!("Guid({})", guid.0)
-        } else if let Some(input) = self.try_into_value::<Input>() {
+        } else if let Some(input) = self.try_value_ref::<Input>() {
             format!("\'{}\'", input.to_string(src))
         } else {
             format!("Unknown value of type {}", self.name)

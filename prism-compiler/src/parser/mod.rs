@@ -1,11 +1,11 @@
 use crate::lang::error::PrismError;
 use crate::lang::{CoreIndex, PrismEnv};
-use prism_parser::core::allocs::Allocs;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use prism_parser::grammar::identifier::Identifier;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
@@ -13,44 +13,39 @@ use prism_parser::parser::parser_instance::run_parser_rule_raw;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
 mod display;
 pub mod named_env;
 pub mod parse_expr;
 mod parsed_to_checked;
 
-pub static GRAMMAR: LazyLock<(InputTable<'static>, &'static GrammarFile<'static>)> =
-    LazyLock::new(|| {
-        let (table, grammar) = parse_grammar::<SetError>(
-            include_str!("../../resources/prism.pg"),
-            Allocs::new_leaking(),
-        )
-        .unwrap_or_eprint();
-        (table.deep_clone(), grammar)
-    });
+pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| {
+    let (table, grammar) =
+        parse_grammar::<SetError>(include_str!("../../resources/prism.pg")).unwrap_or_eprint();
+    (table.deep_clone(), grammar)
+});
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv {
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
         let program = std::fs::read_to_string(&path).unwrap();
-        let program = self.allocs.alloc_str(&program);
         self.input.get_or_push_file(program, path)
     }
 
-    pub fn load_test(&mut self, data: &'arn str, path_name: &'static str) -> InputTableIndex {
-        self.input.get_or_push_file(data, path_name.into())
+    pub fn load_test(&mut self, data: &str, path_name: &'static str) -> InputTableIndex {
+        self.input
+            .get_or_push_file(data.to_string(), path_name.into())
     }
 
     pub fn parse_file(&mut self, file: InputTableIndex) -> ParsedIndex {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        match run_parser_rule_raw::<PrismEnv<'arn>, SetError>(
-            GRAMMAR.1,
+        match run_parser_rule_raw::<PrismEnv, SetError>(
+            &GRAMMAR.1,
             "expr",
             self.input.clone(),
             file,
-            self.allocs,
             parsables,
             self,
         )
@@ -79,26 +74,26 @@ impl Deref for ParsedIndex {
     }
 }
 
-#[derive(Copy, Clone)]
-pub enum ParsedPrismExpr<'arn> {
+#[derive(Clone)]
+pub enum ParsedPrismExpr {
     // Real expressions
     Free,
     Type,
-    Let(&'arn str, ParsedIndex, ParsedIndex),
-    FnType(&'arn str, ParsedIndex, ParsedIndex),
-    FnConstruct(&'arn str, ParsedIndex),
+    Let(Identifier, ParsedIndex, ParsedIndex),
+    FnType(Identifier, ParsedIndex, ParsedIndex),
+    FnConstruct(Identifier, ParsedIndex),
     FnDestruct(ParsedIndex, ParsedIndex),
     TypeAssert(ParsedIndex, ParsedIndex),
 
     // Temporary expressions after parsing
-    Name(&'arn str),
+    Name(Identifier),
     ShiftTo {
         expr: ParsedIndex,
-        captured_env: VarMap<'arn>,
+        captured_env: VarMap,
         adapt_env_len: usize,
-        grammar: &'arn GrammarFile<'arn>,
+        grammar: Arc<GrammarFile>,
     },
-    GrammarValue(&'arn GrammarFile<'arn>),
+    GrammarValue(Arc<GrammarFile>),
     GrammarType,
-    Include(&'arn str, CoreIndex),
+    Include(Identifier, CoreIndex),
 }

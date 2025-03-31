@@ -135,10 +135,7 @@ impl<O, E: ParseError> PResult<O, E> {
         }
     }
 
-    pub fn merge_choice_chain<'arn>(self, mut other: impl FnMut() -> PResult<O, E>) -> Self
-    where
-        'arn: 'arn,
-    {
+    pub fn merge_choice_chain(self, mut other: impl FnMut() -> PResult<O, E>) -> Self {
         //Quick out
         if self.is_ok() {
             return self;
@@ -147,13 +144,10 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_choice(other())
     }
 
-    pub fn merge_seq_chain<'arn, O2>(
+    pub fn merge_seq_chain<O2>(
         self,
         mut other: impl FnMut(Pos) -> PResult<O2, E>,
-    ) -> PResult<(O, O2), E>
-    where
-        'arn: 'arn,
-    {
+    ) -> PResult<(O, O2), E> {
         //Quick out
         if self.is_err() {
             return self.map(|_| unreachable!());
@@ -163,13 +157,10 @@ impl<O, E: ParseError> PResult<O, E> {
         self.merge_seq(other(pos))
     }
 
-    pub fn merge_seq_chain2<'arn, O2>(
+    pub fn merge_seq_chain2<O2>(
         self,
         mut other: impl FnMut(Pos, Span, O) -> PResult<O2, E>,
-    ) -> PResult<O2, E>
-    where
-        'arn: 'arn,
-    {
+    ) -> PResult<O2, E> {
         //Quick out
         match self {
             POk(o, start, end, best) => POk((), start, end, best)

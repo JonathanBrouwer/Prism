@@ -12,7 +12,7 @@ pub enum Identifier {
 }
 
 impl Identifier {
-    pub fn as_str<'arn>(self, input: &InputTable<'arn>) -> &'arn str {
+    pub fn as_str(self, input: &InputTable) -> &str {
         match self {
             Identifier::FromSource(span) => input.slice(span),
             Identifier::Const(c) => c,
@@ -50,6 +50,6 @@ impl<'de> Deserialize<'de> for Identifier {
     }
 }
 
-pub(crate) fn parse_identifier<'arn>(r: Parsed<'arn>) -> Identifier {
-    Identifier::FromSource(r.into_value::<Input>().span())
+pub fn parse_identifier(r: &Parsed) -> Identifier {
+    Identifier::FromSource(r.value_ref::<Input>().span())
 }

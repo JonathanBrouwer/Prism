@@ -8,4 +8,3 @@ pub mod rule_action;
 pub mod rule_annotation;
 pub mod rule_block;
 pub mod rule_expr;
-pub mod serde_leak;

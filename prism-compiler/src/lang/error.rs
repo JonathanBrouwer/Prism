@@ -9,13 +9,13 @@ use std::mem;
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
-pub enum PrismError<'arn> {
+pub enum PrismError {
     ParseError(SetError),
-    TypeError(TypeError<'arn>),
+    TypeError(TypeError),
 }
 
-impl<'arn> PrismError<'arn> {
-    pub fn eprint(&self, env: &mut PrismEnv<'arn>) {
+impl PrismError {
+    pub fn eprint(&self, env: &mut PrismEnv) {
         let report = match self {
             PrismError::ParseError(e) => e.report(false, &env.input),
             PrismError::TypeError(e) => env.report(e).unwrap(),
@@ -24,7 +24,7 @@ impl<'arn> PrismError<'arn> {
     }
 }
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismEnv {
     pub fn eprint_errors(&mut self) {
         let errors = mem::take(&mut self.errors);
         for error in errors {
@@ -40,13 +40,13 @@ impl<'arn> PrismEnv<'arn> {
     }
 }
 
-pub enum TypeError<'arn> {
+pub enum TypeError {
     ExpectType(CoreIndex),
     ExpectFn(CoreIndex),
     ExpectFnArg {
-        function_type: (CoreIndex, DbEnv<'arn>),
-        function_arg_type: (CoreIndex, DbEnv<'arn>),
-        arg_type: (CoreIndex, DbEnv<'arn>),
+        function_type: (CoreIndex, DbEnv),
+        function_arg_type: (CoreIndex, DbEnv),
+        arg_type: (CoreIndex, DbEnv),
     },
     ExpectTypeAssert {
         expr: CoreIndex,
@@ -62,8 +62,8 @@ pub enum TypeError<'arn> {
     UnknownName(Span),
 }
 
-impl<'arn> PrismEnv<'arn> {
-    pub fn report(&mut self, error: &TypeError<'arn>) -> Option<Report<'static, Span>> {
+impl PrismEnv {
+    pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
@@ -139,14 +139,14 @@ impl<'arn> PrismEnv<'arn> {
                 let span = self.source_span(arg_type.0);
                 let label_arg = Label::new(span).with_message(format!(
                     "This argument has type: {}",
-                    self.index_to_br_string(arg_type.0, arg_type.1)
+                    self.index_to_br_string(arg_type.0, &arg_type.1)
                 ));
 
                 let span = self.source_span(function_type.0);
                 let label_fn = Label::new(span)
                     .with_message(format!(
                         "This function takes arguments of type: {}",
-                        self.index_to_br_string(function_arg_type.0, function_arg_type.1)
+                        self.index_to_br_string(function_arg_type.0, &function_arg_type.1)
                     ))
                     .with_order(1)
                     .with_color(SECONDARY_COLOR);

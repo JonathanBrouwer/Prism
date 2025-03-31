@@ -6,16 +6,18 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use crate::parsable::ParseResult;
+use crate::grammar::identifier::Identifier;
+use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
+use std::sync::Arc;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
+impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
     pub fn parse_with_layout<'a, O>(
         &mut self,
-        rules: &'arn GrammarState<'arn>,
-        vars: VarMap<'arn>,
-        sub: impl Fn(&mut ParserState<'arn, Env, E>, Pos, &mut Env) -> PResult<O, E>,
+        rules: &GrammarState,
+        vars: &VarMap,
+        sub: impl Fn(&mut ParserState<Env, E>, Pos, &mut Env) -> PResult<O, E>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
@@ -23,10 +25,10 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
         if context.layout_disabled {
             return sub(self, pos, penv);
         }
-        let Some(layout) = vars.get("layout") else {
+        let Some(layout) = vars.get_ident(Identifier::from_const("layout"), &self.input) else {
             return sub(self, pos, penv);
         };
-        let layout = *layout.into_value::<RuleId>();
+        let layout = *layout.value_ref::<RuleId>();
 
         let mut res = PResult::new_empty((), pos);
         loop {
@@ -48,7 +50,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
                         ..context
                     },
                     penv,
-                    Void.to_parsed(),
+                    &Arc::new(Void).to_parsed(),
                 )
             });
             match new_res {
@@ -70,15 +72,15 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
 
     pub fn parse_end_with_layout(
         &mut self,
-        rules: &'arn GrammarState<'arn>,
-        vars: VarMap<'arn>,
+        rules: &GrammarState,
+        vars: &VarMap,
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
     ) -> PResult<(), E> {
         self.parse_with_layout(
             rules,
-            vars,
+            &vars,
             |state, pos, _penv| state.parse_end(pos),
             pos,
             context,

@@ -1,52 +1,46 @@
-use crate::core::allocs::Allocs;
+use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::identifier::Identifier;
-use crate::grammar::serde_leak::*;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
-pub struct CharClass<'arn> {
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+pub struct CharClass {
     pub neg: bool,
-    #[serde(borrow, with = "leak_slice")]
-    pub ranges: &'arn [CharClassRange],
+    pub ranges: Arc<[Arc<CharClassRange>]>,
 }
 
-impl CharClass<'_> {
+impl CharClass {
     pub fn contains(&self, c: char) -> bool {
         self.ranges.iter().any(|range| range.0 <= c && c <= range.1) ^ self.neg
     }
 }
 
-impl ParseResult for CharClass<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
+impl<Env> Parsable<Env> for CharClass {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
         constructor: Identifier,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        input: &InputTable<'arn>,
+        args: &[Parsed],
+
+        input: &InputTable,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor.as_str(input), "CharClass");
         CharClass {
-            neg: args[0]
-                .into_value::<ParsedList>()
-                .into_iter()
-                .next()
-                .is_some(),
-            ranges: allocs.alloc_extend(
+            neg: args[0].value_ref::<ParsedList>().iter().next().is_some(),
+            ranges: alloc_extend(
                 args[1]
-                    .into_value::<ParsedList>()
-                    .into_iter()
+                    .value_ref::<ParsedList>()
+                    .iter()
                     .map(|((), v)| v)
-                    .map(|p| *p.into_value::<CharClassRange>()),
+                    .map(|p| p.value_cloned::<CharClassRange>()),
             ),
         }
     }
@@ -55,26 +49,24 @@ impl<'arn, Env> Parsable<'arn, Env> for CharClass<'arn> {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct CharClassRange(char, char);
 
-impl ParseResult for CharClassRange {}
-impl<'arn, Env> Parsable<'arn, Env> for CharClassRange {
+impl<Env> Parsable<Env> for CharClassRange {
     type EvalCtx = ();
 
     fn from_construct(
         _span: Span,
         constructor: Identifier,
-        args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
+        args: &[Parsed],
+        src: &InputTable,
         _env: &mut Env,
     ) -> Self {
         assert_eq!(constructor.as_str(src), "Range");
         CharClassRange(
-            parse_string_char(args[0], src),
-            parse_string_char(args[1], src),
+            parse_string_char(&args[0], src),
+            parse_string_char(&args[1], src),
         )
     }
 }
 
-fn parse_string_char<'arn>(r: Parsed<'arn>, src: &InputTable<'arn>) -> char {
-    r.into_value::<Input>().chars(src).next().unwrap()
+fn parse_string_char(r: &Parsed, src: &InputTable) -> char {
+    r.value_ref::<Input>().chars(src).next().unwrap()
 }

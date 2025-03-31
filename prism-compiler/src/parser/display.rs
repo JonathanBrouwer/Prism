@@ -4,7 +4,7 @@ use crate::lang::PrismEnv;
 use crate::lang::display::PrecedenceLevel;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 
-impl ParsedPrismExpr<'_> {
+impl ParsedPrismExpr {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
@@ -24,14 +24,14 @@ impl ParsedPrismExpr<'_> {
     }
 }
 
-impl PrismEnv<'_> {
+impl PrismEnv {
     fn parse_display(
         &self,
         i: ParsedIndex,
         w: &mut impl Write,
         max_precedence: PrecedenceLevel,
     ) -> std::fmt::Result {
-        let e = self.parsed_values[*i];
+        let e = &self.parsed_values[*i];
 
         if e.precedence_level() < max_precedence {
             write!(w, "(")?;
@@ -39,30 +39,30 @@ impl PrismEnv<'_> {
 
         match e {
             ParsedPrismExpr::Type => write!(w, "Type")?,
-            ParsedPrismExpr::Let(n, v, b) => {
-                write!(w, "let {n} = ")?;
+            &ParsedPrismExpr::Let(n, v, b) => {
+                write!(w, "let {} = ", n.as_str(&self.input))?;
                 self.parse_display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.parse_display(b, w, PrecedenceLevel::Let)?;
             }
-            ParsedPrismExpr::Name(n) => write!(w, "{n}")?,
-            ParsedPrismExpr::FnType(n, a, b) => {
-                write!(w, "({n}: ")?;
+            ParsedPrismExpr::Name(n) => write!(w, "{}", n.as_str(&self.input))?,
+            &ParsedPrismExpr::FnType(n, a, b) => {
+                write!(w, "({}: ", n.as_str(&self.input))?;
                 self.parse_display(a, w, PrecedenceLevel::TypeAssert)?;
                 write!(w, ") -> ")?;
                 self.parse_display(b, w, PrecedenceLevel::FnType)?;
             }
-            ParsedPrismExpr::FnConstruct(n, b) => {
-                write!(w, "{n} => ")?;
+            &ParsedPrismExpr::FnConstruct(n, b) => {
+                write!(w, "{} => ", n.as_str(&self.input))?;
                 self.parse_display(b, w, PrecedenceLevel::Construct)?;
             }
-            ParsedPrismExpr::FnDestruct(a, b) => {
+            &ParsedPrismExpr::FnDestruct(a, b) => {
                 self.parse_display(a, w, PrecedenceLevel::Destruct)?;
                 write!(w, " ")?;
                 self.parse_display(b, w, PrecedenceLevel::Base)?;
             }
             ParsedPrismExpr::Free => write!(w, "{{{}}}", i.0)?,
-            ParsedPrismExpr::TypeAssert(e, typ) => {
+            &ParsedPrismExpr::TypeAssert(e, typ) => {
                 self.parse_display(e, w, PrecedenceLevel::Destruct)?;
                 write!(w, ": ")?;
                 self.parse_display(typ, w, PrecedenceLevel::Destruct)?;
@@ -80,19 +80,19 @@ impl PrismEnv<'_> {
                 ..
             } => {
                 writeln!(w, "[SHIFT {adapt_env_len}]")?;
-                for (n, v) in vars {
-                    write!(w, "  * {n} = ")?;
-                    if let Some(v) = v.try_into_value::<ParsedIndex>() {
+                for (n, v) in vars.iter() {
+                    write!(w, "  * {} = ", n.as_str(&self.input))?;
+                    if let Some(v) = v.try_value_ref::<ParsedIndex>() {
                         self.parse_display(*v, w, PrecedenceLevel::Base)?;
                     } else {
                         write!(w, "{}", v.to_debug_string(&self.input))?;
                     }
                     writeln!(w)?;
                 }
-                self.parse_display(expr, w, PrecedenceLevel::default())?;
+                self.parse_display(*expr, w, PrecedenceLevel::default())?;
             }
             ParsedPrismExpr::Include(n, _) => {
-                write!(w, "include!({n})")?;
+                write!(w, "include!({})", n.as_str(&self.input))?;
             }
         }
 

@@ -1,6 +1,5 @@
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::parsable::ParseResult;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::Chars;
 
@@ -71,7 +70,7 @@ impl Input {
         EscapedStringIter(input.slice(self.span).chars(), self.has_escapes)
     }
 
-    pub fn as_str<'a>(self, input: &InputTable<'a>) -> &'a str {
+    pub fn as_str(self, input: &InputTable) -> &str {
         let slice = input.slice(self.span);
         assert!(!self.has_escapes || !slice.contains('\\'));
         slice
@@ -85,5 +84,3 @@ impl Input {
         }
     }
 }
-
-impl ParseResult for Input {}

@@ -1,4 +1,5 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
+use crate::core::arc_ref::BorrowedArcSlice;
 use crate::core::context::ParserContext;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -8,18 +9,18 @@ use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
+impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
     pub fn parse_rule(
         &mut self,
-        rules: &'arn GrammarState<'arn>,
+        rules: &GrammarState,
         rule: RuleId,
-        args: &[Parsed<'arn>],
+        args: &[Parsed],
         pos: Pos,
         context: ParserContext,
         penv: &mut Env,
-        eval_ctx: Parsed<'arn>,
-    ) -> PResult<Parsed<'arn>, E> {
-        let rule_state: &'arn RuleState<'arn> = rules
+        eval_ctx: &Parsed,
+    ) -> PResult<Parsed, E> {
+        let rule_state: &RuleState = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
@@ -35,15 +36,14 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel>> ParserState<'arn, Env, E> {
             rule_state
                 .args
                 .iter()
-                .map(|(_arg_type, arg_name)| arg_name.as_str(&self.input))
+                .map(|(_arg_type, arg_name)| *arg_name)
                 .zip(args.iter().cloned()),
-            self.alloc,
         );
 
         let mut res = self.parse_rule_block(
             rules,
-            rule_state.blocks,
-            rule_args,
+            BorrowedArcSlice::new(&rule_state.blocks),
+            &rule_args,
             pos,
             context,
             penv,

@@ -1,27 +1,33 @@
-use crate::core::allocs::Allocs;
+use crate::core::allocs::alloc_extend;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::identifier::Identifier;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
+use std::sync::Arc;
 
-#[derive(Copy, Clone)]
-pub enum ActionResult<'arn> {
-    Construct(Span, Identifier, &'arn [Parsed<'arn>]),
+#[derive(Clone)]
+pub struct ActionResult {
+    pub span: Span,
+    pub constructor: Identifier,
+    pub args: Arc<[Parsed]>,
 }
 
-impl ParseResult for ActionResult<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for ActionResult<'arn> {
+impl<Env> Parsable<Env> for ActionResult {
     type EvalCtx = ();
 
     fn from_construct(
         span: Span,
         constructor: Identifier,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
+        args: &[Parsed],
+
+        _src: &InputTable,
         _env: &mut Env,
     ) -> Self {
-        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().copied()))
+        Self {
+            span,
+            constructor,
+            args: alloc_extend(args.iter().cloned()),
+        }
     }
 }

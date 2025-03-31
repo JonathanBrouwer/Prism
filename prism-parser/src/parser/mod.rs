@@ -1,4 +1,5 @@
 use crate::env::GenericEnv;
+use crate::grammar::identifier::Identifier;
 use crate::parsable::parsed::Parsed;
 
 pub mod apply_action;
@@ -11,4 +12,4 @@ pub mod parser_rule_expr;
 pub mod placeholder_store;
 pub mod rule_closure;
 
-pub type VarMap<'arn> = GenericEnv<'arn, &'arn str, Parsed<'arn>>;
+pub type VarMap = GenericEnv<Identifier, Parsed>;

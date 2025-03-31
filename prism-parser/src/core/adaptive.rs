@@ -1,4 +1,4 @@
-use crate::core::allocs::Allocs;
+use crate::core::allocs::alloc_extend;
 use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
@@ -6,21 +6,20 @@ use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::identifier::Identifier;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
-use crate::parsable::ParseResult;
+use crate::parsable::parsed::ArcExt;
 use crate::parser::VarMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use std::iter;
+use std::sync::Arc;
 
-#[derive(Copy, Clone)]
-pub struct GrammarState<'arn> {
-    rules: &'arn [&'arn RuleState<'arn>],
+pub struct GrammarState {
+    rules: Arc<[Arc<RuleState>]>,
     last_mut_pos: Option<Pos>,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct RuleId(usize);
-
-impl ParseResult for RuleId {}
 
 impl Display for RuleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -28,7 +27,7 @@ impl Display for RuleId {
     }
 }
 
-impl Default for GrammarState<'_> {
+impl Default for GrammarState {
     fn default() -> Self {
         Self::new()
     }
@@ -40,10 +39,10 @@ pub enum AdaptError {
     SamePos(Pos),
 }
 
-impl<'arn> GrammarState<'arn> {
+impl GrammarState {
     pub fn new() -> Self {
         Self {
-            rules: &[],
+            rules: alloc_extend(iter::empty()),
             last_mut_pos: None,
         }
     }
@@ -52,12 +51,11 @@ impl<'arn> GrammarState<'arn> {
     /// To unify rules, use the names of the rules in `ctx`
     pub fn adapt_with(
         &self,
-        grammar: &'arn GrammarFile<'arn>,
-        ctx: VarMap<'arn>,
+        grammar: &GrammarFile,
+        ctx: &VarMap,
         pos: Option<Pos>,
-        alloc: Allocs<'arn>,
-        input_table: &InputTable<'arn>,
-    ) -> Result<(Self, VarMap<'arn>), AdaptError> {
+        input_table: &InputTable,
+    ) -> Result<(Self, VarMap), AdaptError> {
         // If we already tried to adapt at this position before, crash to prevent infinite loop
         if let Some(pos) = pos {
             if let Some(last_mut_pos) = self.last_mut_pos {
@@ -68,31 +66,34 @@ impl<'arn> GrammarState<'arn> {
         }
 
         // Create a new ruleid or find an existing rule id for each rule that is adopted
-        let mut new_rules = self.rules.to_vec();
-        let mut new_ctx = ctx;
+        let mut new_rules = self.rules.iter().cloned().collect::<Vec<_>>();
+        let mut new_ctx = ctx.clone();
         let tmp: Vec<_> = grammar
             .rules
             .iter()
             .map(|new_rule| {
-                let new_rule_name = new_rule.name.as_str(input_table);
-
                 let rule = if new_rule.adapt {
-                    let value = ctx.get(new_rule_name).expect("Name exists in context");
-                    *value.into_value::<RuleId>()
+                    let value = ctx
+                        .get_ident(new_rule.name, input_table)
+                        .expect("Name exists in context");
+                    *value.value_ref::<RuleId>()
                 } else {
-                    new_rules.push(alloc.alloc(RuleState::new_empty(new_rule.name, new_rule.args)));
+                    new_rules.push(Arc::new(RuleState::new_empty(
+                        new_rule.name,
+                        new_rule.args.clone(),
+                    )));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.insert(new_rule_name, alloc.alloc(rule).to_parsed(), alloc);
+                new_ctx = new_ctx.insert(new_rule.name, Arc::new(rule).to_parsed());
                 (new_rule.name, rule)
             })
             .collect();
 
         // Update each rule that is to be adopted, stored in `result`
         for (&(_, id), rule) in tmp.iter().zip(grammar.rules.iter()) {
-            new_rules[id.0] = alloc.alloc(
+            new_rules[id.0] = Arc::new(
                 new_rules[id.0]
-                    .update(rule, new_ctx, alloc, input_table)
+                    .update(rule, new_ctx.clone(), input_table)
                     .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?,
             );
         }
@@ -100,24 +101,20 @@ impl<'arn> GrammarState<'arn> {
         Ok((
             Self {
                 last_mut_pos: pos,
-                rules: alloc.alloc_extend(new_rules),
+                rules: new_rules.into(),
             },
             new_ctx,
         ))
     }
 
-    pub fn new_with(
-        grammar: &'arn GrammarFile<'arn>,
-        alloc: Allocs<'arn>,
-        input_table: &InputTable<'arn>,
-    ) -> (Self, VarMap<'arn>) {
+    pub fn new_with(grammar: &GrammarFile, input_table: &InputTable) -> (Self, VarMap) {
         // We create a new grammar by adapting an empty one
         GrammarState::new()
-            .adapt_with(grammar, VarMap::default(), None, alloc, input_table)
+            .adapt_with(grammar, &VarMap::default(), None, input_table)
             .expect("")
     }
 
-    pub fn get(&self, rule: RuleId) -> Option<&RuleState<'arn>> {
+    pub fn get(&self, rule: RuleId) -> Option<&RuleState> {
         self.rules.get(rule.0).map(|v| &**v)
     }
 
@@ -130,48 +127,48 @@ impl<'arn> GrammarState<'arn> {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
-pub type ArgsSlice<'arn> = &'arn [(Identifier, Identifier)];
+pub type ArgsSlice = Arc<[(Identifier, Identifier)]>;
 
-#[derive(Copy, Clone)]
-pub struct RuleState<'arn> {
+pub struct RuleState {
     pub name: Identifier,
-    pub args: ArgsSlice<'arn>,
-    pub blocks: &'arn [BlockState<'arn>],
+    pub args: ArgsSlice,
+    pub blocks: Arc<[Arc<BlockState>]>,
 }
 
 pub enum UpdateError {
     ToposortCycle,
 }
 
-impl<'arn> RuleState<'arn> {
-    pub fn new_empty(name: Identifier, args: ArgsSlice<'arn>) -> Self {
+impl RuleState {
+    pub fn new_empty(name: Identifier, args: ArgsSlice) -> Self {
         Self {
             name,
-            blocks: &[],
+            blocks: vec![].into(),
             args,
         }
     }
 
     pub fn update(
         &self,
-        r: &'arn Rule<'arn>,
-        ctx: VarMap<'arn>,
-        allocs: Allocs<'arn>,
-        input_table: &InputTable<'arn>,
+        r: &Rule,
+        ctx: VarMap,
+
+        input_table: &InputTable,
     ) -> Result<Self, UpdateError> {
         assert_eq!(self.name.as_str(input_table), r.name.as_str(input_table));
-        for (a1, a2) in self.args.iter().zip(r.args) {
+        for (a1, a2) in self.args.iter().zip(r.args.iter()) {
             assert_eq!(a1.0.as_str(input_table), a2.0.as_str(input_table));
             assert_eq!(a1.1.as_str(input_table), a2.1.as_str(input_table));
         }
 
-        let mut result = Vec::with_capacity(self.blocks.len() + r.blocks.len());
+        let mut result: Vec<Arc<BlockState>> =
+            Vec::with_capacity(self.blocks.len() + r.blocks.len());
         let mut old_iter = self.blocks.iter();
 
-        for new_block in r.blocks {
+        for new_block in r.blocks.iter() {
             // If this new block should not match an old block, add it as a new block state
             if !new_block.adapt {
-                result.push(BlockState::new(new_block, ctx, allocs));
+                result.push(Arc::new(BlockState::new(new_block, ctx.clone())));
                 continue;
             }
             // Find matching old block
@@ -182,59 +179,52 @@ impl<'arn> RuleState<'arn> {
                 };
                 // If this is not the matching block, add it and continue searching
                 if old_block.name.as_str(input_table) != new_block.name.as_str(input_table) {
-                    result.push(*old_block);
+                    result.push(old_block.clone());
                     continue;
                 }
-                result.push(old_block.update(new_block, ctx, allocs, input_table));
+                result.push(old_block.update(new_block, ctx.clone(), input_table));
                 break;
             }
         }
         for old_block in old_iter {
-            result.push(*old_block);
+            result.push(old_block.clone());
         }
 
         Ok(Self {
             name: self.name,
-            args: self.args,
-            blocks: allocs.alloc_extend(result),
+            args: self.args.clone(),
+            blocks: result.into(),
         })
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct BlockState<'arn> {
+#[derive(Clone)]
+pub struct BlockState {
     pub name: Identifier,
-    pub constructors: &'arn [Constructor<'arn>],
+    pub constructors: Arc<[Constructor]>,
 }
 
-pub type Constructor<'arn> = (&'arn AnnotatedRuleExpr<'arn>, VarMap<'arn>);
+pub type Constructor = (Arc<AnnotatedRuleExpr>, VarMap);
 
-impl<'arn> BlockState<'arn> {
-    pub fn new(block: &'arn RuleBlock<'arn>, ctx: VarMap<'arn>, allocs: Allocs<'arn>) -> Self {
+impl BlockState {
+    pub fn new(block: &RuleBlock, ctx: VarMap) -> Self {
         Self {
             name: block.name,
-            constructors: allocs.alloc_extend(block.constructors.iter().map(|r| (r, ctx))),
+            constructors: alloc_extend(block.constructors.iter().map(|r| (r.clone(), ctx.clone()))),
         }
     }
 
     #[must_use]
-    pub fn update(
-        &self,
-        b: &'arn RuleBlock<'arn>,
-        ctx: VarMap<'arn>,
-        allocs: Allocs<'arn>,
-        input_table: &InputTable<'arn>,
-    ) -> Self {
+    pub fn update(&self, b: &RuleBlock, ctx: VarMap, input_table: &InputTable) -> Arc<Self> {
         assert_eq!(self.name.as_str(input_table), b.name.as_str(input_table));
-        Self {
+        Arc::new(Self {
             name: self.name,
-            constructors: allocs.alloc_extend_len(
-                self.constructors.len() + b.constructors.len(),
+            constructors: alloc_extend(
                 self.constructors
                     .iter()
                     .cloned()
-                    .chain(b.constructors.iter().map(|r| (r, ctx))),
+                    .chain(b.constructors.iter().map(|r| (r.clone(), ctx.clone()))),
             ),
-        }
+        })
     }
 }
