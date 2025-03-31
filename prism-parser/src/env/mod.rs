@@ -49,7 +49,7 @@ impl<'a, N, V> Iterator for GenericEnvIterator<'a, N, V> {
         match self.current {
             None => None,
             Some(node) => {
-                self.current = node.next.as_ref().map(|v| &**v);
+                self.current = node.next.as_deref();
                 Some((&node.name, &node.value))
             }
         }
@@ -93,7 +93,7 @@ impl<N, V> GenericEnv<N, V> {
 
     pub fn iter(&self) -> impl Iterator<Item = (&N, &V)> {
         GenericEnvIterator {
-            current: self.0.as_ref().map(|v| &**v),
+            current: self.0.as_deref(),
         }
     }
 
@@ -141,11 +141,6 @@ impl<N: Debug, V> GenericEnv<N, V> {
             len += 1;
         }
         Self(current, len)
-    }
-
-    pub fn from_iter<T: IntoIterator<Item = (N, V)>>(iter: T) -> Self {
-        let s = Self::default();
-        s.extend(iter)
     }
 
     pub fn as_ptr(&self) -> *const GenericEnvNode<N, V> {
@@ -200,6 +195,13 @@ impl<N: Debug, V> GenericEnv<N, V> {
         }
 
         Self(n1.clone(), len)
+    }
+}
+
+impl<N: Debug, V> FromIterator<(N, V)> for GenericEnv<N, V> {
+    fn from_iter<T: IntoIterator<Item = (N, V)>>(iter: T) -> Self {
+        let s = Self::default();
+        s.extend(iter)
     }
 }
 

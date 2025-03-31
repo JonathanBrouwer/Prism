@@ -27,7 +27,7 @@ impl PrismEnv {
             &CorePrismExpr::DeBruijnIndex(v) => match s.get_idx(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
                 Some(EnvEntry::RType(id)) => {
-                    CorePrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
+                    CorePrismExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
                 }
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
                     return self.simplify_inner(*subst, subst_env, var_map);

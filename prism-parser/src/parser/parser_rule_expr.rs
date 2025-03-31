@@ -85,7 +85,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                                 .into_iter()
                                 .rev()
                                 .zip(arg_values)
-                                .map(|((n, _), v)| (n.clone(), v)),
+                                .map(|((n, _), v)| (*n, v)),
                         )
                     };
                     return self

@@ -13,7 +13,7 @@ use crate::parser::VarMap;
 use std::sync::Arc;
 
 impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
-    pub fn parse_with_layout<'a, O>(
+    pub fn parse_with_layout<O>(
         &mut self,
         rules: &GrammarState,
         vars: &VarMap,
@@ -80,7 +80,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
     ) -> PResult<(), E> {
         self.parse_with_layout(
             rules,
-            &vars,
+            vars,
             |state, pos, _penv| state.parse_end(pos),
             pos,
             context,

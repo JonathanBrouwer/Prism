@@ -1,7 +1,5 @@
 use std::any::{Any, type_name};
 use std::fmt::{Debug, Formatter};
-use std::hash::{DefaultHasher, Hasher};
-use std::marker::PhantomData;
 use std::ptr::NonNull;
 use std::sync::Arc;
 

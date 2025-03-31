@@ -105,6 +105,12 @@ pub struct ProcessedFile {
     pub typ: CoreIndex,
 }
 
+impl Default for PrismEnv {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PrismEnv {
     pub fn new() -> Self {
         Self {

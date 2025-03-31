@@ -124,28 +124,28 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
     }
 }
 
-pub fn run_parser_rule_raw<'a, Env, E: ParseError<L = ErrorLabel>>(
+pub fn run_parser_rule_raw<Env, E: ParseError<L = ErrorLabel>>(
     rules: &GrammarFile,
     rule: &'static str,
     input: Arc<InputTable>,
     file: InputTableIndex,
 
     parsables: HashMap<&'static str, ParsableDyn<Env>>,
-    penv: &'a mut Env,
+    penv: &mut Env,
 ) -> Result<Parsed, AggregatedParseError<E>> {
     let mut instance: ParserInstance<Env, E> =
         ParserInstance::new(input, rules, parsables).unwrap();
     instance.run(rule, file, penv)
 }
 
-pub fn run_parser_rule<'a, 'arn, Env, P: Parsable<Env>, E: ParseError<L = ErrorLabel>>(
+pub fn run_parser_rule<Env, P: Parsable<Env>, E: ParseError<L = ErrorLabel>>(
     rules: &GrammarFile,
     rule: &'static str,
     input_table: Arc<InputTable>,
     file: InputTableIndex,
 
     parsables: HashMap<&'static str, ParsableDyn<Env>>,
-    penv: &'a mut Env,
+    penv: &mut Env,
 ) -> Result<Arc<P>, AggregatedParseError<E>> {
     run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
         .map(|parsed| parsed.into_value::<P>())

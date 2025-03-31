@@ -1,5 +1,6 @@
 use crate::META_GRAMMAR_STR;
 use ariadne::{Cache, Source};
+use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::mem;
 use std::path::PathBuf;
@@ -78,14 +79,11 @@ impl InputTable {
 impl Cache<InputTableIndex> for &InputTableInner {
     type Storage = String;
 
-    fn fetch(
-        &mut self,
-        idx: &InputTableIndex,
-    ) -> Result<&Source<Self::Storage>, Box<dyn Debug + '_>> {
-        Ok(&self.files[idx.0].source)
+    fn fetch(&mut self, idx: &InputTableIndex) -> Result<&Source<Self::Storage>, impl Debug> {
+        Result::<_, Infallible>::Ok(&self.files[idx.0].source)
     }
 
-    fn display<'a>(&self, idx: &'a InputTableIndex) -> Option<Box<dyn Display + 'a>> {
+    fn display<'a>(&self, idx: &'a InputTableIndex) -> Option<impl Display + 'a> {
         Some(Box::new(
             self.files[idx.0]
                 .path

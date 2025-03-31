@@ -63,7 +63,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
 
                 // Create envs for args
                 let arg_envs =
-                    (ns.create_eval_ctx)(*constructor, &eval_ctx, &placeholders, &self.input, penv);
+                    (ns.create_eval_ctx)(*constructor, eval_ctx, &placeholders, &self.input, penv);
 
                 // Recurse on args
                 for ((arg, env), placeholder) in args

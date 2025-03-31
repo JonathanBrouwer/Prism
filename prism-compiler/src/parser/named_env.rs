@@ -1,4 +1,3 @@
-use prism_parser::core::input::Input;
 use prism_parser::core::input_table::InputTable;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;

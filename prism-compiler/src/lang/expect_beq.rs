@@ -16,8 +16,8 @@ impl PrismEnv {
         s: &DbEnv,
     ) {
         if !self.expect_beq_internal(
-            (expr_type, &s, &mut HashMap::new()),
-            (expected_type, &s, &mut HashMap::new()),
+            (expr_type, s, &mut HashMap::new()),
+            (expected_type, s, &mut HashMap::new()),
             0,
         ) {
             self.push_type_error(TypeError::ExpectTypeAssert {

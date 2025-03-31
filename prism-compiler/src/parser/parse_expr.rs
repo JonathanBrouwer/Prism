@@ -2,7 +2,6 @@ use crate::lang::env::{DbEnv, EnvEntry};
 use crate::lang::{CorePrismExpr, PrismEnv};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
-use prism_parser::core::input::Input;
 use prism_parser::core::input_table::InputTable;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
@@ -131,7 +130,7 @@ impl Parsable<PrismEnv> for ParsedIndex {
 
                 ParsedPrismExpr::ShiftTo {
                     expr,
-                    captured_env: captured_env,
+                    captured_env,
                     adapt_env_len: value.1,
                     grammar: value.2.clone(),
                 }

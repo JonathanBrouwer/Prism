@@ -1,4 +1,4 @@
-use std::ops::{Deref, Index};
+use std::ops::Deref;
 use std::slice::SliceIndex;
 use std::sync::Arc;
 
@@ -49,7 +49,7 @@ impl<'a, T> BorrowedArcSlice<'a, T> {
 
     pub fn slice(&self, range: impl SliceIndex<[T], Output = [T]>) -> Self {
         Self {
-            owner: &self.owner,
+            owner: self.owner,
             reference: &unsafe { &*self.reference }[range],
         }
     }
