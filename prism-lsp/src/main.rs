@@ -49,7 +49,16 @@ impl LanguageServer for Backend {
         &self,
         _params: SemanticTokensParams,
     ) -> Result<Option<SemanticTokensResult>> {
-        todo!()
+        Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
+            result_id: None,
+            data: vec![SemanticToken {
+                delta_line: 0,
+                delta_start: 0,
+                length: 5,
+                token_type: 0,
+                token_modifiers_bitset: 0,
+            }],
+        })))
     }
 }
 
