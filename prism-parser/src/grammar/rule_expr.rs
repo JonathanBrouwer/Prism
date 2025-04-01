@@ -9,7 +9,7 @@ use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum RuleExpr {
     RunVar {
         rule: Input,

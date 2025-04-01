@@ -311,12 +311,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 );
                 res.map_with_span(|res, span| {
                     if let Some(placeholder) = placeholder {
-                        self.placeholders.place_into_empty(
-                            placeholder,
-                            res.rtrn.clone(),
-                            span,
-                            penv,
-                        );
+                        self.placeholders
+                            .place_into_empty(placeholder, res.rtrn.clone(), penv);
                     }
 
                     PR {
@@ -328,14 +324,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             RuleExpr::Action(sub, action) => {
                 let mut eval_ctxs = HashMap::new();
                 let root_placeholder = self.placeholders.push_empty();
-                self.pre_apply_action(
-                    action,
-                    penv,
-                    pos,
-                    root_placeholder,
-                    eval_ctx,
-                    &mut eval_ctxs,
-                );
+                self.pre_apply_action(action, penv, root_placeholder, eval_ctx, &mut eval_ctxs);
 
                 let res = self.parse_expr(
                     sub,
@@ -349,6 +338,15 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     eval_ctx,
                     &mut eval_ctxs,
                 );
+
+                //TODO
+                // res.map_with_span(|res, span| {
+                //     let parsed = self.placeholders.get(root_placeholder).unwrap();
+                //     PR::with_rtrn(
+                //         parsed.clone()
+                //     )
+                // })
+
                 res.map_with_span(|res, span| {
                     PR::with_rtrn(self.apply_action(
                         action,

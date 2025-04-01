@@ -36,6 +36,10 @@ impl Pos {
             ),
         }
     }
+
+    pub fn test() -> Self {
+        Self(0, InputTableIndex::test())
+    }
 }
 
 impl Display for Pos {

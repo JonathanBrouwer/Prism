@@ -28,6 +28,10 @@ impl InputTableIndex {
     pub fn value(self) -> usize {
         self.0
     }
+
+    pub fn test() -> Self {
+        Self(0)
+    }
 }
 
 impl InputTable {

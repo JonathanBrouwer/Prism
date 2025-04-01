@@ -8,7 +8,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum RuleAction {
     Name(Input),
     InputLiteral(Input),

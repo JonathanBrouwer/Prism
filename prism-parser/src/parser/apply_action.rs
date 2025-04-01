@@ -1,6 +1,5 @@
 use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
@@ -19,7 +18,6 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         &mut self,
         rule: &RuleAction,
         penv: &mut Db,
-        pos: Pos,
 
         placeholder: ParsedPlaceholder,
         eval_ctx: &Parsed,
@@ -29,9 +27,14 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             RuleAction::Name(n) => {
                 let n = n.as_str();
                 if eval_ctxs.contains_key(n) {
+                    // If ctx is void, ignore
+                    if eval_ctx.try_value_ref::<Void>().is_some() {
+                        return;
+                    }
+
                     // Ctx is ambiguous
+                    panic!("Context is important and ambiguous");
                     //TODO if both ctxs are identical, we can continue
-                    eval_ctxs.insert(n.to_string(), (Arc::new(Void).to_parsed(), placeholder));
                 } else {
                     eval_ctxs.insert(n.to_string(), (eval_ctx.clone(), placeholder));
                 }
@@ -59,6 +62,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     constructor.clone(),
                     *ns,
                     placeholders.clone(),
+                    penv,
                 );
 
                 // Create envs for args
@@ -76,15 +80,15 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     )
                     .zip(&placeholders)
                 {
-                    self.pre_apply_action(arg, penv, pos, *placeholder, &env, eval_ctxs);
+                    self.pre_apply_action(arg, penv, *placeholder, &env, eval_ctxs);
                 }
             }
             RuleAction::InputLiteral(lit) => {
                 let parsed = Arc::new(lit.clone()).to_parsed();
                 self.placeholders
-                    .place_into_empty(placeholder, parsed, pos.span_to(pos), penv);
+                    .place_into_empty(placeholder, parsed, penv);
             }
-            RuleAction::Value { .. } => {
+            RuleAction::Value { ns, value } => {
                 //TODO
             }
         }

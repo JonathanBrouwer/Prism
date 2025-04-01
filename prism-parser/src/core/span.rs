@@ -31,6 +31,13 @@ impl Span {
     pub fn end_pos(self) -> Pos {
         self.start + self.len
     }
+
+    pub fn test() -> Self {
+        Self {
+            start: Pos::test(),
+            len: 0,
+        }
+    }
 }
 
 impl InputTable {
