@@ -18,7 +18,7 @@ use crate::parser::rule_closure::RuleClosure;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_expr(
         &mut self,
         expr: &RuleExpr,
@@ -28,7 +28,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         vars: &VarMap,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
         eval_ctx: &Parsed,
         eval_ctxs: &mut HashMap<String, (Parsed, ParsedPlaceholder)>,
     ) -> PResult<PR, E> {
@@ -37,9 +37,9 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 let mut arg_values = Vec::new();
                 for arg in &**args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = &**arg {
-                        let r_str = r.as_str(&self.input);
+                        let r_str = r.as_str();
                         if args.is_empty() && !["#this", "#next"].contains(&r_str) {
-                            vars.get_ident(*r, &self.input).unwrap().clone()
+                            vars.get(r).unwrap().clone()
                         } else {
                             Arc::new(RuleClosure {
                                 expr: arg.clone(),
@@ -67,7 +67,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 }
 
                 // Handle #this and #next logic
-                let rule_str = rule.as_str(&self.input);
+                let rule_str = rule.as_str();
                 if rule_str == "#this" || rule_str == "#next" {
                     let blocks = match rule_str {
                         "#this" => blocks,
@@ -85,7 +85,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                                 .into_iter()
                                 .rev()
                                 .zip(arg_values)
-                                .map(|((n, _), v)| (*n, v)),
+                                .map(|((n, _), v)| (n.clone(), v)),
                         )
                     };
                     return self
@@ -94,7 +94,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 }
 
                 // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get_ident(*rule, &self.input) else {
+                let Some(rule) = vars.get(rule) else {
                     panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
                 };
                 if let Some(rule) = rule.try_value_ref::<RuleId>() {
@@ -127,24 +127,23 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     context,
                     penv,
                 )
-                .map(|(span, _)| PR::with_rtrn(Arc::new(Input::from_span(span)).to_parsed())),
+                .map(|(span, _)| {
+                    PR::with_rtrn(Arc::new(Input::from_span(span, &self.input)).to_parsed())
+                }),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
                 vars,
                 |state, start_pos, _penv| {
                     let mut res = PResult::new_empty((), start_pos);
-                    let input = state.input.clone();
-                    for char in literal.chars(&input) {
+                    for char in literal.as_str().chars() {
                         let new_res = state.parse_char(|c| *c == char, res.end_pos());
                         res = res.merge_seq(new_res).map(|_| ());
                     }
                     let span = start_pos.span_to(res.end_pos());
-                    let mut res =
-                        res.map(|_| PR::with_rtrn(Arc::new(Input::from_span(span)).to_parsed()));
-                    res.add_label_implicit(ErrorLabel::Literal(
-                        span,
-                        literal.to_string(&state.input),
-                    ));
+                    let mut res = res.map(|_| {
+                        PR::with_rtrn(Arc::new(Input::from_span(span, &state.input)).to_parsed())
+                    });
+                    res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
                     res
                 },
                 pos,
@@ -291,13 +290,12 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let (eval_ctx, placeholder) = if let Some((eval_ctx, placeholder)) =
-                    eval_ctxs.get(name.as_str(&self.input))
-                {
-                    (eval_ctx, Some(*placeholder))
-                } else {
-                    (eval_ctx, None)
-                };
+                let (eval_ctx, placeholder) =
+                    if let Some((eval_ctx, placeholder)) = eval_ctxs.get(name.as_str()) {
+                        (eval_ctx, Some(*placeholder))
+                    } else {
+                        (eval_ctx, None)
+                    };
 
                 let res = self.parse_expr(
                     sub,
@@ -317,13 +315,12 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                             placeholder,
                             res.rtrn.clone(),
                             span,
-                            &self.input,
                             penv,
                         );
                     }
 
                     PR {
-                        free: res.free.insert(*name, res.rtrn.clone()),
+                        free: res.free.insert(name.clone(), res.rtrn.clone()),
                         rtrn: Arc::new(Void).to_parsed(),
                     }
                 })
@@ -375,7 +372,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     &mut HashMap::new(),
                 );
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(Arc::new(Input::from_span(span)).to_parsed())
+                    PR::with_rtrn(Arc::new(Input::from_span(span, &self.input)).to_parsed())
                 })
             }
             RuleExpr::PosLookahead(sub) => self
@@ -412,13 +409,13 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 name: grammar,
                 expr: body,
             } => {
-                let ns = ns.as_str(&self.input);
+                let ns = ns.as_str();
 
                 let ns = self
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let grammar = vars.get_ident(*grammar, &self.input).unwrap();
+                let grammar = vars.get(grammar).unwrap();
                 let grammar =
                     (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
 

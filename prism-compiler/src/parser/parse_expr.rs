@@ -1,12 +1,11 @@
 use crate::lang::env::{DbEnv, EnvEntry};
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
-use prism_parser::core::input_table::InputTable;
+use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::grammar::identifier::{Identifier, parse_identifier};
 use prism_parser::parsable::Parsable;
 use prism_parser::parsable::parsed::{ArcExt, Parsed};
 use prism_parser::parser::VarMap;
@@ -17,24 +16,23 @@ pub type PrismEvalCtx = GenericEnv<ParsedPlaceholder, Option<ParsedPlaceholder>>
 
 pub fn eval_ctx_to_envs(
     env: &PrismEvalCtx,
-    placeholders: &PlaceholderStore<PrismEnv>,
-    input: &InputTable,
-    prism_env: &mut PrismEnv,
+    placeholders: &PlaceholderStore<PrismDb>,
+    prism_env: &mut PrismDb,
 ) -> (NamedEnv, DbEnv) {
     match env.split() {
         None => (NamedEnv::default(), DbEnv::default()),
         Some(((key, value), rest)) => {
-            let (named_env, db_env) = eval_ctx_to_envs(&rest, placeholders, input, prism_env);
+            let (named_env, db_env) = eval_ctx_to_envs(&rest, placeholders, prism_env);
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
-            let dummy_named_env = named_env.insert_name(Identifier::from_const("_"), input);
+            let dummy_named_env = named_env.insert_name(Input::from_const("_"));
             let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.new_tc_id()));
 
             // If the name or value of this entry is not known, continue
             let Some(key) = placeholders.get(*key) else {
                 return (dummy_named_env, dummy_db_env);
             };
-            let key = parse_identifier(key);
+            let key = Input::from_parsed(key);
 
             // TODO we should also handle Nones here
             let Some(value) = value else {
@@ -47,24 +45,18 @@ pub fn eval_ctx_to_envs(
             let value =
                 prism_env.parsed_to_checked_with_env(value, &named_env, &mut Default::default());
 
-            let named_env = named_env.insert_name(key, input);
+            let named_env = named_env.insert_name(key);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
             (named_env, db_env)
         }
     }
 }
 
-impl Parsable<PrismEnv> for ParsedIndex {
+impl Parsable<PrismDb> for ParsedIndex {
     type EvalCtx = PrismEvalCtx;
 
-    fn from_construct(
-        span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-        src: &InputTable,
-        prism_env: &mut PrismEnv,
-    ) -> Self {
-        let expr: ParsedPrismExpr = match constructor.as_str(src) {
+    fn from_construct(span: Span, constructor: &Input, args: &[Parsed], env: &mut PrismDb) -> Self {
+        let expr: ParsedPrismExpr = match constructor.as_str() {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -72,8 +64,8 @@ impl Parsable<PrismEnv> for ParsedIndex {
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = parse_identifier(&args[0]);
-                if name.as_str(&prism_env.input) == "_" {
+                let name = Input::from_parsed(&args[0]);
+                if name.as_str() == "_" {
                     ParsedPrismExpr::Free
                 } else {
                     ParsedPrismExpr::Name(name)
@@ -81,21 +73,21 @@ impl Parsable<PrismEnv> for ParsedIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = parse_identifier(&args[0]);
+                let name = Input::from_parsed(&args[0]);
                 let v = *args[1].value_ref::<ParsedIndex>();
                 let b = *args[2].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = parse_identifier(&args[0]);
+                let name = Input::from_parsed(&args[0]);
                 let v = *args[1].value_ref::<ParsedIndex>();
                 let b = *args[2].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = parse_identifier(&args[0]);
+                let name = Input::from_parsed(&args[0]);
                 let b = *args[1].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }
@@ -137,77 +129,76 @@ impl Parsable<PrismEnv> for ParsedIndex {
             }
             "Include" => {
                 assert_eq!(args.len(), 1);
-                let name = parse_identifier(&args[0]);
+                let name = Input::from_parsed(&args[0]);
 
                 let current_file = span.start_pos().file();
 
-                let mut path = prism_env.input.get_path(current_file);
+                let mut path = env.input.get_path(current_file);
                 assert!(path.pop());
-                path.push(format!("{}.pr", name.as_str(&prism_env.input)));
+                path.push(format!("{}.pr", name.as_str()));
 
-                let next_file = prism_env.load_file(path);
+                let next_file = env.load_file(path);
 
                 //TODO properly do errors
-                let processed_file = prism_env.process_file(next_file);
+                let processed_file = env.process_file(next_file);
 
                 ParsedPrismExpr::Include(name, processed_file.core)
             }
             _ => unreachable!(),
         };
 
-        prism_env.store_from_source(expr, span)
+        env.store_from_source(expr, span)
     }
 
     fn create_eval_ctx(
-        constructor: Identifier,
+        constructor: &Input,
         parent_ctx: &Self::EvalCtx,
-        args: &[ParsedPlaceholder],
-        src: &InputTable,
-        _env: &mut PrismEnv,
+        arg_placeholders: &[ParsedPlaceholder],
+        _env: &mut PrismDb,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        match constructor.as_str(src) {
+        match constructor.as_str() {
             "Type" => {
-                assert_eq!(args.len(), 0);
+                assert_eq!(arg_placeholders.len(), 0);
                 vec![]
             }
             "Name" => {
-                assert_eq!(args.len(), 1);
+                assert_eq!(arg_placeholders.len(), 1);
                 vec![None]
             }
             "Let" => {
-                assert_eq!(args.len(), 3);
+                assert_eq!(arg_placeholders.len(), 3);
                 vec![
                     None,
                     Some(parent_ctx.clone()),
-                    Some(parent_ctx.insert(args[0], Some(args[1]))),
+                    Some(parent_ctx.insert(arg_placeholders[0], Some(arg_placeholders[1]))),
                 ]
             }
             "FnType" => {
-                assert_eq!(args.len(), 3);
+                assert_eq!(arg_placeholders.len(), 3);
                 vec![None, Some(parent_ctx.clone()), Some(parent_ctx.clone())]
             }
             "FnConstruct" => {
-                assert_eq!(args.len(), 2);
+                assert_eq!(arg_placeholders.len(), 2);
                 vec![None, Some(parent_ctx.clone())]
             }
             "FnDestruct" => {
-                assert_eq!(args.len(), 2);
+                assert_eq!(arg_placeholders.len(), 2);
                 vec![Some(parent_ctx.clone()), Some(parent_ctx.clone())]
             }
             "TypeAssert" => {
-                assert_eq!(args.len(), 2);
+                assert_eq!(arg_placeholders.len(), 2);
                 vec![Some(parent_ctx.clone()), Some(parent_ctx.clone())]
             }
             "GrammarValue" => {
-                assert_eq!(args.len(), 1);
+                assert_eq!(arg_placeholders.len(), 1);
                 vec![None]
             }
             "GrammarType" => {
-                assert_eq!(args.len(), 0);
+                assert_eq!(arg_placeholders.len(), 0);
                 vec![]
             }
             "Include" => {
-                assert_eq!(args.len(), 1);
+                assert_eq!(arg_placeholders.len(), 1);
                 vec![None]
             }
             _ => unreachable!(),
@@ -218,46 +209,44 @@ impl Parsable<PrismEnv> for ParsedIndex {
     fn eval_to_grammar(
         self: &Arc<ParsedIndex>,
         eval_ctx: &Self::EvalCtx,
-        placeholders: &PlaceholderStore<PrismEnv>,
-        src: &InputTable,
-        prism_env: &mut PrismEnv,
+        placeholders: &PlaceholderStore<PrismDb>,
+        env: &mut PrismDb,
     ) -> Arc<GrammarFile> {
         // Create context, ignore any errors that occur in this process
-        let error_count = prism_env.errors.len();
-        let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, src, prism_env);
-        prism_env.errors.truncate(error_count);
+        let error_count = env.errors.len();
+        let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, env);
+        env.errors.truncate(error_count);
 
         // Get original grammar function
         let original_e =
-            prism_env.parsed_to_checked_with_env(**self, &named_env, &mut Default::default());
-        let origin = prism_env.checked_origins[original_e.0];
+            env.parsed_to_checked_with_env(**self, &named_env, &mut Default::default());
+        let origin = env.checked_origins[original_e.0];
 
         // Evaluate this to the grammar function
-        let (grammar_fn_value, grammar_fn_env) = prism_env.beta_reduce_head(original_e, &db_env);
+        let (grammar_fn_value, grammar_fn_env) = env.beta_reduce_head(original_e, &db_env);
 
         // Create expression that takes first element from this function
-        let e = prism_env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
-        let mut e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        let e = env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+        let mut e = env.store_checked(CorePrismExpr::FnConstruct(e), origin);
         for _ in 0..grammar_fn_env.len() {
-            e = prism_env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+            e = env.store_checked(CorePrismExpr::FnConstruct(e), origin);
         }
-        let free_returntype = prism_env.store_checked(CorePrismExpr::Free, origin);
-        let grammar_fn_value = prism_env.store_checked(
+        let free_returntype = env.store_checked(CorePrismExpr::Free, origin);
+        let grammar_fn_value = env.store_checked(
             CorePrismExpr::FnDestruct(grammar_fn_value, free_returntype),
             origin,
         );
-        let e = prism_env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
+        let e = env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
 
         // Evaluate this further
-        let (reduced_value, _reduced_env) = prism_env.beta_reduce_head(e, &db_env);
+        let (reduced_value, _reduced_env) = env.beta_reduce_head(e, &db_env);
 
-        let CorePrismExpr::GrammarValue(grammar) = &prism_env.checked_values[reduced_value.0]
-        else {
+        let CorePrismExpr::GrammarValue(grammar) = &env.checked_values[reduced_value.0] else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
-                prism_env.parse_index_to_string(**self),
-                prism_env.index_to_string(e),
-                prism_env.index_to_string(reduced_value)
+                env.parse_index_to_string(**self),
+                env.index_to_string(e),
+                env.index_to_string(reduced_value)
             )
         };
 

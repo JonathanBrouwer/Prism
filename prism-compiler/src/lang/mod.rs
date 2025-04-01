@@ -70,7 +70,7 @@ pub enum CorePrismExpr {
     GrammarType,
 }
 
-pub struct PrismEnv {
+pub struct PrismDb {
     // File info
     pub input: Arc<InputTable>,
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
@@ -105,13 +105,13 @@ pub struct ProcessedFile {
     pub typ: CoreIndex,
 }
 
-impl Default for PrismEnv {
+impl Default for PrismDb {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl PrismEnv {
+impl PrismDb {
     pub fn new() -> Self {
         Self {
             input: Arc::new(GRAMMAR.0.deep_clone()),
@@ -173,7 +173,7 @@ impl PrismEnv {
         self.tc_id = 0;
     }
 
-    pub fn erase_arena(self) -> PrismEnv {
+    pub fn erase_arena(self) -> PrismDb {
         todo!()
     }
 }

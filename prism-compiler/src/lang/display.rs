@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -34,7 +34,7 @@ impl CorePrismExpr {
     }
 }
 
-impl PrismEnv {
+impl PrismDb {
     fn display(
         &self,
         i: CoreIndex,

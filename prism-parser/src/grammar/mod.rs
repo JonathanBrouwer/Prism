@@ -1,7 +1,6 @@
 pub mod annotated_rule_expr;
 pub mod charclass;
 pub mod grammar_file;
-pub mod identifier;
 pub mod map_actions;
 pub mod rule;
 pub mod rule_action;

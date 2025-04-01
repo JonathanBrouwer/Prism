@@ -1,12 +1,10 @@
 use crate::core::input::Input;
-use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::identifier::Identifier;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum RuleAnnotation {
     Error(Input),
     DisableLayout,
@@ -15,18 +13,11 @@ pub enum RuleAnnotation {
     EnableRecovery,
 }
 
-impl<Env> Parsable<Env> for RuleAnnotation {
+impl<Db> Parsable<Db> for RuleAnnotation {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-
-        src: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor.as_str(src) {
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
             "Error" => RuleAnnotation::Error(args[0].value_ref::<Input>().parse_escaped_string()),
             "DisableLayout" => RuleAnnotation::DisableLayout,
             "EnableLayout" => RuleAnnotation::EnableLayout,

@@ -1,10 +1,10 @@
 use crate::core::allocs::alloc_extend;
+use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use crate::grammar::identifier::Identifier;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
@@ -14,11 +14,11 @@ use std::collections::HashMap;
 use std::iter;
 use std::sync::Arc;
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn pre_apply_action(
         &mut self,
         rule: &RuleAction,
-        penv: &mut Env,
+        penv: &mut Db,
         pos: Pos,
 
         placeholder: ParsedPlaceholder,
@@ -27,7 +27,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
     ) {
         match rule {
             RuleAction::Name(n) => {
-                let n = n.as_str(&self.input);
+                let n = n.as_str();
                 if eval_ctxs.contains_key(n) {
                     // Ctx is ambiguous
                     //TODO if both ctxs are identical, we can continue
@@ -41,7 +41,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 name: constructor,
                 args,
             } => {
-                let namespace = namespace.as_str(&self.input);
+                let namespace = namespace.as_str();
 
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());
@@ -56,14 +56,14 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
                 self.placeholders.place_construct_info(
                     placeholder,
-                    *constructor,
+                    constructor.clone(),
                     *ns,
                     placeholders.clone(),
                 );
 
                 // Create envs for args
                 let arg_envs =
-                    (ns.create_eval_ctx)(*constructor, eval_ctx, &placeholders, &self.input, penv);
+                    (ns.create_eval_ctx)(constructor, eval_ctx, &placeholders, &self.input, penv);
 
                 // Recurse on args
                 for ((arg, env), placeholder) in args
@@ -80,14 +80,9 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                 }
             }
             RuleAction::InputLiteral(lit) => {
-                let parsed = Arc::new(*lit).to_parsed();
-                self.placeholders.place_into_empty(
-                    placeholder,
-                    parsed,
-                    pos.span_to(pos),
-                    &self.input,
-                    penv,
-                );
+                let parsed = Arc::new(lit.clone()).to_parsed();
+                self.placeholders
+                    .place_into_empty(placeholder, parsed, pos.span_to(pos), penv);
             }
             RuleAction::Value { .. } => {
                 //TODO
@@ -100,19 +95,19 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         rule: &RuleAction,
         span: Span,
         vars: &VarMap,
-        penv: &mut Env,
+        penv: &mut Db,
     ) -> Parsed {
         match rule {
             RuleAction::Name(name) => {
-                if let Some(ar) = vars.get_ident(*name, &self.input) {
+                if let Some(ar) = vars.get(name) {
                     ar.clone()
                 } else {
-                    panic!("Name '{}' not in context", name.as_str(&self.input))
+                    panic!("Name '{}' not in context", name.as_str())
                 }
             }
-            RuleAction::InputLiteral(lit) => Arc::new(*lit).to_parsed(),
+            RuleAction::InputLiteral(lit) => Arc::new(lit.clone()).to_parsed(),
             RuleAction::Construct { ns, name, args } => {
-                let ns = ns.as_str(&self.input);
+                let ns = ns.as_str();
 
                 let ns = self
                     .parsables
@@ -120,10 +115,10 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let args_vals =
                     alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
-                (ns.from_construct)(span, *name, &args_vals, &self.input, penv)
+                (ns.from_construct)(span, name, &args_vals, penv)
             }
             RuleAction::Value { ns, value } => {
-                let ns = ns.as_str(&self.input);
+                let ns = ns.as_str();
 
                 let ns = self
                     .parsables
@@ -131,9 +126,8 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 (ns.from_construct)(
                     span,
-                    Identifier::from_const("EnvCapture"),
+                    &Input::from_const("EnvCapture"),
                     &[value.clone(), Arc::new(vars.clone()).to_parsed()],
-                    &self.input,
                     penv,
                 )
             }

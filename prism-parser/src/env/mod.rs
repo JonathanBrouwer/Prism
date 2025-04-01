@@ -1,5 +1,3 @@
-use crate::core::input_table::InputTable;
-use crate::grammar::identifier::Identifier;
 use std::borrow::Borrow;
 use std::fmt::{Debug, Formatter};
 use std::iter;
@@ -52,19 +50,6 @@ impl<'a, N, V> Iterator for GenericEnvIterator<'a, N, V> {
                 self.current = node.next.as_deref();
                 Some((&node.name, &node.value))
             }
-        }
-    }
-}
-
-impl<V> GenericEnv<Identifier, V> {
-    pub fn get_ident(&self, k: Identifier, input: &InputTable) -> Option<&V> {
-        let k = k.as_str(input);
-        let mut node = self.0.as_ref()?;
-        loop {
-            if node.name.as_str(input) == k {
-                return Some(&node.value);
-            }
-            node = node.next.as_ref()?;
         }
     }
 }

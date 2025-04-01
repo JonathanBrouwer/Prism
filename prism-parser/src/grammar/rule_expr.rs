@@ -1,9 +1,7 @@
 use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::charclass::CharClass;
-use crate::grammar::identifier::{Identifier, parse_identifier};
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
@@ -14,7 +12,7 @@ use std::sync::Arc;
 #[derive(Serialize, Deserialize)]
 pub enum RuleExpr {
     RunVar {
-        rule: Identifier,
+        rule: Input,
 
         args: Arc<[Arc<Self>]>,
     },
@@ -29,32 +27,25 @@ pub enum RuleExpr {
     },
     Sequence(Arc<[Arc<Self>]>),
     Choice(Arc<[Arc<Self>]>),
-    NameBind(Identifier, Arc<Self>),
+    NameBind(Input, Arc<Self>),
     Action(Arc<Self>, Arc<RuleAction>),
     SliceInput(Arc<Self>),
     PosLookahead(Arc<Self>),
     NegLookahead(Arc<Self>),
     AtAdapt {
-        ns: Identifier,
-        name: Identifier,
+        ns: Input,
+        name: Input,
 
         expr: Arc<Self>,
     },
     Guid,
 }
 
-impl<Env> Parsable<Env> for RuleExpr {
+impl<Db> Parsable<Db> for RuleExpr {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-
-        src: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor.as_str(src) {
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
             "Action" => RuleExpr::Action(args[0].value_cloned(), args[1].value_cloned()),
             "Choice" => RuleExpr::Choice(alloc_extend(
                 args[0]
@@ -71,12 +62,12 @@ impl<Env> Parsable<Env> for RuleExpr {
                     .map(|sub| sub.value_cloned::<RuleExpr>()),
             )),
             "NameBind" => RuleExpr::NameBind(
-                parse_identifier(&args[0]),
+                Input::from_parsed(&args[0]),
                 args[1].value_cloned::<RuleExpr>(),
             ),
             "Repeat" => RuleExpr::Repeat {
                 expr: args[0].value_cloned::<RuleExpr>(),
-                min: args[1].value_ref::<Input>().as_str(src).parse().unwrap(),
+                min: args[1].value_ref::<Input>().as_str().parse().unwrap(),
                 max: *args[2].value_ref::<Option<u64>>(),
                 delim: args[3].value_cloned::<RuleExpr>(),
             },
@@ -87,7 +78,7 @@ impl<Env> Parsable<Env> for RuleExpr {
             "NegLookahead" => RuleExpr::NegLookahead(args[0].value_cloned::<RuleExpr>()),
             "Guid" => RuleExpr::Guid,
             "RunVar" => RuleExpr::RunVar {
-                rule: parse_identifier(&args[0]),
+                rule: Input::from_parsed(&args[0]),
                 args: alloc_extend(
                     args[1]
                         .value_ref::<ParsedList>()
@@ -97,8 +88,8 @@ impl<Env> Parsable<Env> for RuleExpr {
                 ),
             },
             "AtAdapt" => RuleExpr::AtAdapt {
-                ns: parse_identifier(&args[0]),
-                name: parse_identifier(&args[1]),
+                ns: Input::from_parsed(&args[0]),
+                name: Input::from_parsed(&args[1]),
                 expr: args[2].value_cloned::<RuleExpr>(),
             },
             _ => unreachable!(),

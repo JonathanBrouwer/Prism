@@ -3,12 +3,12 @@ use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 use std::collections::HashMap;
 
 const MAX_BEQ_DEPTH: usize = 256;
 
-impl PrismEnv {
+impl PrismDb {
     #[must_use]
     pub fn expect_beq_internal(
         &mut self,

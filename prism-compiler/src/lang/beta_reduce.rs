@@ -1,9 +1,9 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 use std::collections::HashMap;
 
-impl PrismEnv {
+impl PrismDb {
     pub fn beta_reduce(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
         self.beta_reduce_inner(i, env, &mut HashMap::new())
     }

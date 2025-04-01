@@ -2,6 +2,7 @@ use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 
 use crate::core::context::ParserContext;
+use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
@@ -11,7 +12,6 @@ use crate::error::error_printer::ErrorLabel;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::charclass::{CharClass, CharClassRange};
 use crate::grammar::grammar_file::GrammarFile;
-use crate::grammar::identifier::Identifier;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_annotation::RuleAnnotation;
@@ -27,18 +27,18 @@ use crate::parser::parsed_list::ParsedList;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub struct ParserInstance<Env, E: ParseError<L = ErrorLabel>> {
-    state: ParserState<Env, E>,
+pub struct ParserInstance<Db, E: ParseError<L = ErrorLabel>> {
+    state: ParserState<Db, E>,
 
     grammar_state: Arc<GrammarState>,
     rules: VarMap,
 }
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
     pub fn new(
         input: Arc<InputTable>,
         from: &GrammarFile,
-        mut parsables: HashMap<&'static str, ParsableDyn<Env>>,
+        mut parsables: HashMap<&'static str, ParsableDyn<Db>>,
     ) -> Result<Self, AdaptError> {
         parsables.insert("ActionResult", ParsableDyn::new::<ActionResult>());
         parsables.insert("ParsedList", ParsableDyn::new::<ParsedList>());
@@ -58,16 +58,16 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
         let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, &state.input);
         let visible_rules = VarMap::from_iter([
             (
-                Identifier::from_const("grammar"),
+                Input::from_const("grammar"),
                 meta_vars
-                    .get_ident(Identifier::from_const("grammar"), &state.input)
+                    .get(&Input::from_const("grammar"))
                     .expect("Meta grammar contains 'grammar' rule")
                     .clone(),
             ),
             (
-                Identifier::from_const("prule_action"),
+                Input::from_const("prule_action"),
                 meta_vars
-                    .get_ident(Identifier::from_const("prule_action"), &state.input)
+                    .get(&Input::from_const("prule_action"))
                     .expect("Meta grammar contains 'prule_action' rule")
                     .clone(),
             ),
@@ -84,16 +84,16 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
     }
 }
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
     pub fn run(
         &mut self,
         rule: &'static str,
         file: InputTableIndex,
-        penv: &mut Env,
+        penv: &mut Db,
     ) -> Result<Parsed, AggregatedParseError<E>> {
         let rule = *self
             .rules
-            .get_ident(Identifier::from_const(rule), &self.state.input)
+            .get(&Input::from_const(rule))
             .as_ref()
             .expect("Rule exists")
             .value_ref::<RuleId>();
@@ -124,28 +124,27 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserInstance<Env, E> {
     }
 }
 
-pub fn run_parser_rule_raw<Env, E: ParseError<L = ErrorLabel>>(
+pub fn run_parser_rule_raw<Db, E: ParseError<L = ErrorLabel>>(
     rules: &GrammarFile,
     rule: &'static str,
     input: Arc<InputTable>,
     file: InputTableIndex,
 
-    parsables: HashMap<&'static str, ParsableDyn<Env>>,
-    penv: &mut Env,
+    parsables: HashMap<&'static str, ParsableDyn<Db>>,
+    penv: &mut Db,
 ) -> Result<Parsed, AggregatedParseError<E>> {
-    let mut instance: ParserInstance<Env, E> =
-        ParserInstance::new(input, rules, parsables).unwrap();
+    let mut instance: ParserInstance<Db, E> = ParserInstance::new(input, rules, parsables).unwrap();
     instance.run(rule, file, penv)
 }
 
-pub fn run_parser_rule<Env, P: Parsable<Env>, E: ParseError<L = ErrorLabel>>(
+pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     rules: &GrammarFile,
     rule: &'static str,
     input_table: Arc<InputTable>,
     file: InputTableIndex,
 
-    parsables: HashMap<&'static str, ParsableDyn<Env>>,
-    penv: &mut Env,
+    parsables: HashMap<&'static str, ParsableDyn<Db>>,
+    penv: &mut Db,
 ) -> Result<Arc<P>, AggregatedParseError<E>> {
     run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
         .map(|parsed| parsed.into_value::<P>())

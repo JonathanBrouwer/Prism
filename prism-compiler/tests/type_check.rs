@@ -1,4 +1,4 @@
-use prism_compiler::lang::PrismEnv;
+use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::env::DbEnv;
 use test_each_file::test_each_file;
 
@@ -7,7 +7,7 @@ fn test_ok([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (_eval, expected_typ_str) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = PrismEnv::new();
+    let mut env = PrismDb::new();
 
     let input = env.load_test(input_str, "input");
     let input = env.parse_file(input);
@@ -35,7 +35,7 @@ fn test_ok([test]: [&str; 1]) {
 test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok }
 
 fn test_fail([test]: [&str; 1]) {
-    let mut env = PrismEnv::new();
+    let mut env = PrismDb::new();
     let input = env.load_test(test, "input");
     let input = env.parse_file(input);
     let input = env.parsed_to_checked(input);

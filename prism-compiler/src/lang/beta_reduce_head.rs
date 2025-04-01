@@ -1,9 +1,9 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 
-impl PrismEnv {
+impl PrismDb {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CoreIndex,

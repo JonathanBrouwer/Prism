@@ -7,7 +7,7 @@ use crate::parser::placeholder_store::PlaceholderStore;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-pub struct ParserState<Env, E: ParseError> {
+pub struct ParserState<Db, E: ParseError> {
     // Cache for parser_cache_recurse
     cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<E>>>,
     cache_stack: Vec<CacheKey>,
@@ -17,12 +17,12 @@ pub struct ParserState<Env, E: ParseError> {
     // For recovery
     pub recovery_points: HashMap<Pos, Pos>,
 
-    pub parsables: HashMap<&'static str, ParsableDyn<Env>>,
-    pub placeholders: PlaceholderStore<Env>,
+    pub parsables: HashMap<&'static str, ParsableDyn<Db>>,
+    pub placeholders: PlaceholderStore<Db>,
 }
 
-impl<Env, E: ParseError> ParserState<Env, E> {
-    pub fn new(input: Arc<InputTable>, parsables: HashMap<&'static str, ParsableDyn<Env>>) -> Self {
+impl<Db, E: ParseError> ParserState<Db, E> {
+    pub fn new(input: Arc<InputTable>, parsables: HashMap<&'static str, ParsableDyn<Db>>) -> Self {
         ParserState {
             cache: HashMap::new(),
             cache_stack: Vec::new(),

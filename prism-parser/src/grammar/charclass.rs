@@ -1,8 +1,6 @@
 use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::input_table::InputTable;
 use crate::core::span::Span;
-use crate::grammar::identifier::Identifier;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
@@ -21,18 +19,11 @@ impl CharClass {
     }
 }
 
-impl<Env> Parsable<Env> for CharClass {
+impl<Db> Parsable<Db> for CharClass {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-
-        input: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        assert_eq!(constructor.as_str(input), "CharClass");
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        assert_eq!(constructor.as_str(), "CharClass");
         CharClass {
             neg: args[0].value_ref::<ParsedList>().iter().next().is_some(),
             ranges: alloc_extend(
@@ -49,24 +40,15 @@ impl<Env> Parsable<Env> for CharClass {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
 pub struct CharClassRange(char, char);
 
-impl<Env> Parsable<Env> for CharClassRange {
+impl<Db> Parsable<Db> for CharClassRange {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-        src: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        assert_eq!(constructor.as_str(src), "Range");
-        CharClassRange(
-            parse_string_char(&args[0], src),
-            parse_string_char(&args[1], src),
-        )
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        assert_eq!(constructor.as_str(), "Range");
+        CharClassRange(parse_string_char(&args[0]), parse_string_char(&args[1]))
     }
 }
 
-fn parse_string_char(r: &Parsed, src: &InputTable) -> char {
-    r.value_ref::<Input>().chars(src).next().unwrap()
+fn parse_string_char(r: &Parsed) -> char {
+    r.value_ref::<Input>().as_str().chars().next().unwrap()
 }

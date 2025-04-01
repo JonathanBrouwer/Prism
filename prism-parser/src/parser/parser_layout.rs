@@ -1,31 +1,31 @@
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::ParserContext;
+use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
-use crate::grammar::identifier::Identifier;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use std::sync::Arc;
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_with_layout<O>(
         &mut self,
         rules: &GrammarState,
         vars: &VarMap,
-        sub: impl Fn(&mut ParserState<Env, E>, Pos, &mut Env) -> PResult<O, E>,
+        sub: impl Fn(&mut ParserState<Db, E>, Pos, &mut Db) -> PResult<O, E>,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
     ) -> PResult<O, E> {
         if context.layout_disabled {
             return sub(self, pos, penv);
         }
-        let Some(layout) = vars.get_ident(Identifier::from_const("layout"), &self.input) else {
+        let Some(layout) = vars.get(&Input::from_const("layout")) else {
             return sub(self, pos, penv);
         };
         let layout = *layout.value_ref::<RuleId>();
@@ -76,7 +76,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         vars: &VarMap,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
     ) -> PResult<(), E> {
         self.parse_with_layout(
             rules,

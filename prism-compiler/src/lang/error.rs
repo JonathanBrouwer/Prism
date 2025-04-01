@@ -1,6 +1,6 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
-use crate::lang::{PrismEnv, ValueOrigin};
+use crate::lang::{PrismDb, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
 use prism_parser::error::ParseError;
@@ -15,7 +15,7 @@ pub enum PrismError {
 }
 
 impl PrismError {
-    pub fn eprint(&self, env: &mut PrismEnv) {
+    pub fn eprint(&self, env: &mut PrismDb) {
         let report = match self {
             PrismError::ParseError(e) => e.report(false, &env.input),
             PrismError::TypeError(e) => env.report(e).unwrap(),
@@ -24,7 +24,7 @@ impl PrismError {
     }
 }
 
-impl PrismEnv {
+impl PrismDb {
     pub fn eprint_errors(&mut self) {
         let errors = mem::take(&mut self.errors);
         for error in errors {
@@ -62,7 +62,7 @@ pub enum TypeError {
     UnknownName(Span),
 }
 
-impl PrismEnv {
+impl PrismDb {
     pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {

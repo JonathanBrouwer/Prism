@@ -1,7 +1,6 @@
 use crate::core::allocs::alloc_extend;
-use crate::core::input_table::InputTable;
+use crate::core::input::Input;
 use crate::core::span::Span;
-use crate::grammar::identifier::{Identifier, parse_identifier};
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
@@ -11,35 +10,28 @@ use std::sync::Arc;
 
 #[derive(Serialize, Deserialize)]
 pub struct Rule {
-    pub name: Identifier,
+    pub name: Input,
     pub adapt: bool,
-    pub args: Arc<[(Identifier, Identifier)]>,
+    pub args: Arc<[(Input, Input)]>,
     pub blocks: Arc<[Arc<RuleBlock>]>,
-    pub return_type: Identifier,
+    pub return_type: Input,
 }
 
-impl<Env> Parsable<Env> for Rule {
+impl<Db> Parsable<Db> for Rule {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-
-        src: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        assert_eq!(constructor.as_str(src), "Rule");
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        assert_eq!(constructor.as_str(), "Rule");
 
         Rule {
-            name: parse_identifier(&args[0]),
+            name: Input::from_parsed(&args[0]),
             adapt: args[1].value_ref::<ParsedList>().iter().next().is_some(),
             args: alloc_extend(
                 args[2]
                     .value_ref::<ParsedList>()
                     .iter()
                     .map(|((), v)| v)
-                    .map(|n| (Identifier::from_const("ActionResult"), parse_identifier(n))),
+                    .map(|n| (Input::from_const("ActionResult"), Input::from_parsed(n))),
             ),
             blocks: alloc_extend(
                 args[3]
@@ -48,7 +40,7 @@ impl<Env> Parsable<Env> for Rule {
                     .map(|((), v)| v)
                     .map(|block| block.value_cloned::<RuleBlock>()),
             ),
-            return_type: Identifier::from_const("ActionResult"),
+            return_type: Input::from_const("ActionResult"),
         }
     }
 }

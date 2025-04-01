@@ -1,11 +1,11 @@
 use crate::lang::error::PrismError;
-use crate::lang::{CoreIndex, PrismEnv};
+use crate::lang::{CoreIndex, PrismDb};
+use prism_parser::core::input::Input;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
 use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::grammar::identifier::Identifier;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
@@ -26,7 +26,7 @@ pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| 
     (table.deep_clone(), grammar)
 });
 
-impl PrismEnv {
+impl PrismDb {
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
         let program = std::fs::read_to_string(&path).unwrap();
         self.input.get_or_push_file(program, path)
@@ -41,7 +41,7 @@ impl PrismEnv {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        match run_parser_rule_raw::<PrismEnv, SetError>(
+        match run_parser_rule_raw::<PrismDb, SetError>(
             &GRAMMAR.1,
             "expr",
             self.input.clone(),
@@ -79,14 +79,14 @@ pub enum ParsedPrismExpr {
     // Real expressions
     Free,
     Type,
-    Let(Identifier, ParsedIndex, ParsedIndex),
-    FnType(Identifier, ParsedIndex, ParsedIndex),
-    FnConstruct(Identifier, ParsedIndex),
+    Let(Input, ParsedIndex, ParsedIndex),
+    FnType(Input, ParsedIndex, ParsedIndex),
+    FnConstruct(Input, ParsedIndex),
     FnDestruct(ParsedIndex, ParsedIndex),
     TypeAssert(ParsedIndex, ParsedIndex),
 
     // Temporary expressions after parsing
-    Name(Identifier),
+    Name(Input),
     ShiftTo {
         expr: ParsedIndex,
         captured_env: VarMap,
@@ -95,5 +95,5 @@ pub enum ParsedPrismExpr {
     },
     GrammarValue(Arc<GrammarFile>),
     GrammarType,
-    Include(Identifier, CoreIndex),
+    Include(Input, CoreIndex),
 }

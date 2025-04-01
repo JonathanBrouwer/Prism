@@ -1,5 +1,5 @@
 use clap::Parser;
-use prism_compiler::lang::PrismEnv;
+use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::env::DbEnv;
 
 #[derive(Parser, Debug)]
@@ -12,7 +12,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let mut env = PrismEnv::new();
+    let mut env = PrismDb::new();
 
     //Load file
     let program = env.load_file(args.input.into());

@@ -1,24 +1,16 @@
-use crate::core::input_table::InputTable;
+use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::env::GenericEnv;
-use crate::grammar::identifier::Identifier;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 
 pub type ParsedList = GenericEnv<(), Parsed>;
 
-impl<Env> Parsable<Env> for ParsedList {
+impl<Db> Parsable<Db> for ParsedList {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: Identifier,
-        args: &[Parsed],
-
-        src: &InputTable,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor.as_str(src) {
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
             "Cons" => {
                 assert_eq!(args.len(), 2);
                 args[1]

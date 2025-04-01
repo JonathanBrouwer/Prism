@@ -1,11 +1,11 @@
 use crate::lang::error::{PrismError, TypeError};
-use crate::lang::{CoreIndex, CorePrismExpr, PrismEnv, ValueOrigin};
+use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::{ParsedIndex, ParsedPrismExpr};
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::HashMap;
 
-impl PrismEnv {
+impl PrismDb {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CoreIndex {
         self.parsed_to_checked_with_env(i, &NamedEnv::default(), &mut Default::default())
     }
@@ -20,17 +20,28 @@ impl PrismEnv {
         let e = match &self.parsed_values[*i] {
             ParsedPrismExpr::Free => CorePrismExpr::Free,
             ParsedPrismExpr::Type => CorePrismExpr::Type,
-            &ParsedPrismExpr::Let(n, v, b) => CorePrismExpr::Let(
-                self.parsed_to_checked_with_env(v, env, jump_labels),
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, &self.input), jump_labels),
-            ),
-            &ParsedPrismExpr::FnType(n, a, b) => CorePrismExpr::FnType(
-                self.parsed_to_checked_with_env(a, env, jump_labels),
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, &self.input), jump_labels),
-            ),
-            &ParsedPrismExpr::FnConstruct(n, b) => CorePrismExpr::FnConstruct(
-                self.parsed_to_checked_with_env(b, &env.insert_name(n, &self.input), jump_labels),
-            ),
+            &ParsedPrismExpr::Let(ref n, v, b) => {
+                let n = n.clone();
+                CorePrismExpr::Let(
+                    self.parsed_to_checked_with_env(v, env, jump_labels),
+                    self.parsed_to_checked_with_env(b, &env.insert_name(n), jump_labels),
+                )
+            }
+            &ParsedPrismExpr::FnType(ref n, a, b) => {
+                let n = n.clone();
+                CorePrismExpr::FnType(
+                    self.parsed_to_checked_with_env(a, env, jump_labels),
+                    self.parsed_to_checked_with_env(b, &env.insert_name(n), jump_labels),
+                )
+            }
+            &ParsedPrismExpr::FnConstruct(ref n, b) => {
+                let n = n.clone();
+                CorePrismExpr::FnConstruct(self.parsed_to_checked_with_env(
+                    b,
+                    &env.insert_name(n),
+                    jump_labels,
+                ))
+            }
             &ParsedPrismExpr::FnDestruct(f, a) => CorePrismExpr::FnDestruct(
                 self.parsed_to_checked_with_env(f, env, jump_labels),
                 self.parsed_to_checked_with_env(a, env, jump_labels),
@@ -39,10 +50,10 @@ impl PrismEnv {
                 self.parsed_to_checked_with_env(v, env, jump_labels),
                 self.parsed_to_checked_with_env(t, env, jump_labels),
             ),
-            &ParsedPrismExpr::Name(name) => {
-                assert_ne!(name.as_str(&self.input), "_");
+            ParsedPrismExpr::Name(name) => {
+                assert_ne!(name.as_str(), "_");
 
-                match env.resolve_name_use(name, &self.input) {
+                match env.resolve_name_use(name) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
                         CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
@@ -79,11 +90,7 @@ impl PrismEnv {
                                 jump_labels,
                             );
                         } else {
-                            unreachable!(
-                                "Found name `{}` referring to {}",
-                                name.as_str(&self.input),
-                                parsed.to_debug_string(&self.input)
-                            );
+                            unreachable!("Found name `{}` referring to {parsed:?}", name.as_str(),);
                         }
                     }
                     None => {
@@ -130,7 +137,7 @@ impl PrismEnv {
                     };
 
                     names = names.insert(
-                        *name,
+                        name.clone(),
                         NamesEntry::FromGrammarEnv {
                             grammar_env_len: old_names.len(),
                             adapt_env_len: *adapt_env_len,
@@ -141,7 +148,7 @@ impl PrismEnv {
 
                 for (name, value) in captured_env.iter().collect::<Vec<_>>().into_iter().rev() {
                     names = names.insert(
-                        *name,
+                        name.clone(),
                         NamesEntry::FromParsed(value.clone(), env.names.clone()),
                     );
                 }

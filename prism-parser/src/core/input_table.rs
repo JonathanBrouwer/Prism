@@ -1,4 +1,3 @@
-use crate::META_GRAMMAR_STR;
 use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
@@ -6,22 +5,10 @@ use std::mem;
 use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
 
+#[derive(Default)]
 pub struct InputTable {
     inner: RwLock<InputTableInner>,
 }
-
-impl Default for InputTable {
-    fn default() -> Self {
-        let s = Self {
-            inner: Default::default(),
-        };
-        let meta_idx = s.get_or_push_file(META_GRAMMAR_STR.to_string(), "$META_GRAMMAR$".into());
-        assert_eq!(meta_idx, META_INPUT_INDEX);
-        s
-    }
-}
-
-pub const META_INPUT_INDEX: InputTableIndex = InputTableIndex(0);
 
 #[derive(Default, Clone)]
 pub struct InputTableInner {
@@ -36,6 +23,12 @@ struct InputTableEntry {
 
 #[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct InputTableIndex(usize);
+
+impl InputTableIndex {
+    pub fn value(self) -> usize {
+        self.0
+    }
+}
 
 impl InputTable {
     pub fn deep_clone(&self) -> InputTable {

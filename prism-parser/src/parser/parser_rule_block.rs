@@ -13,7 +13,7 @@ use crate::parser::VarMap;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_rule_block(
         &mut self,
         rules: &GrammarState,
@@ -21,7 +21,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         rule_args: &VarMap,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<Parsed, E> {
         self.parse_cache_recurse(
@@ -43,7 +43,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         rule_args: &VarMap,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<Parsed, E> {
         match &*blocks {
@@ -95,7 +95,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         es: &[Constructor],
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<Parsed, E> {
         match es.split_first() {
@@ -134,7 +134,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
         vars: &VarMap,
         pos: Pos,
         context: ParserContext,
-        penv: &mut Env,
+        penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<Parsed, E> {
         match annots.split_first() {
@@ -145,7 +145,7 @@ impl<Env, E: ParseError<L = ErrorLabel>> ParserState<Env, E> {
                     );
                     res.add_label_explicit(ErrorLabel::Explicit(
                         pos.span_to(res.end_pos().next(&self.input).0),
-                        err_label.to_string(&self.input),
+                        err_label.to_string(),
                     ));
                     res
                 }

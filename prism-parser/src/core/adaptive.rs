@@ -1,9 +1,9 @@
 use crate::core::allocs::alloc_extend;
+use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
-use crate::grammar::identifier::Identifier;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::parsed::ArcExt;
@@ -35,7 +35,7 @@ impl Default for GrammarState {
 
 #[derive(Debug)]
 pub enum AdaptError {
-    InvalidRuleMutation(Identifier),
+    InvalidRuleMutation(Input),
     SamePos(Pos),
 }
 
@@ -73,28 +73,26 @@ impl GrammarState {
             .iter()
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
-                    let value = ctx
-                        .get_ident(new_rule.name, input_table)
-                        .expect("Name exists in context");
+                    let value = ctx.get(&new_rule.name).expect("Name exists in context");
                     *value.value_ref::<RuleId>()
                 } else {
                     new_rules.push(Arc::new(RuleState::new_empty(
-                        new_rule.name,
+                        new_rule.name.clone(),
                         new_rule.args.clone(),
                     )));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.insert(new_rule.name, Arc::new(rule).to_parsed());
-                (new_rule.name, rule)
+                new_ctx = new_ctx.insert(new_rule.name.clone(), Arc::new(rule).to_parsed());
+                rule
             })
             .collect();
 
         // Update each rule that is to be adopted, stored in `result`
-        for (&(_, id), rule) in tmp.iter().zip(grammar.rules.iter()) {
+        for (&id, rule) in tmp.iter().zip(grammar.rules.iter()) {
             new_rules[id.0] = Arc::new(
                 new_rules[id.0]
                     .update(rule, new_ctx.clone(), input_table)
-                    .map_err(|_| AdaptError::InvalidRuleMutation(rule.name))?,
+                    .map_err(|_| AdaptError::InvalidRuleMutation(rule.name.clone()))?,
             );
         }
 
@@ -127,10 +125,10 @@ impl GrammarState {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
-pub type ArgsSlice = Arc<[(Identifier, Identifier)]>;
+pub type ArgsSlice = Arc<[(Input, Input)]>;
 
 pub struct RuleState {
-    pub name: Identifier,
+    pub name: Input,
     pub args: ArgsSlice,
     pub blocks: Arc<[Arc<BlockState>]>,
 }
@@ -140,7 +138,7 @@ pub enum UpdateError {
 }
 
 impl RuleState {
-    pub fn new_empty(name: Identifier, args: ArgsSlice) -> Self {
+    pub fn new_empty(name: Input, args: ArgsSlice) -> Self {
         Self {
             name,
             blocks: vec![].into(),
@@ -155,10 +153,10 @@ impl RuleState {
 
         input_table: &InputTable,
     ) -> Result<Self, UpdateError> {
-        assert_eq!(self.name.as_str(input_table), r.name.as_str(input_table));
+        assert_eq!(self.name.as_str(), r.name.as_str());
         for (a1, a2) in self.args.iter().zip(r.args.iter()) {
-            assert_eq!(a1.0.as_str(input_table), a2.0.as_str(input_table));
-            assert_eq!(a1.1.as_str(input_table), a2.1.as_str(input_table));
+            assert_eq!(a1.0.as_str(), a2.0.as_str());
+            assert_eq!(a1.1.as_str(), a2.1.as_str());
         }
 
         let mut result: Vec<Arc<BlockState>> =
@@ -178,7 +176,7 @@ impl RuleState {
                     return Err(UpdateError::ToposortCycle);
                 };
                 // If this is not the matching block, add it and continue searching
-                if old_block.name.as_str(input_table) != new_block.name.as_str(input_table) {
+                if old_block.name.as_str() != new_block.name.as_str() {
                     result.push(old_block.clone());
                     continue;
                 }
@@ -191,7 +189,7 @@ impl RuleState {
         }
 
         Ok(Self {
-            name: self.name,
+            name: self.name.clone(),
             args: self.args.clone(),
             blocks: result.into(),
         })
@@ -200,7 +198,7 @@ impl RuleState {
 
 #[derive(Clone)]
 pub struct BlockState {
-    pub name: Identifier,
+    pub name: Input,
     pub constructors: Arc<[Constructor]>,
 }
 
@@ -209,16 +207,16 @@ pub type Constructor = (Arc<AnnotatedRuleExpr>, VarMap);
 impl BlockState {
     pub fn new(block: &RuleBlock, ctx: VarMap) -> Self {
         Self {
-            name: block.name,
+            name: block.name.clone(),
             constructors: alloc_extend(block.constructors.iter().map(|r| (r.clone(), ctx.clone()))),
         }
     }
 
     #[must_use]
-    pub fn update(&self, b: &RuleBlock, ctx: VarMap, input_table: &InputTable) -> Arc<Self> {
-        assert_eq!(self.name.as_str(input_table), b.name.as_str(input_table));
+    pub fn update(&self, b: &RuleBlock, ctx: VarMap, _input_table: &InputTable) -> Arc<Self> {
+        assert_eq!(self.name.as_str(), b.name.as_str());
         Arc::new(Self {
-            name: self.name,
+            name: self.name.clone(),
             constructors: alloc_extend(
                 self.constructors
                     .iter()

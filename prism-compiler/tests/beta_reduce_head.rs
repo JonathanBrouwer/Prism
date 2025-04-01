@@ -1,4 +1,4 @@
-use prism_compiler::lang::PrismEnv;
+use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::env::DbEnv;
 use test_each_file::test_each_file;
 
@@ -7,7 +7,7 @@ fn test([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (eval_str, _expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = PrismEnv::new();
+    let mut env = PrismDb::new();
 
     let input = env.load_test(input_str, "input");
     let input = env.parse_file(input);

@@ -120,12 +120,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": {
-                                  "start": [
-                                    182
-                                  ],
-                                  "len": 5
-                                }
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -137,12 +132,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            191
-                          ],
-                          "len": 4
-                        }
+                        "Literal": "rule"
                       },
                       {
                         "NameBind": [
@@ -167,12 +157,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            234
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "{"
                       },
                       {
                         "NameBind": [
@@ -193,12 +178,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            264
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "}"
                       }
                     ]
                   },
@@ -232,12 +212,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            387
-                          ],
-                          "len": 4
-                        }
+                        "Literal": "rule"
                       },
                       {
                         "NameBind": [
@@ -262,12 +237,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            430
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "="
                       },
                       {
                         "NameBind": [
@@ -288,12 +258,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            458
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ";"
                       }
                     ]
                   },
@@ -326,12 +291,7 @@
                                   "name": "Block",
                                   "args": [
                                     {
-                                      "InputLiteral": {
-                                        "start": [
-                                          319
-                                        ],
-                                        "len": 0
-                                      }
+                                      "InputLiteral": ""
                                     },
                                     {
                                       "Construct": {
@@ -413,12 +373,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            500
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -434,24 +389,14 @@
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Literal": {
-                                  "start": [
-                                    531
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": ","
                               }
                             }
                           }
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            539
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -466,12 +411,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        554
-                      ],
-                      "len": 0
-                    }
+                    "Literal": ""
                   },
                   {
                     "Construct": {
@@ -560,12 +500,7 @@
                             "name": "Block",
                             "args": [
                               {
-                                "InputLiteral": {
-                                  "start": [
-                                    634
-                                  ],
-                                  "len": 0
-                                }
+                                "InputLiteral": ""
                               },
                               {
                                 "Construct": {
@@ -624,12 +559,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": {
-                                  "start": [
-                                    749
-                                  ],
-                                  "len": 5
-                                }
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -641,12 +571,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            758
-                          ],
-                          "len": 5
-                        }
+                        "Literal": "group"
                       },
                       {
                         "NameBind": [
@@ -671,12 +596,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            786
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "{"
                       },
                       {
                         "NameBind": [
@@ -697,12 +617,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            819
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "}"
                       }
                     ]
                   },
@@ -738,12 +653,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": {
-                                  "start": [
-                                    860
-                                  ],
-                                  "len": 5
-                                }
+                                "Literal": "adapt"
                               },
                               "min": 0,
                               "max": 1,
@@ -755,12 +665,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            869
-                          ],
-                          "len": 5
-                        }
+                        "Literal": "group"
                       },
                       {
                         "NameBind": [
@@ -785,12 +690,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            897
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ";"
                       }
                     ]
                   },
@@ -938,12 +838,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1102
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ";"
                       }
                     ]
                   },
@@ -985,36 +880,16 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            1136
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "#"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1140
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1144
-                          ],
-                          "len": 5
-                        }
+                        "Literal": "error"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1152
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -1028,20 +903,10 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1168
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1172
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1066,36 +931,16 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            1211
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "#"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1215
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1219
-                          ],
-                          "len": 14
-                        }
+                        "Literal": "disable_layout"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1236
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1116,36 +961,16 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            1280
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "#"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1284
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1288
-                          ],
-                          "len": 13
-                        }
+                        "Literal": "enable_layout"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1304
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1166,36 +991,16 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            1347
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "#"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1351
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1355
-                          ],
-                          "len": 16
-                        }
+                        "Literal": "disable_recovery"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1374
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1216,36 +1021,16 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            1420
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "#"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1424
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1428
-                          ],
-                          "len": 15
-                        }
+                        "Literal": "enable_recovery"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1446
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1296,12 +1081,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1577
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "=>"
                       },
                       {
                         "NameBind": [
@@ -1351,12 +1131,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1635
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "<-"
                       },
                       {
                         "NameBind": [
@@ -1412,12 +1187,7 @@
                           "min": 2,
                           "max": null,
                           "delim": {
-                            "Literal": {
-                              "start": [
-                                1724
-                              ],
-                              "len": 1
-                            }
+                            "Literal": "/"
                           }
                         }
                       }
@@ -1508,12 +1278,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            1906
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ":"
                       },
                       {
                         "NameBind": [
@@ -1569,12 +1334,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2031
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "*"
                       }
                     ]
                   },
@@ -1587,12 +1347,7 @@
                           "Name": "r"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              1972
-                            ],
-                            "len": 1
-                          }
+                          "InputLiteral": "0"
                         },
                         {
                           "Construct": {
@@ -1640,12 +1395,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2123
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "+"
                       }
                     ]
                   },
@@ -1658,12 +1408,7 @@
                           "Name": "r"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              2064
-                            ],
-                            "len": 1
-                          }
+                          "InputLiteral": "1"
                         },
                         {
                           "Construct": {
@@ -1711,12 +1456,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2218
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "?"
                       }
                     ]
                   },
@@ -1729,12 +1469,7 @@
                           "Name": "r"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              2156
-                            ],
-                            "len": 1
-                          }
+                          "InputLiteral": "0"
                         },
                         {
                           "Construct": {
@@ -1742,12 +1477,7 @@
                             "name": "Some",
                             "args": [
                               {
-                                "InputLiteral": {
-                                  "start": [
-                                    2177
-                                  ],
-                                  "len": 1
-                                }
+                                "InputLiteral": "1"
                               }
                             ]
                           }
@@ -1815,12 +1545,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2323
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "["
                       },
                       {
                         "NameBind": [
@@ -1834,12 +1559,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2339
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "]"
                       }
                     ]
                   },
@@ -1864,20 +1584,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2379
-                          ],
-                          "len": 4
-                        }
+                        "Literal": "#str"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2386
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -1898,12 +1608,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2411
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1928,20 +1633,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2453
-                          ],
-                          "len": 4
-                        }
+                        "Literal": "#pos"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2460
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -1962,12 +1657,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2485
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -1992,20 +1682,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2527
-                          ],
-                          "len": 4
-                        }
+                        "Literal": "#neg"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2534
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2026,12 +1706,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2559
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2056,12 +1731,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2577
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "<"
                       },
                       {
                         "NameBind": [
@@ -2082,12 +1752,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2602
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ">"
                       }
                     ]
                   },
@@ -2102,12 +1767,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        2635
-                      ],
-                      "len": 5
-                    }
+                    "Literal": "#guid"
                   },
                   {
                     "Construct": {
@@ -2126,20 +1786,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2683
-                          ],
-                          "len": 6
-                        }
+                        "Literal": "#adapt"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2692
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2153,12 +1803,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2710
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2172,12 +1817,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2727
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2198,12 +1838,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2752
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2253,12 +1888,7 @@
                         }
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2822
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2281,24 +1911,14 @@
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Literal": {
-                                  "start": [
-                                    2857
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": ","
                               }
                             }
                           }
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2865
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2362,20 +1982,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            2981
-                          ],
-                          "len": 7
-                        }
+                        "Literal": "#repeat"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            2991
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2396,12 +2006,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3016
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2422,28 +2027,13 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3041
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3045
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "*"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3049
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2456,12 +2046,7 @@
                           "Name": "e"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              2951
-                            ],
-                            "len": 1
-                          }
+                          "InputLiteral": "0"
                         },
                         {
                           "Construct": {
@@ -2486,20 +2071,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3112
-                          ],
-                          "len": 7
-                        }
+                        "Literal": "#repeat"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3122
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2520,12 +2095,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3147
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2546,28 +2116,13 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3172
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3176
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "+"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3180
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2580,12 +2135,7 @@
                           "Name": "e"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              3082
-                            ],
-                            "len": 1
-                          }
+                          "InputLiteral": "1"
                         },
                         {
                           "Construct": {
@@ -2610,20 +2160,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3243
-                          ],
-                          "len": 7
-                        }
+                        "Literal": "#repeat"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3253
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2644,12 +2184,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3278
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2670,12 +2205,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3303
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2689,28 +2219,13 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3319
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3323
-                          ],
-                          "len": 3
-                        }
+                        "Literal": "inf"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3329
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2748,20 +2263,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3395
-                          ],
-                          "len": 7
-                        }
+                        "Literal": "#repeat"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3405
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -2782,12 +2287,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3430
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2808,12 +2308,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3455
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2827,12 +2322,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3471
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ","
                       },
                       {
                         "NameBind": [
@@ -2846,12 +2336,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3487
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -2893,12 +2378,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3547
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "$"
                       },
                       {
                         "NameBind": [
@@ -2967,20 +2447,10 @@
                     }
                   },
                   {
-                    "Literal": {
-                      "start": [
-                        3605
-                      ],
-                      "len": 5
-                    }
+                    "Literal": "#this"
                   },
                   {
-                    "Literal": {
-                      "start": [
-                        3615
-                      ],
-                      "len": 5
-                    }
+                    "Literal": "#next"
                   }
                 ]
               }
@@ -3011,12 +2481,7 @@
                           {
                             "Repeat": {
                               "expr": {
-                                "Literal": {
-                                  "start": [
-                                    3689
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": "^"
                               },
                               "min": 0,
                               "max": 1,
@@ -3041,12 +2506,7 @@
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Literal": {
-                                  "start": [
-                                    3721
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": "|"
                               }
                             }
                           }
@@ -3092,12 +2552,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3792
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       },
                       {
                         "NameBind": [
@@ -3111,28 +2566,13 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3815
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3820
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "-"
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3824
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       },
                       {
                         "NameBind": [
@@ -3146,12 +2586,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3847
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       }
                     ]
                   },
@@ -3179,12 +2614,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            3888
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       },
                       {
                         "NameBind": [
@@ -3198,12 +2628,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            3910
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "'"
                       }
                     ]
                   },
@@ -3286,12 +2711,7 @@
             {
               "annotations": [
                 {
-                  "Error": {
-                    "start": [
-                      4017
-                    ],
-                    "len": 6
-                  }
+                  "Error": "String"
                 },
                 "DisableLayout",
                 "DisableRecovery"
@@ -3301,12 +2721,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            4083
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "\""
                       },
                       {
                         "NameBind": [
@@ -3331,12 +2746,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            4106
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "\""
                       }
                     ]
                   },
@@ -3410,20 +2820,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        4212
-                      ],
-                      "len": 3
-                    }
+                    "Literal": "\\n"
                   },
                   {
-                    "InputLiteral": {
-                      "start": [
-                        4204
-                      ],
-                      "len": 2
-                    }
+                    "InputLiteral": "\n"
                   }
                 ]
               }
@@ -3433,20 +2833,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        4231
-                      ],
-                      "len": 3
-                    }
+                    "Literal": "\\r"
                   },
                   {
-                    "InputLiteral": {
-                      "start": [
-                        4223
-                      ],
-                      "len": 2
-                    }
+                    "InputLiteral": "\r"
                   }
                 ]
               }
@@ -3456,20 +2846,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        4250
-                      ],
-                      "len": 4
-                    }
+                    "Literal": "\\\\"
                   },
                   {
-                    "InputLiteral": {
-                      "start": [
-                        4242
-                      ],
-                      "len": 2
-                    }
+                    "InputLiteral": "\\"
                   }
                 ]
               }
@@ -3479,20 +2859,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        4270
-                      ],
-                      "len": 4
-                    }
+                    "Literal": "\\\""
                   },
                   {
-                    "InputLiteral": {
-                      "start": [
-                        4262
-                      ],
-                      "len": 2
-                    }
+                    "InputLiteral": "\""
                   }
                 ]
               }
@@ -3502,20 +2872,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        4290
-                      ],
-                      "len": 4
-                    }
+                    "Literal": "\\'"
                   },
                   {
-                    "InputLiteral": {
-                      "start": [
-                        4282
-                      ],
-                      "len": 2
-                    }
+                    "InputLiteral": "'"
                   }
                 ]
               }
@@ -3561,12 +2921,7 @@
               "expr": {
                 "Sequence": [
                   {
-                    "Literal": {
-                      "start": [
-                        4383
-                      ],
-                      "len": 2
-                    }
+                    "Literal": "//"
                   },
                   {
                     "Repeat": {
@@ -3589,12 +2944,7 @@
                     }
                   },
                   {
-                    "Literal": {
-                      "start": [
-                        4397
-                      ],
-                      "len": 2
-                    }
+                    "Literal": "\n"
                   }
                 ]
               }
@@ -3604,12 +2954,7 @@
               "expr": {
                 "Sequence": [
                   {
-                    "Literal": {
-                      "start": [
-                        4432
-                      ],
-                      "len": 2
-                    }
+                    "Literal": "/*"
                   },
                   {
                     "Repeat": {
@@ -3617,12 +2962,7 @@
                         "Sequence": [
                           {
                             "NegLookahead": {
-                              "Literal": {
-                                "start": [
-                                  4443
-                                ],
-                                "len": 2
-                              }
+                              "Literal": "*/"
                             }
                           },
                           {
@@ -3641,12 +2981,7 @@
                     }
                   },
                   {
-                    "Literal": {
-                      "start": [
-                        4455
-                      ],
-                      "len": 2
-                    }
+                    "Literal": "*/"
                   }
                 ]
               }
@@ -3668,12 +3003,7 @@
             {
               "annotations": [
                 {
-                  "Error": {
-                    "start": [
-                      4491
-                    ],
-                    "len": 7
-                  }
+                  "Error": "Integer"
                 },
                 "DisableLayout",
                 "DisableRecovery"
@@ -3718,12 +3048,7 @@
             {
               "annotations": [
                 {
-                  "Error": {
-                    "start": [
-                      4606
-                    ],
-                    "len": 10
-                  }
+                  "Error": "Identifier"
                 },
                 "DisableLayout",
                 "DisableRecovery"
@@ -3856,89 +3181,49 @@
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4832
-                  ],
-                  "len": 3
-                }
+                "Literal": "end"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4843
-                  ],
-                  "len": 3
-                }
+                "Literal": "str"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4854
-                  ],
-                  "len": 4
-                }
+                "Literal": "rule"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4866
-                  ],
-                  "len": 3
-                }
+                "Literal": "ast"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4877
-                  ],
-                  "len": 3
-                }
+                "Literal": "neg"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4888
-                  ],
-                  "len": 3
-                }
+                "Literal": "pos"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4899
-                  ],
-                  "len": 5
-                }
+                "Literal": "group"
               }
             },
             {
               "annotations": [],
               "expr": {
-                "Literal": {
-                  "start": [
-                    4912
-                  ],
-                  "len": 5
-                }
+                "Literal": "adapt"
               }
             }
           ]
@@ -3973,12 +3258,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5038
-                          ],
-                          "len": 2
-                        }
+                        "Literal": ".."
                       },
                       {
                         "NameBind": [
@@ -3999,20 +3279,10 @@
                       "name": "Construct",
                       "args": [
                         {
-                          "InputLiteral": {
-                            "start": [
-                              4991
-                            ],
-                            "len": 10
-                          }
+                          "InputLiteral": "ParsedList"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              5005
-                            ],
-                            "len": 4
-                          }
+                          "InputLiteral": "Cons"
                         },
                         {
                           "Construct": {
@@ -4060,12 +3330,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": {
-                      "start": [
-                        5133
-                      ],
-                      "len": 2
-                    }
+                    "Literal": "[]"
                   },
                   {
                     "Construct": {
@@ -4073,20 +3338,10 @@
                       "name": "Construct",
                       "args": [
                         {
-                          "InputLiteral": {
-                            "start": [
-                              5105
-                            ],
-                            "len": 10
-                          }
+                          "InputLiteral": "ParsedList"
                         },
                         {
-                          "InputLiteral": {
-                            "start": [
-                              5119
-                            ],
-                            "len": 3
-                          }
+                          "InputLiteral": "Nil"
                         },
                         {
                           "Construct": {
@@ -4119,12 +3374,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5197
-                          ],
-                          "len": 2
-                        }
+                        "Literal": "::"
                       },
                       {
                         "NameBind": [
@@ -4138,12 +3388,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5215
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -4159,24 +3404,14 @@
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Literal": {
-                                  "start": [
-                                    5244
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": ","
                               }
                             }
                           }
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5252
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -4218,12 +3453,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5314
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -4239,24 +3469,14 @@
                               "min": 0,
                               "max": null,
                               "delim": {
-                                "Literal": {
-                                  "start": [
-                                    5343
-                                  ],
-                                  "len": 1
-                                }
+                                "Literal": ","
                               }
                             }
                           }
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5351
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },
@@ -4266,12 +3486,7 @@
                       "name": "Construct",
                       "args": [
                         {
-                          "InputLiteral": {
-                            "start": [
-                              5287
-                            ],
-                            "len": 0
-                          }
+                          "InputLiteral": ""
                         },
                         {
                           "Name": "n"
@@ -4350,12 +3565,7 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": {
-                          "start": [
-                            5464
-                          ],
-                          "len": 1
-                        }
+                        "Literal": "("
                       },
                       {
                         "NameBind": [
@@ -4369,12 +3579,7 @@
                         ]
                       },
                       {
-                        "Literal": {
-                          "start": [
-                            5483
-                          ],
-                          "len": 1
-                        }
+                        "Literal": ")"
                       }
                     ]
                   },

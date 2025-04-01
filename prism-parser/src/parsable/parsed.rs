@@ -1,5 +1,4 @@
 use std::any::{Any, type_name};
-use std::fmt::{Debug, Formatter};
 use std::ptr::NonNull;
 use std::sync::Arc;
 
@@ -7,12 +6,6 @@ use std::sync::Arc;
 pub struct Parsed {
     value: Arc<dyn Any + Send + Sync>,
     pub(crate) name: &'static str,
-}
-
-impl Debug for Parsed {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Parsed(ANONYMOUS PARSED OBJECT)")
-    }
 }
 
 impl Parsed {

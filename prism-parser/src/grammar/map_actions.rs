@@ -21,10 +21,10 @@ impl Rule {
         Arc::new(Self {
             blocks: alloc_extend(self.blocks.iter().map(|r| r.map_actions(map))),
 
-            name: self.name,
+            name: self.name.clone(),
             adapt: self.adapt,
             args: self.args.clone(),
-            return_type: self.return_type,
+            return_type: self.return_type.clone(),
         })
     }
 }
@@ -34,7 +34,7 @@ impl RuleBlock {
         Arc::new(Self {
             constructors: alloc_extend(self.constructors.iter().map(|r| r.map_actions(map))),
 
-            name: self.name,
+            name: self.name.clone(),
             adapt: self.adapt,
         })
     }
@@ -57,7 +57,7 @@ impl RuleExpr {
                 RuleExpr::Action(e.map_actions(map), action.map_actions(map))
             }
             RuleExpr::RunVar { rule, args } => RuleExpr::RunVar {
-                rule: *rule,
+                rule: rule.clone(),
                 args: alloc_extend(args.iter().map(|r| r.map_actions(map))),
             },
             RuleExpr::Repeat {
@@ -77,13 +77,15 @@ impl RuleExpr {
             RuleExpr::Choice(es) => {
                 RuleExpr::Choice(alloc_extend(es.iter().map(|r| r.map_actions(map))))
             }
-            RuleExpr::NameBind(name, expr) => RuleExpr::NameBind(*name, expr.map_actions(map)),
+            RuleExpr::NameBind(name, expr) => {
+                RuleExpr::NameBind(name.clone(), expr.map_actions(map))
+            }
             RuleExpr::SliceInput(expr) => RuleExpr::SliceInput(expr.map_actions(map)),
             RuleExpr::PosLookahead(expr) => RuleExpr::PosLookahead(expr.map_actions(map)),
             RuleExpr::NegLookahead(expr) => RuleExpr::NegLookahead(expr.map_actions(map)),
             RuleExpr::AtAdapt { ns, name, expr } => RuleExpr::AtAdapt {
-                ns: *ns,
-                name: *name,
+                ns: ns.clone(),
+                name: name.clone(),
                 expr: expr.map_actions(map),
             },
             RuleExpr::CharClass(_) | RuleExpr::Literal(_) | RuleExpr::Guid => return self.clone(),
@@ -94,14 +96,14 @@ impl RuleExpr {
 impl RuleAction {
     pub fn map_actions(self: &Arc<Self>, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
         Arc::new(match &**self {
-            &RuleAction::Name(..) | &RuleAction::InputLiteral(..) => return self.clone(),
-            &RuleAction::Construct { ns, name, ref args } => RuleAction::Construct {
-                ns,
-                name,
+            RuleAction::Name(..) | &RuleAction::InputLiteral(..) => return self.clone(),
+            RuleAction::Construct { ns, name, args } => RuleAction::Construct {
+                ns: ns.clone(),
+                name: name.clone(),
                 args: alloc_extend(args.iter().map(|r| r.map_actions(map))),
             },
-            &RuleAction::Value { ns, ref value } => RuleAction::Value {
-                ns,
+            RuleAction::Value { ns, value } => RuleAction::Value {
+                ns: ns.clone(),
                 value: map(value),
             },
         })

@@ -1,9 +1,9 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 
-impl PrismEnv {
+impl PrismDb {
     pub fn is_beta_equal(&mut self, i1: CoreIndex, s1: &DbEnv, i2: CoreIndex, s2: &DbEnv) -> bool {
         // Brh and reduce i1 and i2
         let (i1, s1) = self.beta_reduce_head(i1, s1);

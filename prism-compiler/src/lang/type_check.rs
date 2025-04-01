@@ -1,11 +1,11 @@
-use crate::lang::PrismEnv;
+use crate::lang::PrismDb;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::{PrismError, TypeError};
 use crate::lang::{CoreIndex, CorePrismExpr};
 
-impl PrismEnv {
+impl PrismDb {
     pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {
         self._type_check(root, &DbEnv::default())
     }

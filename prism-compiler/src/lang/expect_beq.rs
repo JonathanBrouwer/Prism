@@ -3,10 +3,10 @@ use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 use std::collections::HashMap;
 
-impl PrismEnv {
+impl PrismDb {
     /// Expect `i1` to be equal to `i2` in `s`
     pub fn expect_beq_assert(
         &mut self,
