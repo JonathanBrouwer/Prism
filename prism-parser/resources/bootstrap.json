@@ -1536,7 +1536,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#str"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "str"
                       },
                       {
                         "Literal": "("
@@ -1585,7 +1588,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#pos"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "pos"
                       },
                       {
                         "Literal": "("
@@ -1634,7 +1640,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#neg"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "neg"
                       },
                       {
                         "Literal": "("

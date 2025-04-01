@@ -102,7 +102,10 @@ impl LanguageServer for Backend {
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
-        eprintln!("OPEN {:?}", params.text_document.uri);
+        eprintln!(
+            "OPEN {:?} {}",
+            params.text_document.uri, params.text_document.language_id
+        );
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
