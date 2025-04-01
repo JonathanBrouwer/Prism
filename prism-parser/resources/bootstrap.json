@@ -795,13 +795,26 @@
                               "expr": {
                                 "Action": [
                                   {
-                                    "NameBind": [
-                                      "a",
+                                    "Sequence": [
                                       {
-                                        "RunVar": {
-                                          "rule": "prule_annotation",
-                                          "args": []
-                                        }
+                                        "Literal": "#"
+                                      },
+                                      {
+                                        "Literal": "["
+                                      },
+                                      {
+                                        "NameBind": [
+                                          "a",
+                                          {
+                                            "RunVar": {
+                                              "rule": "prule_annotation",
+                                              "args": []
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Literal": "]"
                                       }
                                     ]
                                   },
@@ -880,12 +893,6 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
                         "Literal": "error"
                       },
                       {
@@ -904,9 +911,6 @@
                       },
                       {
                         "Literal": ")"
-                      },
-                      {
-                        "Literal": "]"
                       }
                     ]
                   },
@@ -929,20 +933,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "disable_layout"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
+                    "Literal": "disable_layout"
                   },
                   {
                     "Construct": {
@@ -959,20 +950,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "enable_layout"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
+                    "Literal": "enable_layout"
                   },
                   {
                     "Construct": {
@@ -989,20 +967,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "disable_recovery"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
+                    "Literal": "disable_recovery"
                   },
                   {
                     "Construct": {
@@ -1019,20 +984,7 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "enable_recovery"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
+                    "Literal": "enable_recovery"
                   },
                   {
                     "Construct": {

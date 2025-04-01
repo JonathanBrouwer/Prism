@@ -23,15 +23,18 @@ rule prule_block(action) {
 }
 
 rule prule_constructors(action) = prule_annotated_expr(action)*;
-rule prule_annotated_expr(action) = AnnotatedRuleExpr::AnnotatedExpr(ans, e) <- ans:<a <- a:prule_annotation>* e:prule_expr(action) ";";
+rule prule_annotated_expr(action)
+    = AnnotatedRuleExpr::AnnotatedExpr(ans, e)
+    <- ans:<a <- "#" "[" a:prule_annotation "]">* e:prule_expr(action) ";";
 
 rule prule_annotation {
-    "#" "[" "error" "(" err:pstring ")" "]" => RuleAnnotation::Error(err);
-    "#" "[" "disable_layout" "]" => RuleAnnotation::DisableLayout();
-    "#" "[" "enable_layout" "]" => RuleAnnotation::EnableLayout();
-    "#" "[" "disable_recovery" "]" => RuleAnnotation::DisableRecovery();
-    "#" "[" "enable_recovery" "]" => RuleAnnotation::EnableRecovery();
+    "error" "(" err:pstring ")" => RuleAnnotation::Error(err);
+    "disable_layout" => RuleAnnotation::DisableLayout();
+    "enable_layout" => RuleAnnotation::EnableLayout();
+    "disable_recovery" => RuleAnnotation::DisableRecovery();
+    "enable_recovery" => RuleAnnotation::EnableRecovery();
 }
+
 
 rule prule_expr(action) {
     group action {
