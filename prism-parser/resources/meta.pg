@@ -43,6 +43,7 @@ rule prule_annotation {
 rule prule_expr(action) {
     group action {
         r:#this "=>" a:action => RuleExpr::Action(r, a);
+        // TODO Legacy rule, should be removed
         a:action "<-" r:#this => RuleExpr::Action(r, a);
     }
     group choice {
