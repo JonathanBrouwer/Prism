@@ -55,17 +55,32 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             });
             match new_res {
                 // We have parsed more layout, we can try again
-                POk(_, _, new_end_pos, new_err) if pos_before_layout < new_res.end_pos() => {
-                    res = POk((), new_end_pos, new_end_pos, new_err);
+                POk {
+                    obj: _,
+                    start: _,
+                    end: new_end_pos,
+                    best_err: new_err,
+                } if pos_before_layout < new_res.end_pos() => {
+                    res = POk {
+                        obj: (),
+                        start: new_end_pos,
+                        end: new_end_pos,
+                        best_err: new_err,
+                    };
                 }
                 // We have not parsed more layout ...
                 // ... because layout parser did not parse more characters
-                POk(_, _, _, err) => {
+                POk {
+                    obj: _,
+                    start: _,
+                    end: _,
+                    best_err: err,
+                } => {
                     let (e, pos) = err.unwrap();
-                    return PErr(e, pos);
+                    return PErr { err: e, end: pos };
                 }
                 // ... because layout parser failed
-                PErr(e, pos) => return PErr(e, pos),
+                PErr { err: e, end: pos } => return PErr { err: e, end: pos },
             }
         }
     }

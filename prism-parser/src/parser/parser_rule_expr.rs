@@ -267,7 +267,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 })
             }
             RuleExpr::Choice(subs) => {
-                let mut res: PResult<PR, E> = PResult::PErr(E::new(pos), pos);
+                let mut res: PResult<PR, E> = PResult::PErr {
+                    err: E::new(pos),
+                    end: pos,
+                };
                 for sub in &**subs {
                     res = res.merge_choice_chain(|| {
                         self.parse_expr(

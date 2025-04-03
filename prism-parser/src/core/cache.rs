@@ -76,11 +76,21 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
         let res = sub(self, pos_start);
         match res {
-            POk(mut o, mut spos, mut epos, mut be) => {
+            POk {
+                obj: mut o,
+                start: mut spos,
+                end: mut epos,
+                best_err: mut be,
+            } => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !self.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
-                    let res = POk(o, spos, epos, be);
+                    let res = POk {
+                        obj: o,
+                        start: spos,
+                        end: epos,
+                        best_err: be,
+                    };
                     self.cache_insert(key, res.clone());
                     res
                 } else {
@@ -88,24 +98,43 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     loop {
                         //Insert the current seed into the cache
                         self.cache_state_revert(cache_state);
-                        self.cache_insert(key.clone(), POk(o.clone(), spos, epos, be.clone()));
+                        self.cache_insert(
+                            key.clone(),
+                            POk {
+                                obj: o.clone(),
+                                start: spos,
+                                end: epos,
+                                best_err: be.clone(),
+                            },
+                        );
 
                         //Grow the seed
                         let new_res = sub(self, pos_start);
                         match new_res {
-                            POk(new_o, new_spos, new_epos, new_be)
-                                if new_epos.cmp(&epos).is_gt() =>
-                            {
+                            POk {
+                                obj: new_o,
+                                start: new_spos,
+                                end: new_epos,
+                                best_err: new_be,
+                            } if new_epos.cmp(&epos).is_gt() => {
                                 o = new_o;
                                 spos = new_spos;
                                 epos = new_epos;
                                 be = new_be;
                             }
-                            POk(_, _, _, new_be) => {
+                            POk {
+                                obj: _,
+                                start: _,
+                                end: _,
+                                best_err: new_be,
+                            } => {
                                 be = err_combine_opt(be, new_be);
                                 break;
                             }
-                            PErr(new_e, new_s) => {
+                            PErr {
+                                err: new_e,
+                                end: new_s,
+                            } => {
                                 be = err_combine_opt(be, Some((new_e, new_s)));
                                 break;
                             }
@@ -114,10 +143,15 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, spos, epos, be)
+                    POk {
+                        obj: o,
+                        start: spos,
+                        end: epos,
+                        best_err: be,
+                    }
                 }
             }
-            res @ PErr(_, _) => {
+            res @ PErr { err: _, end: _ } => {
                 self.cache_insert(key, res.clone());
                 res
             }
