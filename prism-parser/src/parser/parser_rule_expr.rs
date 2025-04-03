@@ -312,7 +312,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     eval_ctx,
                     &mut HashMap::new(),
                 );
-                res.map_with_span(|res, span| {
+                res.map(|res| {
                     if let Some(placeholder) = placeholder {
                         self.placeholders
                             .place_into_empty(placeholder, res.rtrn.clone(), penv);

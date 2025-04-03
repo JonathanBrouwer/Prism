@@ -30,8 +30,8 @@ impl<O, E: ParseError> PResult<O, E> {
     pub fn new_ok(o: O, start: Pos, end: Pos) -> Self {
         POk {
             obj: o,
-            start: start,
-            end: end,
+            start,
+            end,
             best_err: None,
         }
     }
@@ -44,16 +44,16 @@ impl<O, E: ParseError> PResult<O, E> {
         match self {
             POk {
                 obj: o,
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: e,
             } => POk {
                 obj: f(o),
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: e,
             },
-            PErr { err: err, end: s } => PErr { err: err, end: s },
+            PErr { err, end: s } => PErr { err, end: s },
         }
     }
 
@@ -61,8 +61,8 @@ impl<O, E: ParseError> PResult<O, E> {
         match self {
             POk {
                 obj: o,
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: e,
             } => POk {
                 obj: f(o, start.span_to(end)),
@@ -176,14 +176,14 @@ impl<O, E: ParseError> PResult<O, E> {
                 PErr { err: ne, end: ns },
                 POk {
                     obj: s,
-                    start: start,
-                    end: end,
+                    start,
+                    end,
                     best_err: be,
                 },
             ) => POk {
                 obj: s,
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: err_combine_opt(Some((ne, ns)), be),
             },
 
@@ -215,7 +215,7 @@ impl<O, E: ParseError> PResult<O, E> {
                 let start = if start1 == end1 { start2 } else { start1 };
                 POk {
                     obj: (o1, o2),
-                    start: start,
+                    start,
                     end: end2,
                     best_err: err_combine_opt(e1, e2),
                 }
@@ -255,15 +255,15 @@ impl<O, E: ParseError> PResult<O, E> {
             (
                 POk {
                     obj: o1,
-                    start: start,
-                    end: end,
+                    start,
+                    end,
                     best_err: e1,
                 },
                 PErr { err: e2, end: s2 },
             ) => POk {
                 obj: (o1, None),
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: err_combine_opt(e1, Some((e2, s2))),
             },
             (err @ PErr { err: _, end: _ }, _) => err.map(|_| unreachable!()),
@@ -300,13 +300,13 @@ impl<O, E: ParseError> PResult<O, E> {
         match self {
             POk {
                 obj: o,
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: best,
             } => POk {
                 obj: (),
-                start: start,
-                end: end,
+                start,
+                end,
                 best_err: best,
             }
             .merge_seq(other(end, start.span_to(end), o))
