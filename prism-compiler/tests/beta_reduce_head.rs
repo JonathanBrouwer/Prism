@@ -10,12 +10,12 @@ fn test([test]: [&str; 1]) {
     let mut env = PrismDb::new();
 
     let input = env.load_test(input_str, "input");
-    let input = env.parse_file(input);
+    let input = env.parse_prism_file(input);
     let input = env.parsed_to_checked(input);
     env.assert_no_errors();
 
     let expected_eval = env.load_test(eval_str, "expected_eval");
-    let expected_eval = env.parse_file(expected_eval);
+    let expected_eval = env.parse_prism_file(expected_eval);
     let expected_eval = env.parsed_to_checked(expected_eval);
     env.assert_no_errors();
 

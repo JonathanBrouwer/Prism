@@ -10,12 +10,12 @@ fn test_ok([test]: [&str; 1]) {
     let mut env = PrismDb::new();
 
     let input = env.load_test(input_str, "input");
-    let input = env.parse_file(input);
+    let input = env.parse_prism_file(input);
     let input = env.parsed_to_checked(input);
     let typ = env.type_check(input);
 
     let expected_typ = env.load_test(expected_typ_str, "expected_typ");
-    let expected_typ = env.parse_file(expected_typ);
+    let expected_typ = env.parse_prism_file(expected_typ);
     let expected_typ = env.parsed_to_checked(expected_typ);
 
     env.assert_no_errors();
@@ -37,7 +37,7 @@ test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok 
 fn test_fail([test]: [&str; 1]) {
     let mut env = PrismDb::new();
     let input = env.load_test(test, "input");
-    let input = env.parse_file(input);
+    let input = env.parse_prism_file(input);
     let input = env.parsed_to_checked(input);
     let typ = env.type_check(input);
 

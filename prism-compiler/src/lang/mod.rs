@@ -17,6 +17,7 @@ pub mod env;
 pub mod error;
 mod expect_beq;
 mod expect_beq_internal;
+pub mod grammar;
 pub mod is_beta_equal;
 pub mod simplify;
 pub mod type_check;
@@ -141,7 +142,7 @@ impl PrismDb {
             Entry::Vacant(v) => v.insert(ProcessedFileTableEntry::Processing),
         };
 
-        let parsed = self.parse_file(file);
+        let parsed = self.parse_prism_file(file);
         let core = self.parsed_to_checked(parsed);
         let typ = self.type_check(core);
         let processed_file = ProcessedFile { parsed, core, typ };

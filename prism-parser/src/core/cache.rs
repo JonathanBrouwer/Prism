@@ -8,7 +8,6 @@ use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{ParseError, err_combine_opt};
-use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use std::hash::{DefaultHasher, Hasher};
 use std::sync::Arc;

@@ -7,5 +7,6 @@ license.workspace = true
 
 [dependencies]
 prism-compiler.workspace = true
+prism-parser.workspace = true
 tower-lsp-server.workspace = true
 tokio.workspace = true

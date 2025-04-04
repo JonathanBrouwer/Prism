@@ -1,7 +1,7 @@
 use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 
-use crate::core::context::{PV, ParserContext};
+use crate::core::context::{PV, ParserContext, Tokens};
 use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
@@ -145,9 +145,9 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
 
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
-) -> Result<Arc<P>, AggregatedParseError<E>> {
+) -> Result<(Arc<P>, Arc<Tokens>), AggregatedParseError<E>> {
     run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
-        .map(|parsed| parsed.rtrn.into_value::<P>())
+        .map(|parsed| (parsed.rtrn.into_value::<P>(), parsed.tokens))
 }
 
 #[macro_export]

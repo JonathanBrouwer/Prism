@@ -3,6 +3,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use std::slice;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -41,17 +42,42 @@ impl ParserContext {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Tokens {
-    Single { token: TokenType, span: Span },
+    Single(Token),
     Multi(Vec<Arc<Tokens>>),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+pub struct Token {
+    pub token_type: TokenType,
+    pub span: Span,
+}
+
+#[derive(Clone, Debug)]
 pub enum TokenType {
     CharClass,
     Literal,
     Slice,
+}
+
+impl Tokens {
+    pub fn to_vec(&self) -> Vec<Token> {
+        fn insert_tokens(tokens: &Tokens, v: &mut Vec<Token>) {
+            match tokens {
+                Tokens::Single(token) => v.push(token.clone()),
+                Tokens::Multi(tokens) => {
+                    for token in tokens {
+                        insert_tokens(token, v);
+                    }
+                }
+            }
+        }
+
+        let mut tokens = vec![];
+        insert_tokens(self, &mut tokens);
+        tokens
+    }
 }
 
 #[derive(Clone)]
@@ -61,10 +87,10 @@ pub struct PV {
 }
 
 impl PV {
-    pub fn new_single(rtrn: Parsed, token: TokenType, span: Span) -> Self {
+    pub fn new_single(rtrn: Parsed, token_type: TokenType, span: Span) -> Self {
         Self {
             rtrn,
-            tokens: Arc::new(Tokens::Single { token, span }),
+            tokens: Arc::new(Tokens::Single(Token { token_type, span })),
         }
     }
 

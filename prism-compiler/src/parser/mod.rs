@@ -21,7 +21,7 @@ pub mod parse_expr;
 mod parsed_to_checked;
 
 pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| {
-    let (table, grammar) =
+    let (table, grammar, _tokens) =
         parse_grammar::<SetError>(include_str!("../../resources/prism.pg")).unwrap_or_eprint();
     (table.deep_clone(), grammar)
 });
@@ -32,12 +32,16 @@ impl PrismDb {
         self.input.get_or_push_file(program, path)
     }
 
-    pub fn load_test(&mut self, data: &str, path_name: &'static str) -> InputTableIndex {
-        self.input
-            .get_or_push_file(data.to_string(), path_name.into())
+    pub fn load_input(&mut self, data: String, path: PathBuf) -> InputTableIndex {
+        self.input.get_or_push_file(data, path)
     }
 
-    pub fn parse_file(&mut self, file: InputTableIndex) -> ParsedIndex {
+    pub fn load_test(&mut self, data: &str, test_name: &'static str) -> InputTableIndex {
+        self.input
+            .get_or_push_file(data.to_string(), test_name.into())
+    }
+
+    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> ParsedIndex {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 

@@ -1,4 +1,11 @@
 use prism_compiler::lang::PrismDb;
+use prism_parser::core::context::{TokenType, Tokens};
+use prism_parser::core::input_table::InputTableIndex;
+use prism_parser::parse_grammar;
+use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower_lsp_server::jsonrpc::Result;
 use tower_lsp_server::lsp_types::*;
@@ -6,7 +13,38 @@ use tower_lsp_server::{Client, LanguageServer, LspService, Server};
 
 struct Backend {
     client: Client,
-    prism_env: RwLock<PrismDb>,
+    inner: RwLock<BackendInner>,
+}
+
+#[derive(Default)]
+struct BackendInner {
+    db: PrismDb,
+    open_documents: HashMap<Uri, OpenDocument>,
+}
+
+#[derive(Copy, Clone)]
+enum DocumentType {
+    Prism,
+    PrismGrammar,
+}
+
+impl Display for DocumentType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DocumentType::Prism => "Prism",
+                DocumentType::PrismGrammar => "Prism Grammar",
+            }
+        )
+    }
+}
+
+struct OpenDocument {
+    index: InputTableIndex,
+    document_type: DocumentType,
+    tokens: Arc<Tokens>,
 }
 
 impl LanguageServer for Backend {
@@ -28,7 +66,6 @@ impl LanguageServer for Backend {
                 ),
             )
             .await;
-        // self.client.log_message(MessageType::INFO, format!("Client capabilities: {:?}", params.capabilities)).await;
 
         Ok(InitializeResult {
             server_info: Some(ServerInfo {
@@ -44,6 +81,8 @@ impl LanguageServer for Backend {
                             legend: SemanticTokensLegend {
                                 token_types: vec![
                                     SemanticTokenType::COMMENT,
+                                    SemanticTokenType::VARIABLE,
+                                    SemanticTokenType::KEYWORD,
                                     // SemanticTokenType::NAMESPACE,
                                     // SemanticTokenType::TYPE,
                                     // SemanticTokenType::CLASS,
@@ -52,14 +91,12 @@ impl LanguageServer for Backend {
                                     // SemanticTokenType::STRUCT,
                                     // SemanticTokenType::TYPE_PARAMETER,
                                     // SemanticTokenType::PARAMETER,
-                                    // SemanticTokenType::VARIABLE,
                                     // SemanticTokenType::PROPERTY,
                                     // SemanticTokenType::ENUM_MEMBER,
                                     // SemanticTokenType::EVENT,
                                     // SemanticTokenType::FUNCTION,
                                     // SemanticTokenType::METHOD,
                                     // SemanticTokenType::MACRO,
-                                    // SemanticTokenType::KEYWORD,
                                     // SemanticTokenType::MODIFIER,
                                     // SemanticTokenType::STRING,
                                     // SemanticTokenType::NUMBER,
@@ -102,9 +139,39 @@ impl LanguageServer for Backend {
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
-        eprintln!(
-            "OPEN {:?} {}",
-            params.text_document.uri, params.text_document.language_id
+        let doc = params.text_document;
+        let path = PathBuf::from(doc.uri.path().as_str());
+        let document_type = match doc.language_id.as_str() {
+            "prism" => DocumentType::Prism,
+            "prism-grammar" => DocumentType::PrismGrammar,
+            lang => {
+                self.client
+                    .log_message(MessageType::ERROR, format!("Unknown language: {lang}"))
+                    .await;
+                return;
+            }
+        };
+        self.client
+            .log_message(
+                MessageType::LOG,
+                format!("OPEN {:?} as {}", &path, doc.language_id),
+            )
+            .await;
+
+        let mut inner = self.inner.write().await;
+        let index = inner.db.load_input(doc.text, path);
+
+        let Ok((_, tokens)) = inner.db.parse_grammar_file(index) else {
+            return;
+        };
+
+        inner.open_documents.insert(
+            doc.uri.clone(),
+            OpenDocument {
+                index,
+                document_type,
+                tokens,
+            },
         );
     }
 
@@ -128,16 +195,38 @@ impl LanguageServer for Backend {
         &self,
         params: SemanticTokensParams,
     ) -> Result<Option<SemanticTokensResult>> {
-        eprintln!("TOKENS {:?}", params.text_document.uri);
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!("TOKENS {}", params.text_document.uri.path().as_str()),
+            )
+            .await;
+        let inner = self.inner.read().await;
+
+        let mut prism_tokens = inner.open_documents[&params.text_document.uri]
+            .tokens
+            .to_vec();
+        prism_tokens.truncate(5);
+        eprintln!("{:?}", prism_tokens);
+
+        let mut lsp_tokens = vec![];
+        for token in prism_tokens {
+            lsp_tokens.push(SemanticToken {
+                delta_line: 0,
+                delta_start: token.span.start_pos().idx_in_file() as u32,
+                length: token.span.len() as u32,
+                token_type: match token.token_type {
+                    TokenType::CharClass => 1,
+                    TokenType::Literal => 2,
+                    TokenType::Slice => 1,
+                },
+                token_modifiers_bitset: 0,
+            })
+        }
+
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
             result_id: None,
-            data: vec![SemanticToken {
-                delta_line: 0,
-                delta_start: 0,
-                length: 5,
-                token_type: 17,
-                token_modifiers_bitset: 0,
-            }],
+            data: lsp_tokens,
         })))
     }
 }
@@ -149,7 +238,7 @@ async fn main() {
 
     let (service, socket) = LspService::new(|client| Backend {
         client,
-        prism_env: RwLock::new(PrismDb::new()),
+        inner: RwLock::new(Default::default()),
     });
     Server::new(stdin, stdout, socket).serve(service).await;
 }

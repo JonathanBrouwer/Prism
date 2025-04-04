@@ -37,7 +37,7 @@ macro_rules! parse_test {
             use prism_parser::core::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
-            let (input_table, grammar) = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
+            let (input_table, grammar, _) = parse_grammar::<SetError>(syntax).unwrap_or_eprint();
 
             let mut parsables = HashMap::new();
             parsables.insert(

@@ -12,7 +12,7 @@ fn test_ok([test_path]: [&Path; 1]) {
 
     let mut env = PrismDb::new();
     let input = env.load_test(input_str, "input");
-    let _input = env.parse_file(input);
+    let _input = env.parse_prism_file(input);
 
     env.assert_no_errors();
 }

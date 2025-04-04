@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
+use crate::core::context::Tokens;
 use crate::core::input_table::InputTable;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
@@ -26,7 +27,7 @@ pub static META_GRAMMAR: LazyLock<GrammarFile> = LazyLock::new(|| {
 
 pub fn parse_grammar<E: ParseError<L = ErrorLabel>>(
     grammar: &str,
-) -> Result<(Arc<InputTable>, Arc<GrammarFile>), AggregatedParseError<E>> {
+) -> Result<(Arc<InputTable>, Arc<GrammarFile>, Arc<Tokens>), AggregatedParseError<E>> {
     let input_table = Arc::new(InputTable::default());
     let file = input_table.get_or_push_file(grammar.into(), "$GRAMMAR$".into());
     run_parser_rule::<(), GrammarFile, E>(
@@ -37,5 +38,5 @@ pub fn parse_grammar<E: ParseError<L = ErrorLabel>>(
         HashMap::new(),
         &mut (),
     )
-    .map(|v| (input_table, v))
+    .map(|(grammar, tokens)| (input_table, grammar, tokens))
 }

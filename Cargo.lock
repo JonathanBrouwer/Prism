@@ -372,6 +372,7 @@ name = "prism-lsp"
 version = "0.2.0"
 dependencies = [
  "prism-compiler",
+ "prism-parser",
  "tokio",
  "tower-lsp-server",
 ]
