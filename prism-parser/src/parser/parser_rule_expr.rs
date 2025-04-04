@@ -1,6 +1,6 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::{PR, PV, ParserContext};
+use crate::core::context::{PR, PV, ParserContext, TokenType};
 use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -129,7 +129,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 )
                 .map(|(span, _)| {
                     let value = Arc::new(Input::from_span(span, &self.input)).to_parsed();
-                    PR::with_rtrn(PV::new(value))
+                    PR::with_rtrn(PV::new_single(value, TokenType::CharClass, span))
                 }),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
@@ -143,7 +143,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     let span = start_pos.span_to(res.end_pos());
                     let mut res = res.map(|_| {
                         let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
-                        PR::with_rtrn(PV::new(value))
+                        PR::with_rtrn(PV::new_single(value, TokenType::Literal, span))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
                     res
@@ -241,12 +241,14 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     let list = rtrn.iter().rfold(ParsedList::default(), |rest, next| {
                         rest.insert((), next.rtrn.rtrn.clone())
                     });
+                    let tokens = rtrn.iter().map(|next| next.rtrn.tokens.clone()).collect();
+
                     let list = Arc::new(list).to_parsed();
-                    PR::with_rtrn(PV::new(list))
+                    PR::with_rtrn(PV::new_multi(list, tokens))
                 })
             }
             RuleExpr::Sequence(subs) => {
-                let mut res = PResult::new_empty(VarMap::default(), pos);
+                let mut res = PResult::new_empty((VarMap::default(), Vec::new()), pos);
                 let mut res_vars: VarMap = vars.clone();
                 for sub in &**subs {
                     res = res
@@ -256,17 +258,21 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                                 eval_ctx, eval_ctxs,
                             )
                         })
-                        .map(|(l, r)| l.extend(r.free.iter_cloned()));
+                        .map(|((free_vars, mut tokens), r)| {
+                            let free_vars = free_vars.extend(r.free.iter_cloned());
+                            tokens.push(r.rtrn.tokens);
+                            (free_vars, tokens)
+                        });
                     match &res.ok_ref() {
                         None => break,
-                        Some(o) => {
-                            res_vars = res_vars.extend(o.iter_cloned());
+                        Some((free_vars, _tokens)) => {
+                            res_vars = res_vars.extend(free_vars.iter_cloned());
                         }
                     }
                 }
-                res.map(|map| PR {
-                    free: map,
-                    rtrn: PV::new(Arc::new(Void).to_parsed()),
+                res.map(|(free, tokens)| PR {
+                    free,
+                    rtrn: PV::new_multi(Arc::new(Void).to_parsed(), tokens),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -324,10 +330,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                         );
                     }
 
-                    //TODO pass tokens through the name bind
                     PR {
-                        free: res.free.insert(name.clone(), res.rtrn.rtrn.clone()),
-                        rtrn: PV::new(Arc::new(Void).to_parsed()),
+                        free: res.free.insert(name.clone(), res.rtrn.rtrn),
+                        rtrn: PV::new_from(Arc::new(Void).to_parsed(), res.rtrn.tokens),
                     }
                 })
             }
@@ -358,12 +363,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 // })
 
                 res.map_with_span(|res, span| {
-                    PR::with_rtrn(PV::new(self.apply_action(
-                        action,
-                        span,
-                        &vars.extend(res.free.iter_cloned()),
-                        penv,
-                    )))
+                    PR::with_rtrn(PV::new_from(
+                        self.apply_action(action, span, &vars.extend(res.free.iter_cloned()), penv),
+                        res.rtrn.tokens,
+                    ))
                 })
             }
             RuleExpr::SliceInput(sub) => {
@@ -381,7 +384,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 );
                 res.map_with_span(|_, span| {
                     let value = Arc::new(Input::from_span(span, &self.input)).to_parsed();
-                    PR::with_rtrn(PV::new(value))
+                    PR::with_rtrn(PV::new_single(value, TokenType::Slice, span))
                 })
             }
             RuleExpr::PosLookahead(sub) => self
@@ -398,7 +401,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     &mut HashMap::new(),
                 )
                 .positive_lookahead(pos)
-                .map(|_| PR::with_rtrn(PV::new(Arc::new(Void).to_parsed()))),
+                .map(|_| PR::with_rtrn(PV::new_multi(Arc::new(Void).to_parsed(), vec![]))),
             RuleExpr::NegLookahead(sub) => self
                 .parse_expr(
                     sub,
@@ -413,7 +416,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     &mut HashMap::new(),
                 )
                 .negative_lookahead(pos)
-                .map(|()| PR::with_rtrn(PV::new(Arc::new(Void).to_parsed()))),
+                .map(|()| PR::with_rtrn(PV::new_multi(Arc::new(Void).to_parsed(), vec![]))),
             RuleExpr::AtAdapt {
                 ns,
                 name: grammar,

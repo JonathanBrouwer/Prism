@@ -1,7 +1,9 @@
+use crate::core::span::Span;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct PR {
@@ -40,19 +42,40 @@ impl ParserContext {
 }
 
 #[derive(Clone)]
-pub struct Tokens {}
+pub enum Tokens {
+    Single { token: TokenType, span: Span },
+    Multi(Vec<Arc<Tokens>>),
+}
+
+#[derive(Clone)]
+pub enum TokenType {
+    CharClass,
+    Literal,
+    Slice,
+}
 
 #[derive(Clone)]
 pub struct PV {
     pub rtrn: Parsed,
-    tokens: Tokens,
+    pub tokens: Arc<Tokens>,
 }
 
 impl PV {
-    pub fn new(rtrn: Parsed) -> Self {
+    pub fn new_single(rtrn: Parsed, token: TokenType, span: Span) -> Self {
         Self {
             rtrn,
-            tokens: Tokens {},
+            tokens: Arc::new(Tokens::Single { token, span }),
         }
+    }
+
+    pub fn new_multi(rtrn: Parsed, tokens: Vec<Arc<Tokens>>) -> Self {
+        Self {
+            rtrn,
+            tokens: Arc::new(Tokens::Multi(tokens)),
+        }
+    }
+
+    pub fn new_from(rtrn: Parsed, tokens: Arc<Tokens>) -> Self {
+        Self { rtrn, tokens }
     }
 }
