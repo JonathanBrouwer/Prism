@@ -38,7 +38,6 @@ pub enum RuleExpr {
 
         expr: Arc<Self>,
     },
-    Guid,
 }
 
 impl<Db> Parsable<Db> for RuleExpr {
@@ -76,7 +75,6 @@ impl<Db> Parsable<Db> for RuleExpr {
             "SliceInput" => RuleExpr::SliceInput(args[0].value_cloned::<RuleExpr>()),
             "PosLookahead" => RuleExpr::PosLookahead(args[0].value_cloned::<RuleExpr>()),
             "NegLookahead" => RuleExpr::NegLookahead(args[0].value_cloned::<RuleExpr>()),
-            "Guid" => RuleExpr::Guid,
             "RunVar" => RuleExpr::RunVar {
                 rule: Input::from_parsed(&args[0]),
                 args: alloc_extend(

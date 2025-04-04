@@ -12,8 +12,6 @@ pub struct ParserState<Db, E: ParseError> {
     cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<E>>>,
     cache_stack: Vec<CacheKey>,
     pub input: Arc<InputTable>,
-    // For generating guids
-    pub guid_counter: usize,
     // For recovery
     pub recovery_points: HashMap<Pos, Pos>,
 
@@ -27,7 +25,6 @@ impl<Db, E: ParseError> ParserState<Db, E> {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             input,
-            guid_counter: 0,
             recovery_points: HashMap::new(),
             parsables,
             placeholders: Default::default(),

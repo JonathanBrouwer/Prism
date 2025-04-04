@@ -1,6 +1,6 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::{PR, ParserContext};
+use crate::core::context::{PR, PV, ParserContext};
 use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
@@ -128,7 +128,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     penv,
                 )
                 .map(|(span, _)| {
-                    PR::with_rtrn(Arc::new(Input::from_span(span, &self.input)).to_parsed())
+                    let value = Arc::new(Input::from_span(span, &self.input)).to_parsed();
+                    PR::with_rtrn(PV::new(value))
                 }),
             RuleExpr::Literal(literal) => self.parse_with_layout(
                 rules,
@@ -141,7 +142,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     }
                     let span = start_pos.span_to(res.end_pos());
                     let mut res = res.map(|_| {
-                        PR::with_rtrn(Arc::new(Input::from_span(span, &state.input)).to_parsed())
+                        let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
+                        PR::with_rtrn(PV::new(value))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
                     res
@@ -236,11 +238,12 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
 
                 res.map(|rtrn| {
-                    rtrn.iter().rfold(ParsedList::default(), |rest, next| {
-                        rest.insert((), next.rtrn.clone())
-                    })
+                    let list = rtrn.iter().rfold(ParsedList::default(), |rest, next| {
+                        rest.insert((), next.rtrn.rtrn.clone())
+                    });
+                    let list = Arc::new(list).to_parsed();
+                    PR::with_rtrn(PV::new(list))
                 })
-                .map(|ar| PR::with_rtrn(Arc::new(ar).to_parsed()))
             }
             RuleExpr::Sequence(subs) => {
                 let mut res = PResult::new_empty(VarMap::default(), pos);
@@ -263,7 +266,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
                 res.map(|map| PR {
                     free: map,
-                    rtrn: Arc::new(Void).to_parsed(),
+                    rtrn: PV::new(Arc::new(Void).to_parsed()),
                 })
             }
             RuleExpr::Choice(subs) => {
@@ -314,13 +317,17 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 );
                 res.map(|res| {
                     if let Some(placeholder) = placeholder {
-                        self.placeholders
-                            .place_into_empty(placeholder, res.rtrn.clone(), penv);
+                        self.placeholders.place_into_empty(
+                            placeholder,
+                            res.rtrn.rtrn.clone(),
+                            penv,
+                        );
                     }
 
+                    //TODO pass tokens through the name bind
                     PR {
-                        free: res.free.insert(name.clone(), res.rtrn.clone()),
-                        rtrn: Arc::new(Void).to_parsed(),
+                        free: res.free.insert(name.clone(), res.rtrn.rtrn.clone()),
+                        rtrn: PV::new(Arc::new(Void).to_parsed()),
                     }
                 })
             }
@@ -351,12 +358,12 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 // })
 
                 res.map_with_span(|res, span| {
-                    PR::with_rtrn(self.apply_action(
+                    PR::with_rtrn(PV::new(self.apply_action(
                         action,
                         span,
                         &vars.extend(res.free.iter_cloned()),
                         penv,
-                    ))
+                    )))
                 })
             }
             RuleExpr::SliceInput(sub) => {
@@ -373,7 +380,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     &mut HashMap::new(),
                 );
                 res.map_with_span(|_, span| {
-                    PR::with_rtrn(Arc::new(Input::from_span(span, &self.input)).to_parsed())
+                    let value = Arc::new(Input::from_span(span, &self.input)).to_parsed();
+                    PR::with_rtrn(PV::new(value))
                 })
             }
             RuleExpr::PosLookahead(sub) => self
@@ -389,7 +397,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     eval_ctx,
                     &mut HashMap::new(),
                 )
-                .positive_lookahead(pos),
+                .positive_lookahead(pos)
+                .map(|_| PR::with_rtrn(PV::new(Arc::new(Void).to_parsed()))),
             RuleExpr::NegLookahead(sub) => self
                 .parse_expr(
                     sub,
@@ -404,7 +413,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     &mut HashMap::new(),
                 )
                 .negative_lookahead(pos)
-                .map(|()| PR::with_rtrn(Arc::new(Void).to_parsed())),
+                .map(|()| PR::with_rtrn(PV::new(Arc::new(Void).to_parsed()))),
             RuleExpr::AtAdapt {
                 ns,
                 name: grammar,
@@ -444,12 +453,6 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     "adaptation".to_string(),
                 ));
                 res
-            }
-            RuleExpr::Guid => {
-                let guid = Guid(self.guid_counter);
-                self.guid_counter += 1;
-
-                PResult::new_empty(PR::with_rtrn(Arc::new(guid).to_parsed()), pos)
             }
         }
     }

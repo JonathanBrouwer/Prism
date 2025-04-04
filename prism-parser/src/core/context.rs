@@ -6,11 +6,11 @@ use std::ops::{Deref, DerefMut};
 #[derive(Clone)]
 pub struct PR {
     pub free: VarMap,
-    pub rtrn: Parsed,
+    pub rtrn: PV,
 }
 
 impl PR {
-    pub fn with_rtrn(rtrn: Parsed) -> Self {
+    pub fn with_rtrn(rtrn: PV) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,
@@ -35,6 +35,24 @@ impl ParserContext {
         Self {
             recovery_disabled: false,
             layout_disabled: false,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Tokens {}
+
+#[derive(Clone)]
+pub struct PV {
+    pub rtrn: Parsed,
+    tokens: Tokens,
+}
+
+impl PV {
+    pub fn new(rtrn: Parsed) -> Self {
+        Self {
+            rtrn,
+            tokens: Tokens {},
         }
     }
 }

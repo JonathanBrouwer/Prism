@@ -67,7 +67,6 @@ rule prule_expr(action) {
         "#" "pos" "(" r:prule_expr(action) ")" => RuleExpr::PosLookahead(r);
         "#" "neg" "(" r:prule_expr(action) ")" => RuleExpr::NegLookahead(r);
         "<" r:prule_expr(action) ">" => r;
-        "#guid" => RuleExpr::Guid();
         "#adapt" "(" ns:identifier "," a:identifier "," n:prule_expr(action) ")" => RuleExpr::AtAdapt(ns, a, n);
         n:prule_runnable #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")" => RuleExpr::RunVar(n, as);
         n:prule_runnable => RuleExpr::RunVar(n, []);

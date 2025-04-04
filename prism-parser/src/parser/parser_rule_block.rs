@@ -1,6 +1,6 @@
 use crate::core::adaptive::{BlockState, Constructor, GrammarState};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::ParserContext;
+use crate::core::context::{PV, ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -23,7 +23,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         context: ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         self.parse_cache_recurse(
             |state, pos| {
                 state.parse_sub_blocks(rules, blocks, rule_args, pos, context, penv, eval_ctx)
@@ -45,7 +45,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         context: ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         match &*blocks {
             [] => unreachable!(),
             [b] => self.parse_sub_constructors(
@@ -97,7 +97,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         context: ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         match es.split_first() {
             None => PResult::new_err(E::new(pos), pos),
             Some(((expr, rule_ctx), rest)) => {
@@ -136,7 +136,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         context: ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         match annots.split_first() {
             Some((annot, rest)) => match &**annot {
                 RuleAnnotation::Error(err_label) => {

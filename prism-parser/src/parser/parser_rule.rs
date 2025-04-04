@@ -1,6 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::ParserContext;
+use crate::core::context::{PV, ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -19,7 +19,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         context: ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         let rule_state: &RuleState = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));

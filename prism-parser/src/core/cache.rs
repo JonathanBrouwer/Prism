@@ -1,6 +1,6 @@
 use crate::core::adaptive::{BlockState, GrammarStateId};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::ParserContext;
+use crate::core::context::{PV, ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
@@ -22,7 +22,7 @@ pub struct CacheKey {
     state: GrammarStateId,
     eval_ctx: usize,
 }
-pub type CacheVal<E> = PResult<Parsed, E>;
+pub type CacheVal<E> = PResult<PV, E>;
 
 pub struct ParserCacheEntry<PR> {
     pub read: bool,
@@ -32,13 +32,13 @@ pub struct ParserCacheEntry<PR> {
 impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        mut sub: impl FnMut(&mut ParserState<Db, E>, Pos) -> PResult<Parsed, E>,
+        mut sub: impl FnMut(&mut ParserState<Db, E>, Pos) -> PResult<PV, E>,
         blocks: BorrowedArcSlice<Arc<BlockState>>,
         rule_args: &VarMap,
         grammar_state: GrammarStateId,
         pos_start: Pos,
         context: ParserContext,
-    ) -> PResult<Parsed, E> {
+    ) -> PResult<PV, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
         for (name, value) in rule_args.iter() {

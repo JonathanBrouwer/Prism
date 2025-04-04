@@ -67,17 +67,6 @@ failing tests:
 }
 
 parse_test! {
-name: guid
-syntax: r#"
-    rule start = Guids(a, b, c) <- a:#guid b:#guid c:#guid;
-    "#
-passing tests:
-    "" => "Guids(Guid(0), Guid(1), Guid(2))"
-
-failing tests:
-}
-
-parse_test! {
 name: use_thing_twice
 syntax: r#"
     rule start = Test(a, a) <- a:"q";

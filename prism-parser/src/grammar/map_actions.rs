@@ -88,7 +88,7 @@ impl RuleExpr {
                 name: name.clone(),
                 expr: expr.map_actions(map),
             },
-            RuleExpr::CharClass(_) | RuleExpr::Literal(_) | RuleExpr::Guid => return self.clone(),
+            RuleExpr::CharClass(_) | RuleExpr::Literal(_) => return self.clone(),
         })
     }
 }

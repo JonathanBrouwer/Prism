@@ -1,7 +1,7 @@
 use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 
-use crate::core::context::ParserContext;
+use crate::core::context::{PV, ParserContext};
 use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
@@ -90,7 +90,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
         rule: &'static str,
         file: InputTableIndex,
         penv: &mut Db,
-    ) -> Result<Parsed, AggregatedParseError<E>> {
+    ) -> Result<PV, AggregatedParseError<E>> {
         let rule = *self
             .rules
             .get(&Input::from_const(rule))
@@ -132,7 +132,7 @@ pub fn run_parser_rule_raw<Db, E: ParseError<L = ErrorLabel>>(
 
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
-) -> Result<Parsed, AggregatedParseError<E>> {
+) -> Result<PV, AggregatedParseError<E>> {
     let mut instance: ParserInstance<Db, E> = ParserInstance::new(input, rules, parsables).unwrap();
     instance.run(rule, file, penv)
 }
@@ -147,7 +147,7 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     penv: &mut Db,
 ) -> Result<Arc<P>, AggregatedParseError<E>> {
     run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
-        .map(|parsed| parsed.into_value::<P>())
+        .map(|parsed| parsed.rtrn.into_value::<P>())
 }
 
 #[macro_export]

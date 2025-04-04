@@ -1728,23 +1728,6 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "#guid"
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleExpr",
-                      "name": "Guid",
-                      "args": []
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
                     "Sequence": [
                       {
                         "Literal": "#adapt"
