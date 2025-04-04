@@ -38,32 +38,3 @@ impl ParserContext {
         }
     }
 }
-
-#[derive(Clone, Copy)]
-pub struct Ignore<T>(pub T);
-
-impl<T> Hash for Ignore<T> {
-    fn hash<H: Hasher>(&self, _: &mut H) {}
-}
-
-impl<T> PartialEq for Ignore<T> {
-    fn eq(&self, _: &Self) -> bool {
-        true
-    }
-}
-
-impl<T> Eq for Ignore<T> {}
-
-impl<T> Deref for Ignore<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> DerefMut for Ignore<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
