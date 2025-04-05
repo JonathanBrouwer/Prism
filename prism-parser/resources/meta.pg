@@ -82,15 +82,15 @@ rule charclass {
 }
 
 rule charclass_part {
-    "\'" c1:charclass_char "\'" "-" "\'" c2:charclass_char "\'" => CharClassRange::Range(c1, c2);
-    "\'" c:charclass_char "\'" => CharClassRange::Range(c, c);
+    c1:charclass_char "-" c2:charclass_char => CharClassRange::Range(c1, c2);
+    c:charclass_char => CharClassRange::Range(c, c);
 }
 
 rule charclass_char {
     #[token("string")]
-    [^ '\'' | '\\' | '\n'];
+    "\'" c:[^ '\'' | '\\' | '\n'] "\'" => c;
     #[token("string")]
-    char_escapes;
+    "\'" c:char_escapes "\'" => c;
 }
 
 rule pstring {

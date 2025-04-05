@@ -2428,9 +2428,6 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "'"
-                      },
-                      {
                         "NameBind": [
                           "c1",
                           {
@@ -2442,13 +2439,7 @@
                         ]
                       },
                       {
-                        "Literal": "'"
-                      },
-                      {
                         "Literal": "-"
-                      },
-                      {
-                        "Literal": "'"
                       },
                       {
                         "NameBind": [
@@ -2460,9 +2451,6 @@
                             }
                           }
                         ]
-                      },
-                      {
-                        "Literal": "'"
                       }
                     ]
                   },
@@ -2488,23 +2476,13 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
+                    "NameBind": [
+                      "c",
                       {
-                        "Literal": "'"
-                      },
-                      {
-                        "NameBind": [
-                          "c",
-                          {
-                            "RunVar": {
-                              "rule": "charclass_char",
-                              "args": []
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "Literal": "'"
+                        "RunVar": {
+                          "rule": "charclass_char",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -2540,34 +2518,86 @@
           "adapt": false,
           "constructors": [
             {
-              "annotations": [],
-              "expr": {
-                "CharClass": {
-                  "neg": true,
-                  "ranges": [
-                    [
-                      "'",
-                      "'"
-                    ],
-                    [
-                      "\\",
-                      "\\"
-                    ],
-                    [
-                      "\n",
-                      "\n"
-                    ]
-                  ]
+              "annotations": [
+                {
+                  "Token": "String"
                 }
+              ],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "NameBind": [
+                          "c",
+                          {
+                            "CharClass": {
+                              "neg": true,
+                              "ranges": [
+                                [
+                                  "'",
+                                  "'"
+                                ],
+                                [
+                                  "\\",
+                                  "\\"
+                                ],
+                                [
+                                  "\n",
+                                  "\n"
+                                ]
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "'"
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "c"
+                  }
+                ]
               }
             },
             {
-              "annotations": [],
-              "expr": {
-                "RunVar": {
-                  "rule": "char_escapes",
-                  "args": []
+              "annotations": [
+                {
+                  "Token": "String"
                 }
+              ],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "NameBind": [
+                          "c",
+                          {
+                            "RunVar": {
+                              "rule": "char_escapes",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "'"
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "c"
+                  }
+                ]
               }
             }
           ]
