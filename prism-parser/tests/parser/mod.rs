@@ -53,7 +53,7 @@ macro_rules! parse_test {
             counter += 1;
 
 
-            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ()).unwrap_or_eprint().rtrn;
+            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ()).unwrap_or_eprint().parsed;
             let got = format!("{got:?}");
             assert_eq!($expected, got);
             })*
@@ -67,7 +67,7 @@ macro_rules! parse_test {
 
             match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ()) {
                 Ok(got) => {
-                    let got = format!("{:?}", got.rtrn);
+                    let got = format!("{:?}", got.parsed);
                     println!("Got: {:?}", got);
                     panic!();
                 }

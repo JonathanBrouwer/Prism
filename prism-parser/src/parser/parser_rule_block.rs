@@ -204,6 +204,45 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                         penv,
                         eval_ctx,
                     ),
+                RuleAnnotation::Token(token) => {
+                    // Parse recursively
+                    let mut res = self.parse_with_layout(
+                        rules,
+                        vars,
+                        |state, pos, penv| {
+                            state.parse_sub_annotations(
+                                rules,
+                                blocks,
+                                rule_args,
+                                rest,
+                                expr,
+                                vars,
+                                pos,
+                                ParserContext {
+                                    layout_disabled: true,
+                                    recovery_disabled: true,
+                                    ..context
+                                },
+                                penv,
+                                eval_ctx,
+                            )
+                        },
+                        pos,
+                        context,
+                        penv,
+                    );
+
+                    // Add token information
+                    res = res.map_with_span(|pv, span| PV::new_single(pv.parsed, *token, span));
+
+                    // Add error label
+                    res.add_label_explicit(ErrorLabel::Explicit(
+                        pos.span_to(res.end_pos().next(&self.input).0),
+                        token.to_string(),
+                    ));
+
+                    res
+                }
             },
             None => self
                 .parse_expr(

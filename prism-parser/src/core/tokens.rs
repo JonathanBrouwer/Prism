@@ -1,4 +1,7 @@
 use crate::core::span::Span;
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
@@ -13,12 +16,50 @@ pub struct Token {
     pub span: Span,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum TokenType {
     CharClass,
     Keyword,
     Symbol,
     Slice,
+    String,
+    Number,
+    Variable,
+}
+
+impl FromStr for TokenType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "charclass" => TokenType::CharClass,
+            "keyword" => TokenType::Keyword,
+            "symbol" => TokenType::Symbol,
+            "slice" => TokenType::Slice,
+            "string" => TokenType::String,
+            "number" => TokenType::Number,
+            "variable" => TokenType::Variable,
+            _ => return Err(()),
+        })
+    }
+}
+
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                TokenType::CharClass => "charclass",
+                TokenType::Keyword => "keyword",
+                TokenType::Symbol => "symbol",
+                TokenType::Slice => "slice",
+                TokenType::String => "string",
+                TokenType::Number => "number",
+                TokenType::Variable => "variable",
+            }
+        )
+    }
 }
 
 impl Tokens {

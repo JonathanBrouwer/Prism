@@ -1,5 +1,6 @@
 use crate::core::input::Input;
 use crate::core::span::Span;
+use crate::core::tokens::TokenType;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,7 @@ pub enum RuleAnnotation {
     EnableLayout,
     DisableRecovery,
     EnableRecovery,
+    Token(TokenType),
 }
 
 impl<Db> Parsable<Db> for RuleAnnotation {
@@ -23,6 +25,9 @@ impl<Db> Parsable<Db> for RuleAnnotation {
             "EnableLayout" => RuleAnnotation::EnableLayout,
             "DisableRecovery" => RuleAnnotation::DisableRecovery,
             "EnableRecovery" => RuleAnnotation::EnableRecovery,
+            "Token" => {
+                RuleAnnotation::Token(args[0].value_ref::<Input>().as_str().parse().unwrap())
+            }
             _ => unreachable!(),
         }
     }

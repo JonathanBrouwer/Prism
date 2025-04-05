@@ -995,6 +995,48 @@
                   }
                 ]
               }
+            },
+            {
+              "annotations": [],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "token"
+                      },
+                      {
+                        "Literal": "("
+                      },
+                      {
+                        "NameBind": [
+                          "token",
+                          {
+                            "RunVar": {
+                              "rule": "pstring",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": ")"
+                      }
+                    ]
+                  },
+                  {
+                    "Construct": {
+                      "ns": "RuleAnnotation",
+                      "name": "Token",
+                      "args": [
+                        {
+                          "Name": "token"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
           ]
         }
@@ -2655,10 +2697,8 @@
             {
               "annotations": [
                 {
-                  "Error": "String"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "String"
+                }
               ],
               "expr": {
                 "Action": [
@@ -2947,10 +2987,8 @@
             {
               "annotations": [
                 {
-                  "Error": "Integer"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "Number"
+                }
               ],
               "expr": {
                 "SliceInput": {
@@ -2992,10 +3030,8 @@
             {
               "annotations": [
                 {
-                  "Error": "Identifier"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "Variable"
+                }
               ],
               "expr": {
                 "Action": [

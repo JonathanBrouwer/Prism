@@ -43,26 +43,29 @@ impl ParserContext {
 
 #[derive(Clone)]
 pub struct PV {
-    pub rtrn: Parsed,
+    pub parsed: Parsed,
     pub tokens: Arc<Tokens>,
 }
 
 impl PV {
     pub fn new_single(rtrn: Parsed, token_type: TokenType, span: Span) -> Self {
         Self {
-            rtrn,
+            parsed: rtrn,
             tokens: Arc::new(Tokens::Single(Token { token_type, span })),
         }
     }
 
     pub fn new_multi(rtrn: Parsed, tokens: Vec<Arc<Tokens>>) -> Self {
         Self {
-            rtrn,
+            parsed: rtrn,
             tokens: Arc::new(Tokens::Multi(tokens)),
         }
     }
 
     pub fn new_from(rtrn: Parsed, tokens: Arc<Tokens>) -> Self {
-        Self { rtrn, tokens }
+        Self {
+            parsed: rtrn,
+            tokens,
+        }
     }
 }

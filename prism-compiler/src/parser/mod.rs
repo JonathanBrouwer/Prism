@@ -53,7 +53,7 @@ impl PrismDb {
             parsables,
             self,
         )
-        .map(|v| *v.rtrn.into_value::<ParsedIndex>())
+        .map(|v| *v.parsed.into_value::<ParsedIndex>())
         {
             Ok(v) => v,
             Err(es) => {

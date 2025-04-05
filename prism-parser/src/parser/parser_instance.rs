@@ -148,7 +148,7 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     penv: &mut Db,
 ) -> Result<(Arc<P>, Arc<Tokens>), AggregatedParseError<E>> {
     run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
-        .map(|parsed| (parsed.rtrn.into_value::<P>(), parsed.tokens))
+        .map(|parsed| (parsed.parsed.into_value::<P>(), parsed.tokens))
 }
 
 #[macro_export]

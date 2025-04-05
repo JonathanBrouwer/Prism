@@ -250,7 +250,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                 res.map(|rtrn| {
                     let list = rtrn.iter().rfold(ParsedList::default(), |rest, next| {
-                        rest.insert((), next.rtrn.rtrn.clone())
+                        rest.insert((), next.rtrn.parsed.clone())
                     });
                     let tokens = rtrn.iter().map(|next| next.rtrn.tokens.clone()).collect();
 
@@ -336,13 +336,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     if let Some(placeholder) = placeholder {
                         self.placeholders.place_into_empty(
                             placeholder,
-                            res.rtrn.rtrn.clone(),
+                            res.rtrn.parsed.clone(),
                             penv,
                         );
                     }
 
                     PR {
-                        free: res.free.insert(name.clone(), res.rtrn.rtrn),
+                        free: res.free.insert(name.clone(), res.rtrn.parsed),
                         rtrn: PV::new_from(Arc::new(Void).to_parsed(), res.rtrn.tokens),
                     }
                 })
