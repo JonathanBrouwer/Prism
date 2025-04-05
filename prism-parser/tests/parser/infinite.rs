@@ -84,7 +84,7 @@ syntax: r#"
     rule layout = " ";
 
     rule num {
-        #[disable_layout]
+        #[token("number")]
         #str("x"+);
     }
 

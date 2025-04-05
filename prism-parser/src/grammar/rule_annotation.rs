@@ -7,11 +7,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum RuleAnnotation {
-    Error(Input),
-    DisableLayout,
-    EnableLayout,
-    DisableRecovery,
-    EnableRecovery,
     Token(TokenType),
 }
 
@@ -20,11 +15,6 @@ impl<Db> Parsable<Db> for RuleAnnotation {
 
     fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
         match constructor.as_str() {
-            "Error" => RuleAnnotation::Error(args[0].value_ref::<Input>().parse_escaped_string()),
-            "DisableLayout" => RuleAnnotation::DisableLayout,
-            "EnableLayout" => RuleAnnotation::EnableLayout,
-            "DisableRecovery" => RuleAnnotation::DisableRecovery,
-            "EnableRecovery" => RuleAnnotation::EnableRecovery,
             "Token" => {
                 RuleAnnotation::Token(args[0].value_ref::<Input>().as_str().parse().unwrap())
             }

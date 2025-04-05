@@ -66,9 +66,7 @@ rule keyword {
 }
 
 rule identifier {
-    #[error("Identifier")]
-    #[disable_layout]
-    #[disable_recovery]
+    #[token("variable")]
     n <- #neg(keyword #neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]))
          n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
 }

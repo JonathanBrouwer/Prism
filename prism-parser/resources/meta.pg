@@ -32,11 +32,6 @@ rule prule_annotated_expr(action)
     => AnnotatedRuleExpr::AnnotatedExpr(ans, e);
 
 rule prule_annotation {
-    "error" "(" err:pstring ")" => RuleAnnotation::Error(err);
-    "disable_layout" => RuleAnnotation::DisableLayout();
-    "enable_layout" => RuleAnnotation::EnableLayout();
-    "disable_recovery" => RuleAnnotation::DisableRecovery();
-    "enable_recovery" => RuleAnnotation::EnableRecovery();
     "token" "(" token:pstring ")" => RuleAnnotation::Token(token);
 }
 
@@ -92,7 +87,9 @@ rule charclass_part {
 }
 
 rule charclass_char {
+    #[token("string")]
     [^ '\'' | '\\' | '\n'];
+    #[token("string")]
     char_escapes;
 }
 
