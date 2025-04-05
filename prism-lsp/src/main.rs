@@ -1,9 +1,11 @@
+use ariadne::Cache;
 use prism_compiler::lang::PrismDb;
 use prism_parser::core::context::{TokenType, Tokens};
 use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::parse_grammar;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -203,17 +205,28 @@ impl LanguageServer for Backend {
             .await;
         let inner = self.inner.read().await;
 
-        let mut prism_tokens = inner.open_documents[&params.text_document.uri]
-            .tokens
-            .to_vec();
-        prism_tokens.truncate(5);
-        eprintln!("{:?}", prism_tokens);
+        let doc = &inner.open_documents[&params.text_document.uri];
+        let file_inner = inner.db.input.inner();
+        let mut file_inner = &*file_inner;
+        let source = (&mut file_inner).fetch(&doc.index).unwrap();
+        let mut prism_tokens = doc.tokens.to_vec();
 
         let mut lsp_tokens = vec![];
+        let mut prev_line = 0;
+        let mut prev_start = 0;
+
         for token in prism_tokens {
+            let (_line, cur_line, cur_start) = source
+                .get_offset_line(token.span.start_pos().idx_in_file())
+                .unwrap();
+
             lsp_tokens.push(SemanticToken {
-                delta_line: 0,
-                delta_start: token.span.start_pos().idx_in_file() as u32,
+                delta_line: (cur_line - prev_line) as u32,
+                delta_start: if cur_line == prev_line {
+                    cur_start - prev_start
+                } else {
+                    cur_start
+                } as u32,
                 length: token.span.len() as u32,
                 token_type: match token.token_type {
                     TokenType::CharClass => 1,
@@ -221,7 +234,10 @@ impl LanguageServer for Backend {
                     TokenType::Slice => 1,
                 },
                 token_modifiers_bitset: 0,
-            })
+            });
+
+            prev_line = cur_line;
+            prev_start = cur_start;
         }
 
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {

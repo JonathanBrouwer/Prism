@@ -371,6 +371,7 @@ dependencies = [
 name = "prism-lsp"
 version = "0.2.0"
 dependencies = [
+ "ariadne",
  "prism-compiler",
  "prism-parser",
  "tokio",
