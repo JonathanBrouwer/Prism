@@ -88,7 +88,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 self.placeholders
                     .place_into_empty(placeholder, parsed, penv);
             }
-            RuleAction::Value { ns, value } => {
+            RuleAction::Value { .. } => {
                 //TODO
             }
         }

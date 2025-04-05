@@ -1,9 +1,8 @@
 use crate::core::span::Span;
+use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
-use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
-use std::slice;
+use std::hash::Hash;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -39,44 +38,6 @@ impl ParserContext {
             recovery_disabled: false,
             layout_disabled: false,
         }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum Tokens {
-    Single(Token),
-    Multi(Vec<Arc<Tokens>>),
-}
-
-#[derive(Clone, Debug)]
-pub struct Token {
-    pub token_type: TokenType,
-    pub span: Span,
-}
-
-#[derive(Clone, Debug)]
-pub enum TokenType {
-    CharClass,
-    Literal,
-    Slice,
-}
-
-impl Tokens {
-    pub fn to_vec(&self) -> Vec<Token> {
-        fn insert_tokens(tokens: &Tokens, v: &mut Vec<Token>) {
-            match tokens {
-                Tokens::Single(token) => v.push(token.clone()),
-                Tokens::Multi(tokens) => {
-                    for token in tokens {
-                        insert_tokens(token, v);
-                    }
-                }
-            }
-        }
-
-        let mut tokens = vec![];
-        insert_tokens(self, &mut tokens);
-        tokens
     }
 }
 

@@ -1,11 +1,12 @@
 use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 
-use crate::core::context::{PV, ParserContext, Tokens};
+use crate::core::context::{PV, ParserContext};
 use crate::core::input::Input;
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::pos::Pos;
 use crate::core::state::ParserState;
+use crate::core::tokens::Tokens;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
@@ -20,7 +21,7 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::Parsable;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::parsable_dyn::ParsableDyn;
-use crate::parsable::parsed::{ArcExt, Parsed};
+use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;

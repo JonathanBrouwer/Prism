@@ -1,14 +1,14 @@
 use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::arc_ref::BorrowedArcSlice;
-use crate::core::context::{PR, PV, ParserContext, TokenType};
+use crate::core::context::{PR, PV, ParserContext};
 use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
+use crate::core::tokens::TokenType;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::grammar::rule_expr::RuleExpr;
-use crate::parsable::guid::Guid;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
@@ -143,7 +143,18 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     let span = start_pos.span_to(res.end_pos());
                     let mut res = res.map(|_| {
                         let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
-                        PR::with_rtrn(PV::new_single(value, TokenType::Literal, span))
+
+                        let token_type = if literal
+                            .as_str()
+                            .chars()
+                            .all(|c| c.is_alphanumeric() || c == '_')
+                        {
+                            TokenType::Keyword
+                        } else {
+                            TokenType::Symbol
+                        };
+
+                        PR::with_rtrn(PV::new_single(value, token_type, span))
                     });
                     res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
                     res

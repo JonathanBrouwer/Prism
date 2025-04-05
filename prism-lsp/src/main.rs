@@ -1,11 +1,9 @@
 use ariadne::Cache;
 use prism_compiler::lang::PrismDb;
-use prism_parser::core::context::{TokenType, Tokens};
 use prism_parser::core::input_table::InputTableIndex;
-use prism_parser::parse_grammar;
+use prism_parser::core::tokens::{TokenType, Tokens};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -85,6 +83,7 @@ impl LanguageServer for Backend {
                                     SemanticTokenType::COMMENT,
                                     SemanticTokenType::VARIABLE,
                                     SemanticTokenType::KEYWORD,
+                                    SemanticTokenType::OPERATOR,
                                     // SemanticTokenType::NAMESPACE,
                                     // SemanticTokenType::TYPE,
                                     // SemanticTokenType::CLASS,
@@ -103,7 +102,6 @@ impl LanguageServer for Backend {
                                     // SemanticTokenType::STRING,
                                     // SemanticTokenType::NUMBER,
                                     // SemanticTokenType::REGEXP,
-                                    // SemanticTokenType::OPERATOR,
                                     // SemanticTokenType::DECORATOR,
                                     // SemanticTokenType::new("label"),
                                 ],
@@ -209,7 +207,7 @@ impl LanguageServer for Backend {
         let file_inner = inner.db.input.inner();
         let mut file_inner = &*file_inner;
         let source = (&mut file_inner).fetch(&doc.index).unwrap();
-        let mut prism_tokens = doc.tokens.to_vec();
+        let prism_tokens = doc.tokens.to_vec();
 
         let mut lsp_tokens = vec![];
         let mut prev_line = 0;
@@ -230,8 +228,9 @@ impl LanguageServer for Backend {
                 length: token.span.len() as u32,
                 token_type: match token.token_type {
                     TokenType::CharClass => 1,
-                    TokenType::Literal => 2,
                     TokenType::Slice => 1,
+                    TokenType::Keyword => 2,
+                    TokenType::Symbol => 3,
                 },
                 token_modifiers_bitset: 0,
             });

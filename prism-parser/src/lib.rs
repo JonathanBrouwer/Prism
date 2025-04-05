@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
-use crate::core::context::Tokens;
+use self::core::tokens::Tokens;
 use crate::core::input_table::InputTable;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
