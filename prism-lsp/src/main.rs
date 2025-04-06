@@ -54,7 +54,7 @@ impl LanguageServer for Backend {
     async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         self.client
-            .log_message(MessageType::INFO, format!("Started Prism LSP v{VERSION}!"))
+            .log_message(MessageType::INFO, format!("StartingPrism LSP v{VERSION}!"))
             .await;
 
         // Show client info
@@ -76,18 +76,20 @@ impl LanguageServer for Backend {
                 version: Some(VERSION.to_string()),
             }),
             capabilities: ServerCapabilities {
-                //TODO uncommenting this breaks tokens
-                help
-                // diagnostic_provider: Some(DiagnosticServerCapabilities::RegistrationOptions(DiagnosticRegistrationOptions {
-                //     text_document_registration_options: Default::default(),
-                //     diagnostic_options: DiagnosticOptions {
-                //         identifier: None,
-                //         inter_file_dependencies: true,
-                //         workspace_diagnostics: false,
-                //         work_done_progress_options: Default::default(),
-                //     },
-                //     static_registration_options: Default::default(),
-                // })),
+                diagnostic_provider: Some(DiagnosticServerCapabilities::RegistrationOptions(
+                    DiagnosticRegistrationOptions {
+                        text_document_registration_options: Default::default(),
+                        diagnostic_options: DiagnosticOptions {
+                            identifier: Some("prism_diagnostics".to_string()),
+                            inter_file_dependencies: true,
+                            workspace_diagnostics: false,
+                            work_done_progress_options: Default::default(),
+                        },
+                        static_registration_options: StaticRegistrationOptions {
+                            id: Some("prism_diagnostics".to_string()),
+                        },
+                    },
+                )),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 semantic_tokens_provider: Some(
                     SemanticTokensServerCapabilities::SemanticTokensOptions(
@@ -147,6 +149,10 @@ impl LanguageServer for Backend {
                 ..Default::default()
             },
         })
+    }
+
+    async fn initialized(&self, _params: InitializedParams) {
+        self.client.semantic_tokens_refresh().await.unwrap();
     }
 
     async fn shutdown(&self) -> Result<()> {
@@ -243,11 +249,7 @@ impl LanguageServer for Backend {
         let inner = inner.deref_mut();
         let index = inner.documents[&params.text_document.uri].index;
 
-        let Ok(prism_tokens) = inner
-            .document_parses[&index]
-            .as_ref()
-            .cloned()
-        else {
+        let Ok(prism_tokens) = inner.document_parses[&index].as_ref().cloned() else {
             //TOOD tokens if error
             eprintln!("No tokens :c");
             return Ok(None);
@@ -296,71 +298,70 @@ impl LanguageServer for Backend {
         })))
     }
 
-    async fn diagnostic(&self, params: DocumentDiagnosticParams) -> Result<DocumentDiagnosticReportResult> {
-        // self.client
-        //     .log_message(
-        //         MessageType::INFO,
-        //         format!("DIAGS {}", params.text_document.uri.path().as_str()),
-        //     )
-        //     .await;
-        // 
-        // let mut inner = self.inner.write().await;
-        // let inner = inner.deref_mut();
-        // let index = inner.documents[&params.text_document.uri].index;
-        // 
-        // let file_inner = inner.db.input.inner();
-        // let mut file_inner = &*file_inner;
-        // let source = (&mut file_inner).fetch(&index).unwrap();
-        // 
-        // let items: Vec<Diagnostic> = match inner.document_parses[&index] {
-        //     Ok(ref _tokens) => {
-        //         vec![]
-        //     }
-        //     Err(ref errs) => {
-        //         let mut new_errs = vec![];
-        //         for err in errs {
-        //             match err {
-        //                 PrismError::ParseError(e) => {
-        //                     let (_line, line, character) = source
-        //                         .get_offset_line(e.pos.idx_in_file())
-        //                         .unwrap();
-        // 
-        //                     new_errs.push(Diagnostic {
-        //                         range: Range {
-        //                             start: Position {
-        //                                 line: line as u32,
-        //                                 character: character as u32,
-        //                             },
-        //                             end: Position {
-        //                                 line: line as u32,
-        //                                 character: character as u32 + 1,
-        //                             }
-        //                         },
-        //                         severity: Some(DiagnosticSeverity::ERROR),
-        //                         code: None,
-        //                         code_description: None,
-        //                         source: Some("Prism LSP".to_string()),
-        //                         message: "Stuff's wrong here".to_string(),
-        //                         related_information: None,
-        //                         tags: None,
-        //                         data: None,
-        //                     })
-        //                 }
-        //                 PrismError::TypeError(e) => {}
-        //             }
-        //         }
-        // 
-        //         new_errs
-        //     }
-        // };
+    async fn diagnostic(
+        &self,
+        params: DocumentDiagnosticParams,
+    ) -> Result<DocumentDiagnosticReportResult> {
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!("DIAGS {}", params.text_document.uri.path().as_str()),
+            )
+            .await;
 
-        Ok(DocumentDiagnosticReportResult::Report(DocumentDiagnosticReport::Full(RelatedFullDocumentDiagnosticReport {
-            related_documents: None,
-            full_document_diagnostic_report: FullDocumentDiagnosticReport {
-                result_id: None,
-                items: vec![],
-            },
-        })))
+        let mut inner = self.inner.write().await;
+        let inner = inner.deref_mut();
+        let index = inner.documents[&params.text_document.uri].index;
+
+        let file_inner = inner.db.input.inner();
+        let mut file_inner = &*file_inner;
+        let source = (&mut file_inner).fetch(&index).unwrap();
+
+        let items: Vec<Diagnostic> = match inner.document_parses[&index] {
+            Ok(ref _tokens) => {
+                vec![]
+            }
+            Err(ref errs) => {
+                let mut new_errs = vec![];
+                for err in errs {
+                    match err {
+                        PrismError::ParseError(e) => {
+                            let (_line, line, character) =
+                                source.get_offset_line(e.pos.idx_in_file()).unwrap();
+
+                            new_errs.push(Diagnostic {
+                                range: Range {
+                                    start: Position {
+                                        line: line as u32,
+                                        character: character as u32,
+                                    },
+                                    end: Position {
+                                        line: line as u32,
+                                        character: character as u32 + 1,
+                                    },
+                                },
+                                severity: Some(DiagnosticSeverity::ERROR),
+                                message: "Stuff's wrong here".to_string(),
+                                ..Diagnostic::default()
+                            })
+                        }
+                        PrismError::TypeError(e) => {}
+                    }
+                }
+
+                new_errs
+            }
+        };
+
+        Ok(DocumentDiagnosticReportResult::Report(
+            DocumentDiagnosticReport::Full(RelatedFullDocumentDiagnosticReport {
+                related_documents: None,
+                full_document_diagnostic_report: FullDocumentDiagnosticReport {
+                    result_id: None,
+                    items,
+                },
+            }),
+        ))
     }
 }
 

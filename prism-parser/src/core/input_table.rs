@@ -78,7 +78,9 @@ impl InputTable {
     }
 
     pub fn remove(&self, idx: InputTableIndex) {
-        self.inner.write().unwrap().files[idx.0].source = Source::from(String::new());
+        let file = &mut self.inner.write().unwrap().files[idx.0];
+        file.source = Source::from(String::new());
+        file.path = "[CLOSED]".into();
     }
 }
 
