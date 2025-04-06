@@ -71,6 +71,15 @@ impl InputTable {
     pub fn inner(&self) -> RwLockReadGuard<InputTableInner> {
         self.inner.read().unwrap()
     }
+
+    pub fn update_file(&self, idx: InputTableIndex, new_content: String) {
+        let file = &mut self.inner.write().unwrap().files[idx.0];
+        file.source = Source::from(new_content);
+    }
+
+    pub fn remove(&self, idx: InputTableIndex) {
+        self.inner.write().unwrap().files[idx.0].source = Source::from(String::new());
+    }
 }
 
 impl Cache<InputTableIndex> for &InputTableInner {

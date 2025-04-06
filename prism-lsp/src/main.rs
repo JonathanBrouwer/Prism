@@ -3,7 +3,9 @@ use prism_compiler::lang::PrismDb;
 use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::fmt::{Display, Formatter};
+use std::ops::DerefMut;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -19,7 +21,8 @@ struct Backend {
 #[derive(Default)]
 struct BackendInner {
     db: PrismDb,
-    open_documents: HashMap<Uri, OpenDocument>,
+    documents: HashMap<Uri, OpenDocument>,
+    document_tokens: HashMap<InputTableIndex, Arc<Tokens>>,
 }
 
 #[derive(Copy, Clone)]
@@ -44,7 +47,6 @@ impl Display for DocumentType {
 struct OpenDocument {
     index: InputTableIndex,
     document_type: DocumentType,
-    tokens: Arc<Tokens>,
 }
 
 impl LanguageServer for Backend {
@@ -161,27 +163,45 @@ impl LanguageServer for Backend {
         let mut inner = self.inner.write().await;
         let index = inner.db.load_input(doc.text, path);
 
-        let Ok((_, tokens)) = inner.db.parse_grammar_file(index) else {
-            return;
-        };
-
-        inner.open_documents.insert(
+        inner.documents.insert(
             doc.uri.clone(),
             OpenDocument {
                 index,
                 document_type,
-                tokens,
             },
         );
     }
 
-    async fn did_close(&self, params: DidCloseTextDocumentParams) {
-        eprintln!("CLOSE {:?}", params.text_document.uri);
+    async fn did_change(&self, params: DidChangeTextDocumentParams) {
+        let doc = params.text_document;
+        let path = PathBuf::from(doc.uri.path().as_str());
+        self.client
+            .log_message(MessageType::LOG, format!("UPDATE {:?}", path))
+            .await;
+
+        let mut inner = self.inner.write().await;
+        let index = inner.documents[&doc.uri].index;
+
+        let Ok([change]): std::result::Result<[_; 1], _> = params.content_changes.try_into() else {
+            panic!()
+        };
+        assert!(change.range.is_none());
+        assert!(change.range_length.is_none());
+
+        inner.db.input.update_file(index, change.text);
+        inner.document_tokens.remove(&index);
     }
 
-    async fn did_change(&self, params: DidChangeTextDocumentParams) {
-        eprintln!("CHANGE {:?}", params.text_document.uri);
-        eprintln!("{:?}", params.content_changes);
+    async fn did_close(&self, params: DidCloseTextDocumentParams) {
+        let doc = params.text_document;
+        let path = PathBuf::from(doc.uri.path().as_str());
+        self.client
+            .log_message(MessageType::LOG, format!("CLOSE {:?}", path))
+            .await;
+
+        let mut inner = self.inner.write().await;
+        let doc = inner.documents.remove(&doc.uri).unwrap();
+        inner.db.input.remove(doc.index);
     }
 
     async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
@@ -201,19 +221,25 @@ impl LanguageServer for Backend {
                 format!("TOKENS {}", params.text_document.uri.path().as_str()),
             )
             .await;
-        let inner = self.inner.read().await;
 
-        let doc = &inner.open_documents[&params.text_document.uri];
+        let mut inner = self.inner.write().await;
+        let inner = inner.deref_mut();
+        let index = inner.documents[&params.text_document.uri].index;
+
+        let prism_tokens = inner
+            .document_tokens
+            .entry(index)
+            .or_insert_with(|| inner.db.parse_grammar_file(index).ok().unwrap().1);
+
         let file_inner = inner.db.input.inner();
         let mut file_inner = &*file_inner;
-        let source = (&mut file_inner).fetch(&doc.index).unwrap();
-        let prism_tokens = doc.tokens.to_vec();
+        let source = (&mut file_inner).fetch(&index).unwrap();
 
         let mut lsp_tokens = vec![];
         let mut prev_line = 0;
         let mut prev_start = 0;
 
-        for token in prism_tokens {
+        for token in prism_tokens.to_vec() {
             let (_line, cur_line, cur_start) = source
                 .get_offset_line(token.span.start_pos().idx_in_file())
                 .unwrap();
