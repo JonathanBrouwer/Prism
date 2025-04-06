@@ -1,5 +1,6 @@
 use ariadne::Cache;
 use prism_compiler::lang::PrismDb;
+use prism_compiler::lang::error::PrismError;
 use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
 use std::collections::HashMap;
@@ -22,7 +23,7 @@ struct Backend {
 struct BackendInner {
     db: PrismDb,
     documents: HashMap<Uri, OpenDocument>,
-    document_tokens: HashMap<InputTableIndex, Arc<Tokens>>,
+    document_parses: HashMap<InputTableIndex, std::result::Result<Arc<Tokens>, Vec<PrismError>>>,
 }
 
 #[derive(Copy, Clone)]
@@ -189,7 +190,7 @@ impl LanguageServer for Backend {
         assert!(change.range_length.is_none());
 
         inner.db.input.update_file(index, change.text);
-        inner.document_tokens.remove(&index);
+        inner.document_parses.remove(&index);
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
@@ -226,10 +227,14 @@ impl LanguageServer for Backend {
         let inner = inner.deref_mut();
         let index = inner.documents[&params.text_document.uri].index;
 
-        let prism_tokens = inner
-            .document_tokens
+        let Ok(prism_tokens) = inner
+            .document_parses
             .entry(index)
-            .or_insert_with(|| inner.db.parse_grammar_file(index).ok().unwrap().1);
+            .or_insert_with(|| inner.db.parse_grammar_file(index).map(|(_, tokens)| tokens))
+        else {
+            //TOOD tokens if error
+            return Ok(None);
+        };
 
         let file_inner = inner.db.input.inner();
         let mut file_inner = &*file_inner;
