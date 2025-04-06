@@ -76,6 +76,18 @@ impl LanguageServer for Backend {
                 version: Some(VERSION.to_string()),
             }),
             capabilities: ServerCapabilities {
+                //TODO uncommenting this breaks tokens
+                help
+                // diagnostic_provider: Some(DiagnosticServerCapabilities::RegistrationOptions(DiagnosticRegistrationOptions {
+                //     text_document_registration_options: Default::default(),
+                //     diagnostic_options: DiagnosticOptions {
+                //         identifier: None,
+                //         inter_file_dependencies: true,
+                //         workspace_diagnostics: false,
+                //         work_done_progress_options: Default::default(),
+                //     },
+                //     static_registration_options: Default::default(),
+                // })),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 semantic_tokens_provider: Some(
                     SemanticTokensServerCapabilities::SemanticTokensOptions(
@@ -171,6 +183,8 @@ impl LanguageServer for Backend {
                 document_type,
             },
         );
+
+        inner.process(index).await;
     }
 
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
@@ -191,6 +205,8 @@ impl LanguageServer for Backend {
 
         inner.db.input.update_file(index, change.text);
         inner.document_parses.remove(&index);
+
+        inner.process(index).await;
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
@@ -228,11 +244,12 @@ impl LanguageServer for Backend {
         let index = inner.documents[&params.text_document.uri].index;
 
         let Ok(prism_tokens) = inner
-            .document_parses
-            .entry(index)
-            .or_insert_with(|| inner.db.parse_grammar_file(index).map(|(_, tokens)| tokens))
+            .document_parses[&index]
+            .as_ref()
+            .cloned()
         else {
             //TOOD tokens if error
+            eprintln!("No tokens :c");
             return Ok(None);
         };
 
@@ -277,6 +294,80 @@ impl LanguageServer for Backend {
             result_id: None,
             data: lsp_tokens,
         })))
+    }
+
+    async fn diagnostic(&self, params: DocumentDiagnosticParams) -> Result<DocumentDiagnosticReportResult> {
+        // self.client
+        //     .log_message(
+        //         MessageType::INFO,
+        //         format!("DIAGS {}", params.text_document.uri.path().as_str()),
+        //     )
+        //     .await;
+        // 
+        // let mut inner = self.inner.write().await;
+        // let inner = inner.deref_mut();
+        // let index = inner.documents[&params.text_document.uri].index;
+        // 
+        // let file_inner = inner.db.input.inner();
+        // let mut file_inner = &*file_inner;
+        // let source = (&mut file_inner).fetch(&index).unwrap();
+        // 
+        // let items: Vec<Diagnostic> = match inner.document_parses[&index] {
+        //     Ok(ref _tokens) => {
+        //         vec![]
+        //     }
+        //     Err(ref errs) => {
+        //         let mut new_errs = vec![];
+        //         for err in errs {
+        //             match err {
+        //                 PrismError::ParseError(e) => {
+        //                     let (_line, line, character) = source
+        //                         .get_offset_line(e.pos.idx_in_file())
+        //                         .unwrap();
+        // 
+        //                     new_errs.push(Diagnostic {
+        //                         range: Range {
+        //                             start: Position {
+        //                                 line: line as u32,
+        //                                 character: character as u32,
+        //                             },
+        //                             end: Position {
+        //                                 line: line as u32,
+        //                                 character: character as u32 + 1,
+        //                             }
+        //                         },
+        //                         severity: Some(DiagnosticSeverity::ERROR),
+        //                         code: None,
+        //                         code_description: None,
+        //                         source: Some("Prism LSP".to_string()),
+        //                         message: "Stuff's wrong here".to_string(),
+        //                         related_information: None,
+        //                         tags: None,
+        //                         data: None,
+        //                     })
+        //                 }
+        //                 PrismError::TypeError(e) => {}
+        //             }
+        //         }
+        // 
+        //         new_errs
+        //     }
+        // };
+
+        Ok(DocumentDiagnosticReportResult::Report(DocumentDiagnosticReport::Full(RelatedFullDocumentDiagnosticReport {
+            related_documents: None,
+            full_document_diagnostic_report: FullDocumentDiagnosticReport {
+                result_id: None,
+                items: vec![],
+            },
+        })))
+    }
+}
+
+impl BackendInner {
+    async fn process(&mut self, index: InputTableIndex) {
+        let result = self.db.parse_grammar_file(index).map(|(_, tokens)| tokens);
+        self.document_parses.insert(index, result);
     }
 }
 
