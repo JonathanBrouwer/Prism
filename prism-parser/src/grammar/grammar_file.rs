@@ -1,3 +1,4 @@
+use std::iter;
 use std::sync::Arc;
 
 use crate::core::allocs::alloc_extend;
@@ -28,6 +29,12 @@ impl<Db> Parsable<Db> for GrammarFile {
                     .map(|((), v)| v)
                     .map(|rule| rule.value_cloned::<Rule>()),
             ),
+        }
+    }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self {
+            rules: Arc::new([]),
         }
     }
 

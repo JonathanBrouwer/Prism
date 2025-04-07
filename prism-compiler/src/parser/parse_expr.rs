@@ -255,6 +255,10 @@ impl Parsable<PrismDb> for ParsedIndex {
             Arc::new(EnvWrapper(e.clone(), eval_ctx.len(), grammar.clone())).to_parsed()
         })
     }
+
+    fn error_fallback(env: &mut PrismDb, span: Span) -> Self {
+        env.store_from_source(ParsedPrismExpr::Free, span)
+    }
 }
 
 #[derive(Clone)]

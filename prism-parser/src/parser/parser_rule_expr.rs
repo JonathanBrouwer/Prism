@@ -239,11 +239,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     // We break out with an infinite loop error
                     // The i != 0 check is to make sure to take the delim into account
                     if i != 0 && res.end_pos() <= pos {
-                        let mut e = E::new(pos);
-                        e.add_label_explicit(ErrorLabel::Debug(
-                            pos.span_to(pos),
-                            "INFLOOP".to_string(),
-                        ));
+                        let e = E::new(pos);
                         return PResult::new_err(e, pos);
                     }
                 }
@@ -459,13 +455,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 };
                 let rules: Arc<GrammarState> = Arc::new(rules);
 
-                let mut res = self.parse_expr(
+                let res = self.parse_expr(
                     body, &rules, blocks, rule_args, vars, pos, context, penv, eval_ctx, eval_ctxs,
                 );
-                res.add_label_implicit(ErrorLabel::Debug(
-                    pos.span_to(pos),
-                    "adaptation".to_string(),
-                ));
                 res
             }
         }

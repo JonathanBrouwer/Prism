@@ -17,7 +17,7 @@ pub enum PrismError {
 impl PrismError {
     pub fn eprint(&self, env: &mut PrismDb) {
         let report = match self {
-            PrismError::ParseError(e) => e.report(false, &env.input),
+            PrismError::ParseError(e) => e.report(),
             PrismError::TypeError(e) => env.report(e).unwrap(),
         };
         report.eprint(&*env.input.inner()).unwrap();

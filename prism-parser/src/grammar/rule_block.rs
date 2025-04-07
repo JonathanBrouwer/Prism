@@ -32,4 +32,12 @@ impl<Db> Parsable<Db> for RuleBlock {
             ),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self {
+            name: Input::from_const(""),
+            adapt: false,
+            constructors: Arc::new([]),
+        }
+    }
 }

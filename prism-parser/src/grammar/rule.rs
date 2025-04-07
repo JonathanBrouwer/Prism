@@ -43,4 +43,14 @@ impl<Db> Parsable<Db> for Rule {
             return_type: Input::from_const("ActionResult"),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self {
+            name: Input::from_const(""),
+            adapt: false,
+            args: Arc::new([]),
+            blocks: Arc::new([]),
+            return_type: Input::from_const(""),
+        }
+    }
 }

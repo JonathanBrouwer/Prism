@@ -51,4 +51,8 @@ impl<Db> Parsable<Db> for RuleAction {
             _ => unreachable!(),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        todo!()
+    }
 }

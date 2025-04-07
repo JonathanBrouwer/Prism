@@ -21,4 +21,8 @@ impl<Db> Parsable<Db> for RuleAnnotation {
             _ => unreachable!(),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        RuleAnnotation::Token(TokenType::Slice)
+    }
 }

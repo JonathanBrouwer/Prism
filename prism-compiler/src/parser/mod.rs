@@ -3,13 +3,12 @@ use crate::lang::{CoreIndex, PrismDb};
 use prism_parser::core::input::Input;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
-use prism_parser::error::aggregate_error::ParseResultExt;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
-use prism_parser::parser::parser_instance::run_parser_rule_raw;
+use prism_parser::parser::parser_instance::{run_parser_rule, run_parser_rule_raw};
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -21,8 +20,9 @@ pub mod parse_expr;
 mod parsed_to_checked;
 
 pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| {
-    let (table, grammar, _tokens) =
-        parse_grammar::<SetError>(include_str!("../../resources/prism.pg")).unwrap_or_eprint();
+    let (table, grammar, _tokens, errs) =
+        parse_grammar::<SetError>(include_str!("../../resources/prism.pg"));
+    errs.unwrap_or_eprint(&table);
     (table.deep_clone(), grammar)
 });
 
@@ -45,25 +45,18 @@ impl PrismDb {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        match run_parser_rule_raw::<PrismDb, SetError>(
+        let (expr, _, errs) = run_parser_rule::<PrismDb, ParsedIndex, SetError>(
             &GRAMMAR.1,
             "expr",
             self.input.clone(),
             file,
             parsables,
             self,
-        )
-        .map(|v| *v.parsed.into_value::<ParsedIndex>())
-        {
-            Ok(v) => v,
-            Err(es) => {
-                for e in es.errors {
-                    self.errors.push(PrismError::ParseError(e));
-                }
-                let placeholder_span = Pos::start_of(file).span_to(Pos::start_of(file));
-                self.store_from_source(ParsedPrismExpr::Free, placeholder_span)
-            }
+        );
+        for err in errs.errors {
+            self.errors.push(PrismError::ParseError(err));
         }
+        *expr
     }
 }
 

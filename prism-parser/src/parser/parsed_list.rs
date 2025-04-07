@@ -21,4 +21,8 @@ impl<Db> Parsable<Db> for ParsedList {
             _ => unreachable!(),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        ParsedList::default()
+    }
 }

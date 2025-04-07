@@ -19,4 +19,8 @@ impl<Db> Parsable<Db> for Option<u64> {
             _ => unreachable!(),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        None
+    }
 }

@@ -5,6 +5,7 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
+use std::iter;
 use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -35,6 +36,13 @@ impl<Db> Parsable<Db> for CharClass {
             ),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self {
+            neg: false,
+            ranges: alloc_extend(iter::empty()),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -46,6 +54,10 @@ impl<Db> Parsable<Db> for CharClassRange {
     fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
         assert_eq!(constructor.as_str(), "Range");
         CharClassRange(parse_string_char(&args[0]), parse_string_char(&args[1]))
+    }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self('\0', '\0')
     }
 }
 

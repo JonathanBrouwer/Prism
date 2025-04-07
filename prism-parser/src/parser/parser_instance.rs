@@ -91,7 +91,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
         rule: &'static str,
         file: InputTableIndex,
         penv: &mut Db,
-    ) -> Result<PV, AggregatedParseError<E>> {
+    ) -> (PV, AggregatedParseError<E>) {
         let rule = *self
             .rules
             .get(&Input::from_const(rule))
@@ -118,10 +118,15 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
             ))
             .map(|(o, ())| o);
 
-        result.collapse().map_err(|error| AggregatedParseError {
-            input: self.state.input.clone(),
-            errors: vec![error],
-        })
+        match result.collapse() {
+            Ok(v) => (v, AggregatedParseError { errors: vec![] }),
+            Err(error) => (
+                PV::new_multi(Arc::new(Void).to_parsed(), vec![]),
+                AggregatedParseError {
+                    errors: vec![error],
+                },
+            ),
+        }
     }
 }
 
@@ -133,7 +138,7 @@ pub fn run_parser_rule_raw<Db, E: ParseError<L = ErrorLabel>>(
 
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
-) -> Result<PV, AggregatedParseError<E>> {
+) -> (PV, AggregatedParseError<E>) {
     let mut instance: ParserInstance<Db, E> = ParserInstance::new(input, rules, parsables).unwrap();
     instance.run(rule, file, penv)
 }
@@ -146,9 +151,18 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
 
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
-) -> Result<(Arc<P>, Arc<Tokens>), AggregatedParseError<E>> {
-    run_parser_rule_raw(rules, rule, input_table, file, parsables, penv)
-        .map(|parsed| (parsed.parsed.into_value::<P>(), parsed.tokens))
+) -> (Arc<P>, Arc<Tokens>, AggregatedParseError<E>) {
+    let full_span =
+        Pos::start_of(file).span_to(Pos::start_of(file) + input_table.get_str(file).len());
+    let (pv, errs) = run_parser_rule_raw(rules, rule, input_table, file, parsables, penv);
+
+    (
+        pv.parsed
+            .try_into_value()
+            .unwrap_or_else(|| Arc::new(P::error_fallback(penv, full_span))),
+        pv.tokens,
+        errs,
+    )
 }
 
 #[macro_export]

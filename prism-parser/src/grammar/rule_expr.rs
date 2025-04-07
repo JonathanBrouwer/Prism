@@ -93,4 +93,8 @@ impl<Db> Parsable<Db> for RuleExpr {
             _ => unreachable!(),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        RuleExpr::Sequence(Arc::new([]))
+    }
 }

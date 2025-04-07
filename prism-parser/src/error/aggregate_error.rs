@@ -4,30 +4,24 @@ use crate::error::error_printer::ErrorLabel;
 use std::io;
 use std::sync::Arc;
 
+#[must_use]
 pub struct AggregatedParseError<E: ParseError<L = ErrorLabel>> {
-    pub input: Arc<InputTable>,
     pub errors: Vec<E>,
 }
 
 impl<E: ParseError<L = ErrorLabel>> AggregatedParseError<E> {
-    pub fn eprint(&self) -> io::Result<()> {
+    pub fn eprint(&self, input: &InputTable) -> io::Result<()> {
         for e in &self.errors {
-            e.report(false, &self.input)
-                .eprint::<&InputTableInner>(&*self.input.inner())?
+            e.report().eprint::<&InputTableInner>(&*input.inner())?
         }
         Ok(())
     }
-}
 
-pub trait ParseResultExt<T> {
-    fn unwrap_or_eprint(self) -> T;
-}
-
-impl<E: ParseError<L = ErrorLabel>, T> ParseResultExt<T> for Result<T, AggregatedParseError<E>> {
-    fn unwrap_or_eprint(self) -> T {
-        self.unwrap_or_else(|es| {
-            es.eprint().unwrap();
-            panic!("Failed to parse")
-        })
+    pub fn unwrap_or_eprint(&self, input: &InputTable) {
+        if self.errors.len() == 0 {
+            return;
+        }
+        self.eprint(input).unwrap();
+        panic!("Failed to parse")
     }
 }

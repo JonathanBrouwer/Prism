@@ -1,4 +1,3 @@
-use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::error::ParseError;
@@ -24,7 +23,7 @@ impl ParseError for EmptyError {
         Self
     }
 
-    fn report(&self, _enable_debug: bool, _input: &InputTable) -> Report<'static, Span> {
+    fn report(&self) -> Report<'static, Span> {
         unreachable!()
     }
 }

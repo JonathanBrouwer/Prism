@@ -6,7 +6,6 @@ use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{ParseError, err_combine_opt};
 use crate::parser::VarMap;
 use std::hash::{DefaultHasher, Hasher};
@@ -59,9 +58,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
-        let mut res_recursive = PResult::new_err(E::new(pos_start), pos_start);
-        res_recursive
-            .add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC".to_string()));
+        let res_recursive = PResult::new_err(E::new(pos_start), pos_start);
 
         let cache_state = self.cache_state_get();
         self.cache_insert(key.clone(), res_recursive);

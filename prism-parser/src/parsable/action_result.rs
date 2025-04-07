@@ -22,4 +22,12 @@ impl<Db> Parsable<Db> for ActionResult {
             args: alloc_extend(args.iter().cloned()),
         }
     }
+
+    fn error_fallback(env: &mut Db, span: Span) -> Self {
+        Self {
+            span: Span::test(),
+            constructor: Input::from_const("[ERROR]"),
+            args: Arc::new([]),
+        }
+    }
 }

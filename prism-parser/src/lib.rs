@@ -27,16 +27,21 @@ pub static META_GRAMMAR: LazyLock<GrammarFile> = LazyLock::new(|| {
 
 pub fn parse_grammar<E: ParseError<L = ErrorLabel>>(
     grammar: &str,
-) -> Result<(Arc<InputTable>, Arc<GrammarFile>, Arc<Tokens>), AggregatedParseError<E>> {
+) -> (
+    Arc<InputTable>,
+    Arc<GrammarFile>,
+    Arc<Tokens>,
+    AggregatedParseError<E>,
+) {
     let input_table = Arc::new(InputTable::default());
     let file = input_table.get_or_push_file(grammar.into(), "$GRAMMAR$".into());
-    run_parser_rule::<(), GrammarFile, E>(
+    let (grammar, tokens, errs) = run_parser_rule::<(), GrammarFile, E>(
         &META_GRAMMAR,
         "toplevel",
         input_table.clone(),
         file,
         HashMap::new(),
         &mut (),
-    )
-    .map(|(grammar, tokens)| (input_table, grammar, tokens))
+    );
+    (input_table, grammar, tokens, errs)
 }

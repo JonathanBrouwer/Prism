@@ -42,7 +42,7 @@ pub enum AdaptError {
 impl GrammarState {
     pub fn new() -> Self {
         Self {
-            rules: alloc_extend(iter::empty()),
+            rules: Arc::new([]),
             last_mut_pos: None,
         }
     }

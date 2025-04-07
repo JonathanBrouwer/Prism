@@ -26,14 +26,7 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
         )
     }
 
-    fn create_eval_ctx(
-        _constructor: &Input,
-        _parent_ctx: &Self::EvalCtx,
-        _arg_placeholders: &[ParsedPlaceholder],
-        _env: &mut Db,
-    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        iter::empty()
-    }
+    fn error_fallback(env: &mut Db, span: Span) -> Self;
 
     fn eval_to_grammar(
         self: &Arc<Self>,
@@ -42,5 +35,14 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
         _env: &mut Db,
     ) -> Arc<GrammarFile> {
         unreachable!()
+    }
+
+    fn create_eval_ctx(
+        _constructor: &Input,
+        _parent_ctx: &Self::EvalCtx,
+        _arg_placeholders: &[ParsedPlaceholder],
+        _env: &mut Db,
+    ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
+        iter::empty()
     }
 }

@@ -40,7 +40,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 .zip(args.iter().cloned()),
         );
 
-        let mut res = self.parse_rule_block(
+        self.parse_rule_block(
             rules,
             BorrowedArcSlice::new(&rule_state.blocks),
             &rule_args,
@@ -48,11 +48,6 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             context,
             penv,
             eval_ctx,
-        );
-        res.add_label_implicit(ErrorLabel::Debug(
-            pos.span_to(res.end_pos()),
-            rule_state.name.as_str().to_string(),
-        ));
-        res.map(|pr| pr)
+        )
     }
 }
