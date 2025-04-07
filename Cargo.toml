@@ -1,6 +1,6 @@
 [workspace]
 members = ["prism-compiler", "prism-lsp", "prism-parser", "prism-parser-bootstrap"]
-default-members = ["prism-compiler", "prism-lsp", "prism-parser", "prism-parser-bootstrap"]
+default-members = ["prism-compiler", "prism-lsp", "prism-parser"]
 resolver = "3"
 
 [workspace.package]
