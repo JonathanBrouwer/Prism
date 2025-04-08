@@ -10,6 +10,7 @@ pub mod parser_rule;
 pub mod parser_rule_block;
 pub mod parser_rule_expr;
 pub mod placeholder_store;
+pub mod recovery;
 pub mod rule_closure;
 
 pub type VarMap = GenericEnv<Input, Parsed>;

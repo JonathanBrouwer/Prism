@@ -98,35 +98,34 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
             .as_ref()
             .expect("Rule exists")
             .value_ref::<RuleId>();
-        let result = self.state.parse_rule(
-            &self.grammar_state,
-            rule,
-            &[],
-            Pos::start_of(file),
-            ParserContext::new(),
-            penv,
-            &Arc::new(Void).to_parsed(),
-        );
-        let end_pos = result.end_pos();
-        let result = result
-            .merge_seq(self.state.parse_end_with_layout(
-                &self.grammar_state,
-                &self.rules,
-                end_pos,
-                ParserContext::new(),
-                penv,
-            ))
-            .map(|(o, ())| o);
 
-        match result.collapse() {
-            Ok(v) => (v, AggregatedParseError { errors: vec![] }),
-            Err(error) => (
-                PV::new_multi(Arc::new(Void).to_parsed(), vec![]),
-                AggregatedParseError {
-                    errors: vec![error],
-                },
-            ),
-        }
+        let (pv, errors) = self.state.parse_with_recovery(
+            |state, penv| {
+                let result = state.parse_rule(
+                    &self.grammar_state,
+                    rule,
+                    &[],
+                    Pos::start_of(file),
+                    ParserContext::new(),
+                    penv,
+                    &Arc::new(Void).to_parsed(),
+                );
+                let end_pos = result.end_pos();
+                result
+                    .merge_seq(state.parse_end_with_layout(
+                        &self.grammar_state,
+                        &self.rules,
+                        end_pos,
+                        ParserContext::new(),
+                        penv,
+                    ))
+                    .map(|(o, ())| o)
+            },
+            file,
+            penv,
+        );
+
+        (pv, AggregatedParseError { errors })
     }
 }
 

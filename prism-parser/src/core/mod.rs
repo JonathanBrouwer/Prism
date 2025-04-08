@@ -8,7 +8,6 @@ pub mod input_table;
 pub mod pos;
 pub mod presult;
 pub mod primitives;
-mod recovery;
 pub mod span;
 pub mod state;
 pub mod tokens;
