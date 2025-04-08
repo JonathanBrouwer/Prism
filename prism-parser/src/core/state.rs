@@ -12,8 +12,6 @@ pub struct ParserState<Db, E: ParseError> {
     cache: HashMap<CacheKey, ParserCacheEntry<CacheVal<E>>>,
     cache_stack: Vec<CacheKey>,
     pub input: Arc<InputTable>,
-    // For recovery
-    pub recovery_points: HashMap<Pos, Pos>,
 
     pub parsables: HashMap<&'static str, ParsableDyn<Db>>,
     pub placeholders: PlaceholderStore<Db>,
@@ -25,7 +23,6 @@ impl<Db, E: ParseError> ParserState<Db, E> {
             cache: HashMap::new(),
             cache_stack: Vec::new(),
             input,
-            recovery_points: HashMap::new(),
             parsables,
             placeholders: Default::default(),
         }

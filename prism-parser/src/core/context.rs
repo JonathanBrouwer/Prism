@@ -1,7 +1,9 @@
+use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
+use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 use std::sync::Arc;
 
@@ -20,24 +22,16 @@ impl PR {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone, Debug)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug, Default)]
 pub struct ParserContext {
     pub recovery_disabled: bool,
     pub layout_disabled: bool,
-}
-
-impl Default for ParserContext {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub recovery_points: BTreeMap<Pos, Pos>,
 }
 
 impl ParserContext {
     pub fn new() -> Self {
-        Self {
-            recovery_disabled: false,
-            layout_disabled: false,
-        }
+        Self::default()
     }
 }
 
