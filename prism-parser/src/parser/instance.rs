@@ -170,7 +170,7 @@ macro_rules! run_parser_rule_here {
         let bump = ::bumpalo::OwnedAllocs::default();
         let alloc = $crate::core::allocs::Allocs::new(&bump);
         let mut instance =
-            $crate::parser::parser_instance::ParserInstance::<$error>::new($input, $rules).unwrap();
+            $crate::parser::instance::ParserInstance::<$error>::new($input, $rules).unwrap();
         let $id = instance.run($rule);
     };
 }

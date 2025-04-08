@@ -8,7 +8,7 @@ use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
 use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
-use prism_parser::parser::parser_instance::run_parser_rule;
+use prism_parser::parser::instance::run_parser_rule;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::path::PathBuf;

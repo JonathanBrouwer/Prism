@@ -16,7 +16,7 @@ macro_rules! parse_test {
         #[allow(unused)]
         #[test]
         fn $name() {
-            use prism_parser::parser::parser_instance::run_parser_rule_raw;
+            use prism_parser::parser::instance::run_parser_rule_raw;
             use std::sync::Arc;
             use prism_parser::parse_grammar;
             use prism_parser::grammar::grammar_file::GrammarFile;
