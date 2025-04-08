@@ -119,7 +119,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
                         ParserContext::new(),
                         penv,
                     ))
-                    .map(|(o, ())| o)
+                    .map(|(o, lo)| PV::new_multi(o.parsed, vec![o.tokens, lo.tokens]))
             },
             file,
             penv,

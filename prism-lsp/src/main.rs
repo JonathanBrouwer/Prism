@@ -253,6 +253,7 @@ impl LanguageServer for Backend {
                     } as u32,
                     length: token.span.len() as u32,
                     token_type: match token.token_type {
+                        TokenType::Layout => 0,
                         TokenType::CharClass => 1,
                         TokenType::Slice => 1,
                         TokenType::Variable => 1,

@@ -25,6 +25,7 @@ pub enum TokenType {
     String,
     Number,
     Variable,
+    Layout,
 }
 
 impl FromStr for TokenType {
@@ -39,6 +40,7 @@ impl FromStr for TokenType {
             "string" => TokenType::String,
             "number" => TokenType::Number,
             "variable" => TokenType::Variable,
+            "layout" => TokenType::Layout,
             _ => return Err(()),
         })
     }
@@ -57,6 +59,7 @@ impl Display for TokenType {
                 TokenType::String => "string",
                 TokenType::Number => "number",
                 TokenType::Variable => "variable",
+                TokenType::Layout => "layout",
             }
         )
     }

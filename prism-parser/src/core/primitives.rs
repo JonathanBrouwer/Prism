@@ -1,9 +1,13 @@
+use crate::core::context::PV;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
+use crate::parsable::parsed::ArcExt;
+use crate::parsable::void::Void;
+use std::sync::Arc;
 
 impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_char(&mut self, f: impl Fn(&char) -> bool, pos: Pos) -> PResult<(Span, char), E> {
@@ -15,10 +19,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         }
     }
 
-    pub fn parse_end(&mut self, pos: Pos) -> PResult<(), E> {
+    pub fn parse_end(&mut self, pos: Pos) -> PResult<PV, E> {
         match pos.next(&self.input) {
             (_, Some(_)) => PResult::new_err(E::new(pos), pos),
-            (s, None) => PResult::new_empty((), s),
+            (s, None) => PResult::new_empty(PV::new_multi(Arc::new(Void).to_parsed(), vec![]), s),
         }
     }
 }

@@ -1,10 +1,11 @@
 use crate::core::adaptive::{GrammarState, RuleId};
-use crate::core::context::ParserContext;
+use crate::core::context::{PV, ParserContext};
 use crate::core::input::Input;
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
+use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
@@ -13,15 +14,15 @@ use crate::parser::VarMap;
 use std::sync::Arc;
 
 impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
-    pub fn parse_with_layout<O>(
+    pub fn parse_with_layout(
         &mut self,
         rules: &GrammarState,
         vars: &VarMap,
-        sub: impl Fn(&mut ParserState<Db, E>, Pos, &mut Db) -> PResult<O, E>,
+        sub: impl Fn(&mut ParserState<Db, E>, Pos, &mut Db) -> PResult<PV, E>,
         pos: Pos,
         context: ParserContext,
         penv: &mut Db,
-    ) -> PResult<O, E> {
+    ) -> PResult<PV, E> {
         if context.layout_disabled {
             return sub(self, pos, penv);
         }
@@ -30,11 +31,14 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         };
         let layout = *layout.value_ref::<RuleId>();
 
-        let mut res = PResult::new_empty((), pos);
+        let mut res = PResult::new_empty(Vec::new(), pos);
         loop {
             let new_res = sub(self, res.end_pos(), penv);
             if new_res.is_ok() {
-                return res.merge_seq(new_res).map(|(_, o)| o);
+                return res.merge_seq(new_res).map(|(mut tokens, o)| {
+                    tokens.push(o.tokens);
+                    PV::new_multi(o.parsed, tokens)
+                });
             }
 
             let pos_before_layout = new_res.end_pos();
@@ -56,13 +60,17 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             match new_res {
                 // We have parsed more layout, we can try again
                 POk {
-                    obj: _,
+                    obj: ((mut old, _), _new),
                     start: _,
                     end: new_end_pos,
                     best_err: new_err,
                 } if pos_before_layout < new_res.end_pos() => {
+                    old.push(Arc::new(Tokens::Single(Token {
+                        token_type: TokenType::Layout,
+                        span: pos_before_layout.span_to(new_end_pos),
+                    })));
                     res = POk {
-                        obj: (),
+                        obj: old,
                         start: new_end_pos,
                         end: new_end_pos,
                         best_err: new_err,
@@ -92,7 +100,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         pos: Pos,
         context: ParserContext,
         penv: &mut Db,
-    ) -> PResult<(), E> {
+    ) -> PResult<PV, E> {
         self.parse_with_layout(
             rules,
             vars,
