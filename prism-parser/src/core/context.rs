@@ -20,10 +20,10 @@ impl PR {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct ParserContext {
-    pub(crate) recovery_disabled: bool,
-    pub(crate) layout_disabled: bool,
+    pub recovery_disabled: bool,
+    pub layout_disabled: bool,
 }
 
 impl Default for ParserContext {

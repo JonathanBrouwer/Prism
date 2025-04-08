@@ -27,7 +27,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         rule_args: &VarMap,
         vars: &VarMap,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
         eval_ctxs: &mut HashMap<String, (Parsed, ParsedPlaceholder)>,

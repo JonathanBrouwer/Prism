@@ -20,7 +20,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         blocks: BorrowedArcSlice<Arc<BlockState>>,
         rule_args: &VarMap,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<PV, E> {
@@ -42,7 +42,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         blocks: BorrowedArcSlice<Arc<BlockState>>,
         rule_args: &VarMap,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<PV, E> {
@@ -94,7 +94,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         rule_args: &VarMap,
         es: &[Constructor],
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<PV, E> {
@@ -133,7 +133,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         expr: &RuleExpr,
         vars: &VarMap,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<PV, E> {
@@ -153,9 +153,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                                 expr,
                                 vars,
                                 pos,
-                                ParserContext {
+                                &ParserContext {
                                     layout_disabled: true,
                                     recovery_disabled: true,
+                                    ..context.clone()
                                 },
                                 penv,
                                 eval_ctx,

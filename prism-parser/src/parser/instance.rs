@@ -106,7 +106,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
                     rule,
                     &[],
                     Pos::start_of(file),
-                    ParserContext::new(),
+                    &ParserContext::new(),
                     penv,
                     &Arc::new(Void).to_parsed(),
                 );
@@ -116,7 +116,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
                         &self.grammar_state,
                         &self.rules,
                         end_pos,
-                        ParserContext::new(),
+                        &ParserContext::new(),
                         penv,
                     ))
                     .map(|(o, lo)| PV::new_multi(o.parsed, vec![o.tokens, lo.tokens]))

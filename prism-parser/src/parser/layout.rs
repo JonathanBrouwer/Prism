@@ -20,7 +20,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         vars: &VarMap,
         sub: impl Fn(&mut ParserState<Db, E>, Pos, &mut Db) -> PResult<PV, E>,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
     ) -> PResult<PV, E> {
         if context.layout_disabled {
@@ -49,9 +49,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     layout,
                     &[],
                     pos,
-                    ParserContext {
+                    &ParserContext {
                         layout_disabled: true,
-                        ..context
+                        ..context.clone()
                     },
                     penv,
                     &Arc::new(Void).to_parsed(),
@@ -98,7 +98,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         rules: &GrammarState,
         vars: &VarMap,
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
     ) -> PResult<PV, E> {
         self.parse_with_layout(

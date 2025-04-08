@@ -35,7 +35,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         rule_args: &VarMap,
         grammar_state: GrammarStateId,
         pos_start: Pos,
-        context: ParserContext,
+        context: &ParserContext,
     ) -> PResult<PV, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
@@ -48,7 +48,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             pos: pos_start,
             block: blocks.as_ptr() as usize,
             rule_args: args_hash.finish() as usize,
-            ctx: context,
+            ctx: context.clone(),
             state: grammar_state,
             eval_ctx: 0, //TODO insert eval ctx as part of cache entry
         };

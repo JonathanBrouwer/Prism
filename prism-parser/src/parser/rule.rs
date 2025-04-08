@@ -16,7 +16,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         rule: RuleId,
         args: &[Parsed],
         pos: Pos,
-        context: ParserContext,
+        context: &ParserContext,
         penv: &mut Db,
         eval_ctx: &Parsed,
     ) -> PResult<PV, E> {
