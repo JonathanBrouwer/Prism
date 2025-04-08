@@ -3,6 +3,7 @@ use crate::lang::{CoreIndex, PrismDb};
 use prism_parser::core::input::Input;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::pos::Pos;
+use prism_parser::core::tokens::Tokens;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
@@ -41,11 +42,11 @@ impl PrismDb {
             .get_or_push_file(data.to_string(), test_name.into())
     }
 
-    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> ParsedIndex {
+    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> (ParsedIndex, Arc<Tokens>) {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        let (expr, _, errs) = run_parser_rule::<PrismDb, ParsedIndex, SetError>(
+        let (expr, tokens, errs) = run_parser_rule::<PrismDb, ParsedIndex, SetError>(
             &GRAMMAR.1,
             "expr",
             self.input.clone(),
@@ -53,10 +54,12 @@ impl PrismDb {
             parsables,
             self,
         );
+
         for err in errs.errors {
             self.errors.push(PrismError::ParseError(err));
         }
-        *expr
+
+        (*expr, tokens)
     }
 }
 

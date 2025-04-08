@@ -5,6 +5,7 @@ use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::mem::take;
 use std::ops::DerefMut;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -194,7 +195,7 @@ impl LanguageServer for Backend {
         assert!(change.range.is_none());
         assert!(change.range_length.is_none());
 
-        inner.db.input.update_file(index, change.text);
+        inner.db.update_file(index, change.text);
         inner.document_parses.remove(&index);
 
         inner.process(index, doc.uri, &self.client).await;
@@ -209,7 +210,7 @@ impl LanguageServer for Backend {
 
         let mut inner = self.inner.write().await;
         let doc = inner.documents.remove(&doc.uri).unwrap();
-        inner.db.input.remove(doc.index);
+        inner.db.remove_file(doc.index);
     }
 
     async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
@@ -288,7 +289,17 @@ impl LanguageServer for Backend {
 
 impl BackendInner {
     async fn process(&mut self, index: InputTableIndex, uri: Uri, client: &Client) {
-        let (_, tokens, errs) = self.db.parse_grammar_file(index);
+        let (tokens, errs) = match self.documents[&uri].document_type {
+            DocumentType::Prism => {
+                let file = self.db.process_file(index);
+                let errs = take(&mut self.db.errors);
+                (file.tokens, errs)
+            }
+            DocumentType::PrismGrammar => {
+                let (_, tokens, errs) = self.db.parse_grammar_file(index);
+                (tokens, errs)
+            }
+        };
 
         // Update diagnostics
         let mut diags = Vec::new();

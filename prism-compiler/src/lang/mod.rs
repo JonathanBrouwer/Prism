@@ -3,6 +3,7 @@ use crate::lang::error::PrismError;
 use crate::parser::{GRAMMAR, ParsedIndex, ParsedPrismExpr};
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
+use prism_parser::core::tokens::Tokens;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
@@ -81,7 +82,6 @@ pub struct PrismDb {
     pub parsed_spans: Vec<Span>,
 
     // Checked Values
-    pub checked_roots: HashMap<InputTableIndex, CoreIndex>,
     pub checked_values: Vec<CorePrismExpr>,
     pub checked_origins: Vec<ValueOrigin>,
     checked_types: HashMap<CoreIndex, CoreIndex>,
@@ -99,11 +99,12 @@ enum ProcessedFileTableEntry {
     Processed(ProcessedFile),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct ProcessedFile {
     pub parsed: ParsedIndex,
     pub core: CoreIndex,
     pub typ: CoreIndex,
+    pub tokens: Arc<Tokens>,
 }
 
 impl Default for PrismDb {
@@ -119,7 +120,6 @@ impl PrismDb {
 
             parsed_values: Default::default(),
             parsed_spans: Default::default(),
-            checked_roots: Default::default(),
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),
@@ -137,18 +137,35 @@ impl PrismDb {
                 ProcessedFileTableEntry::Processing => {
                     panic!("Import cycle")
                 }
-                ProcessedFileTableEntry::Processed(p) => return *p,
+                ProcessedFileTableEntry::Processed(p) => return p.clone(),
             },
             Entry::Vacant(v) => v.insert(ProcessedFileTableEntry::Processing),
         };
 
-        let parsed = self.parse_prism_file(file);
+        let (parsed, tokens) = self.parse_prism_file(file);
         let core = self.parsed_to_checked(parsed);
         let typ = self.type_check(core);
-        let processed_file = ProcessedFile { parsed, core, typ };
-        self.files
-            .insert(file, ProcessedFileTableEntry::Processed(processed_file));
+        let processed_file = ProcessedFile {
+            parsed,
+            core,
+            typ,
+            tokens,
+        };
+        self.files.insert(
+            file,
+            ProcessedFileTableEntry::Processed(processed_file.clone()),
+        );
         processed_file
+    }
+
+    pub fn update_file(&mut self, file: InputTableIndex, content: String) {
+        self.files.remove(&file);
+        self.input.update_file(file, content);
+    }
+
+    pub fn remove_file(&mut self, file: InputTableIndex) {
+        self.files.remove(&file);
+        self.input.remove(file);
     }
 
     pub fn store_from_source(&mut self, e: ParsedPrismExpr, span: Span) -> ParsedIndex {
