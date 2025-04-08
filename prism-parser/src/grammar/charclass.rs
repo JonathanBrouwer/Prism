@@ -37,7 +37,7 @@ impl<Db> Parsable<Db> for CharClass {
         }
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         Self {
             neg: false,
             ranges: alloc_extend(iter::empty()),
@@ -56,7 +56,7 @@ impl<Db> Parsable<Db> for CharClassRange {
         CharClassRange(parse_string_char(&args[0]), parse_string_char(&args[1]))
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         Self('\0', '\0')
     }
 }

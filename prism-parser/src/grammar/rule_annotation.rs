@@ -22,7 +22,7 @@ impl<Db> Parsable<Db> for RuleAnnotation {
         }
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         RuleAnnotation::Token(TokenType::Slice)
     }
 }

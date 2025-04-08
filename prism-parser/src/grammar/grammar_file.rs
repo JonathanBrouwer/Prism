@@ -1,4 +1,3 @@
-use std::iter;
 use std::sync::Arc;
 
 use crate::core::allocs::alloc_extend;
@@ -32,7 +31,7 @@ impl<Db> Parsable<Db> for GrammarFile {
         }
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         Self {
             rules: Arc::new([]),
         }

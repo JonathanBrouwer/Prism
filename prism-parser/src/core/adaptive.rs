@@ -10,7 +10,6 @@ use crate::parsable::parsed::ArcExt;
 use crate::parser::VarMap;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::iter;
 use std::sync::Arc;
 
 pub struct GrammarState {

@@ -52,7 +52,11 @@ impl<Db> Parsable<Db> for RuleAction {
         }
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
-        todo!()
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
+        RuleAction::Construct {
+            ns: Input::from_const("[ERROR]"),
+            name: Input::from_const("[ERROR]"),
+            args: Arc::new([]),
+        }
     }
 }

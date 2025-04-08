@@ -156,7 +156,6 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                                 ParserContext {
                                     layout_disabled: true,
                                     recovery_disabled: true,
-                                    ..context
                                 },
                                 penv,
                                 eval_ctx,

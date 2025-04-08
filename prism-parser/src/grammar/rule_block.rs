@@ -33,7 +33,7 @@ impl<Db> Parsable<Db> for RuleBlock {
         }
     }
 
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         Self {
             name: Input::from_const(""),
             adapt: false,

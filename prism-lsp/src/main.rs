@@ -338,7 +338,7 @@ impl BackendInner {
                             ..Diagnostic::default()
                         })
                     }
-                    PrismError::TypeError(e) => {}
+                    PrismError::TypeError(_e) => {}
                 }
             }
         }

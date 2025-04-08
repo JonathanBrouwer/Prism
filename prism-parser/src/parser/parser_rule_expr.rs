@@ -455,10 +455,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 };
                 let rules: Arc<GrammarState> = Arc::new(rules);
 
-                let res = self.parse_expr(
+                self.parse_expr(
                     body, &rules, blocks, rule_args, vars, pos, context, penv, eval_ctx, eval_ctxs,
-                );
-                res
+                )
             }
         }
     }
