@@ -275,6 +275,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "log"
+version = "0.4.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+
+[[package]]
 name = "lsp-types"
 version = "0.97.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -383,6 +389,7 @@ name = "prism-parser"
 version = "0.2.0"
 dependencies = [
  "ariadne",
+ "log",
  "rmp-serde",
  "serde",
 ]

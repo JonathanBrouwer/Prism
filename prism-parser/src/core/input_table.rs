@@ -1,3 +1,4 @@
+use crate::core::pos::Pos;
 use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
@@ -81,6 +82,10 @@ impl InputTable {
         let file = &mut self.inner.write().unwrap().files[idx.0];
         file.source = Source::from(String::new());
         file.path = "[CLOSED]".into();
+    }
+
+    pub fn end_of_file(&self, idx: InputTableIndex) -> Pos {
+        Pos::start_of(idx) + self.get_str(idx).len()
     }
 }
 

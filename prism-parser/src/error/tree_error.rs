@@ -3,6 +3,7 @@ use crate::core::span::Span;
 use crate::error::ParseError;
 use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report, ReportBuilder};
+use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
 
@@ -49,7 +50,7 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone)]
 pub struct TreeError {
-    pub pos: Pos,
+    pub span: Span,
     pub labels: ErrorTree<ErrorLabel>,
 }
 
@@ -67,7 +68,7 @@ impl ParseError for TreeError {
 
     fn new(pos: Pos) -> Self {
         Self {
-            pos,
+            span: Span::new(pos, 0),
             labels: ErrorTree(None, vec![]),
         }
     }
@@ -81,16 +82,27 @@ impl ParseError for TreeError {
     }
 
     fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.pos, other.pos);
+        assert_eq!(self.span.start_pos(), other.span.start_pos());
         self.labels = self.labels.merge(other.labels);
         Self {
-            pos: self.pos,
+            span: Span::new(
+                self.span.start_pos(),
+                max(self.span.len(), other.span.len()),
+            ),
             labels: self.labels,
         }
     }
 
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn set_end(&mut self, end: Pos) {
+        self.span = Span::new_with_end(self.span.start_pos(), end);
+    }
+
     fn report(&self) -> Report<'static, Span> {
-        let mut report: ReportBuilder<Span> = base_report(self.pos.span_to(self.pos));
+        let mut report: ReportBuilder<Span> = base_report(self.span);
 
         //Add labels
         for path in self.labels.into_paths() {

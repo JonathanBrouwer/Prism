@@ -3,12 +3,13 @@ use crate::core::span::Span;
 use crate::error::ParseError;
 use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report};
+use std::cmp::max;
 use std::collections::{BTreeMap, HashSet};
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]
 pub struct SetError {
-    pub pos: Pos,
+    pub span: Span,
     pub labels: HashSet<ErrorLabel>,
     pub explicit: bool,
 }
@@ -16,9 +17,9 @@ pub struct SetError {
 impl ParseError for SetError {
     type L = ErrorLabel;
 
-    fn new(span: Pos) -> Self {
+    fn new(start_pos: Pos) -> Self {
         Self {
-            pos: span,
+            span: Span::new(start_pos, 0),
             labels: HashSet::new(),
             explicit: false,
         }
@@ -40,19 +41,30 @@ impl ParseError for SetError {
     }
 
     fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.pos, other.pos);
+        assert_eq!(self.span.start_pos(), other.span.start_pos());
         for e in other.labels {
             self.labels.insert(e);
         }
         Self {
-            pos: self.pos,
+            span: Span::new(
+                self.span.start_pos(),
+                max(self.span.len(), other.span.len()),
+            ),
             labels: self.labels,
             explicit: self.explicit || other.explicit,
         }
     }
 
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn set_end(&mut self, end: Pos) {
+        self.span = Span::new_with_end(self.span.start_pos(), end);
+    }
+
     fn report(&self) -> Report<'static, Span> {
-        let mut report = base_report(self.pos.span_to(self.pos));
+        let mut report = base_report(self.span);
 
         let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
         for l in self.labels.iter() {

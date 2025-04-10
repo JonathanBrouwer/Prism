@@ -3,6 +3,7 @@ use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::error::PrismError;
 use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
+use prism_parser::error::ParseError;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::mem::take;
@@ -311,8 +312,13 @@ impl BackendInner {
             for err in errs {
                 match err {
                     PrismError::ParseError(e) => {
-                        let (_line, line, character) =
-                            source.get_offset_line(e.pos.idx_in_file()).unwrap();
+                        let (_line, start_line, start_char) = source
+                            .get_offset_line(e.span().start_pos().idx_in_file())
+                            .unwrap();
+
+                        let (_line, end_line, end_char) = source
+                            .get_offset_line(e.span().end_pos().idx_in_file())
+                            .unwrap();
 
                         let message = format!(
                             "Failed to parse, expected one of {}",
@@ -326,12 +332,12 @@ impl BackendInner {
                         diags.push(Diagnostic {
                             range: Range {
                                 start: Position {
-                                    line: line as u32,
-                                    character: character as u32,
+                                    line: start_line as u32,
+                                    character: start_char as u32,
                                 },
                                 end: Position {
-                                    line: line as u32,
-                                    character: character as u32 + 1,
+                                    line: end_line as u32,
+                                    character: end_char as u32,
                                 },
                             },
                             severity: Some(DiagnosticSeverity::ERROR),

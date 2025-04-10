@@ -23,6 +23,12 @@ impl ParseError for EmptyError {
         Self
     }
 
+    fn span(&self) -> Span {
+        unreachable!()
+    }
+
+    fn set_end(&mut self, _: Pos) {}
+
     fn report(&self) -> Report<'static, Span> {
         unreachable!()
     }

@@ -12,6 +12,14 @@ impl Span {
         Span { start, len }
     }
 
+    pub fn new_with_end(start: Pos, end: Pos) -> Self {
+        assert_eq!(start.file(), end.file());
+        Span {
+            start,
+            len: end.idx_in_file() - start.idx_in_file(),
+        }
+    }
+
     pub fn start_pos(self) -> Pos {
         self.start
     }

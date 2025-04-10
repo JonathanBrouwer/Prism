@@ -16,6 +16,8 @@ pub trait ParseError: Sized + Clone {
     fn add_label_explicit(&mut self, label: Self::L);
     fn add_label_implicit(&mut self, label: Self::L);
     fn merge(self, other: Self) -> Self;
+    fn span(&self) -> Span;
+    fn set_end(&mut self, end: Pos);
     fn report(&self) -> Report<'static, Span>;
 }
 
