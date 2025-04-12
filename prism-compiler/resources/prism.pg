@@ -20,7 +20,7 @@ rule expr {
     }
     group fndestruct {
         Expr::FnDestruct(f, a)
-            <- f:#this " " a:#next;
+            <- f:#this layout a:#next;
     }
     group base {
         t <- "(" t:expr ")";
