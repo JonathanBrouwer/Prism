@@ -64,4 +64,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     // pub fn recovery_point(&mut self) -> PResult<PR, E> {
     //
     // }
+
+    // // Recover if possible
+    // if !context.recovery_disabled && let Some(jump_pos) = context.recovery_points.get(&pos) {
+    // pos = *jump_pos;
+    // }
 }
