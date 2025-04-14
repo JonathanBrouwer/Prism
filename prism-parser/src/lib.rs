@@ -1,4 +1,3 @@
-#![feature(substr_range)]
 #![feature(let_chains)]
 #![allow(clippy::too_many_arguments)]
 

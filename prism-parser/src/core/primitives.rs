@@ -19,6 +19,23 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         }
     }
 
+    /// Parses a literal, error is at `start_pos` if it fails
+    pub fn parse_lit(&mut self, lit: &str, start_pos: Pos) -> PResult<(), E> {
+        let mut pos = start_pos;
+        for char in lit.chars() {
+            match pos.next(&self.input) {
+                // Literal still matches
+                (pos_new, Some((_, c))) if c == char => {
+                    pos = pos_new;
+                    continue;
+                }
+                // Literal does not match
+                _ => return PResult::new_err(E::new(start_pos), start_pos),
+            }
+        }
+        PResult::new_ok((), start_pos, pos)
+    }
+
     pub fn parse_end(&mut self, pos: Pos) -> PResult<PV, E> {
         match pos.next(&self.input) {
             (_, Some(_)) => PResult::new_err(E::new(pos), pos),

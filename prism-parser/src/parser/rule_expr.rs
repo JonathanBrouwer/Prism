@@ -137,14 +137,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 .parse_with_layout(
                     rules,
                     vars,
-                    |state, start_pos, _penv| {
-                        let mut res = PResult::new_empty((), start_pos);
-                        for char in literal.as_str().chars() {
-                            let new_res = state.parse_char(|c| *c == char, res.end_pos());
-                            res = res.merge_seq(new_res).map(|_| ());
-                        }
-                        let span = start_pos.span_to(res.end_pos());
-                        let mut res = res.map(|_| {
+                    |state, pos, _penv| {
+                        let mut res = state.parse_lit(literal.as_str(), pos);
+
+                        let span = pos.span_to(res.end_pos());
+                        res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
+
+                        let res = res.map(|_| {
                             let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
 
                             let token_type = if literal
@@ -159,7 +158,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                             PV::new_single(value, token_type, span)
                         });
-                        res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
+
                         res
                     },
                     pos,

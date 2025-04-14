@@ -63,6 +63,8 @@ rule keyword {
     "Type";
     "Grammar";
     "grammar";
+    "let";
+    "adapt";
 }
 
 rule identifier {
