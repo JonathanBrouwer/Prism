@@ -29,12 +29,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     if let Some(last_err) = errors.last_mut()
                         && last_err.span().start_pos() == err_pos
                     {
-                        // Update error
-                        last_err.set_end(err_pos);
-
                         // Prepare for next round
                         let skip = ctx.recovery_points.get_mut(&err_pos).unwrap();
                         let (next_skip, opt) = skip.next(&self.input);
+
+                        // Update error
+                        last_err.set_end(next_skip);
+
                         if opt.is_some() {
                             // There is more input available, retry parsing
                             *skip = next_skip;
@@ -60,5 +61,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         }
     }
 
-    pub fn recovery_point(&mut self) -> PResult<PR, E> {}
+    // pub fn recovery_point(&mut self) -> PResult<PR, E> {
+    //
+    // }
 }
