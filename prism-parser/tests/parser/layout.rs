@@ -6,7 +6,7 @@ syntax: r#"
     rule layout = " ";
 
     rule num {
-        #[disable_layout]
+        #[token("number")]
         #str(['0'-'9']+);
     }
 
@@ -59,7 +59,7 @@ syntax: r#"
     rule layout = " ";
 
     rule num {
-        #[disable_layout]
+        #[token("number")]
         #str(['0'-'9']+);
     }
 
@@ -87,41 +87,6 @@ passing tests:
     "x " => "'x'"
 
 failing tests:
-}
-
-parse_test! {
-name: disable_enable_layout
-syntax: r#"
-    rule layout = " ";
-
-    rule num {
-        #[disable_layout]
-        #str(num_char+);
-    }
-    
-    rule num_char {
-        #str(['0'-'9']);
-        "{" start "}";
-    }
-
-    rule start {
-        #[enable_layout]
-        Neg(e) <- "-" e:start;
-        #[enable_layout]
-        Num(e) <- e:num;
-    }
-    "#
-passing tests:
-    "123" => "Num('123')"
-    "123 " => "Num('123')"
-    "- 8" => "Neg(Num('8'))"
-    "1{- 23}" => "Num('1{- 23}')"
-
-failing tests:
-    "1 2"
-    "1 23"
-    "1 2{23}4"
-    "12 {3}4"
 }
 
 parse_test! {

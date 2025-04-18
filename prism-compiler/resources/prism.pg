@@ -20,7 +20,7 @@ rule expr {
     }
     group fndestruct {
         Expr::FnDestruct(f, a)
-            <- f:#this " " a:#next;
+            <- f:#this layout a:#next;
     }
     group base {
         t <- "(" t:expr ")";
@@ -63,12 +63,12 @@ rule keyword {
     "Type";
     "Grammar";
     "grammar";
+    "let";
+    "adapt";
 }
 
 rule identifier {
-    #[error("Identifier")]
-    #[disable_layout]
-    #[disable_recovery]
+    #[token("variable")]
     n <- #neg(keyword #neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]))
          n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*);
 }

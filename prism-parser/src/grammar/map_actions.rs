@@ -1,4 +1,4 @@
-use crate::core::allocs::Allocs;
+use crate::core::allocs::alloc_extend;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule::Rule;
@@ -6,73 +6,59 @@ use crate::grammar::rule_action::RuleAction;
 use crate::grammar::rule_block::RuleBlock;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;
+use std::sync::Arc;
 
-impl<'arn> GrammarFile<'arn> {
-    pub fn map_actions(
-        &'arn self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> &'arn Self {
-        allocs.alloc(Self {
-            rules: allocs.alloc_extend(self.rules.iter().map(|r| r.map_actions(map, allocs))),
+impl GrammarFile {
+    pub fn map_actions(&self, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(Self {
+            rules: alloc_extend(self.rules.iter().map(|r| r.map_actions(map))),
         })
     }
 }
 
-impl<'arn> Rule<'arn> {
-    pub fn map_actions(
-        self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> Self {
-        Self {
-            blocks: allocs.alloc_extend(self.blocks.iter().map(|r| r.map_actions(map, allocs))),
-            ..self
-        }
+impl Rule {
+    pub fn map_actions(&self, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(Self {
+            blocks: alloc_extend(self.blocks.iter().map(|r| r.map_actions(map))),
+
+            name: self.name.clone(),
+            adapt: self.adapt,
+            args: self.args.clone(),
+            return_type: self.return_type.clone(),
+        })
     }
 }
 
-impl<'arn> RuleBlock<'arn> {
-    pub fn map_actions(
-        self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> Self {
-        Self {
-            constructors: allocs
-                .alloc_extend(self.constructors.iter().map(|r| r.map_actions(map, allocs))),
-            ..self
-        }
+impl RuleBlock {
+    pub fn map_actions(&self, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(Self {
+            constructors: alloc_extend(self.constructors.iter().map(|r| r.map_actions(map))),
+
+            name: self.name.clone(),
+            adapt: self.adapt,
+        })
     }
 }
 
-impl<'arn> AnnotatedRuleExpr<'arn> {
-    pub fn map_actions(
-        self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> Self {
-        Self {
-            expr: self.expr.map_actions(map, allocs),
-            ..self
-        }
+impl AnnotatedRuleExpr {
+    pub fn map_actions(&self, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(Self {
+            expr: self.expr.map_actions(map),
+
+            annotations: self.annotations.clone(),
+        })
     }
 }
 
-impl<'arn> RuleExpr<'arn> {
-    pub fn map_actions(
-        &'arn self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> &'arn Self {
-        allocs.alloc(match self {
-            RuleExpr::Action(e, action) => RuleExpr::Action(
-                e.map_actions(map, allocs),
-                allocs.alloc(action.map_actions(map, allocs)),
-            ),
+impl RuleExpr {
+    pub fn map_actions(self: &Arc<Self>, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(match &**self {
+            RuleExpr::Action(e, action) => {
+                RuleExpr::Action(e.map_actions(map), action.map_actions(map))
+            }
             RuleExpr::RunVar { rule, args } => RuleExpr::RunVar {
-                rule,
-                args: allocs.alloc_extend(args.iter().map(|r| *r.map_actions(map, allocs))),
+                rule: rule.clone(),
+                args: alloc_extend(args.iter().map(|r| r.map_actions(map))),
             },
             RuleExpr::Repeat {
                 expr,
@@ -80,51 +66,46 @@ impl<'arn> RuleExpr<'arn> {
                 max,
                 delim,
             } => RuleExpr::Repeat {
-                expr: expr.map_actions(map, allocs),
+                expr: expr.map_actions(map),
                 min: *min,
                 max: *max,
-                delim: delim.map_actions(map, allocs),
+                delim: delim.map_actions(map),
             },
-            RuleExpr::Sequence(es) => RuleExpr::Sequence(
-                allocs.alloc_extend(es.iter().map(|r| *r.map_actions(map, allocs))),
-            ),
-            RuleExpr::Choice(es) => RuleExpr::Choice(
-                allocs.alloc_extend(es.iter().map(|r| *r.map_actions(map, allocs))),
-            ),
-            RuleExpr::NameBind(name, expr) => {
-                RuleExpr::NameBind(name, expr.map_actions(map, allocs))
+            RuleExpr::Sequence(es) => {
+                RuleExpr::Sequence(alloc_extend(es.iter().map(|r| r.map_actions(map))))
             }
-            RuleExpr::SliceInput(expr) => RuleExpr::SliceInput(expr.map_actions(map, allocs)),
-            RuleExpr::PosLookahead(expr) => RuleExpr::PosLookahead(expr.map_actions(map, allocs)),
-            RuleExpr::NegLookahead(expr) => RuleExpr::NegLookahead(expr.map_actions(map, allocs)),
+            RuleExpr::Choice(es) => {
+                RuleExpr::Choice(alloc_extend(es.iter().map(|r| r.map_actions(map))))
+            }
+            RuleExpr::NameBind(name, expr) => {
+                RuleExpr::NameBind(name.clone(), expr.map_actions(map))
+            }
+            RuleExpr::SliceInput(expr) => RuleExpr::SliceInput(expr.map_actions(map)),
+            RuleExpr::PosLookahead(expr) => RuleExpr::PosLookahead(expr.map_actions(map)),
+            RuleExpr::NegLookahead(expr) => RuleExpr::NegLookahead(expr.map_actions(map)),
             RuleExpr::AtAdapt { ns, name, expr } => RuleExpr::AtAdapt {
-                ns,
-                name,
-                expr: expr.map_actions(map, allocs),
+                ns: ns.clone(),
+                name: name.clone(),
+                expr: expr.map_actions(map),
             },
-            RuleExpr::CharClass(_) | RuleExpr::Literal(_) | RuleExpr::Guid => return self,
+            RuleExpr::CharClass(_) | RuleExpr::Literal(_) => return self.clone(),
         })
     }
 }
 
-impl<'arn> RuleAction<'arn> {
-    pub fn map_actions(
-        self,
-        map: &impl Fn(Parsed<'arn>) -> Parsed<'arn>,
-        allocs: Allocs<'arn>,
-    ) -> Self {
-        match self {
-            RuleAction::Name(n) => RuleAction::Name(n),
-            RuleAction::InputLiteral(input) => RuleAction::InputLiteral(input),
+impl RuleAction {
+    pub fn map_actions(self: &Arc<Self>, map: &impl Fn(&Parsed) -> Parsed) -> Arc<Self> {
+        Arc::new(match &**self {
+            RuleAction::Name(..) | &RuleAction::InputLiteral(..) => return self.clone(),
             RuleAction::Construct { ns, name, args } => RuleAction::Construct {
-                ns,
-                name,
-                args: allocs.alloc_extend(args.iter().map(|r| r.map_actions(map, allocs))),
+                ns: ns.clone(),
+                name: name.clone(),
+                args: alloc_extend(args.iter().map(|r| r.map_actions(map))),
             },
             RuleAction::Value { ns, value } => RuleAction::Value {
-                ns,
+                ns: ns.clone(),
                 value: map(value),
             },
-        }
+        })
     }
 }

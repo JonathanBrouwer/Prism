@@ -1,8 +1,7 @@
 use crate::core::input_table::InputTable;
 use crate::core::pos::Pos;
-use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Span {
     start: Pos,
     len: usize,
@@ -11,6 +10,14 @@ pub struct Span {
 impl Span {
     pub fn new(start: Pos, len: usize) -> Self {
         Span { start, len }
+    }
+
+    pub fn new_with_end(start: Pos, end: Pos) -> Self {
+        assert_eq!(start.file(), end.file());
+        Span {
+            start,
+            len: end.idx_in_file() - start.idx_in_file(),
+        }
     }
 
     pub fn start_pos(self) -> Pos {
@@ -32,10 +39,17 @@ impl Span {
     pub fn end_pos(self) -> Pos {
         self.start + self.len
     }
+
+    pub fn test() -> Self {
+        Self {
+            start: Pos::test(),
+            len: 0,
+        }
+    }
 }
 
-impl<'arn> InputTable<'arn> {
-    pub fn slice(&self, span: Span) -> &'arn str {
+impl InputTable {
+    pub fn slice(&self, span: Span) -> &str {
         let start = span.start.idx_in_file();
         &self.get_str(span.start.file())[start..start + span.len]
     }

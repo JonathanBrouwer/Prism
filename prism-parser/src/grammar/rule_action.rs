@@ -1,62 +1,62 @@
-use crate::core::allocs::Allocs;
-use crate::core::input_table::InputTable;
+use std::sync::Arc;
+
+use crate::core::allocs::alloc_extend;
+use crate::core::input::Input;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::{parse_identifier, parse_string};
-use crate::grammar::serde_leak::*;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
 use crate::parser::parsed_list::ParsedList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum RuleAction<'arn> {
-    Name(&'arn str),
-    InputLiteral(EscapedString<'arn>),
+#[derive(Serialize, Deserialize, Debug)]
+pub enum RuleAction {
+    Name(Input),
+    InputLiteral(Input),
     Construct {
-        ns: &'arn str,
-        name: &'arn str,
-        #[serde(with = "leak_slice")]
-        args: &'arn [Self],
+        ns: Input,
+        name: Input,
+        args: Arc<[Arc<Self>]>,
     },
     #[serde(skip)]
     Value {
-        ns: &'arn str,
-        value: Parsed<'arn>,
+        ns: Input,
+        value: Parsed,
     },
 }
 
-impl ParseResult for RuleAction<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for RuleAction<'arn> {
+impl<Db> Parsable<Db> for RuleAction {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: &'arn str,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
             "Construct" => RuleAction::Construct {
-                ns: parse_identifier(args[0], src),
-                name: parse_identifier(args[1], src),
-                args: allocs.alloc_extend(
+                ns: Input::from_parsed(&args[0]),
+                name: Input::from_parsed(&args[1]),
+                args: alloc_extend(
                     args[2]
-                        .into_value::<ParsedList>()
-                        .into_iter()
+                        .value_ref::<ParsedList>()
+                        .iter()
                         .map(|((), v)| v)
-                        .map(|sub| *sub.into_value::<RuleAction<'arn>>()),
+                        .map(|sub| sub.value_cloned::<RuleAction>()),
                 ),
             },
-            "InputLiteral" => RuleAction::InputLiteral(parse_string(args[0], src)),
-            "Name" => RuleAction::Name(parse_identifier(args[0], src)),
+            "InputLiteral" => {
+                RuleAction::InputLiteral(args[0].value_ref::<Input>().parse_escaped_string())
+            }
+            "Name" => RuleAction::Name(Input::from_parsed(&args[0])),
             "Value" => RuleAction::Value {
-                ns: parse_identifier(args[0], src),
-                value: args[1],
+                ns: Input::from_parsed(&args[0]),
+                value: args[1].clone(),
             },
             _ => unreachable!(),
+        }
+    }
+
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
+        RuleAction::Construct {
+            ns: Input::from_const("[ERROR]"),
+            name: Input::from_const("[ERROR]"),
+            args: Arc::new([]),
         }
     }
 }

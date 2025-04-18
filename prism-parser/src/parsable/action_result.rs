@@ -1,26 +1,33 @@
-use crate::core::allocs::Allocs;
-use crate::core::input_table::InputTable;
+use crate::core::allocs::alloc_extend;
+use crate::core::input::Input;
 use crate::core::span::Span;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
+use std::sync::Arc;
 
-#[derive(Copy, Clone)]
-pub enum ActionResult<'arn> {
-    Construct(Span, &'arn str, &'arn [Parsed<'arn>]),
+#[derive(Clone)]
+pub struct ActionResult {
+    pub span: Span,
+    pub constructor: Input,
+    pub args: Arc<[Parsed]>,
 }
 
-impl ParseResult for ActionResult<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for ActionResult<'arn> {
+impl<Db> Parsable<Db> for ActionResult {
     type EvalCtx = ();
 
-    fn from_construct(
-        span: Span,
-        constructor: &'arn str,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
-        _env: &mut Env,
-    ) -> Self {
-        Self::Construct(span, constructor, allocs.alloc_extend(args.iter().copied()))
+    fn from_construct(span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        Self {
+            span,
+            constructor: constructor.clone(),
+            args: alloc_extend(args.iter().cloned()),
+        }
+    }
+
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
+        Self {
+            span: Span::test(),
+            constructor: Input::from_const("[ERROR]"),
+            args: Arc::new([]),
+        }
     }
 }

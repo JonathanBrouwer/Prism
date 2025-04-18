@@ -9,9 +9,8 @@ license.workspace = true
 [dependencies]
 serde.workspace = true
 ariadne.workspace = true
-bumpalo.workspace = true
-bumpalo_try.workspace = true
 rmp-serde.workspace = true
+log = "0.4.27"
 
 [lints.clippy]
 used_underscore_binding = "deny"

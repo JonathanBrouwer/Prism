@@ -18,3 +18,8 @@ TODO:
 * Add `rule.group` syntax 
 * Swap syntax around actions
 * Switch from toxix values to max depth?
+
+consistent name for input table
+ErrorLabel optimize
+
+blocks: &Arc<[Arc<BlockState>]>, is cloned

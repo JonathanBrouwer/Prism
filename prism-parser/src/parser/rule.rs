@@ -1,5 +1,6 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
-use crate::core::context::ParserContext;
+use crate::core::arc_ref::BorrowedArcSlice;
+use crate::core::context::{PV, ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
@@ -8,18 +9,18 @@ use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_rule(
         &mut self,
-        rules: &'arn GrammarState<'arn>,
+        rules: &GrammarState,
         rule: RuleId,
-        args: &[Parsed<'arn>],
+        args: &[Parsed],
         pos: Pos,
-        context: ParserContext,
-        penv: &mut Env,
-        eval_ctx: Parsed<'arn>,
-    ) -> PResult<Parsed<'arn>, E> {
-        let rule_state: &'arn RuleState<'arn> = rules
+        context: &ParserContext,
+        penv: &mut Db,
+        eval_ctx: &Parsed,
+    ) -> PResult<PV, E> {
+        let rule_state: &RuleState = rules
             .get(rule)
             .unwrap_or_else(|| panic!("Rule not found: {rule}"));
 
@@ -27,7 +28,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
             rule_state.args.len(),
             args.len(),
             "Invalid arguments to rule {}, expected {}, got {}",
-            rule_state.name,
+            rule_state.name.as_str(),
             rule_state.args.len(),
             args.len()
         );
@@ -35,24 +36,18 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
             rule_state
                 .args
                 .iter()
-                .map(|(_arg_type, arg_name)| *arg_name)
+                .map(|(_arg_type, arg_name)| arg_name.clone())
                 .zip(args.iter().cloned()),
-            self.alloc,
         );
 
-        let mut res = self.parse_rule_block(
+        self.parse_rule_block(
             rules,
-            rule_state.blocks,
-            rule_args,
+            BorrowedArcSlice::new(&rule_state.blocks),
+            &rule_args,
             pos,
             context,
             penv,
             eval_ctx,
-        );
-        res.add_label_implicit(ErrorLabel::Debug(
-            pos.span_to(res.end_pos()),
-            rule_state.name,
-        ));
-        res.map(|pr| pr)
+        )
     }
 }

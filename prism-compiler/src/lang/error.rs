@@ -1,6 +1,6 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
-use crate::lang::{PrismEnv, ValueOrigin};
+use crate::lang::{PrismDb, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind};
 use prism_parser::core::span::Span;
 use prism_parser::error::ParseError;
@@ -9,22 +9,22 @@ use std::mem;
 
 const SECONDARY_COLOR: Color = Color::Rgb(0xA0, 0xA0, 0xA0);
 
-pub enum PrismError<'arn> {
-    ParseError(SetError<'arn>),
-    TypeError(TypeError<'arn>),
+pub enum PrismError {
+    ParseError(SetError),
+    TypeError(TypeError),
 }
 
-impl<'arn> PrismError<'arn> {
-    pub fn eprint(&self, env: &mut PrismEnv<'arn>) {
+impl PrismError {
+    pub fn eprint(&self, env: &mut PrismDb) {
         let report = match self {
-            PrismError::ParseError(e) => e.report(false),
+            PrismError::ParseError(e) => e.report(),
             PrismError::TypeError(e) => env.report(e).unwrap(),
         };
         report.eprint(&*env.input.inner()).unwrap();
     }
 }
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismDb {
     pub fn eprint_errors(&mut self) {
         let errors = mem::take(&mut self.errors);
         for error in errors {
@@ -33,20 +33,20 @@ impl<'arn> PrismEnv<'arn> {
     }
 
     pub fn assert_no_errors(&mut self) {
-        if self.errors.len() > 0 {
+        if !self.errors.is_empty() {
             self.eprint_errors();
             panic!("Errors encounterd, see above");
         }
     }
 }
 
-pub enum TypeError<'arn> {
+pub enum TypeError {
     ExpectType(CoreIndex),
     ExpectFn(CoreIndex),
     ExpectFnArg {
-        function_type: (CoreIndex, DbEnv<'arn>),
-        function_arg_type: (CoreIndex, DbEnv<'arn>),
-        arg_type: (CoreIndex, DbEnv<'arn>),
+        function_type: (CoreIndex, DbEnv),
+        function_arg_type: (CoreIndex, DbEnv),
+        arg_type: (CoreIndex, DbEnv),
     },
     ExpectTypeAssert {
         expr: CoreIndex,
@@ -62,8 +62,8 @@ pub enum TypeError<'arn> {
     UnknownName(Span),
 }
 
-impl<'arn> PrismEnv<'arn> {
-    pub fn report(&mut self, error: &TypeError<'arn>) -> Option<Report<'static, Span>> {
+impl PrismDb {
+    pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
         Some(match error {
             TypeError::ExpectType(i) => {
                 let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
@@ -139,14 +139,14 @@ impl<'arn> PrismEnv<'arn> {
                 let span = self.source_span(arg_type.0);
                 let label_arg = Label::new(span).with_message(format!(
                     "This argument has type: {}",
-                    self.index_to_br_string(arg_type.0, arg_type.1)
+                    self.index_to_br_string(arg_type.0, &arg_type.1)
                 ));
 
                 let span = self.source_span(function_type.0);
                 let label_fn = Label::new(span)
                     .with_message(format!(
                         "This function takes arguments of type: {}",
-                        self.index_to_br_string(function_arg_type.0, function_arg_type.1)
+                        self.index_to_br_string(function_arg_type.0, &function_arg_type.1)
                     ))
                     .with_order(1)
                     .with_color(SECONDARY_COLOR);

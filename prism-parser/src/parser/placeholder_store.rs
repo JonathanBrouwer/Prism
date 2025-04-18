@@ -1,5 +1,4 @@
-use crate::core::allocs::Allocs;
-use crate::core::input_table::InputTable;
+use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
@@ -7,24 +6,24 @@ use crate::parsable::parsed::Parsed;
 #[derive(Copy, Clone, Debug)]
 pub struct ParsedPlaceholder(usize);
 
-struct StoreEntry<'arn, Env> {
-    value: Option<Parsed<'arn>>,
+struct StoreEntry<Db> {
+    value: Option<Parsed>,
     parent: Option<ParsedPlaceholder>,
-    construct_info: Option<StoreEntryConstructInfo<'arn, Env>>,
+    construct_info: Option<StoreEntryConstructInfo<Db>>,
 }
 
-struct StoreEntryConstructInfo<'arn, Env> {
+struct StoreEntryConstructInfo<Db> {
     children: Vec<ParsedPlaceholder>,
     children_left: usize,
-    constructor: &'arn str,
-    parsable_dyn: ParsableDyn<'arn, Env>,
+    constructor: Input,
+    parsable_dyn: ParsableDyn<Db>,
 }
 
-pub struct PlaceholderStore<'arn, Env> {
-    store: Vec<StoreEntry<'arn, Env>>,
+pub struct PlaceholderStore<Db> {
+    store: Vec<StoreEntry<Db>>,
 }
 
-impl<'arn, Env> PlaceholderStore<'arn, Env> {
+impl<Db> PlaceholderStore<Db> {
     pub fn push_empty(&mut self) -> ParsedPlaceholder {
         let len = self.store.len();
         self.store.push(StoreEntry {
@@ -35,12 +34,17 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         ParsedPlaceholder(len)
     }
 
+    pub fn get(&self, index: ParsedPlaceholder) -> Option<&Parsed> {
+        self.store[index.0].value.as_ref()
+    }
+
     pub fn place_construct_info(
         &mut self,
         cur: ParsedPlaceholder,
-        constructor: &'arn str,
-        parsable_dyn: ParsableDyn<'arn, Env>,
+        constructor: Input,
+        parsable_dyn: ParsableDyn<Db>,
         children: Vec<ParsedPlaceholder>,
+        env: &mut Db,
     ) {
         // Store info in children
         for child in &children {
@@ -56,21 +60,11 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
             constructor,
             parsable_dyn,
         });
+
+        self.bubble_up(cur, env);
     }
 
-    pub fn get(&self, index: ParsedPlaceholder) -> Option<Parsed<'arn>> {
-        self.store[index.0].value
-    }
-
-    pub fn place_into_empty(
-        &mut self,
-        cur: ParsedPlaceholder,
-        value: Parsed<'arn>,
-        span: Span,
-        allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
-        env: &mut Env,
-    ) {
+    pub fn place_into_empty(&mut self, cur: ParsedPlaceholder, value: Parsed, env: &mut Db) {
         // Store value
         let cur = &mut self.store[cur.0];
         assert!(cur.value.is_none());
@@ -79,11 +73,17 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         // Rest of this function is to update the parent if needed
         let Some(parent_idx) = cur.parent else { return };
 
+        let parent = &mut self.store[parent_idx.0].construct_info.as_mut().unwrap();
+        parent.children_left -= 1;
+
+        self.bubble_up(parent_idx, env);
+    }
+
+    fn bubble_up(&mut self, parent_idx: ParsedPlaceholder, env: &mut Db) {
         // Resolve parent
         let parent = &mut self.store[parent_idx.0].construct_info.as_mut().unwrap();
 
         // Update children left, break if there are
-        parent.children_left -= 1;
         if parent.children_left != 0 {
             return;
         }
@@ -93,17 +93,18 @@ impl<'arn, Env> PlaceholderStore<'arn, Env> {
         let args = parent
             .children
             .iter()
-            .map(|c| self.store[c.0].value.unwrap())
+            .map(|c| self.store[c.0].value.as_ref().unwrap().clone())
             .collect::<Vec<_>>();
-        let value =
-            (parent.parsable_dyn.from_construct)(span, parent.constructor, &args, allocs, src, env);
+
+        let span = Span::test();
+        let value = (parent.parsable_dyn.from_construct)(span, &parent.constructor, &args, env);
 
         // Place value, which will recurse if needed
-        self.place_into_empty(parent_idx, value, span, allocs, src, env);
+        self.place_into_empty(parent_idx, value, env);
     }
 }
 
-impl<Env> Default for PlaceholderStore<'_, Env> {
+impl<Db> Default for PlaceholderStore<Db> {
     fn default() -> Self {
         Self { store: Vec::new() }
     }

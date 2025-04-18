@@ -10,14 +10,14 @@ mod lookahead;
 mod minor;
 mod parametric;
 mod parser_tests;
+mod repeat;
 macro_rules! parse_test {
     (name: $name:ident syntax: $syntax:literal passing tests: $($input_pass:literal => $expected:literal)* failing tests: $($input_fail:literal $(=> $errors:literal)?)*) => {
-        #[allow(unused_imports)]
-        #[allow(unused_variables)]
+        #[allow(unused)]
         #[test]
         fn $name() {
+            use prism_parser::parser::instance::run_parser_rule_raw;
             use std::sync::Arc;
-            use prism_parser::parser::parser_instance::run_parser_rule_raw;
             use prism_parser::parse_grammar;
             use prism_parser::grammar::grammar_file::GrammarFile;
             use prism_parser::grammar;
@@ -30,18 +30,14 @@ macro_rules! parse_test {
             use std::collections::HashMap;
             use prism_parser::error::set_error::SetError;
             use prism_parser::grammar::rule_action::RuleAction;
-            use prism_parser::error::aggregate_error::ParseResultExt;
-            use bumpalo::Bump;
-            use prism_parser::core::allocs::Allocs;
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;
             use prism_parser::core::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
-            let bump = Bump::new();
-            let alloc = Allocs::new(&bump);
-            let grammar: &GrammarFile = parse_grammar::<SetError>(syntax, alloc).unwrap_or_eprint();
+            let (input_table, grammar, _, errs) = parse_grammar::<SetError>(syntax);
+            errs.unwrap_or_eprint(&input_table);
 
             let mut parsables = HashMap::new();
             parsables.insert(
@@ -49,45 +45,46 @@ macro_rules! parse_test {
                 ParsableDyn::new::<ActionResult>(),
             );
 
+            let mut counter = 0;
             $({
             let input: &'static str = $input_pass;
-            let input_table = Arc::new(InputTable::default());
-            let file = input_table.get_or_push_file(input, "test_file".into());
-            println!("== Parsing (should be ok): {}", input);
+            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_ok{counter}").into());
+            println!("== Parsing {counter} (should be ok): {}", input);
+            counter += 1;
 
 
-            let got = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()).unwrap_or_eprint();
-            let got = got.to_debug_string(&input_table);
+            let (got, errs) = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ());
+            errs.unwrap_or_eprint(&input_table);
+            let got = got.parsed;
+            let got = format!("{got:?}");
             assert_eq!($expected, got);
             })*
 
+            let mut counter = 0;
             $({
             let input: &'static str = $input_fail;
-            let input_table = Arc::new(InputTable::default());
-            let file = input_table.get_or_push_file(input, "test_file".into());
-            println!("== Parsing (should be fail): {}", input);
+            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_err{counter}").into());
+            println!("== Parsing {counter} (should be fail): {}", input);
+            counter += 1;
 
-            match run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, alloc, parsables.clone(), &mut ()) {
-                Ok(got) => {
-                    let got = got.to_debug_string(&input_table);
-                    println!("Got: {:?}", got);
-                    panic!();
-                }
-                Err(es) => {
-                    $(
-                    let got = es.errors.iter()
-                        .map(|e| format!("{}..{}", e.pos.start, e.pos.end))
-                        .collect::<Vec<_>>()
-                        .join(" ");
-                    assert_eq!(got, $errors);
-                    )?
-                }
+            let (got, errs) = run_parser_rule_raw::<(), SetError>(&grammar, "start", input_table.clone(), file, parsables.clone(), &mut ());
+            if errs.errors.len() > 0 {
+                $(
+                let got = es.errors.iter()
+                    .map(|e| format!("{}..{}", e.pos.start, e.pos.end))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                assert_eq!(got, $errors);
+                )?
+            } else {
+                let got = format!("{:?}", got.parsed);
+                println!("Got: {:?}", got);
+                panic!();
             }
             })*
         }
     }
 }
-mod repeat;
 
 mod span_merging;
 

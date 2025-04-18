@@ -1,37 +1,42 @@
+use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::pos::Pos;
 use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::grammar::rule_action::RuleAction;
-use crate::parsable::ParseResult;
-use crate::parsable::parsed::Parsed;
+use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::placeholder_store::ParsedPlaceholder;
 use std::collections::HashMap;
 use std::iter;
+use std::sync::Arc;
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn pre_apply_action(
         &mut self,
-        rule: &RuleAction<'arn>,
-        penv: &mut Env,
-        pos: Pos,
+        rule: &RuleAction,
+        penv: &mut Db,
 
         placeholder: ParsedPlaceholder,
-        eval_ctx: Parsed<'arn>,
-        eval_ctxs: &mut HashMap<&'arn str, (Parsed<'arn>, ParsedPlaceholder)>,
+        eval_ctx: &Parsed,
+        eval_ctxs: &mut HashMap<String, (Parsed, ParsedPlaceholder)>,
     ) {
         match rule {
             RuleAction::Name(n) => {
+                let n = n.as_str();
                 if eval_ctxs.contains_key(n) {
+                    // If ctx is void, ignore
+                    if eval_ctx.try_value_ref::<Void>().is_some() {
+                        return;
+                    }
+
                     // Ctx is ambiguous
+                    panic!("Context is important and ambiguous");
                     //TODO if both ctxs are identical, we can continue
-                    eval_ctxs.insert(n, (Void.to_parsed(), placeholder));
                 } else {
-                    eval_ctxs.insert(n, (eval_ctx, placeholder));
+                    eval_ctxs.insert(n.to_string(), (eval_ctx.clone(), placeholder));
                 }
             }
             RuleAction::Construct {
@@ -39,6 +44,8 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                 name: constructor,
                 args,
             } => {
+                let namespace = namespace.as_str();
+
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());
                 for _arg in args.iter() {
@@ -52,20 +59,15 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
                 self.placeholders.place_construct_info(
                     placeholder,
-                    constructor,
+                    constructor.clone(),
                     *ns,
                     placeholders.clone(),
+                    penv,
                 );
 
                 // Create envs for args
-                let arg_envs = (ns.create_eval_ctx)(
-                    constructor,
-                    eval_ctx,
-                    &placeholders,
-                    self.alloc,
-                    &self.input,
-                    penv,
-                );
+                let arg_envs =
+                    (ns.create_eval_ctx)(constructor, eval_ctx, &placeholders, &self.input, penv);
 
                 // Recurse on args
                 for ((arg, env), placeholder) in args
@@ -73,24 +75,18 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     .zip(
                         arg_envs
                             .iter()
-                            .copied()
-                            .chain(iter::repeat(Void.to_parsed())),
+                            .cloned()
+                            .chain(iter::repeat(Arc::new(Void).to_parsed())),
                     )
                     .zip(&placeholders)
                 {
-                    self.pre_apply_action(arg, penv, pos, *placeholder, env, eval_ctxs);
+                    self.pre_apply_action(arg, penv, *placeholder, &env, eval_ctxs);
                 }
             }
             RuleAction::InputLiteral(lit) => {
-                let parsed = self.alloc.alloc(Input::Literal(*lit)).to_parsed();
-                self.placeholders.place_into_empty(
-                    placeholder,
-                    parsed,
-                    pos.span_to(pos),
-                    self.alloc,
-                    &self.input,
-                    penv,
-                );
+                let parsed = Arc::new(lit.clone()).to_parsed();
+                self.placeholders
+                    .place_into_empty(placeholder, parsed, penv);
             }
             RuleAction::Value { .. } => {
                 //TODO
@@ -100,41 +96,42 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
 
     pub fn apply_action(
         &self,
-        rule: &RuleAction<'arn>,
+        rule: &RuleAction,
         span: Span,
-        vars: VarMap<'arn>,
-        penv: &mut Env,
-    ) -> Parsed<'arn> {
+        vars: &VarMap,
+        penv: &mut Db,
+    ) -> Parsed {
         match rule {
             RuleAction::Name(name) => {
                 if let Some(ar) = vars.get(name) {
-                    ar
+                    ar.clone()
                 } else {
-                    panic!("Name '{name}' not in context")
+                    panic!("Name '{}' not in context", name.as_str())
                 }
             }
-            RuleAction::InputLiteral(lit) => self.alloc.alloc(Input::Literal(*lit)).to_parsed(),
+            RuleAction::InputLiteral(lit) => Arc::new(lit.clone()).to_parsed(),
             RuleAction::Construct { ns, name, args } => {
+                let ns = ns.as_str();
+
                 let ns = self
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let args_vals = self
-                    .alloc
-                    .alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
-                (ns.from_construct)(span, name, args_vals, self.alloc, &self.input, penv)
+                let args_vals =
+                    alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
+                (ns.from_construct)(span, name, &args_vals, penv)
             }
             RuleAction::Value { ns, value } => {
+                let ns = ns.as_str();
+
                 let ns = self
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 (ns.from_construct)(
                     span,
-                    "EnvCapture",
-                    &[*value, self.alloc.alloc(vars).to_parsed()],
-                    self.alloc,
-                    &self.input,
+                    &Input::from_const("EnvCapture"),
+                    &[value.clone(), Arc::new(vars.clone()).to_parsed()],
                     penv,
                 )
             }

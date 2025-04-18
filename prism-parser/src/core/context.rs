@@ -1,16 +1,20 @@
+use crate::core::pos::Pos;
+use crate::core::span::Span;
+use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
-use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
+use std::collections::{BTreeMap, HashMap};
+use std::hash::Hash;
+use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct PR<'arn> {
-    pub free: VarMap<'arn>,
-    pub rtrn: Parsed<'arn>,
+pub struct PR {
+    pub free: VarMap,
+    pub rtrn: PV,
 }
 
-impl<'arn> PR<'arn> {
-    pub fn with_rtrn(rtrn: Parsed<'arn>) -> Self {
+impl PR {
+    pub fn with_rtrn(rtrn: PV) -> Self {
         Self {
             free: VarMap::default(),
             rtrn,
@@ -18,52 +22,44 @@ impl<'arn> PR<'arn> {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug, Default)]
 pub struct ParserContext {
-    pub(crate) recovery_disabled: bool,
-    pub(crate) layout_disabled: bool,
-}
-
-impl Default for ParserContext {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub recovery_disabled: bool,
+    pub layout_disabled: bool,
+    pub recovery_points: BTreeMap<Pos, Pos>,
 }
 
 impl ParserContext {
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+#[derive(Clone)]
+pub struct PV {
+    pub parsed: Parsed,
+    pub tokens: Arc<Tokens>,
+}
+
+impl PV {
+    pub fn new_single(rtrn: Parsed, token_type: TokenType, span: Span) -> Self {
         Self {
-            recovery_disabled: false,
-            layout_disabled: false,
+            parsed: rtrn,
+            tokens: Arc::new(Tokens::Single(Token { token_type, span })),
         }
     }
-}
 
-#[derive(Clone, Copy)]
-pub struct Ignore<T>(pub T);
-
-impl<T> Hash for Ignore<T> {
-    fn hash<H: Hasher>(&self, _: &mut H) {}
-}
-
-impl<T> PartialEq for Ignore<T> {
-    fn eq(&self, _: &Self) -> bool {
-        true
+    pub fn new_multi(rtrn: Parsed, tokens: Vec<Arc<Tokens>>) -> Self {
+        Self {
+            parsed: rtrn,
+            tokens: Arc::new(Tokens::Multi(tokens)),
+        }
     }
-}
 
-impl<T> Eq for Ignore<T> {}
-
-impl<T> Deref for Ignore<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T> DerefMut for Ignore<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+    pub fn new_from(rtrn: Parsed, tokens: Arc<Tokens>) -> Self {
+        Self {
+            parsed: rtrn,
+            tokens,
+        }
     }
 }

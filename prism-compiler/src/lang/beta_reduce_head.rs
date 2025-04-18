@@ -1,18 +1,19 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CorePrismExpr, PrismEnv};
+use crate::lang::{CorePrismExpr, PrismDb};
 
-impl<'arn> PrismEnv<'arn> {
+impl PrismDb {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CoreIndex,
-        mut start_env: DbEnv<'arn>,
-    ) -> (CoreIndex, DbEnv<'arn>) {
+        start_env: &DbEnv,
+    ) -> (CoreIndex, DbEnv) {
         let mut args: Vec<(CoreIndex, DbEnv)> = Vec::new();
 
         let mut e: CoreIndex = start_expr;
-        let mut s: DbEnv = start_env;
+        let mut s: DbEnv = start_env.clone();
+        let mut start_env = start_env.clone();
 
         loop {
             match self.checked_values[*e] {
@@ -26,14 +27,15 @@ impl<'arn> PrismEnv<'arn> {
                 }
                 CorePrismExpr::Let(v, b) => {
                     e = b;
-                    s = s.cons(RSubst(v, s), self.allocs)
+                    let s_clone = s.clone();
+                    s = s.cons(RSubst(v, s_clone))
                 }
                 CorePrismExpr::DeBruijnIndex(i) => match s[i] {
                     CType(_, _) | RType(_) => {
                         return if args.is_empty() {
                             (e, s)
                         } else {
-                            (start_expr, start_env)
+                            (start_expr, start_env.clone())
                         };
                     }
                     CSubst(v, _) => {
@@ -42,25 +44,25 @@ impl<'arn> PrismEnv<'arn> {
                     }
                     RSubst(v, ref vs) => {
                         e = v;
-                        s = *vs;
+                        s = vs.clone();
                     }
                 },
                 CorePrismExpr::FnConstruct(b) => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;
-                        s = s.cons(RSubst(arg, arg_env), self.allocs);
+                        s = s.cons(RSubst(arg, arg_env));
                     }
                 },
                 CorePrismExpr::FnDestruct(f, a) => {
                     // If we're in a state where the stack is empty, we may want to revert to this state later, so save it.
                     if args.is_empty() {
                         start_expr = e;
-                        start_env = s;
+                        start_env = s.clone();
                     }
                     // Push new argument to stack
                     e = f;
-                    args.push((a, s));
+                    args.push((a, s.clone()));
                 }
                 CorePrismExpr::Free => {
                     return if args.is_empty() {

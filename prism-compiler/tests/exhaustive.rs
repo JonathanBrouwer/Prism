@@ -13,7 +13,7 @@
 //     continue_when_fail: bool,
 //     mut f: impl FnMut(&mut PrismEnv, CoreIndex) -> bool,
 // ) {
-//     let bump = Bump::new();
+//     let bump = OwnedAllocs::default();
 //     let mut env = PrismEnv::new(Allocs::new(&bump));
 //     let root = env.store_test(CorePrismExpr::Free);
 //     let mut env_size = vec![0];

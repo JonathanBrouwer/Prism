@@ -1,10 +1,9 @@
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
-#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub struct Pos(usize, InputTableIndex);
 
 impl Pos {
@@ -36,6 +35,10 @@ impl Pos {
                 Some((Span::new(self, c.len_utf8()), c)),
             ),
         }
+    }
+
+    pub fn test() -> Self {
+        Self(0, InputTableIndex::test())
     }
 }
 

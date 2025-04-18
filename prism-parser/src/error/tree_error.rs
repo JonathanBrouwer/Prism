@@ -3,6 +3,7 @@ use crate::core::span::Span;
 use crate::error::ParseError;
 use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report, ReportBuilder};
+use std::cmp::max;
 use std::hash::Hash;
 use std::mem;
 
@@ -48,13 +49,13 @@ impl<L: Eq + Hash + Clone> ErrorTree<L> {
 
 /// ErrorTree keeps track of all information that it is provided, it is really verbose
 #[derive(Clone)]
-pub struct TreeError<'arn> {
-    pub pos: Pos,
-    pub labels: ErrorTree<ErrorLabel<'arn>>,
+pub struct TreeError {
+    pub span: Span,
+    pub labels: ErrorTree<ErrorLabel>,
 }
 
-impl<'arn> TreeError<'arn> {
-    fn add_label(&mut self, label: ErrorLabel<'arn>) {
+impl TreeError {
+    fn add_label(&mut self, label: ErrorLabel) {
         let mut tree = ErrorTree(None, vec![]);
         mem::swap(&mut self.labels, &mut tree);
         tree = tree.label(label);
@@ -62,12 +63,12 @@ impl<'arn> TreeError<'arn> {
     }
 }
 
-impl<'arn> ParseError for TreeError<'arn> {
-    type L = ErrorLabel<'arn>;
+impl ParseError for TreeError {
+    type L = ErrorLabel;
 
     fn new(pos: Pos) -> Self {
         Self {
-            pos,
+            span: Span::new(pos, 0),
             labels: ErrorTree(None, vec![]),
         }
     }
@@ -81,23 +82,30 @@ impl<'arn> ParseError for TreeError<'arn> {
     }
 
     fn merge(mut self, other: Self) -> Self {
-        assert_eq!(self.pos, other.pos);
+        assert_eq!(self.span.start_pos(), other.span.start_pos());
         self.labels = self.labels.merge(other.labels);
         Self {
-            pos: self.pos,
+            span: Span::new(
+                self.span.start_pos(),
+                max(self.span.len(), other.span.len()),
+            ),
             labels: self.labels,
         }
     }
 
-    fn report(&self, enable_debug: bool) -> Report<'static, Span> {
-        let mut report: ReportBuilder<Span> = base_report(self.pos.span_to(self.pos));
+    fn span(&self) -> Span {
+        self.span
+    }
+
+    fn set_end(&mut self, end: Pos) {
+        self.span = Span::new_with_end(self.span.start_pos(), end);
+    }
+
+    fn report(&self) -> Report<'static, Span> {
+        let mut report: ReportBuilder<Span> = base_report(self.span);
 
         //Add labels
         for path in self.labels.into_paths() {
-            let path = path
-                .iter()
-                .filter(|l| enable_debug || !l.is_debug())
-                .collect::<Vec<_>>();
             if path.is_empty() {
                 continue;
             }

@@ -1,11 +1,11 @@
 use crate::lang::CoreIndex;
-use crate::lang::PrismEnv;
+use crate::lang::PrismDb;
 use prism_parser::env::GenericEnv;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct UniqueVariableId(usize);
 
-impl PrismEnv<'_> {
+impl PrismDb {
     pub fn new_tc_id(&mut self) -> UniqueVariableId {
         let id = UniqueVariableId(self.tc_id);
         self.tc_id += 1;
@@ -13,10 +13,10 @@ impl PrismEnv<'_> {
     }
 }
 
-pub type DbEnv<'arn> = GenericEnv<'arn, (), EnvEntry<'arn>>;
+pub type DbEnv = GenericEnv<(), EnvEntry>;
 
-#[derive(Copy, Clone, Debug)]
-pub enum EnvEntry<'arn> {
+#[derive(Clone, Debug)]
+pub enum EnvEntry {
     // Definitions used during type checking
     /// We know the type of this variable, but not its value. The type is the second `UnionIndex`
     CType(UniqueVariableId, CoreIndex),
@@ -24,5 +24,5 @@ pub enum EnvEntry<'arn> {
 
     // Definitions used during beta reduction
     RType(UniqueVariableId),
-    RSubst(CoreIndex, DbEnv<'arn>),
+    RSubst(CoreIndex, DbEnv),
 }

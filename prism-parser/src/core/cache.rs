@@ -1,17 +1,17 @@
 use crate::core::adaptive::{BlockState, GrammarStateId};
-use crate::core::context::ParserContext;
+use crate::core::arc_ref::BorrowedArcSlice;
+use crate::core::context::{PV, ParserContext};
 use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
-use crate::error::error_printer::ErrorLabel::Debug;
 use crate::error::{ParseError, err_combine_opt};
-use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use std::hash::{DefaultHasher, Hasher};
+use std::sync::Arc;
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct CacheKey {
     pos: Pos,
     block: usize,     // Start of blocks ptr to usize
@@ -20,27 +20,27 @@ pub struct CacheKey {
     state: GrammarStateId,
     eval_ctx: usize,
 }
-pub type CacheVal<'arn, E> = PResult<Parsed<'arn>, E>;
+pub type CacheVal<E> = PResult<PV, E>;
 
 pub struct ParserCacheEntry<PR> {
     pub read: bool,
     pub value: PR,
 }
 
-impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
+impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_cache_recurse(
         &mut self,
-        mut sub: impl FnMut(&mut ParserState<'arn, Env, E>, Pos) -> PResult<Parsed<'arn>, E>,
-        blocks: &'arn [BlockState<'arn>],
-        rule_args: VarMap<'arn>,
+        mut sub: impl FnMut(&mut ParserState<Db, E>, Pos) -> PResult<PV, E>,
+        blocks: BorrowedArcSlice<Arc<BlockState>>,
+        rule_args: &VarMap,
         grammar_state: GrammarStateId,
         pos_start: Pos,
-        context: ParserContext,
-    ) -> PResult<Parsed<'arn>, E> {
+        context: &ParserContext,
+    ) -> PResult<PV, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
-        for (name, value) in rule_args {
-            args_hash.write(name.as_bytes());
+        for (name, value) in rule_args.iter() {
+            args_hash.write(name.as_str().as_bytes());
             args_hash.write_usize(value.as_ptr().as_ptr() as usize);
         }
 
@@ -48,7 +48,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
             pos: pos_start,
             block: blocks.as_ptr() as usize,
             rule_args: args_hash.finish() as usize,
-            ctx: context,
+            ctx: context.clone(),
             state: grammar_state,
             eval_ctx: 0, //TODO insert eval ctx as part of cache entry
         };
@@ -58,8 +58,7 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
 
         //Before executing, put a value for the current position in the cache.
         //This value is used if the rule is left-recursive
-        let mut res_recursive = PResult::new_err(E::new(pos_start), pos_start);
-        res_recursive.add_label_explicit(Debug(pos_start.span_to(pos_start), "LEFTREC"));
+        let res_recursive = PResult::new_err(E::new(pos_start), pos_start);
 
         let cache_state = self.cache_state_get();
         self.cache_insert(key.clone(), res_recursive);
@@ -73,11 +72,21 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
         //- At some point, the above will fail. Either because no new input is parsed, or because the entire parse now failed. At this point, we have reached the maximum size.
         let res = sub(self, pos_start);
         match res {
-            POk(mut o, mut spos, mut epos, mut be) => {
+            POk {
+                obj: mut o,
+                start: mut spos,
+                end: mut epos,
+                best_err: mut be,
+            } => {
                 //Did our rule left-recurse? (Safety: We just inserted it)
                 if !self.cache_is_read(key.clone()).unwrap() {
                     //No leftrec, cache and return
-                    let res = POk(o, spos, epos, be);
+                    let res = POk {
+                        obj: o,
+                        start: spos,
+                        end: epos,
+                        best_err: be,
+                    };
                     self.cache_insert(key, res.clone());
                     res
                 } else {
@@ -85,24 +94,43 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
                     loop {
                         //Insert the current seed into the cache
                         self.cache_state_revert(cache_state);
-                        self.cache_insert(key.clone(), POk(o, spos, epos, be.clone()));
+                        self.cache_insert(
+                            key.clone(),
+                            POk {
+                                obj: o.clone(),
+                                start: spos,
+                                end: epos,
+                                best_err: be.clone(),
+                            },
+                        );
 
                         //Grow the seed
                         let new_res = sub(self, pos_start);
                         match new_res {
-                            POk(new_o, new_spos, new_epos, new_be)
-                                if new_epos.cmp(&epos).is_gt() =>
-                            {
+                            POk {
+                                obj: new_o,
+                                start: new_spos,
+                                end: new_epos,
+                                best_err: new_be,
+                            } if new_epos.cmp(&epos).is_gt() => {
                                 o = new_o;
                                 spos = new_spos;
                                 epos = new_epos;
                                 be = new_be;
                             }
-                            POk(_, _, _, new_be) => {
+                            POk {
+                                obj: _,
+                                start: _,
+                                end: _,
+                                best_err: new_be,
+                            } => {
                                 be = err_combine_opt(be, new_be);
                                 break;
                             }
-                            PErr(new_e, new_s) => {
+                            PErr {
+                                err: new_e,
+                                end: new_s,
+                            } => {
                                 be = err_combine_opt(be, Some((new_e, new_s)));
                                 break;
                             }
@@ -111,10 +139,15 @@ impl<'arn, Env, E: ParseError<L = ErrorLabel<'arn>>> ParserState<'arn, Env, E> {
 
                     //The seed is at its maximum size
                     //It should still be in the cache,
-                    POk(o, spos, epos, be)
+                    POk {
+                        obj: o,
+                        start: spos,
+                        end: epos,
+                        best_err: be,
+                    }
                 }
             }
-            res @ PErr(_, _) => {
+            res @ PErr { err: _, end: _ } => {
                 self.cache_insert(key, res.clone());
                 res
             }

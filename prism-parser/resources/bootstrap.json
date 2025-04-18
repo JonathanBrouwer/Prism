@@ -795,13 +795,26 @@
                               "expr": {
                                 "Action": [
                                   {
-                                    "NameBind": [
-                                      "a",
+                                    "Sequence": [
                                       {
-                                        "RunVar": {
-                                          "rule": "prule_annotation",
-                                          "args": []
-                                        }
+                                        "Literal": "#"
+                                      },
+                                      {
+                                        "Literal": "["
+                                      },
+                                      {
+                                        "NameBind": [
+                                          "a",
+                                          {
+                                            "RunVar": {
+                                              "rule": "prule_annotation",
+                                              "args": []
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Literal": "]"
                                       }
                                     ]
                                   },
@@ -880,20 +893,14 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "error"
+                        "Literal": "token"
                       },
                       {
                         "Literal": "("
                       },
                       {
                         "NameBind": [
-                          "err",
+                          "token",
                           {
                             "RunVar": {
                               "rule": "pstring",
@@ -904,141 +911,18 @@
                       },
                       {
                         "Literal": ")"
-                      },
-                      {
-                        "Literal": "]"
                       }
                     ]
                   },
                   {
                     "Construct": {
                       "ns": "RuleAnnotation",
-                      "name": "Error",
+                      "name": "Token",
                       "args": [
                         {
-                          "Name": "err"
+                          "Name": "token"
                         }
                       ]
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "disable_layout"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleAnnotation",
-                      "name": "DisableLayout",
-                      "args": []
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "enable_layout"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleAnnotation",
-                      "name": "EnableLayout",
-                      "args": []
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "disable_recovery"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleAnnotation",
-                      "name": "DisableRecovery",
-                      "args": []
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
-                    "Sequence": [
-                      {
-                        "Literal": "#"
-                      },
-                      {
-                        "Literal": "["
-                      },
-                      {
-                        "Literal": "enable_recovery"
-                      },
-                      {
-                        "Literal": "]"
-                      }
-                    ]
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleAnnotation",
-                      "name": "EnableRecovery",
-                      "args": []
                     }
                   }
                 ]
@@ -1584,7 +1468,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#str"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "str"
                       },
                       {
                         "Literal": "("
@@ -1633,7 +1520,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#pos"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "pos"
                       },
                       {
                         "Literal": "("
@@ -1682,7 +1572,10 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "#neg"
+                        "Literal": "#"
+                      },
+                      {
+                        "Literal": "neg"
                       },
                       {
                         "Literal": "("
@@ -1758,23 +1651,6 @@
                   },
                   {
                     "Name": "r"
-                  }
-                ]
-              }
-            },
-            {
-              "annotations": [],
-              "expr": {
-                "Action": [
-                  {
-                    "Literal": "#guid"
-                  },
-                  {
-                    "Construct": {
-                      "ns": "RuleExpr",
-                      "name": "Guid",
-                      "args": []
-                    }
                   }
                 ]
               }
@@ -2552,9 +2428,6 @@
                   {
                     "Sequence": [
                       {
-                        "Literal": "\\'"
-                      },
-                      {
                         "NameBind": [
                           "c1",
                           {
@@ -2566,13 +2439,7 @@
                         ]
                       },
                       {
-                        "Literal": "\\'"
-                      },
-                      {
                         "Literal": "-"
-                      },
-                      {
-                        "Literal": "\\'"
                       },
                       {
                         "NameBind": [
@@ -2584,9 +2451,6 @@
                             }
                           }
                         ]
-                      },
-                      {
-                        "Literal": "\\'"
                       }
                     ]
                   },
@@ -2612,23 +2476,13 @@
               "expr": {
                 "Action": [
                   {
-                    "Sequence": [
+                    "NameBind": [
+                      "c",
                       {
-                        "Literal": "\\'"
-                      },
-                      {
-                        "NameBind": [
-                          "c",
-                          {
-                            "RunVar": {
-                              "rule": "charclass_char",
-                              "args": []
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "Literal": "\\'"
+                        "RunVar": {
+                          "rule": "charclass_char",
+                          "args": []
+                        }
                       }
                     ]
                   },
@@ -2664,34 +2518,86 @@
           "adapt": false,
           "constructors": [
             {
-              "annotations": [],
-              "expr": {
-                "CharClass": {
-                  "neg": true,
-                  "ranges": [
-                    [
-                      "'",
-                      "'"
-                    ],
-                    [
-                      "\\",
-                      "\\"
-                    ],
-                    [
-                      "\n",
-                      "\n"
-                    ]
-                  ]
+              "annotations": [
+                {
+                  "Token": "String"
                 }
+              ],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "NameBind": [
+                          "c",
+                          {
+                            "CharClass": {
+                              "neg": true,
+                              "ranges": [
+                                [
+                                  "'",
+                                  "'"
+                                ],
+                                [
+                                  "\\",
+                                  "\\"
+                                ],
+                                [
+                                  "\n",
+                                  "\n"
+                                ]
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "'"
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "c"
+                  }
+                ]
               }
             },
             {
-              "annotations": [],
-              "expr": {
-                "RunVar": {
-                  "rule": "char_escapes",
-                  "args": []
+              "annotations": [
+                {
+                  "Token": "String"
                 }
+              ],
+              "expr": {
+                "Action": [
+                  {
+                    "Sequence": [
+                      {
+                        "Literal": "'"
+                      },
+                      {
+                        "NameBind": [
+                          "c",
+                          {
+                            "RunVar": {
+                              "rule": "char_escapes",
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Literal": "'"
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "c"
+                  }
+                ]
               }
             }
           ]
@@ -2711,17 +2617,15 @@
             {
               "annotations": [
                 {
-                  "Error": "String"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "String"
+                }
               ],
               "expr": {
                 "Action": [
                   {
                     "Sequence": [
                       {
-                        "Literal": "\\\""
+                        "Literal": "\""
                       },
                       {
                         "NameBind": [
@@ -2746,7 +2650,7 @@
                         ]
                       },
                       {
-                        "Literal": "\\\""
+                        "Literal": "\""
                       }
                     ]
                   },
@@ -2820,10 +2724,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "\\\\n"
+                    "Literal": "\\n"
                   },
                   {
-                    "InputLiteral": "\\n"
+                    "InputLiteral": "\n"
                   }
                 ]
               }
@@ -2833,10 +2737,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "\\\\r"
+                    "Literal": "\\r"
                   },
                   {
-                    "InputLiteral": "\\r"
+                    "InputLiteral": "\r"
                   }
                 ]
               }
@@ -2846,10 +2750,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "\\\\\\\\"
+                    "Literal": "\\\\"
                   },
                   {
-                    "InputLiteral": "\\\\"
+                    "InputLiteral": "\\"
                   }
                 ]
               }
@@ -2859,10 +2763,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "\\\\\\\""
+                    "Literal": "\\\""
                   },
                   {
-                    "InputLiteral": "\\\""
+                    "InputLiteral": "\""
                   }
                 ]
               }
@@ -2872,10 +2776,10 @@
               "expr": {
                 "Action": [
                   {
-                    "Literal": "\\\\\\'"
+                    "Literal": "\\'"
                   },
                   {
-                    "InputLiteral": "\\'"
+                    "InputLiteral": "'"
                   }
                 ]
               }
@@ -2944,7 +2848,7 @@
                     }
                   },
                   {
-                    "Literal": "\\n"
+                    "Literal": "\n"
                   }
                 ]
               }
@@ -3003,10 +2907,8 @@
             {
               "annotations": [
                 {
-                  "Error": "Integer"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "Number"
+                }
               ],
               "expr": {
                 "SliceInput": {
@@ -3048,10 +2950,8 @@
             {
               "annotations": [
                 {
-                  "Error": "Identifier"
-                },
-                "DisableLayout",
-                "DisableRecovery"
+                  "Token": "Variable"
+                }
               ],
               "expr": {
                 "Action": [

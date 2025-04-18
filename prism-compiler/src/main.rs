@@ -1,8 +1,6 @@
-use bumpalo::Bump;
 use clap::Parser;
-use prism_compiler::lang::PrismEnv;
+use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::env::DbEnv;
-use prism_parser::core::allocs::Allocs;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -14,9 +12,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let bump = Bump::new();
-    let allocs = Allocs::new(&bump);
-    let mut env = PrismEnv::new(allocs);
+    let mut env = PrismDb::new();
 
     //Load file
     let program = env.load_file(args.input.into());
@@ -38,12 +34,12 @@ fn main() {
     } else {
         println!(
             "> Type of program\n====================\n{}\n\n",
-            env.index_to_br_string(processed.typ, DbEnv::default())
+            env.index_to_br_string(processed.typ, &DbEnv::default())
         );
 
         println!(
             "> Evaluated\n====================\n{}\n\n",
-            env.index_to_br_string(processed.core, DbEnv::default())
+            env.index_to_br_string(processed.core, &DbEnv::default())
         );
     }
 }

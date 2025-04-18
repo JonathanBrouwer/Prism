@@ -1,41 +1,28 @@
-use crate::core::allocs::Allocs;
-use crate::core::input_table::InputTable;
+use crate::core::input::Input;
 use crate::core::span::Span;
-use crate::grammar::escaped_string::EscapedString;
-use crate::grammar::from_action_result::parse_string;
+use crate::core::tokens::TokenType;
+use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use crate::parsable::{Parsable, ParseResult};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Debug)]
-pub enum RuleAnnotation<'arn> {
-    #[serde(borrow)]
-    Error(EscapedString<'arn>),
-    DisableLayout,
-    EnableLayout,
-    DisableRecovery,
-    EnableRecovery,
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub enum RuleAnnotation {
+    Token(TokenType),
 }
 
-impl ParseResult for RuleAnnotation<'_> {}
-impl<'arn, Env> Parsable<'arn, Env> for RuleAnnotation<'arn> {
+impl<Db> Parsable<Db> for RuleAnnotation {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: &'arn str,
-        args: &[Parsed<'arn>],
-        _allocs: Allocs<'arn>,
-        src: &InputTable<'arn>,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor {
-            "Error" => RuleAnnotation::Error(parse_string(args[0], src)),
-            "DisableLayout" => RuleAnnotation::DisableLayout,
-            "EnableLayout" => RuleAnnotation::EnableLayout,
-            "DisableRecovery" => RuleAnnotation::DisableRecovery,
-            "EnableRecovery" => RuleAnnotation::EnableRecovery,
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
+            "Token" => {
+                RuleAnnotation::Token(args[0].value_ref::<Input>().as_str().parse().unwrap())
+            }
             _ => unreachable!(),
         }
+    }
+
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
+        RuleAnnotation::Token(TokenType::Slice)
     }
 }

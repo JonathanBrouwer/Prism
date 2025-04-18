@@ -1,0 +1,156 @@
+rule toplevel = grammar(prule_action);
+
+rule grammar(action) = rs:prule(action)* => GrammarFile::GrammarFile(rs);
+
+rule prule(action) {
+    a:"adapt"? "rule" name:identifier params:prule_params "{" blocks:prule_body(action) "}"
+        => Rule::Rule(name, a, params, blocks);
+    "rule" name:identifier params:prule_params "=" expr:prule_expr(action) ";"
+        => Rule::Rule(name, [], params, RuleBlock::Block("", [], AnnotatedRuleExpr::AnnotatedExpr([], expr) .. []) .. []);
+}
+
+rule prule_params {
+    "(" params:#repeat(identifier, ",", *) ")" => params;
+    "" => [];
+}
+
+rule prule_body(action) {
+    prule_block(action)+;
+    c:prule_constructors(action) => RuleBlock::Block("", [], c) .. [];
+}
+
+rule prule_block(action) {
+    a:"adapt"? "group" n:#str(identifier?) "{" c:prule_constructors(action) "}"
+        => RuleBlock::Block(n, a, c);
+    a:"adapt"? "group" n:#str(identifier?) ";"
+        => RuleBlock::Block(n, a, []);
+}
+
+rule prule_constructors(action) = prule_annotated_expr(action)*;
+rule prule_annotated_expr(action)
+    = ans:<"#" "[" a:prule_annotation "]" => a>* e:prule_expr(action) ";"
+    => AnnotatedRuleExpr::AnnotatedExpr(ans, e);
+
+rule prule_annotation {
+    "token" "(" token:pstring ")" => RuleAnnotation::Token(token);
+}
+
+
+rule prule_expr(action) {
+    group action {
+        r:#this "=>" a:action => RuleExpr::Action(r, a);
+        // TODO Legacy rule, should be removed
+        a:action "<-" r:#this => RuleExpr::Action(r, a);
+    }
+    group choice {
+        es:#repeat(#next, "/", 2, inf) => RuleExpr::Choice(es);
+    }
+    group sequence {
+        es:#repeat(#next, layout, 2, inf) => RuleExpr::Sequence(es);
+    }
+    group bind {
+        n:identifier ":" e:#next => RuleExpr::NameBind(n, e);
+    }
+    group repeat {
+        r:#this "*" => RuleExpr::Repeat(r, "0", OptionU64::None(), RuleExpr::Sequence([]));
+        r:#this "+" => RuleExpr::Repeat(r, "1", OptionU64::None(), RuleExpr::Sequence([]));
+        r:#this "?" => RuleExpr::Repeat(r, "0", OptionU64::Some("1"), RuleExpr::Sequence([]));
+    }
+    group base {
+        s:pstring => RuleExpr::Literal(s);
+        "[" c:charclass "]" => RuleExpr::CharClass(c);
+        "#" "str" "(" r:prule_expr(action) ")" => RuleExpr::SliceInput(r);
+        "#" "pos" "(" r:prule_expr(action) ")" => RuleExpr::PosLookahead(r);
+        "#" "neg" "(" r:prule_expr(action) ")" => RuleExpr::NegLookahead(r);
+        "<" r:prule_expr(action) ">" => r;
+        "#adapt" "(" ns:identifier "," a:identifier "," n:prule_expr(action) ")" => RuleExpr::AtAdapt(ns, a, n);
+        n:prule_runnable #neg(layout) "(" as:#repeat(prule_expr(action), ",", *) ")" => RuleExpr::RunVar(n, as);
+        n:prule_runnable => RuleExpr::RunVar(n, []);
+        "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "*" ")" => RuleExpr::Repeat(e, "0", OptionU64::None(), d);
+        "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," "+" ")" => RuleExpr::Repeat(e, "1", OptionU64::None(), d);
+        "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," "inf" ")" => RuleExpr::Repeat(e, min, OptionU64::None(), d);
+        "#repeat" "(" e:prule_expr(action) "," d:prule_expr(action) "," min:integer "," max:integer ")" => RuleExpr::Repeat(e, min, OptionU64::Some(max), d);
+        "$" a:action => RuleExpr::Action(RuleExpr::Sequence([]), a);
+    }
+}
+
+rule prule_runnable = identifier / "#this" / "#next";
+
+rule charclass {
+    negate:"^"? ps:#repeat(charclass_part, "|", *)
+        => CharClass::CharClass(negate, ps);
+}
+
+rule charclass_part {
+    c1:charclass_char "-" c2:charclass_char => CharClassRange::Range(c1, c2);
+    c:charclass_char => CharClassRange::Range(c, c);
+}
+
+rule charclass_char {
+    #[token("string")]
+    "\'" c:[^ '\'' | '\\' | '\n'] "\'" => c;
+    #[token("string")]
+    "\'" c:char_escapes "\'" => c;
+}
+
+rule pstring {
+    #[token("string")]
+    "\"" s:#str(str_char*) "\"" => s;
+}
+
+rule str_char {
+    [^ '\"' | '\\' | '\n'];
+    char_escapes;
+}
+
+rule char_escapes {
+    "\\n" => "\n";
+    "\\r" => "\r";
+    "\\\\" => "\\";
+    "\\\"" => "\"";
+    "\\\'" => "\'";
+}
+
+rule layout {
+    // Whitespace
+    [' ' | '\r' | '\n'];
+    // Line comments
+    "//" [^'\n']* "\n";
+    /* Block comments */
+    "/*" <#neg("*/") [^]>* "*/";
+}
+
+rule integer {
+    #[token("number")]
+    #str([ '0'-'9' ]+);
+}
+
+rule identifier {
+    #[token("variable")]
+    #neg(reserved #neg(['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ])) n:#str([ 'a'-'z' | 'A'-'Z' | '_' ] ['a'-'z' | 'A'-'Z' | '0'-'9' | '_' ]*) => n;
+}
+
+rule reserved {
+    "end";
+    "str";
+    "rule";
+    "ast";
+    "neg";
+    "pos";
+    "group";
+    "adapt";
+}
+
+rule prule_action {
+    group cons {
+        h:#next ".." t:#this => RuleAction::Construct("ParsedList", "Cons", h .. t .. []);
+    }
+    group base {
+        "[]" => RuleAction::Construct("ParsedList", "Nil", []);
+        ns:identifier "::" n:identifier "(" as:#repeat(prule_action, ",", *) ")" => RuleAction::Construct(ns, n, as);
+        n:identifier "(" as:#repeat(prule_action, ",", *) ")" => RuleAction::Construct("", n, as);
+        s:pstring => RuleAction::InputLiteral(s);
+        n:identifier => RuleAction::Name(n);
+        "(" a:prule_action ")" => a;
+    }
+}

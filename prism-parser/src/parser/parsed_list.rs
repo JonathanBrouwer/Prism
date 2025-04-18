@@ -1,32 +1,28 @@
-use crate::core::allocs::Allocs;
-use crate::core::input_table::InputTable;
+use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 
-pub type ParsedList<'arn> = GenericEnv<'arn, (), Parsed<'arn>>;
+pub type ParsedList = GenericEnv<(), Parsed>;
 
-impl<'arn, Env> Parsable<'arn, Env> for ParsedList<'arn> {
+impl<Db> Parsable<Db> for ParsedList {
     type EvalCtx = ();
 
-    fn from_construct(
-        _span: Span,
-        constructor: &'arn str,
-        args: &[Parsed<'arn>],
-        allocs: Allocs<'arn>,
-        _src: &InputTable<'arn>,
-        _env: &mut Env,
-    ) -> Self {
-        match constructor {
+    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
+        match constructor.as_str() {
             "Cons" => {
                 assert_eq!(args.len(), 2);
                 args[1]
-                    .into_value::<ParsedList<'arn>>()
-                    .insert((), args[0], allocs)
+                    .value_ref::<ParsedList>()
+                    .insert((), args[0].clone())
             }
             "Nil" => ParsedList::default(),
             _ => unreachable!(),
         }
+    }
+
+    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
+        ParsedList::default()
     }
 }
