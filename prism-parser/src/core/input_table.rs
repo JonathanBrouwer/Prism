@@ -22,7 +22,7 @@ struct InputTableEntry {
     source: Source<String>,
 }
 
-#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct InputTableIndex(usize);
 
 impl InputTableIndex {

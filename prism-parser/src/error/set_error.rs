@@ -4,7 +4,7 @@ use crate::error::ParseError;
 use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report};
 use std::cmp::max;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 /// Set error keeps track of the set of labels at the furthest position.
 #[derive(Clone)]
@@ -66,7 +66,7 @@ impl ParseError for SetError {
     fn report(&self) -> Report<'static, Span> {
         let mut report = base_report(self.span);
 
-        let mut labels_map: BTreeMap<Pos, Vec<_>> = BTreeMap::new();
+        let mut labels_map: HashMap<Pos, Vec<_>> = HashMap::new();
         for l in self.labels.iter() {
             labels_map.entry(l.span().start_pos()).or_default().push(l);
         }
@@ -81,7 +81,7 @@ impl ParseError for SetError {
                             .iter()
                             .map(|v| v.to_string())
                             .collect::<Vec<_>>()
-                            .join(" / ")
+                            .join(" ")
                     ))
                     .with_order(-(start.idx_in_file() as i32)),
             );

@@ -1,10 +1,26 @@
 use crate::core::input_table::{InputTable, InputTableIndex};
 use crate::core::span::Span;
+use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
-#[derive(Copy, Clone, Hash, Ord, PartialOrd, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct Pos(usize, InputTableIndex);
+
+impl PartialOrd for Pos {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.1 != other.1 {
+            return None;
+        }
+        Some(self.0.cmp(&other.0))
+    }
+}
+
+impl Ord for Pos {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
 
 impl Pos {
     pub fn start_of(idx: InputTableIndex) -> Self {

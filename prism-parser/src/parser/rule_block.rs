@@ -141,11 +141,11 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             Some((annot, rest)) => match &**annot {
                 RuleAnnotation::Token(token) => {
                     // Parse recursively
-                    let mut res = self.parse_with_layout(
+                    self.parse_with_layout(
                         rules,
                         vars,
                         |state, pos, penv| {
-                            state.parse_sub_annotations(
+                            let res = state.parse_sub_annotations(
                                 rules,
                                 blocks,
                                 rule_args,
@@ -160,23 +160,24 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                                 },
                                 penv,
                                 eval_ctx,
-                            )
+                            );
+
+                            // Add token information
+                            let mut res = res
+                                .map_with_span(|pv, span| PV::new_single(pv.parsed, *token, span));
+
+                            // Add error label
+                            res.add_label_explicit(ErrorLabel::Explicit(
+                                pos.span_to(res.end_pos().next(&state.input).0),
+                                token.to_string(),
+                            ));
+
+                            res
                         },
                         pos,
                         context,
                         penv,
-                    );
-
-                    // Add token information
-                    res = res.map_with_span(|pv, span| PV::new_single(pv.parsed, *token, span));
-
-                    // Add error label
-                    res.add_label_explicit(ErrorLabel::Explicit(
-                        pos.span_to(res.end_pos().next(&self.input).0),
-                        token.to_string(),
-                    ));
-
-                    res
+                    )
                 }
             },
             None => self

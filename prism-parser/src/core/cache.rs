@@ -112,7 +112,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                                 start: new_spos,
                                 end: new_epos,
                                 best_err: new_be,
-                            } if new_epos.cmp(&epos).is_gt() => {
+                            } if new_epos > epos => {
                                 o = new_o;
                                 spos = new_spos;
                                 epos = new_epos;
