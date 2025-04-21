@@ -3,7 +3,7 @@ use crate::core::span::Span;
 use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::hash::Hash;
 use std::sync::Arc;
 

@@ -132,7 +132,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     context,
                     penv,
                 )
-                .map(|pv| PR::with_rtrn(pv)),
+                .map(PR::with_rtrn),
             RuleExpr::Literal(literal) => self
                 .parse_with_layout(
                     rules,
@@ -143,7 +143,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                         let span = pos.span_to(res.end_pos());
                         res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
 
-                        let res = res.map(|_| {
+                        res.map(|_| {
                             let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
 
                             let token_type = if literal
@@ -157,15 +157,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                             };
 
                             PV::new_single(value, token_type, span)
-                        });
-
-                        res
+                        })
                     },
                     pos,
                     context,
                     penv,
                 )
-                .map(|pv| PR::with_rtrn(pv)),
+                .map(PR::with_rtrn),
             RuleExpr::Repeat {
                 expr,
                 min,

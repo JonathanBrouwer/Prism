@@ -1,4 +1,4 @@
-use crate::core::context::{PR, PV, ParserContext};
+use crate::core::context::{PV, ParserContext};
 use crate::core::input_table::InputTableIndex;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;

@@ -1,6 +1,5 @@
 use crate::core::cache::{CacheKey, CacheVal, ParserCacheEntry};
 use crate::core::input_table::InputTable;
-use crate::core::pos::Pos;
 use crate::error::ParseError;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parser::placeholder_store::PlaceholderStore;
