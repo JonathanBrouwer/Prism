@@ -78,14 +78,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
                 // We have not parsed more layout ...
                 // ... because layout parser did not parse more characters
-                POk {
-                    obj: _,
-                    start: _,
-                    end: _,
-                    best_err: err,
-                } => {
-                    let (e, pos) = err.unwrap();
-                    return PErr { err: e, end: pos };
+                POk { .. } => {
+                    assert_eq!(pos_before_layout, new_res.end_pos());
+                    unreachable!("Cannot happen")
                 }
                 // ... because layout parser failed
                 PErr { err: e, end: pos } => return PErr { err: e, end: pos },
