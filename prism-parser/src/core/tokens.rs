@@ -26,6 +26,7 @@ pub enum TokenType {
     Number,
     Variable,
     Layout,
+    Error,
 }
 
 impl FromStr for TokenType {
@@ -60,6 +61,7 @@ impl Display for TokenType {
                 TokenType::Number => "number",
                 TokenType::Variable => "variable",
                 TokenType::Layout => "layout",
+                TokenType::Error => "error",
             }
         )
     }

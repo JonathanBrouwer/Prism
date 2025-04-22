@@ -51,6 +51,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     pos,
                     &ParserContext {
                         layout_disabled: true,
+                        recovery_disabled: true,
                         ..context.clone()
                     },
                     penv,

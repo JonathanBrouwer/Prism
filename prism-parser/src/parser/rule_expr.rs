@@ -123,10 +123,17 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     rules,
                     vars,
                     |state, pos, _penv| {
-                        state.parse_char(|c| cc.contains(*c), pos).map(|(span, _)| {
-                            let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
-                            PV::new_single(value, TokenType::CharClass, span)
-                        })
+                        state.parse_with_recovery_point(
+                            |state, pos| {
+                                state.parse_char(|c| cc.contains(*c), pos).map(|(span, _)| {
+                                    let value =
+                                        Arc::new(Input::from_span(span, &state.input)).to_parsed();
+                                    PV::new_single(value, TokenType::CharClass, span)
+                                })
+                            },
+                            pos,
+                            context,
+                        )
                     },
                     pos,
                     context,
@@ -138,26 +145,36 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     rules,
                     vars,
                     |state, pos, _penv| {
-                        let mut res = state.parse_lit(literal.as_str(), pos);
+                        state.parse_with_recovery_point(
+                            |state, pos| {
+                                let mut res = state.parse_lit(literal.as_str(), pos);
 
-                        let span = pos.span_to(res.end_pos());
-                        res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
+                                let span = pos.span_to(res.end_pos());
+                                res.add_label_implicit(ErrorLabel::Literal(
+                                    span,
+                                    literal.to_string(),
+                                ));
 
-                        res.map(|_| {
-                            let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
+                                res.map(|_| {
+                                    let value =
+                                        Arc::new(Input::from_span(span, &state.input)).to_parsed();
 
-                            let token_type = if literal
-                                .as_str()
-                                .chars()
-                                .all(|c| c.is_alphanumeric() || c == '_')
-                            {
-                                TokenType::Keyword
-                            } else {
-                                TokenType::Symbol
-                            };
+                                    let token_type = if literal
+                                        .as_str()
+                                        .chars()
+                                        .all(|c| c.is_alphanumeric() || c == '_')
+                                    {
+                                        TokenType::Keyword
+                                    } else {
+                                        TokenType::Symbol
+                                    };
 
-                            PV::new_single(value, token_type, span)
-                        })
+                                    PV::new_single(value, token_type, span)
+                                })
+                            },
+                            pos,
+                            context,
+                        )
                     },
                     pos,
                     context,

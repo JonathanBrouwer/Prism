@@ -90,6 +90,7 @@ impl LanguageServer for Backend {
                                     SemanticTokenType::OPERATOR,
                                     SemanticTokenType::STRING,
                                     SemanticTokenType::NUMBER,
+                                    SemanticTokenType::new("error"),
                                     // SemanticTokenType::NAMESPACE,
                                     // SemanticTokenType::TYPE,
                                     // SemanticTokenType::CLASS,
@@ -107,7 +108,6 @@ impl LanguageServer for Backend {
                                     // SemanticTokenType::MODIFIER,
                                     // SemanticTokenType::REGEXP,
                                     // SemanticTokenType::DECORATOR,
-                                    // SemanticTokenType::new("label"),
                                 ],
                                 token_modifiers: vec![
                                     SemanticTokenModifier::DECLARATION,
@@ -262,6 +262,7 @@ impl LanguageServer for Backend {
                         TokenType::Symbol => 3,
                         TokenType::String => 4,
                         TokenType::Number => 5,
+                        TokenType::Error => 6,
                     },
                     token_modifiers_bitset: 0,
                 });

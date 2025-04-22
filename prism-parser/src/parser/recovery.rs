@@ -1,7 +1,9 @@
 use crate::core::context::{PV, ParserContext};
 use crate::core::input_table::InputTableIndex;
+use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
+use crate::core::tokens::TokenType;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
@@ -17,6 +19,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         _file: InputTableIndex,
         penv: &mut Db,
     ) -> (PV, Vec<E>) {
+        // Contains all errors we found, the last error is the one we're currently trying to recover from
         let mut errors = vec![];
         let mut ctx = ParserContext::default();
 
@@ -61,12 +64,35 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         }
     }
 
-    // pub fn recovery_point(&mut self) -> PResult<PR, E> {
-    //
-    // }
+    pub fn parse_with_recovery_point(
+        &mut self,
+        sub: impl Fn(&mut ParserState<Db, E>, Pos) -> PResult<PV, E>,
+        pos: Pos,
+        context: &ParserContext,
+    ) -> PResult<PV, E> {
+        // If recovery is disabled or there is no recovery point, give up
+        if context.recovery_disabled {
+            return sub(self, pos);
+        }
+        let Some(&jump_pos) = context.recovery_points.get(&pos) else {
+            return sub(self, pos);
+        };
 
-    // // Recover if possible
-    // if !context.recovery_disabled && let Some(jump_pos) = context.recovery_points.get(&pos) {
-    // pos = *jump_pos;
-    // }
+        // Try parsing at jump_pos
+        let res = sub(self, jump_pos);
+        let PResult::PErr { err, end } = res else {
+            return res;
+        };
+
+        PResult::POk {
+            obj: PV::new_single(
+                Arc::new(Void).to_parsed(),
+                TokenType::Error,
+                pos.span_to(jump_pos),
+            ),
+            start: pos,
+            end: jump_pos,
+            best_err: Some((err, end)),
+        }
+    }
 }
