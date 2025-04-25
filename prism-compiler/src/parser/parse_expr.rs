@@ -6,8 +6,8 @@ use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::Parsable;
 use prism_parser::parsable::parsed::{ArcExt, Parsed};
+use prism_parser::parsable::{Parsable, ParsableError};
 use prism_parser::parser::VarMap;
 use prism_parser::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use std::sync::Arc;
@@ -211,7 +211,7 @@ impl Parsable<PrismDb> for ParsedIndex {
         eval_ctx: &Self::EvalCtx,
         placeholders: &PlaceholderStore<PrismDb>,
         env: &mut PrismDb,
-    ) -> Arc<GrammarFile> {
+    ) -> Result<Arc<GrammarFile>, ParsableError> {
         // Create context, ignore any errors that occur in this process
         let error_count = env.errors.len();
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, env);
@@ -242,18 +242,18 @@ impl Parsable<PrismDb> for ParsedIndex {
         let (reduced_value, _reduced_env) = env.beta_reduce_head(e, &db_env);
 
         let CorePrismExpr::GrammarValue(grammar) = &env.checked_values[reduced_value.0] else {
-            panic!(
+            return Err(format!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
                 env.parse_index_to_string(**self),
                 env.index_to_string(e),
                 env.index_to_string(reduced_value)
-            )
+            ));
         };
 
         // Insert the scope into the grammar, so we can find the scope again later in `reduce_expr`
-        grammar.map_actions(&|e| {
+        Ok(grammar.map_actions(&|e| {
             Arc::new(EnvWrapper(e.clone(), eval_ctx.len(), grammar.clone())).to_parsed()
-        })
+        }))
     }
 
     fn error_fallback(env: &mut PrismDb, span: Span) -> Self {

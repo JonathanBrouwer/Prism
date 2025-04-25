@@ -2,9 +2,9 @@ use crate::core::input::Input;
 use crate::core::input_table::InputTable;
 use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
-use crate::parsable::Parsable;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
+use crate::parsable::{Parsable, ParsableError};
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use std::sync::Arc;
 
@@ -29,7 +29,7 @@ pub struct ParsableDyn<Db> {
         // Env
         src: &InputTable,
         env: &mut Db,
-    ) -> Arc<GrammarFile>,
+    ) -> Result<Arc<GrammarFile>, ParsableError>,
 }
 
 impl<Db> Clone for ParsableDyn<Db> {
@@ -88,7 +88,7 @@ fn eval_to_grammar_dyn<Db, P: Parsable<Db>>(
     // Env
     _src: &InputTable,
     env: &mut Db,
-) -> Arc<GrammarFile> {
+) -> Result<Arc<GrammarFile>, ParsableError> {
     let eval_ctx = if eval_ctx.try_value_ref::<Void>().is_some() {
         &P::EvalCtx::default()
     } else {

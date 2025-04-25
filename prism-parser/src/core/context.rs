@@ -26,7 +26,9 @@ impl PR {
 pub struct ParserContext {
     pub recovery_disabled: bool,
     pub layout_disabled: bool,
-    pub recovery_points: BTreeMap<Pos, Pos>,
+
+    //TODO something like a segment tree would be nice
+    pub recovery_points: Arc<BTreeMap<Pos, Pos>>,
 }
 
 impl ParserContext {

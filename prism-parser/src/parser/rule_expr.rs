@@ -454,8 +454,21 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let grammar = vars.get(grammar).unwrap();
-                let grammar =
-                    (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
+
+                let grammar = match (ns.eval_to_grammar)(
+                    grammar,
+                    eval_ctx,
+                    &self.placeholders,
+                    &self.input,
+                    penv,
+                ) {
+                    Ok(grammar) => grammar,
+                    Err(s) => {
+                        let mut e = E::new(pos);
+                        e.add_label_implicit(ErrorLabel::Explicit(pos.span_to(pos), s));
+                        return PResult::new_err(e, pos);
+                    }
+                };
 
                 // Create new grammarstate
                 //TODO performance: we shoud cache grammar states

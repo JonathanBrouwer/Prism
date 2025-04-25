@@ -8,6 +8,7 @@ use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 //TODO https://github.com/JonathanBrouwer/Prism/blob/73f5e7d550583ae449e94be3800da7ef8378ad16/prism-parser/src/core/recovery.rs#L14
@@ -22,8 +23,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         // Contains all errors we found, the last error is the one we're currently trying to recover from
         let mut errors = vec![];
         let mut ctx = ParserContext::default();
+        let mut recovery_points: BTreeMap<Pos, Pos> = BTreeMap::new();
 
         loop {
+            ctx.recovery_points = Arc::new(recovery_points.clone());
             match sub(self, &ctx, penv).collapse() {
                 Ok(pv) => return (pv, errors),
                 Err(next_err) => {
@@ -33,7 +36,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                         && last_err.span().start_pos() == err_pos
                     {
                         // Prepare for next round
-                        let skip = ctx.recovery_points.get_mut(&err_pos).unwrap();
+                        let skip = recovery_points.get_mut(&err_pos).unwrap();
                         let (next_skip, opt) = skip.next(&self.input);
 
                         // Update error
@@ -41,7 +44,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                         if opt.is_some() {
                             // There is more input available, retry parsing
+                            // Also allow skipping zero at next-skip to allow
                             *skip = next_skip;
+                            recovery_points.insert(next_skip, next_skip);
                             continue;
                         } else {
                             // No more input available
@@ -57,7 +62,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                         }
 
                         errors.push(next_err);
-                        ctx.recovery_points.insert(err_pos, err_pos);
+                        recovery_points.insert(err_pos, err_pos);
                     }
                 }
             }
@@ -81,6 +86,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         // Try parsing at jump_pos
         let res = sub(self, jump_pos);
         let PResult::PErr { err, end } = res else {
+            // This can be Ok even if pos == jump_pos, a recovery point allows skipping part of the parsing
             return res;
         };
 
@@ -92,7 +98,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             ),
             start: pos,
             end: jump_pos,
-            best_err: Some((err, end)),
+            best_err: None,
         }
     }
 }

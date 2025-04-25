@@ -4,8 +4,8 @@ use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
 use crate::core::span::Span;
 use crate::grammar::rule::Rule;
-use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use crate::parsable::{Parsable, ParsableError};
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::PlaceholderStore;
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ impl<Db> Parsable<Db> for GrammarFile {
         _eval_ctx: &Self::EvalCtx,
         _placeholders: &PlaceholderStore<Db>,
         _env: &mut Db,
-    ) -> Arc<GrammarFile> {
-        self.clone()
+    ) -> Result<Arc<GrammarFile>, ParsableError> {
+        Ok(self.clone())
     }
 }

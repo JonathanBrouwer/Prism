@@ -22,7 +22,7 @@ impl PrismDb {
                 | CorePrismExpr::FnType(..)
                 | CorePrismExpr::GrammarValue(..)
                 | CorePrismExpr::GrammarType => {
-                    assert!(args.is_empty());
+                    // assert!(args.is_empty());
                     return (e, s);
                 }
                 CorePrismExpr::Let(v, b) => {

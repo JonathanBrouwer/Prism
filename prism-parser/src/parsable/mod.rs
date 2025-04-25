@@ -15,6 +15,8 @@ pub mod parsed;
 pub mod parsed_debug;
 pub mod void;
 
+pub type ParsableError = String;
+
 pub trait Parsable<Db>: Sized + Sync + Send + Any {
     type EvalCtx: Default + Clone + Send + Sync + Any;
 
@@ -33,7 +35,7 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
         _eval_ctx: &Self::EvalCtx,
         _placeholders: &PlaceholderStore<Db>,
         _env: &mut Db,
-    ) -> Arc<GrammarFile> {
+    ) -> Result<Arc<GrammarFile>, ParsableError> {
         unreachable!()
     }
 
