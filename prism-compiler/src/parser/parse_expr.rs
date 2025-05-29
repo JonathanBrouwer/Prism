@@ -133,7 +133,7 @@ impl Parsable<PrismDb> for ParsedIndex {
 
                 let current_file = span.start_pos().file();
 
-                let mut path = env.input.get_path(current_file);
+                let mut path = env.input.inner().get_path(current_file);
                 assert!(path.pop());
                 path.push(format!("{}.pr", name.as_str()));
 

@@ -1,10 +1,11 @@
 use crate::core::pos::Pos;
+use crate::core::span::Span;
 use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::mem;
 use std::path::PathBuf;
-use std::sync::{RwLock, RwLockReadGuard};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Default)]
 pub struct InputTable {
@@ -35,6 +36,52 @@ impl InputTableIndex {
     }
 }
 
+impl InputTableInner {
+    pub fn get_or_push_file(&mut self, file: String, path: PathBuf) -> InputTableIndex {
+        // If there is already a file with this path, don't load it again
+        if let Some(prev) = self.files.iter().position(|e| e.path == path) {
+            return InputTableIndex(prev);
+        }
+
+        self.files.push(InputTableEntry {
+            source: Source::from(file),
+            path,
+        });
+        InputTableIndex(self.files.len() - 1)
+    }
+
+    pub fn get_str(&self, idx: InputTableIndex) -> &str {
+        let s = self.files[idx.0].source.text();
+
+        // Safety: We never remove strings from the InputTable
+        unsafe { mem::transmute(s) }
+    }
+
+    pub fn get_path(&self, idx: InputTableIndex) -> PathBuf {
+        self.files[idx.0].path.clone()
+    }
+
+    pub fn update_file(&mut self, idx: InputTableIndex, new_content: String) {
+        let file = &mut self.files[idx.0];
+        file.source = Source::from(new_content);
+    }
+
+    pub fn remove(&mut self, idx: InputTableIndex) {
+        let file = &mut self.files[idx.0];
+        file.source = Source::from(String::new());
+        file.path = "[CLOSED]".into();
+    }
+
+    pub fn end_of_file(&self, idx: InputTableIndex) -> Pos {
+        Pos::start_of(idx) + self.get_str(idx).len()
+    }
+
+    pub fn slice(&self, span: Span) -> &str {
+        let start = span.start_pos().idx_in_file();
+        &self.get_str(span.start_pos().file())[start..start + span.len()]
+    }
+}
+
 impl InputTable {
     pub fn deep_clone(&self) -> InputTable {
         InputTable {
@@ -42,50 +89,12 @@ impl InputTable {
         }
     }
 
-    pub fn get_or_push_file(&self, file: String, path: PathBuf) -> InputTableIndex {
-        let mut inner = self.inner.write().unwrap();
-
-        // If there is already a file with this path, don't load it again
-        if let Some(prev) = inner.files.iter().position(|e| e.path == path) {
-            return InputTableIndex(prev);
-        }
-
-        inner.files.push(InputTableEntry {
-            source: Source::from(file),
-            path,
-        });
-        InputTableIndex(inner.files.len() - 1)
-    }
-
-    pub fn get_str(&self, idx: InputTableIndex) -> &str {
-        let lock = self.inner.read().unwrap();
-        let s = lock.files[idx.0].source.text();
-
-        // Safety: We never remove strings from the InputTable
-        unsafe { mem::transmute(s) }
-    }
-
-    pub fn get_path(&self, idx: InputTableIndex) -> PathBuf {
-        self.inner.read().unwrap().files[idx.0].path.clone()
-    }
-
     pub fn inner(&self) -> RwLockReadGuard<InputTableInner> {
         self.inner.read().unwrap()
     }
 
-    pub fn update_file(&self, idx: InputTableIndex, new_content: String) {
-        let file = &mut self.inner.write().unwrap().files[idx.0];
-        file.source = Source::from(new_content);
-    }
-
-    pub fn remove(&self, idx: InputTableIndex) {
-        let file = &mut self.inner.write().unwrap().files[idx.0];
-        file.source = Source::from(String::new());
-        file.path = "[CLOSED]".into();
-    }
-
-    pub fn end_of_file(&self, idx: InputTableIndex) -> Pos {
-        Pos::start_of(idx) + self.get_str(idx).len()
+    pub fn inner_mut(&self) -> RwLockWriteGuard<InputTableInner> {
+        self.inner.write().unwrap()
     }
 }
 

@@ -48,7 +48,7 @@ macro_rules! parse_test {
             let mut counter = 0;
             $({
             let input: &'static str = $input_pass;
-            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_ok{counter}").into());
+            let file = input_table.inner_mut().get_or_push_file(input.to_string(), format!("test_file_ok{counter}").into());
             println!("== Parsing {counter} (should be ok): {}", input);
             counter += 1;
 
@@ -63,7 +63,7 @@ macro_rules! parse_test {
             let mut counter = 0;
             $({
             let input: &'static str = $input_fail;
-            let file = input_table.get_or_push_file(input.to_string(), format!("test_file_err{counter}").into());
+            let file = input_table.inner_mut().get_or_push_file(input.to_string(), format!("test_file_err{counter}").into());
             println!("== Parsing {counter} (should be fail): {}", input);
             counter += 1;
 

@@ -151,7 +151,7 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
 ) -> (Arc<P>, Arc<Tokens>, AggregatedParseError<E>) {
-    let full_span = Pos::start_of(file).span_to(input_table.end_of_file(file));
+    let full_span = Pos::start_of(file).span_to(input_table.inner().end_of_file(file));
     let (pv, errs) = run_parser_rule_raw(rules, rule, input_table, file, parsables, penv);
 
     (

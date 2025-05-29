@@ -235,12 +235,22 @@ impl LanguageServer for Backend {
 
             let file_inner = inner.db.input.inner();
             let mut file_inner = &*file_inner;
-            let source = (&mut file_inner).fetch(&index).unwrap();
 
             let mut prev_line = 0;
             let mut prev_start = 0;
 
             for token in prism_tokens.to_vec() {
+                // Skip empty tokens
+                if file_inner
+                    .slice(token.span)
+                    .chars()
+                    .all(|c| c.is_ascii_whitespace())
+                {
+                    continue;
+                }
+
+                // Convert span to LSP token info
+                let source = (&mut file_inner).fetch(&index).unwrap();
                 let (_line, cur_line, cur_start) = source
                     .get_offset_line(token.span.start_pos().idx_in_file())
                     .unwrap();

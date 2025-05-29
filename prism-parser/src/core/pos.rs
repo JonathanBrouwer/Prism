@@ -45,7 +45,7 @@ impl Pos {
     }
 
     pub fn next(self, input: &InputTable) -> (Self, Option<(Span, char)>) {
-        match input.get_str(self.1)[self.0..].chars().next() {
+        match input.inner().get_str(self.1)[self.0..].chars().next() {
             None => (self, None),
             Some(c) => (
                 Self(self.0 + c.len_utf8(), self.1),

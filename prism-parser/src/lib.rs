@@ -33,7 +33,9 @@ pub fn parse_grammar<E: ParseError<L = ErrorLabel>>(
     AggregatedParseError<E>,
 ) {
     let input_table = Arc::new(InputTable::default());
-    let file = input_table.get_or_push_file(grammar.into(), "$GRAMMAR$".into());
+    let file = input_table
+        .inner_mut()
+        .get_or_push_file(grammar.into(), "$GRAMMAR$".into());
     let (grammar, tokens, errs) = run_parser_rule::<(), GrammarFile, E>(
         &META_GRAMMAR,
         "toplevel",

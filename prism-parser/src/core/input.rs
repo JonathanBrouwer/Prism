@@ -25,7 +25,7 @@ impl Input {
     }
 
     pub fn from_span(span: Span, input: &InputTable) -> Self {
-        Self(input.slice(span).to_string().into())
+        Self(input.inner().slice(span).to_string().into())
     }
 
     pub fn as_str(&self) -> &str {

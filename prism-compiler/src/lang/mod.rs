@@ -160,12 +160,12 @@ impl PrismDb {
 
     pub fn update_file(&mut self, file: InputTableIndex, content: String) {
         self.files.remove(&file);
-        self.input.update_file(file, content);
+        self.input.inner_mut().update_file(file, content);
     }
 
     pub fn remove_file(&mut self, file: InputTableIndex) {
         self.files.remove(&file);
-        self.input.remove(file);
+        self.input.inner_mut().remove(file);
     }
 
     pub fn store_from_source(&mut self, e: ParsedPrismExpr, span: Span) -> ParsedIndex {
