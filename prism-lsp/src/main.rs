@@ -184,7 +184,7 @@ impl LanguageServer for Backend {
         let doc = params.text_document;
         let path = PathBuf::from(doc.uri.path().as_str());
         self.client
-            .log_message(MessageType::LOG, format!("UPDATE {:?}", path))
+            .log_message(MessageType::LOG, format!("UPDATE {path:?}"))
             .await;
 
         let mut inner = self.inner.write().await;
@@ -206,7 +206,7 @@ impl LanguageServer for Backend {
         let doc = params.text_document;
         let path = PathBuf::from(doc.uri.path().as_str());
         self.client
-            .log_message(MessageType::LOG, format!("CLOSE {:?}", path))
+            .log_message(MessageType::LOG, format!("CLOSE {path:?}"))
             .await;
 
         let mut inner = self.inner.write().await;

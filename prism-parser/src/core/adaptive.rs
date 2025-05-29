@@ -56,12 +56,11 @@ impl GrammarState {
         input_table: &InputTable,
     ) -> Result<(Self, VarMap), AdaptError> {
         // If we already tried to adapt at this position before, crash to prevent infinite loop
-        if let Some(pos) = pos {
-            if let Some(last_mut_pos) = self.last_mut_pos {
-                if pos == last_mut_pos {
-                    return Err(AdaptError::SamePos(pos));
-                }
-            }
+        if let Some(pos) = pos
+            && let Some(last_mut_pos) = self.last_mut_pos
+            && pos == last_mut_pos
+        {
+            return Err(AdaptError::SamePos(pos));
         }
 
         // Create a new ruleid or find an existing rule id for each rule that is adopted

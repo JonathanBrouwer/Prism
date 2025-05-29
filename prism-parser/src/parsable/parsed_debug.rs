@@ -15,7 +15,7 @@ impl Debug for Parsed {
                 ar.constructor.as_str(),
                 ar.args
                     .iter()
-                    .map(|e| format!("{:?}", e))
+                    .map(|e| format!("{e:?}"))
                     .collect::<Vec<String>>()
                     .join(", ")
             )
@@ -27,7 +27,7 @@ impl Debug for Parsed {
                 "[{}]",
                 ll.iter()
                     .map(|((), v)| v)
-                    .map(|e| format!("{:?}", e))
+                    .map(|e| format!("{e:?}"))
                     .collect::<Vec<String>>()
                     .join(", ")
             )
