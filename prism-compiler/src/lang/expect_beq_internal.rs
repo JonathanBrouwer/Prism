@@ -159,7 +159,6 @@ impl PrismDb {
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
-                self.toxic_values.insert(i2);
                 let a_eq =
                     self.expect_beq_internal((v1, s1, var_map1), (v2, s2, var_map2), depth + 1);
 
@@ -263,7 +262,6 @@ impl PrismDb {
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
-                self.toxic_values.insert(i2);
                 let a_eq =
                     self.expect_beq_internal((a1, s1, var_map1), (a2, s2, var_map2), depth + 1);
                 let id = self.new_tc_id();
@@ -283,8 +281,6 @@ impl PrismDb {
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
-                self.toxic_values.insert(i2);
-
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -303,7 +299,6 @@ impl PrismDb {
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
-                self.toxic_values.insert(i2);
                 let f_eq =
                     self.expect_beq_internal((f1, s1, var_map1), (f2, s2, var_map2), depth + 1);
                 let a_eq =

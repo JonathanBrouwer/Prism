@@ -5,8 +5,8 @@ use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
 use prism_parser::core::tokens::Tokens;
 use prism_parser::grammar::grammar_file::GrammarFile;
+use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
@@ -88,7 +88,6 @@ pub struct PrismDb {
 
     // State during type checking
     tc_id: usize,
-    toxic_values: HashSet<CoreIndex>,
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint>>,
     queued_tc: HashMap<CoreIndex, (DbEnv, CoreIndex)>,
 
@@ -126,7 +125,6 @@ impl PrismDb {
             checked_types: Default::default(),
             tc_id: Default::default(),
             errors: Default::default(),
-            toxic_values: Default::default(),
             queued_beq_free: Default::default(),
             queued_tc: Default::default(),
             files: Default::default(),
@@ -189,7 +187,6 @@ impl PrismDb {
     pub fn reset(&mut self) {
         self.queued_beq_free.clear();
         self.errors.clear();
-        self.toxic_values.clear();
         self.tc_id = 0;
     }
 

@@ -43,7 +43,6 @@ impl PrismDb {
                 self.push_type_error(TypeError::ExpectType(io));
             }
         }
-        self.toxic_values.clear();
     }
 
     /// Expect `f` to be a function type with argument type `i_at` both valid in `s`.
@@ -65,7 +64,6 @@ impl PrismDb {
                         arg_type: (at, s.clone()),
                     })
                 }
-                self.toxic_values.clear();
 
                 let mut var_map1 = HashMap::new();
                 let mut var_map2 = HashMap::new();
@@ -100,7 +98,6 @@ impl PrismDb {
                     0,
                 );
                 assert!(is_beq_free);
-                self.toxic_values.clear();
 
                 let mut var_map1 = HashMap::new();
                 let mut var_map2 = HashMap::new();
@@ -116,7 +113,5 @@ impl PrismDb {
             }
             _ => self.push_type_error(TypeError::ExpectFn(ft)),
         }
-
-        self.toxic_values.clear();
     }
 }
