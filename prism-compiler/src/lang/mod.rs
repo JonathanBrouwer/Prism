@@ -90,6 +90,7 @@ pub struct PrismDb {
     tc_id: usize,
     toxic_values: HashSet<CoreIndex>,
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint>>,
+    queued_tc: HashMap<CoreIndex, (DbEnv, CoreIndex)>,
 
     pub errors: Vec<PrismError>,
 }
@@ -127,6 +128,7 @@ impl PrismDb {
             errors: Default::default(),
             toxic_values: Default::default(),
             queued_beq_free: Default::default(),
+            queued_tc: Default::default(),
             files: Default::default(),
         }
     }

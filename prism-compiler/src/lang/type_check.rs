@@ -12,13 +12,7 @@ impl PrismDb {
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
-        // We should only type check values from the source code
-        assert!(matches!(
-            self.checked_origins[*i],
-            ValueOrigin::SourceCode(_)
-        ));
-
+    pub fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
         let t = match self.checked_values[*i] {
             CorePrismExpr::Type => CorePrismExpr::Type,
             CorePrismExpr::Let(mut v, b) => {
@@ -99,8 +93,9 @@ impl PrismDb {
                 return et;
             }
             CorePrismExpr::Free => {
-                // TODO self.queued_tc.insert(i, (s.clone(), t));
-                CorePrismExpr::Free
+                let tid = self.store_checked(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
+                self.queued_tc.insert(i, (env.clone(), tid));
+                return tid;
             }
             CorePrismExpr::Shift(v, shift) => {
                 CorePrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
