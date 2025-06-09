@@ -157,7 +157,16 @@ impl PrismDb {
                     .with_label(label_fn)
                     .finish()
             }
-            TypeError::BadInfer { .. } => panic!(),
+            TypeError::BadInfer { free_var, .. } => {
+                let span = self.source_span(*free_var);
+                Report::build(ReportKind::Error, span)
+                    .with_message("Bad infer")
+                    .with_label(
+                        Label::new(span)
+                            .with_message("Internal problem when inferring this variable"),
+                    )
+                    .finish()
+            }
             TypeError::UnknownName(name) => Report::build(ReportKind::Error, *name)
                 .with_message("Undefined name within this scope.")
                 .with_label(Label::new(*name).with_message("This name is undefined."))
@@ -198,13 +207,14 @@ impl PrismDb {
         Some((span, origin_description))
     }
 
-    fn source_span(&self, idx: CoreIndex) -> Span {
-        let ValueOrigin::TypeOf(j) = self.checked_origins[idx.0] else {
-            unreachable!()
-        };
-        let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
-            unreachable!()
-        };
-        span
+    fn source_span(&self, mut idx: CoreIndex) -> Span {
+        loop {
+            match self.checked_origins[idx.0] {
+                ValueOrigin::SourceCode(span) => return span,
+                ValueOrigin::TypeOf(j) => idx = j,
+                ValueOrigin::FreeSub(j) => idx = j,
+                ValueOrigin::Failure => unreachable!(),
+            }
+        }
     }
 }

@@ -15,10 +15,7 @@ let pair
 let fst
     : (T1: Type) (T2 : (T1 -> Type)) -> Pair T1 T2 -> T1
     = (T1: Type) (T2: T1 -> Type) (p: Pair T1 T2) => p T1 (v1 v2 => v1);
-let snd
-    : (T1: Type) (T2 : (T1 -> Type)) -> (p: Pair T1 T2) -> T2 (fst T1 T2 p)
-    = (T1: Type) (T2: T1 -> Type) (p: Pair T1 T2) => p (T2 (fst T1 T2 p)) ((v1: T1) (v2: T2 v1) => v2);
 
 let test = pair Bool ((v1: Bool) => v1 Type Bool Type) true false;
 
-fst Bool ((v1: Bool) => v1 Type Bool Type) test
+fst Bool _ test
