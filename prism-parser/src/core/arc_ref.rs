@@ -16,7 +16,7 @@ impl<T> ArcSlice<T> {
         }
     }
 
-    pub fn to_borrowed(&self) -> BorrowedArcSlice<T> {
+    pub fn to_borrowed(&self) -> BorrowedArcSlice<'_, T> {
         BorrowedArcSlice {
             owner: &self.owner,
             reference: self.reference,

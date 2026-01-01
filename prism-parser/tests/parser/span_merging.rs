@@ -1,5 +1,3 @@
-use crate::parser::parse_test;
-
 parse_test! {
 name: span_merging
 syntax: r#"

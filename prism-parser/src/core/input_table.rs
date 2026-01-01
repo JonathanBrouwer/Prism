@@ -89,11 +89,11 @@ impl InputTable {
         }
     }
 
-    pub fn inner(&self) -> RwLockReadGuard<InputTableInner> {
+    pub fn inner(&self) -> RwLockReadGuard<'_, InputTableInner> {
         self.inner.read().unwrap()
     }
 
-    pub fn inner_mut(&self) -> RwLockWriteGuard<InputTableInner> {
+    pub fn inner_mut(&self) -> RwLockWriteGuard<'_, InputTableInner> {
         self.inner.write().unwrap()
     }
 }
