@@ -14,6 +14,7 @@ license = "MPL-2.0"
 prism_parser = { path = "prism_parser" }
 prism_input = { path = "prism_input" }
 prism_compiler = { path = "prism_compiler" }
+prism_diags = { path = "prism_diags" }
 
 # External
 clap = { version = "4.5", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }

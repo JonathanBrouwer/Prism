@@ -139,7 +139,7 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
 
                 let current_file = span.start_pos().file();
 
-                let mut path = env.db.input.inner().get_path(current_file);
+                let mut path = env.db.input.inner().get_path(current_file).to_path_buf();
                 assert!(path.pop());
                 path.push(format!("{}.pr", name.as_str()));
 

@@ -40,9 +40,9 @@ impl Span {
         self.start + self.len
     }
 
-    pub fn test() -> Self {
+    pub fn dummy() -> Self {
         Self {
-            start: Pos::test(),
+            start: Pos::dummy(),
             len: 0,
         }
     }

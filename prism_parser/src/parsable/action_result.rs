@@ -25,7 +25,7 @@ impl<Db> Parsable<Db> for ActionResult {
 
     fn error_fallback(_env: &mut Db, _span: Span) -> Self {
         Self {
-            span: Span::test(),
+            span: Span::dummy(),
             constructor: Input::from_const("[ERROR]"),
             args: Arc::new([]),
         }

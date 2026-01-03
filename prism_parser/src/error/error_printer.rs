@@ -1,5 +1,4 @@
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
-use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
 use std::fmt::{Display, Formatter};
 

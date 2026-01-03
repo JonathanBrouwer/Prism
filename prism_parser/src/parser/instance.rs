@@ -101,11 +101,12 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
 
         let (pv, errors) = self.state.parse_with_recovery(
             |state, ctx, penv| {
+                let file_start = state.input.inner().start_of(file);
                 let result = state.parse_rule(
                     &self.grammar_state,
                     rule,
                     &[],
-                    Pos::start_of(file),
+                    file_start,
                     ctx,
                     penv,
                     &Arc::new(Void).to_parsed(),
@@ -151,7 +152,7 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
 ) -> (Arc<P>, Arc<Tokens>, AggregatedParseError<E>) {
-    let full_span = Pos::start_of(file).span_to(input_table.inner().end_of_file(file));
+    let full_span = input_table.inner().span_of(file);
     let (pv, errs) = run_parser_rule_raw(rules, rule, input_table, file, parsables, penv);
 
     (
