@@ -7,7 +7,7 @@ fn test_ok([test]: [&str; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (_eval, expected_typ_str) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = PrismDb::new();
+    let mut env = PrismDb::default();
 
     let input = env.load_test(input_str, "input");
     let (input, _) = env.parse_prism_file(input);
@@ -33,7 +33,7 @@ fn test_ok([test]: [&str; 1]) {
 test_each_file! { for ["test"] in "prism_compiler/programs/ok" as ok => test_ok }
 
 fn test_fail([test]: [&str; 1]) {
-    let mut env = PrismDb::new();
+    let mut env = PrismDb::default();
     let input = env.load_test(test, "input");
     let (input, _) = env.parse_prism_file(input);
     let typ = env.type_check(input);

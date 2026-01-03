@@ -28,6 +28,11 @@ pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| 
 });
 
 impl PrismDb {
+    pub fn load_main_file(&mut self) -> InputTableIndex {
+        let file = self.args.input.clone();
+        self.load_file(file.into())
+    }
+
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
         let program = std::fs::read_to_string(&path).unwrap();
         self.input.inner_mut().get_or_push_file(program, path)

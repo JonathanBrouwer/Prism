@@ -1,26 +1,27 @@
 use crate::pos::Pos;
 use crate::span::Span;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct InputTable {
     inner: RwLock<InputTableInner>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct InputTableInner {
     files: Vec<InputTableEntry>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 struct InputTableEntry {
     path: PathBuf,
     source: String,
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct InputTableIndex(usize);
 
 impl InputTableIndex {
@@ -78,6 +79,22 @@ impl InputTableInner {
     pub fn slice(&self, span: Span) -> &str {
         let start = span.start_pos().idx_in_file();
         &self.get_str(span.start_pos().file())[start..start + span.len()]
+    }
+
+    /// Returns (line, col) of the pos
+    /// Both are 0-indexed
+    /// Not very efficient...
+    pub fn line_col_of(&self, pos: Pos) -> (usize, usize) {
+        let input = self.get_str(pos.file());
+
+        let line = input[0..pos.idx_in_file()]
+            .chars()
+            .filter(|c| *c == '\n')
+            .count();
+
+        let last_line_start = input[0..pos.idx_in_file()].rfind('\n').unwrap_or(0);
+        let col = input[last_line_start..pos.idx_in_file()].len();
+        (line, col)
     }
 }
 

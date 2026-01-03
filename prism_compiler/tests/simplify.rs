@@ -13,7 +13,7 @@ fn test([test]: [&str; 1]) {
 }
 
 fn check(input_str: &str) {
-    let mut env = PrismDb::new();
+    let mut env = PrismDb::default();
     let input = env.load_test(input_str, "input");
     let (input, _) = env.parse_prism_file(input);
 

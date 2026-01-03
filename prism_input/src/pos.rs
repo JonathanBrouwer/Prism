@@ -1,19 +1,23 @@
 use crate::input_table::{InputTable, InputTableIndex};
 use crate::span::Span;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct Pos(usize, InputTableIndex);
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Pos {
+    file: InputTableIndex,
+    idx: usize,
+}
 
 #[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for Pos {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.1 != other.1 {
+        if self.file != other.file {
             return None;
         }
-        Some(self.0.cmp(&other.0))
+        Some(self.idx.cmp(&other.idx))
     }
 }
 
@@ -24,20 +28,20 @@ impl Ord for Pos {
 }
 
 impl Pos {
-    pub(crate) fn start_of(idx: InputTableIndex) -> Self {
-        Self(0, idx)
+    pub(crate) fn start_of(file: InputTableIndex) -> Self {
+        Self { file, idx: 0 }
     }
 
     pub fn file(self) -> InputTableIndex {
-        self.1
+        self.file
     }
 
     pub fn file_ref(&self) -> &InputTableIndex {
-        &self.1
+        &self.file
     }
 
     pub fn idx_in_file(self) -> usize {
-        self.0
+        self.idx
     }
 
     pub fn span_to(self, other: Self) -> Span {
@@ -45,23 +49,26 @@ impl Pos {
     }
 
     pub fn next(self, input: &InputTable) -> (Self, Option<(Span, char)>) {
-        match input.inner().get_str(self.1)[self.0..].chars().next() {
+        match input.inner().get_str(self.file)[self.idx..].chars().next() {
             None => (self, None),
             Some(c) => (
-                Self(self.0 + c.len_utf8(), self.1),
+                self + c.len_utf8(),
                 Some((Span::new(self, c.len_utf8()), c)),
             ),
         }
     }
 
     pub fn dummy() -> Self {
-        Self(0, InputTableIndex::dummy())
+        Self {
+            file: InputTableIndex::dummy(),
+            idx: 0,
+        }
     }
 }
 
 impl Display for Pos {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.idx)
     }
 }
 
@@ -69,7 +76,10 @@ impl Add<usize> for Pos {
     type Output = Pos;
 
     fn add(self, rhs: usize) -> Self::Output {
-        Pos(self.0 + rhs, self.1)
+        Pos {
+            file: self.file,
+            idx: self.idx + rhs,
+        }
     }
 }
 
@@ -77,7 +87,7 @@ impl Sub<Pos> for Pos {
     type Output = usize;
 
     fn sub(self, rhs: Pos) -> Self::Output {
-        assert_eq!(self.1, rhs.1);
-        self.0 - rhs.0
+        assert_eq!(self.file, rhs.file);
+        self.idx - rhs.idx
     }
 }

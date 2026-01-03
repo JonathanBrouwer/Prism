@@ -70,8 +70,8 @@ impl ParseError for SetError {
         }
 
         Diag {
-            title: "Parsing failed",
-            id: "parser",
+            title: "Parsing failed".into(),
+            id: "parser".into(),
             groups: vec![AnnotationGroup {
                 annotations: labels_map
                     .into_iter()

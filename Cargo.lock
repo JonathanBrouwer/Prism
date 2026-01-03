@@ -535,6 +535,8 @@ dependencies = [
  "prism_diag_derive",
  "prism_input",
  "prism_parser",
+ "serde",
+ "serde_json",
  "test_each_file",
  "ui_test",
 ]
@@ -545,7 +547,7 @@ version = "0.2.0"
 dependencies = [
  "annotate-snippets 0.12.10",
  "prism_input",
- "serde_json",
+ "serde",
 ]
 
 [[package]]
@@ -562,6 +564,9 @@ dependencies = [
 [[package]]
 name = "prism_input"
 version = "0.2.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "prism_lsp"

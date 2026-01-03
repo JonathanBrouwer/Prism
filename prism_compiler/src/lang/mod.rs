@@ -1,3 +1,4 @@
+use crate::args::PrismArgs;
 use crate::parser::{GRAMMAR, ParserPrismEnv};
 use prism_diag::{Diag, IntoDiag};
 use prism_input::input_table::{InputTable, InputTableIndex};
@@ -60,6 +61,8 @@ pub enum CorePrismExpr {
 }
 
 pub struct PrismDb {
+    pub args: PrismArgs,
+
     // File info
     pub input: Arc<InputTable>,
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
@@ -86,13 +89,14 @@ pub struct ProcessedFile {
 
 impl Default for PrismDb {
     fn default() -> Self {
-        Self::new()
+        Self::new(PrismArgs::default())
     }
 }
 
 impl PrismDb {
-    pub fn new() -> Self {
+    pub fn new(args: PrismArgs) -> Self {
         Self {
+            args,
             input: Arc::new(GRAMMAR.0.deep_clone()),
 
             checked_values: Default::default(),
