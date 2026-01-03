@@ -111,8 +111,7 @@ impl PrismDb {
     }
 
     pub fn index_to_br_string(&mut self, i: CoreIndex, env: &DbEnv) -> String {
-        let mut tc_env = TypecheckPrismEnv::new(self);
-        let i = tc_env.beta_reduce(i, env);
+        let i = self.beta_reduce(i, env);
         self.index_to_string(i)
     }
 }

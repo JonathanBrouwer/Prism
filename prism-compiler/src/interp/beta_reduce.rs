@@ -1,14 +1,17 @@
-use crate::lang::CoreIndex;
 use crate::lang::CorePrismExpr;
 use crate::lang::env::{DbEnv, EnvEntry};
+use crate::lang::{CoreIndex, PrismDb};
 use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
 use std::collections::HashMap;
 
-impl<'a> TypecheckPrismEnv<'a> {
+impl PrismDb {
     pub fn beta_reduce(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
-        self.beta_reduce_inner(i, env, &mut HashMap::new())
+        let mut tc_env = TypecheckPrismEnv::new(self);
+        tc_env.beta_reduce_inner(i, env, &mut HashMap::new())
     }
+}
 
+impl<'a> TypecheckPrismEnv<'a> {
     fn beta_reduce_inner(
         &mut self,
         i: CoreIndex,

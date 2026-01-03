@@ -10,12 +10,10 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
-mod beta_reduce_head;
 pub mod display;
 pub mod env;
 pub mod error;
 pub mod grammar;
-pub mod is_beta_equal;
 pub mod simplify;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
