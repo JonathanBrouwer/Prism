@@ -2,7 +2,7 @@ use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;

@@ -50,16 +50,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
-name = "ariadne"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8454c8a44ce2cb9cc7e7fae67fc6128465b343b92c6631e94beca3c8d1524ea5"
-dependencies = [
- "unicode-width",
- "yansi",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -540,7 +530,6 @@ dependencies = [
 name = "prism_compiler"
 version = "0.2.0"
 dependencies = [
- "ariadne",
  "clap",
  "prism_diags",
  "prism_input",
@@ -561,15 +550,11 @@ dependencies = [
 [[package]]
 name = "prism_input"
 version = "0.2.0"
-dependencies = [
- "ariadne",
-]
 
 [[package]]
 name = "prism_lsp"
 version = "0.2.0"
 dependencies = [
- "ariadne",
  "prism_compiler",
  "prism_input",
  "prism_parser",
@@ -581,7 +566,7 @@ dependencies = [
 name = "prism_parser"
 version = "0.2.0"
 dependencies = [
- "ariadne",
+ "prism_diags",
  "prism_input",
  "rmp-serde",
  "serde",
@@ -1189,12 +1174,6 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
-
-[[package]]
-name = "yansi"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "zmij"

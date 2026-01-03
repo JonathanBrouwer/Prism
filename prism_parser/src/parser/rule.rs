@@ -4,7 +4,7 @@ use crate::core::context::{PV, ParserContext};
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use prism_input::pos::Pos;

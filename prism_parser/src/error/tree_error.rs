@@ -1,6 +1,6 @@
 use crate::error::ParseError;
-use crate::error::error_printer::{ErrorLabel, base_report};
-use ariadne::{Label, Report, ReportBuilder};
+use crate::error::error_label::ErrorLabel;
+use prism_diags::Diag;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::max;
@@ -101,29 +101,30 @@ impl ParseError for TreeError {
         self.span = Span::new_with_end(self.span.start_pos(), end);
     }
 
-    fn report(&self) -> Report<'static, Span> {
-        let mut report: ReportBuilder<Span> = base_report(self.span);
-
-        //Add labels
-        for path in self.labels.into_paths() {
-            if path.is_empty() {
-                continue;
-            }
-            let label = &path[0];
-
-            report = report.with_label(
-                Label::new(label.span())
-                    .with_message(
-                        path.iter()
-                            .map(|v| v.to_string())
-                            .collect::<Vec<_>>()
-                            .join(" <- ")
-                            .to_string(),
-                    )
-                    .with_order(-(label.span().start_pos().idx_in_file() as i32)),
-            );
-        }
-
-        report.finish()
+    fn diag(&self) -> Diag {
+        todo!()
+        // let mut report: ReportBuilder<Span> = base_report(self.span);
+        //
+        // //Add labels
+        // for path in self.labels.into_paths() {
+        //     if path.is_empty() {
+        //         continue;
+        //     }
+        //     let label = &path[0];
+        //
+        //     report = report.with_label(
+        //         Label::new(label.span())
+        //             .with_message(
+        //                 path.iter()
+        //                     .map(|v| v.to_string())
+        //                     .collect::<Vec<_>>()
+        //                     .join(" <- ")
+        //                     .to_string(),
+        //             )
+        //             .with_order(-(label.span().start_pos().idx_in_file() as i32)),
+        //     );
+        // }
+        //
+        // report.finish()
     }
 }

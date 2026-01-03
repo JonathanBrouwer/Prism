@@ -7,9 +7,9 @@ license.workspace = true
 
 [dependencies]
 serde.workspace = true
-ariadne.workspace = true
 rmp-serde.workspace = true
 prism_input.workspace = true
+prism_diags.workspace = true
 
 [lints.clippy]
 used_underscore_binding = "deny"

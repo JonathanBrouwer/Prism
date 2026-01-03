@@ -4,7 +4,7 @@ use crate::core::context::{PV, ParserContext};
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::parsed::Parsed;

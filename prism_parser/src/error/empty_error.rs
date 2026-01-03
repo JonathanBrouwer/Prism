@@ -1,6 +1,6 @@
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
-use ariadne::Report;
+use crate::error::error_label::ErrorLabel;
+use prism_diags::Diag;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 
@@ -29,7 +29,7 @@ impl ParseError for EmptyError {
 
     fn set_end(&mut self, _: Pos) {}
 
-    fn report(&self) -> Report<'static, Span> {
+    fn diag(&self) -> Diag {
         unreachable!()
     }
 }

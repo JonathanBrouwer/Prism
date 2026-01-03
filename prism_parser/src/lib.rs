@@ -6,7 +6,7 @@ use std::sync::{Arc, LazyLock};
 use self::core::tokens::Tokens;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::parser::instance::run_parser_rule;
 use grammar::grammar_file::GrammarFile;
 use prism_input::input_table::InputTable;

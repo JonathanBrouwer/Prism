@@ -1,10 +1,10 @@
 pub mod aggregate_error;
 pub mod empty_error;
-pub mod error_printer;
+pub mod error_label;
 pub mod set_error;
 pub mod tree_error;
 
-use ariadne::Report;
+use prism_diags::Diag;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::Ordering;
@@ -18,7 +18,7 @@ pub trait ParseError: Sized + Clone {
     fn merge(self, other: Self) -> Self;
     fn span(&self) -> Span;
     fn set_end(&mut self, end: Pos);
-    fn report(&self) -> Report<'static, Span>;
+    fn diag(&self) -> Diag;
 }
 
 pub fn err_combine<E: ParseError>((xe, xs): (E, Pos), (ye, ys): (E, Pos)) -> (E, Pos) {

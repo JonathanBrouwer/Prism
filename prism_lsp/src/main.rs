@@ -1,9 +1,6 @@
-use ariadne::Cache;
 use prism_compiler::lang::PrismDb;
-use prism_compiler::lang::error::PrismError;
 use prism_input::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
-use prism_parser::error::ParseError;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::mem::take;
@@ -250,34 +247,34 @@ impl LanguageServer for Backend {
                 }
 
                 // Convert span to LSP token info
-                let source = (&mut file_inner).fetch(&index).unwrap();
-                let (_line, cur_line, cur_start) = source
-                    .get_offset_line(token.span.start_pos().idx_in_file())
-                    .unwrap();
+                // let source = (&mut file_inner).fetch(&index).unwrap();
+                // let (_line, cur_line, cur_start) = source
+                //     .get_offset_line(token.span.start_pos().idx_in_file())
+                //     .unwrap();
 
-                lsp_tokens.push(SemanticToken {
-                    delta_line: (cur_line - prev_line) as u32,
-                    delta_start: if cur_line == prev_line {
-                        cur_start - prev_start
-                    } else {
-                        cur_start
-                    } as u32,
-                    length: token.span.len() as u32,
-                    token_type: match token.token_type {
-                        TokenType::Layout => 0,
-                        TokenType::CharClass => 1,
-                        TokenType::Slice => 1,
-                        TokenType::Variable => 1,
-                        TokenType::Keyword => 2,
-                        TokenType::Symbol => 3,
-                        TokenType::String => 4,
-                        TokenType::Number => 5,
-                    },
-                    token_modifiers_bitset: 0,
-                });
-
-                prev_line = cur_line;
-                prev_start = cur_start;
+                // lsp_tokens.push(SemanticToken {
+                //     delta_line: (cur_line - prev_line) as u32,
+                //     delta_start: if cur_line == prev_line {
+                //         cur_start - prev_start
+                //     } else {
+                //         cur_start
+                //     } as u32,
+                //     length: token.span.len() as u32,
+                //     token_type: match token.token_type {
+                //         TokenType::Layout => 0,
+                //         TokenType::CharClass => 1,
+                //         TokenType::Slice => 1,
+                //         TokenType::Variable => 1,
+                //         TokenType::Keyword => 2,
+                //         TokenType::Symbol => 3,
+                //         TokenType::String => 4,
+                //         TokenType::Number => 5,
+                //     },
+                //     token_modifiers_bitset: 0,
+                // });
+                //
+                // prev_line = cur_line;
+                // prev_start = cur_start;
             }
         };
 
@@ -318,46 +315,47 @@ impl BackendInner {
         {
             let file_inner = self.db.input.inner();
             let mut file_inner = &*file_inner;
-            let source = (&mut file_inner).fetch(&index).unwrap();
+            // let source = (&mut file_inner).fetch(&index).unwrap();
             for err in errs {
-                match err {
-                    PrismError::ParseError(e) => {
-                        let (_line, start_line, start_char) = source
-                            .get_offset_line(e.span().start_pos().idx_in_file())
-                            .unwrap();
-
-                        let (_line, end_line, end_char) = source
-                            .get_offset_line(e.span().end_pos().idx_in_file())
-                            .unwrap();
-
-                        let message = format!(
-                            "Failed to parse, expected one of {}",
-                            e.labels
-                                .iter()
-                                .map(|v| v.to_string())
-                                .collect::<Vec<_>>()
-                                .join(" ")
-                        );
-
-                        diags.push(Diagnostic {
-                            range: Range {
-                                start: Position {
-                                    line: start_line as u32,
-                                    character: start_char as u32,
-                                },
-                                end: Position {
-                                    line: end_line as u32,
-                                    character: end_char as u32,
-                                },
-                            },
-                            severity: Some(DiagnosticSeverity::ERROR),
-                            message,
-                            ..Diagnostic::default()
-                        })
-                    }
-                    PrismError::TypeError(_e) => {}
-                }
+                todo!()
             }
+            //     match err {
+            //         PrismError::ParseError(e) => {
+            //             let (_line, start_line, start_char) = source
+            //                 .get_offset_line(e.span().start_pos().idx_in_file())
+            //                 .unwrap();
+            //
+            //             let (_line, end_line, end_char) = source
+            //                 .get_offset_line(e.span().end_pos().idx_in_file())
+            //                 .unwrap();
+            //
+            //             let message = format!(
+            //                 "Failed to parse, expected one of {}",
+            //                 e.labels
+            //                     .iter()
+            //                     .map(|v| v.to_string())
+            //                     .collect::<Vec<_>>()
+            //                     .join(" ")
+            //             );
+            //
+            //             diags.push(Diagnostic {
+            //                 range: Range {
+            //                     start: Position {
+            //                         line: start_line as u32,
+            //                         character: start_char as u32,
+            //                     },
+            //                     end: Position {
+            //                         line: end_line as u32,
+            //                         character: end_char as u32,
+            //                     },
+            //                 },
+            //                 severity: Some(DiagnosticSeverity::ERROR),
+            //                 message,
+            //                 ..Diagnostic::default()
+            //             })
+            //         }
+            //         PrismError::TypeError(_e) => {}
+            //     }
         }
 
         client
