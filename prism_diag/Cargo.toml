@@ -7,5 +7,5 @@ license.workspace = true
 
 [dependencies]
 prism_input.workspace = true
-serde_json.workspace = true
+serde.workspace = true
 annotate-snippets.workspace = true

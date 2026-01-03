@@ -1,2 +1,1 @@
-//@check-pass
-Type Type
+Type Type //~ expected_fn

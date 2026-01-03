@@ -1,21 +1,14 @@
 use clap::Parser;
+use prism_compiler::args::PrismArgs;
 use prism_compiler::lang::PrismDb;
 use std::process::exit;
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-    /// Specifies the path to an input .pr file. If None, it means stdin is used for input.
-    input: String,
-}
-
 fn main() {
-    let args = Args::parse();
-
-    let mut env = PrismDb::new();
+    let args = PrismArgs::parse();
+    let mut env = PrismDb::new(args);
 
     //Load file
-    let program = env.load_file(args.input.into());
+    let program = env.load_main_file();
     let _processed = env.process_file(program);
 
     // Print info

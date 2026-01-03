@@ -10,7 +10,7 @@ fn test_ok([test_path]: [&Path; 1]) {
     let (input_str, rest) = rest.split_once("### Eval\n").unwrap();
     let (_eval, _expected_typ) = rest.split_once("### Type\n").unwrap();
 
-    let mut env = PrismDb::new();
+    let mut env = PrismDb::default();
     let input = env.load_test(input_str, "input");
     let _input = env.parse_prism_file(input);
 

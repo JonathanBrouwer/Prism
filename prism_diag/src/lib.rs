@@ -5,18 +5,22 @@ use annotate_snippets::renderer::DecorStyle;
 use annotate_snippets::{AnnotationKind, Group, Renderer, Snippet};
 use prism_input::input_table::InputTableInner;
 use prism_input::span::Span;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Diag {
     // pub level: Level<'static>,
-    pub title: &'static str,
-    pub id: &'static str,
+    pub title: String,
+    pub id: String,
     pub groups: Vec<AnnotationGroup>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct AnnotationGroup {
     pub annotations: Vec<Annotation>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Annotation {
     pub span: Span,
     pub label: Option<String>,
@@ -45,7 +49,7 @@ impl RenderConfig {
 impl Diag {
     pub fn render(&self, config: &RenderConfig, input: &InputTableInner) -> String {
         let mut diag: Group =
-            Group::with_title(ERROR.clone().primary_title(self.title).id(self.id));
+            Group::with_title(ERROR.clone().primary_title(&self.title).id(&self.id));
 
         for group in &self.groups {
             let file = group.annotations[0].span.start_pos().file();

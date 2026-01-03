@@ -1,6 +1,7 @@
 use crate::pos::Pos;
+use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Span {
     start: Pos,
     len: usize,

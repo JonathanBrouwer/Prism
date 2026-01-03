@@ -66,8 +66,8 @@ fn derive_diagnostic(s: Structure<'_>) -> proc_macro::TokenStream {
         impl<#env_param> ::prism_diag::IntoDiag<#env_generic> for #struct_name {
             fn into_diag(self, env: &mut #env_generic) -> ::prism_diag::Diag {
                 ::prism_diag::Diag {
-                    title: #title,
-                    id: #diag_id,
+                    title: #title.to_string(),
+                    id: #diag_id.to_string(),
                     groups: vec![
                         #(#groups),*
                     ]
