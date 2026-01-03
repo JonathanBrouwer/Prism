@@ -16,7 +16,6 @@ fn check(input_str: &str) {
     let mut env = PrismDb::new();
     let input = env.load_test(input_str, "input");
     let (input, _) = env.parse_prism_file(input);
-    let input = env.parsed_to_checked(input);
 
     let sm = env.simplify(input);
     env.assert_no_errors();

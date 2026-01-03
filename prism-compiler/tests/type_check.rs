@@ -11,12 +11,10 @@ fn test_ok([test]: [&str; 1]) {
 
     let input = env.load_test(input_str, "input");
     let (input, _) = env.parse_prism_file(input);
-    let input = env.parsed_to_checked(input);
     let typ = env.type_check(input);
 
     let expected_typ = env.load_test(expected_typ_str, "expected_typ");
     let (expected_typ, _) = env.parse_prism_file(expected_typ);
-    let expected_typ = env.parsed_to_checked(expected_typ);
 
     env.assert_no_errors();
 
@@ -38,7 +36,6 @@ fn test_fail([test]: [&str; 1]) {
     let mut env = PrismDb::new();
     let input = env.load_test(test, "input");
     let (input, _) = env.parse_prism_file(input);
-    let input = env.parsed_to_checked(input);
     let typ = env.type_check(input);
 
     if env.errors.is_empty() {

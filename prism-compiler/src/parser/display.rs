@@ -1,8 +1,7 @@
 use std::fmt::Write;
 
-use crate::lang::PrismDb;
 use crate::lang::display::PrecedenceLevel;
-use crate::parser::{ParsedIndex, ParsedPrismExpr};
+use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 
 impl ParsedPrismExpr {
     /// Returns the precedence level of a `PartialExpr`
@@ -24,7 +23,7 @@ impl ParsedPrismExpr {
     }
 }
 
-impl PrismDb {
+impl<'a> ParserPrismEnv<'a> {
     fn parse_display(
         &self,
         i: ParsedIndex,

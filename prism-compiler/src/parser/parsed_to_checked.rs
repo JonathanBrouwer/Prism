@@ -1,11 +1,11 @@
 use crate::lang::error::{PrismError, TypeError};
-use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
+use crate::lang::{CoreIndex, CorePrismExpr, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
-use crate::parser::{ParsedIndex, ParsedPrismExpr};
+use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::HashMap;
 
-impl PrismDb {
+impl<'a> ParserPrismEnv<'a> {
     pub fn parsed_to_checked(&mut self, i: ParsedIndex) -> CoreIndex {
         self.parsed_to_checked_with_env(i, &NamedEnv::default(), &mut Default::default())
     }
@@ -63,20 +63,22 @@ impl PrismDb {
                         prev_env_len,
                     }) => {
                         let adapt_env_len = adapt_env_len - 1;
-                        let grammar_expr = self.store_checked(
+                        let grammar_expr = self.db.store_checked(
                             CorePrismExpr::DeBruijnIndex(env.len() - adapt_env_len - 1),
                             origin,
                         );
 
                         // println!("{adapt_env_len} {prev_env_len}");
                         let idx = prev_env_len + 1;
-                        let e = self.store_checked(CorePrismExpr::DeBruijnIndex(idx), origin);
-                        let mut e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                        let e = self
+                            .db
+                            .store_checked(CorePrismExpr::DeBruijnIndex(idx), origin);
+                        let mut e = self.db.store_checked(CorePrismExpr::FnConstruct(e), origin);
                         for _ in 0..grammar_env_len {
-                            e = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                            e = self.db.store_checked(CorePrismExpr::FnConstruct(e), origin);
                         }
-                        let free_return_type = self.store_checked(CorePrismExpr::Free, origin);
-                        let grammar_expr = self.store_checked(
+                        let free_return_type = self.db.store_checked(CorePrismExpr::Free, origin);
+                        let grammar_expr = self.db.store_checked(
                             CorePrismExpr::FnDestruct(grammar_expr, free_return_type),
                             origin,
                         );
@@ -86,7 +88,7 @@ impl PrismDb {
                         if let Some(&expr) = parsed.try_value_ref::<ParsedIndex>() {
                             return self.parsed_to_checked_with_env(
                                 expr,
-                                &env.shift_back(old_names, &self.input),
+                                &env.shift_back(old_names, &self.db.input),
                                 jump_labels,
                             );
                         } else {
@@ -94,7 +96,8 @@ impl PrismDb {
                         }
                     }
                     None => {
-                        self.errors
+                        self.db
+                            .errors
                             .push(PrismError::TypeError(TypeError::UnknownName(
                                 self.parsed_spans[*i],
                             )));
@@ -108,17 +111,31 @@ impl PrismDb {
                 let grammar = grammar.clone();
 
                 // Create \T: Type. \f. ((f [env0] [env1] grammar ...): T)
-                let mut e = self.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+                let mut e = self
+                    .db
+                    .store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
                 for i in 0..env.len() {
                     // +2 to skip `T` and `f`
-                    let v = self.store_checked(CorePrismExpr::DeBruijnIndex(i + 2), origin);
-                    e = self.store_checked(CorePrismExpr::FnDestruct(e, v), origin);
+                    let v = self
+                        .db
+                        .store_checked(CorePrismExpr::DeBruijnIndex(i + 2), origin);
+                    e = self
+                        .db
+                        .store_checked(CorePrismExpr::FnDestruct(e, v), origin);
                 }
-                let g = self.store_checked(CorePrismExpr::GrammarValue(grammar), origin);
-                let e = self.store_checked(CorePrismExpr::FnDestruct(e, g), origin);
-                let body_type = self.store_checked(CorePrismExpr::DeBruijnIndex(1), origin);
-                let e = self.store_checked(CorePrismExpr::TypeAssert(e, body_type), origin);
-                let f = self.store_checked(CorePrismExpr::FnConstruct(e), origin);
+                let g = self
+                    .db
+                    .store_checked(CorePrismExpr::GrammarValue(grammar), origin);
+                let e = self
+                    .db
+                    .store_checked(CorePrismExpr::FnDestruct(e, g), origin);
+                let body_type = self
+                    .db
+                    .store_checked(CorePrismExpr::DeBruijnIndex(1), origin);
+                let e = self
+                    .db
+                    .store_checked(CorePrismExpr::TypeAssert(e, body_type), origin);
+                let f = self.db.store_checked(CorePrismExpr::FnConstruct(e), origin);
                 CorePrismExpr::FnConstruct(f)
             }
             ParsedPrismExpr::ShiftTo {
@@ -164,6 +181,6 @@ impl PrismDb {
             }
             ParsedPrismExpr::Include(_, v) => return *v,
         };
-        self.store_checked(e, origin)
+        self.db.store_checked(e, origin)
     }
 }

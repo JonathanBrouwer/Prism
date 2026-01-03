@@ -19,10 +19,10 @@ fn main() {
     let processed = env.process_file(program);
 
     // Print info
-    println!(
-        "> Parsed Program\n====================\n{}\n\n",
-        env.parse_index_to_string(processed.parsed),
-    );
+    // println!(
+    //     "> Parsed Program\n====================\n{}\n\n",
+    //     env.parse_index_to_string(processed.parsed),
+    // );
     println!(
         "> Core Program\n====================\n{}\n\n",
         env.index_to_string(processed.core),

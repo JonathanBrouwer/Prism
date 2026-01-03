@@ -1,6 +1,6 @@
 use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::PrismError;
-use crate::parser::{GRAMMAR, ParsedIndex, ParsedPrismExpr};
+use crate::parser::{GRAMMAR, ParserPrismEnv};
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
 use prism_parser::core::span::Span;
 use prism_parser::core::tokens::Tokens;
@@ -77,10 +77,6 @@ pub struct PrismDb {
     pub input: Arc<InputTable>,
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
 
-    // Parsed Values
-    pub parsed_values: Vec<ParsedPrismExpr>,
-    pub parsed_spans: Vec<Span>,
-
     // Checked Values
     pub checked_values: Vec<CorePrismExpr>,
     pub checked_origins: Vec<ValueOrigin>,
@@ -101,7 +97,6 @@ enum ProcessedFileTableEntry {
 
 #[derive(Clone)]
 pub struct ProcessedFile {
-    pub parsed: ParsedIndex,
     pub core: CoreIndex,
     pub typ: CoreIndex,
     pub tokens: Arc<Tokens>,
@@ -118,8 +113,6 @@ impl PrismDb {
         Self {
             input: Arc::new(GRAMMAR.0.deep_clone()),
 
-            parsed_values: Default::default(),
-            parsed_spans: Default::default(),
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),
@@ -142,20 +135,22 @@ impl PrismDb {
             Entry::Vacant(v) => v.insert(ProcessedFileTableEntry::Processing),
         };
 
-        let (parsed, tokens) = self.parse_prism_file(file);
-        let core = self.parsed_to_checked(parsed);
+        let (core, tokens) = self.parse_prism_file(file);
+
         let typ = self.type_check(core);
-        let processed_file = ProcessedFile {
-            parsed,
-            core,
-            typ,
-            tokens,
-        };
+        let processed_file = ProcessedFile { core, typ, tokens };
         self.files.insert(
             file,
             ProcessedFileTableEntry::Processed(processed_file.clone()),
         );
         processed_file
+    }
+
+    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> (CoreIndex, Arc<Tokens>) {
+        let mut parse_env = ParserPrismEnv::new(self);
+        let (parsed, tokens) = parse_env.parse_file(file);
+        let core = parse_env.parsed_to_checked(parsed);
+        (core, tokens)
     }
 
     pub fn update_file(&mut self, file: InputTableIndex, content: String) {
@@ -166,16 +161,6 @@ impl PrismDb {
     pub fn remove_file(&mut self, file: InputTableIndex) {
         self.files.remove(&file);
         self.input.inner_mut().remove(file);
-    }
-
-    pub fn store_from_source(&mut self, e: ParsedPrismExpr, span: Span) -> ParsedIndex {
-        self.store_parsed(e, span)
-    }
-
-    fn store_parsed(&mut self, e: ParsedPrismExpr, origin: Span) -> ParsedIndex {
-        self.parsed_values.push(e);
-        self.parsed_spans.push(origin);
-        ParsedIndex(self.parsed_values.len() - 1)
     }
 
     pub fn store_checked(&mut self, e: CorePrismExpr, origin: ValueOrigin) -> CoreIndex {

@@ -1,7 +1,7 @@
+use crate::lang::CorePrismExpr;
 use crate::lang::env::{DbEnv, EnvEntry};
-use crate::lang::{CorePrismExpr, PrismDb};
 use crate::parser::named_env::NamedEnv;
-use crate::parser::{ParsedIndex, ParsedPrismExpr};
+use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
@@ -16,8 +16,8 @@ pub type PrismEvalCtx = GenericEnv<ParsedPlaceholder, Option<ParsedPlaceholder>>
 
 pub fn eval_ctx_to_envs(
     env: &PrismEvalCtx,
-    placeholders: &PlaceholderStore<PrismDb>,
-    prism_env: &mut PrismDb,
+    placeholders: &PlaceholderStore<ParserPrismEnv<'_>>,
+    prism_env: &mut ParserPrismEnv<'_>,
 ) -> (NamedEnv, DbEnv) {
     match env.split() {
         None => (NamedEnv::default(), DbEnv::default()),
@@ -26,7 +26,7 @@ pub fn eval_ctx_to_envs(
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
             let dummy_named_env = named_env.insert_name(Input::from_const("_"));
-            let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.new_tc_id()));
+            let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.db.new_tc_id()));
 
             // If the name or value of this entry is not known, continue
             let Some(key) = placeholders.get(*key) else {
@@ -52,10 +52,15 @@ pub fn eval_ctx_to_envs(
     }
 }
 
-impl Parsable<PrismDb> for ParsedIndex {
+impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
     type EvalCtx = PrismEvalCtx;
 
-    fn from_construct(span: Span, constructor: &Input, args: &[Parsed], env: &mut PrismDb) -> Self {
+    fn from_construct(
+        span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        env: &mut ParserPrismEnv<'_>,
+    ) -> Self {
         let expr: ParsedPrismExpr = match constructor.as_str() {
             "Type" => {
                 assert_eq!(args.len(), 0);
@@ -133,14 +138,14 @@ impl Parsable<PrismDb> for ParsedIndex {
 
                 let current_file = span.start_pos().file();
 
-                let mut path = env.input.inner().get_path(current_file);
+                let mut path = env.db.input.inner().get_path(current_file);
                 assert!(path.pop());
                 path.push(format!("{}.pr", name.as_str()));
 
-                let next_file = env.load_file(path);
+                let next_file = env.db.load_file(path);
 
                 //TODO properly do errors
-                let processed_file = env.process_file(next_file);
+                let processed_file = env.db.process_file(next_file);
 
                 ParsedPrismExpr::Include(name, processed_file.core)
             }
@@ -154,7 +159,7 @@ impl Parsable<PrismDb> for ParsedIndex {
         constructor: &Input,
         parent_ctx: &Self::EvalCtx,
         arg_placeholders: &[ParsedPlaceholder],
-        _env: &mut PrismDb,
+        _env: &mut ParserPrismEnv<'_>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
         match constructor.as_str() {
             "Type" => {
@@ -209,44 +214,48 @@ impl Parsable<PrismDb> for ParsedIndex {
     fn eval_to_grammar(
         self: &Arc<ParsedIndex>,
         eval_ctx: &Self::EvalCtx,
-        placeholders: &PlaceholderStore<PrismDb>,
-        env: &mut PrismDb,
+        placeholders: &PlaceholderStore<ParserPrismEnv<'_>>,
+        env: &mut ParserPrismEnv<'_>,
     ) -> Arc<GrammarFile> {
         // Create context, ignore any errors that occur in this process
-        let error_count = env.errors.len();
+        let error_count = env.db.errors.len();
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, env);
-        env.errors.truncate(error_count);
+        env.db.errors.truncate(error_count);
 
         // Get original grammar function
         let original_e =
             env.parsed_to_checked_with_env(**self, &named_env, &mut Default::default());
-        let origin = env.checked_origins[original_e.0];
+        let origin = env.db.checked_origins[original_e.0];
 
         // Evaluate this to the grammar function
-        let (grammar_fn_value, grammar_fn_env) = env.beta_reduce_head(original_e, &db_env);
+        let (grammar_fn_value, grammar_fn_env) = env.db.beta_reduce_head(original_e, &db_env);
 
         // Create expression that takes first element from this function
-        let e = env.store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
-        let mut e = env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+        let e = env
+            .db
+            .store_checked(CorePrismExpr::DeBruijnIndex(0), origin);
+        let mut e = env.db.store_checked(CorePrismExpr::FnConstruct(e), origin);
         for _ in 0..grammar_fn_env.len() {
-            e = env.store_checked(CorePrismExpr::FnConstruct(e), origin);
+            e = env.db.store_checked(CorePrismExpr::FnConstruct(e), origin);
         }
-        let free_returntype = env.store_checked(CorePrismExpr::Free, origin);
-        let grammar_fn_value = env.store_checked(
+        let free_returntype = env.db.store_checked(CorePrismExpr::Free, origin);
+        let grammar_fn_value = env.db.store_checked(
             CorePrismExpr::FnDestruct(grammar_fn_value, free_returntype),
             origin,
         );
-        let e = env.store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
+        let e = env
+            .db
+            .store_checked(CorePrismExpr::FnDestruct(grammar_fn_value, e), origin);
 
         // Evaluate this further
-        let (reduced_value, _reduced_env) = env.beta_reduce_head(e, &db_env);
+        let (reduced_value, _reduced_env) = env.db.beta_reduce_head(e, &db_env);
 
-        let CorePrismExpr::GrammarValue(grammar) = &env.checked_values[reduced_value.0] else {
+        let CorePrismExpr::GrammarValue(grammar) = &env.db.checked_values[reduced_value.0] else {
             panic!(
                 "Tried to reduce expression which was not a grammar: {} / {} / {}",
                 env.parse_index_to_string(**self),
-                env.index_to_string(e),
-                env.index_to_string(reduced_value)
+                env.db.index_to_string(e),
+                env.db.index_to_string(reduced_value)
             )
         };
 
@@ -256,7 +265,7 @@ impl Parsable<PrismDb> for ParsedIndex {
         })
     }
 
-    fn error_fallback(env: &mut PrismDb, span: Span) -> Self {
+    fn error_fallback(env: &mut ParserPrismEnv<'_>, span: Span) -> Self {
         env.store_from_source(ParsedPrismExpr::Free, span)
     }
 }

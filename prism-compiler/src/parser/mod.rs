@@ -2,6 +2,7 @@ use crate::lang::error::PrismError;
 use crate::lang::{CoreIndex, PrismDb};
 use prism_parser::core::input::Input;
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
+use prism_parser::core::span::Span;
 use prism_parser::core::tokens::Tokens;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -41,22 +42,50 @@ impl PrismDb {
             .inner_mut()
             .get_or_push_file(data.to_string(), test_name.into())
     }
+}
 
-    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> (ParsedIndex, Arc<Tokens>) {
+pub struct ParserPrismEnv<'a> {
+    db: &'a mut PrismDb,
+
+    // Parsed Values
+    pub parsed_values: Vec<ParsedPrismExpr>,
+    pub parsed_spans: Vec<Span>,
+}
+
+impl<'a> ParserPrismEnv<'a> {
+    pub fn new(db: &'a mut PrismDb) -> Self {
+        Self {
+            db,
+            parsed_values: Default::default(),
+            parsed_spans: Default::default(),
+        }
+    }
+
+    pub fn store_from_source(&mut self, e: ParsedPrismExpr, span: Span) -> ParsedIndex {
+        self.store_parsed(e, span)
+    }
+
+    fn store_parsed(&mut self, e: ParsedPrismExpr, origin: Span) -> ParsedIndex {
+        self.parsed_values.push(e);
+        self.parsed_spans.push(origin);
+        ParsedIndex(self.parsed_values.len() - 1)
+    }
+
+    pub fn parse_file(&mut self, file: InputTableIndex) -> (ParsedIndex, Arc<Tokens>) {
         let mut parsables = HashMap::new();
         parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
 
-        let (expr, tokens, errs) = run_parser_rule::<PrismDb, ParsedIndex, SetError>(
+        let (expr, tokens, errs) = run_parser_rule::<ParserPrismEnv<'a>, ParsedIndex, SetError>(
             &GRAMMAR.1,
             "expr",
-            self.input.clone(),
+            self.db.input.clone(),
             file,
             parsables,
             self,
         );
 
         for err in errs.errors {
-            self.errors.push(PrismError::ParseError(err));
+            self.db.errors.push(PrismError::ParseError(err));
         }
 
         (*expr, tokens)
