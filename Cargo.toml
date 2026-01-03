@@ -20,7 +20,6 @@ prism_diags = { path = "prism_diags" }
 clap = { version = "4.5", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }
 serde = { version = "1.0", features = ["derive", "std", "rc"] }
 serde_json = "1.0"
-ariadne = "0.6"
 test_each_file = "0.3"
 rmp-serde = "1.3"
 tower-lsp-server = "0.23"

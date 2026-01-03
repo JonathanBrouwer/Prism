@@ -1,5 +1,5 @@
-use crate::lang::error::PrismError;
 use crate::parser::{GRAMMAR, ParserPrismEnv};
+use prism_diags::Diag;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use prism_parser::core::tokens::Tokens;
@@ -69,7 +69,7 @@ pub struct PrismDb {
     pub checked_origins: Vec<ValueOrigin>,
     pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
-    pub errors: Vec<PrismError>,
+    pub errors: Vec<Diag>,
 }
 
 enum ProcessedFileTableEntry {

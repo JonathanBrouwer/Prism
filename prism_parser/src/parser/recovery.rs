@@ -2,7 +2,7 @@ use crate::core::context::{PV, ParserContext};
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use prism_input::input_table::InputTableIndex;

@@ -5,7 +5,7 @@ use crate::lang::PrismDb;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::{PrismError, TypeError};
+use crate::lang::error::TypeError;
 use crate::lang::{CoreIndex, CorePrismExpr};
 use std::collections::HashMap;
 
@@ -160,7 +160,8 @@ impl<'a> TypecheckPrismEnv<'a> {
     }
 
     pub(super) fn push_type_error(&mut self, error: TypeError) {
-        self.db.errors.push(PrismError::TypeError(error))
+        todo!()
+        // self.db.errors.push(PrismError::TypeError(error))
     }
 }
 

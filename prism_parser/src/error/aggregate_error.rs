@@ -1,5 +1,6 @@
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
+use prism_diags::RenderConfig;
 use prism_input::input_table::{InputTable, InputTableInner};
 use std::io;
 
@@ -11,7 +12,10 @@ pub struct AggregatedParseError<E: ParseError<L = ErrorLabel>> {
 impl<E: ParseError<L = ErrorLabel>> AggregatedParseError<E> {
     pub fn eprint(&self, input: &InputTable) -> io::Result<()> {
         for e in &self.errors {
-            e.report().eprint::<&InputTableInner>(&*input.inner())?
+            eprintln!(
+                "{}",
+                e.diag().render(&RenderConfig::default(), &input.inner())
+            );
         }
         Ok(())
     }

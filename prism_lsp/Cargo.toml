@@ -10,5 +10,4 @@ prism_compiler.workspace = true
 prism_parser.workspace = true
 tower-lsp-server.workspace = true
 tokio.workspace = true
-ariadne.workspace = true
 prism_input.workspace = true

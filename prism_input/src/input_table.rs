@@ -1,6 +1,5 @@
 use crate::pos::Pos;
 use crate::span::Span;
-use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::mem;
@@ -20,7 +19,7 @@ pub struct InputTableInner {
 #[derive(Clone)]
 struct InputTableEntry {
     path: PathBuf,
-    source: Source<String>,
+    source: String,
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -43,18 +42,12 @@ impl InputTableInner {
             return InputTableIndex(prev);
         }
 
-        self.files.push(InputTableEntry {
-            source: Source::from(file),
-            path,
-        });
+        self.files.push(InputTableEntry { source: file, path });
         InputTableIndex(self.files.len() - 1)
     }
 
     pub fn get_str(&self, idx: InputTableIndex) -> &str {
-        let s = self.files[idx.0].source.text();
-
-        // Safety: We never remove strings from the InputTable
-        unsafe { mem::transmute(s) }
+        &self.files[idx.0].source
     }
 
     pub fn get_path(&self, idx: InputTableIndex) -> &Path {
@@ -63,12 +56,12 @@ impl InputTableInner {
 
     pub fn update_file(&mut self, idx: InputTableIndex, new_content: String) {
         let file = &mut self.files[idx.0];
-        file.source = Source::from(new_content);
+        file.source = new_content;
     }
 
     pub fn remove(&mut self, idx: InputTableIndex) {
         let file = &mut self.files[idx.0];
-        file.source = Source::from(String::new());
+        file.source = String::new();
         file.path = "[CLOSED]".into();
     }
 
@@ -103,24 +96,5 @@ impl InputTable {
 
     pub fn inner_mut(&self) -> RwLockWriteGuard<'_, InputTableInner> {
         self.inner.write().unwrap()
-    }
-}
-
-impl Cache<InputTableIndex> for &InputTableInner {
-    type Storage = String;
-
-    fn fetch(&mut self, idx: &InputTableIndex) -> Result<&Source<Self::Storage>, impl Debug> {
-        Result::<_, Infallible>::Ok(&self.files[idx.0].source)
-    }
-
-    fn display<'a>(&self, idx: &'a InputTableIndex) -> Option<impl Display + 'a> {
-        Some(Box::new(
-            self.files[idx.0]
-                .path
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .to_string(),
-        ))
     }
 }

@@ -47,18 +47,3 @@ impl Span {
         }
     }
 }
-impl ariadne::Span for Span {
-    type SourceId = InputTableIndex;
-
-    fn source(&self) -> &Self::SourceId {
-        self.start_pos_ref().file_ref()
-    }
-
-    fn start(&self) -> usize {
-        self.start_pos().idx_in_file()
-    }
-
-    fn end(&self) -> usize {
-        self.end_pos().idx_in_file()
-    }
-}

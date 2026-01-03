@@ -6,7 +6,7 @@ use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::error::ParseError;
-use crate::error::error_printer::ErrorLabel;
+use crate::error::error_label::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;

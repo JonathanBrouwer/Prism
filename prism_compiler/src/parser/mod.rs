@@ -1,9 +1,9 @@
-use crate::lang::error::PrismError;
 use crate::lang::{CoreIndex, PrismDb};
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use prism_parser::core::input::Input;
 use prism_parser::core::tokens::Tokens;
+use prism_parser::error::ParseError;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsable_dyn::ParsableDyn;
@@ -85,7 +85,7 @@ impl<'a> ParserPrismEnv<'a> {
         );
 
         for err in errs.errors {
-            self.db.errors.push(PrismError::ParseError(err));
+            self.db.errors.push(err.diag());
         }
 
         (*expr, tokens)
