@@ -14,7 +14,6 @@ pub mod display;
 pub mod env;
 pub mod error;
 pub mod grammar;
-pub mod simplify;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
