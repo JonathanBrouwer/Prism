@@ -1,5 +1,5 @@
 [workspace]
-members = ["prism_compiler", "prism_diags", "prism_input", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
+members = ["prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
 default-members = ["prism_compiler", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
 resolver = "3"
 
@@ -14,7 +14,8 @@ license = "MPL-2.0"
 prism_parser = { path = "prism_parser" }
 prism_input = { path = "prism_input" }
 prism_compiler = { path = "prism_compiler" }
-prism_diags = { path = "prism_diags" }
+prism_diag = { path = "prism_diag" }
+prism_diag_derive = { path = "prism_diag_derive" }
 
 # External
 clap = { version = "4.5", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }
@@ -26,3 +27,7 @@ tower-lsp-server = "0.23"
 tokio = { version = "1.49", default-features = false, features = ["macros", "rt-multi-thread", "io-std"] }
 ui_test = { version = "0.30", default-features = false, features = ["indicatif"] }
 annotate-snippets = "0.12"
+synstructure = "0.13.2"
+syn = "2.0.112"
+quote = "1.0.42"
+proc-macro2 = "1.0.104"

@@ -1,6 +1,6 @@
 use crate::error::ParseError;
 use crate::error::error_label::ErrorLabel;
-use prism_diags::Diag;
+use prism_diag::Diag;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::max;

@@ -85,7 +85,7 @@ impl<'a> ParserPrismEnv<'a> {
         );
 
         for err in errs.errors {
-            self.db.errors.push(err.diag());
+            self.db.errors.push(Box::new(move |_| err.diag()));
         }
 
         (*expr, tokens)

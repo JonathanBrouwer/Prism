@@ -531,7 +531,8 @@ name = "prism_compiler"
 version = "0.2.0"
 dependencies = [
  "clap",
- "prism_diags",
+ "prism_diag",
+ "prism_diag_derive",
  "prism_input",
  "prism_parser",
  "test_each_file",
@@ -539,12 +540,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "prism_diags"
+name = "prism_diag"
 version = "0.2.0"
 dependencies = [
  "annotate-snippets 0.12.10",
  "prism_input",
  "serde_json",
+]
+
+[[package]]
+name = "prism_diag_derive"
+version = "0.2.0"
+dependencies = [
+ "prism_diag",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "synstructure",
 ]
 
 [[package]]
@@ -566,7 +578,7 @@ dependencies = [
 name = "prism_parser"
 version = "0.2.0"
 dependencies = [
- "prism_diags",
+ "prism_diag",
  "prism_input",
  "rmp-serde",
  "serde",
@@ -809,6 +821,17 @@ name = "sync_wrapper"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
+
+[[package]]
+name = "synstructure"
+version = "0.13.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "test_each_file"
