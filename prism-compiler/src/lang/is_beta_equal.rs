@@ -1,15 +1,16 @@
 use crate::lang::CoreIndex;
+use crate::lang::CorePrismExpr;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CorePrismExpr, PrismDb};
+use crate::type_check::TypecheckPrismEnv;
 
-impl PrismDb {
+impl TypecheckPrismEnv<'_> {
     pub fn is_beta_equal(&mut self, i1: CoreIndex, s1: &DbEnv, i2: CoreIndex, s2: &DbEnv) -> bool {
         // Brh and reduce i1 and i2
-        let (i1, s1) = self.beta_reduce_head(i1, s1);
-        let (i2, s2) = self.beta_reduce_head(i2, s2);
+        let (i1, s1) = self.db.beta_reduce_head(i1, s1);
+        let (i2, s2) = self.db.beta_reduce_head(i2, s2);
 
-        match (&self.checked_values[*i1], &self.checked_values[*i2]) {
+        match (&self.db.checked_values[*i1], &self.db.checked_values[*i2]) {
             (CorePrismExpr::Type, CorePrismExpr::Type) => {}
             (CorePrismExpr::GrammarType, CorePrismExpr::GrammarType) => {}
             (&CorePrismExpr::DeBruijnIndex(i1), &CorePrismExpr::DeBruijnIndex(i2)) => {

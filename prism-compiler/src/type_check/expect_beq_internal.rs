@@ -1,14 +1,15 @@
 use crate::lang::CoreIndex;
+use crate::lang::CorePrismExpr;
 use crate::lang::ValueOrigin::FreeSub;
+use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::TypeError;
-use crate::lang::{CorePrismExpr, PrismDb};
+use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
 use std::collections::HashMap;
 
 const MAX_BEQ_DEPTH: usize = 256;
 
-impl PrismDb {
+impl<'a> TypecheckPrismEnv<'a> {
     #[must_use]
     pub fn expect_beq_internal(
         &mut self,
@@ -24,10 +25,10 @@ impl PrismDb {
         }
 
         // Brh and reduce i1 and i2
-        let (i1, s1) = self.beta_reduce_head(i1o, s1);
-        let (i2, s2) = self.beta_reduce_head(i2o, s2);
+        let (i1, s1) = self.db.beta_reduce_head(i1o, s1);
+        let (i2, s2) = self.db.beta_reduce_head(i2o, s2);
 
-        match (&self.checked_values[*i1], &self.checked_values[*i2]) {
+        match (&self.db.checked_values[*i1], &self.db.checked_values[*i2]) {
             // Type is always equal to Type
             (CorePrismExpr::Type, CorePrismExpr::Type) => {
                 // If beta_reduce returns a Type, we're done. Easy work!
@@ -114,9 +115,9 @@ impl PrismDb {
         var_map1: &mut HashMap<UniqueVariableId, usize>,
         (i2, s2, var_map2): (CoreIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
     ) -> bool {
-        let (f1, f1s) = self.beta_reduce_head(f1, s1);
+        let (f1, f1s) = self.db.beta_reduce_head(f1, s1);
         assert!(matches!(
-            self.checked_values[*i2],
+            self.db.checked_values[*i2],
             CorePrismExpr::Type
                 | CorePrismExpr::FnType(_, _)
                 | CorePrismExpr::FnConstruct(_)
@@ -126,8 +127,12 @@ impl PrismDb {
         // We are in the case `f1 a1 = i2`
         // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
         // We construct a value in scope 2 and set them equal
-        let b = self.store_checked(CorePrismExpr::Shift(i2, 1), FreeSub(i2));
-        let f = self.store_checked(CorePrismExpr::FnConstruct(b), FreeSub(i2));
+        let b = self
+            .db
+            .store_checked(CorePrismExpr::Shift(i2, 1), FreeSub(i2));
+        let f = self
+            .db
+            .store_checked(CorePrismExpr::FnConstruct(b), FreeSub(i2));
         self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2), 0)
     }
 
@@ -140,22 +145,22 @@ impl PrismDb {
         (i2, s2, var_map2): (CoreIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
         depth: usize,
     ) -> bool {
-        assert!(matches!(self.checked_values[*i2], CorePrismExpr::Free));
+        assert!(matches!(self.db.checked_values[*i2], CorePrismExpr::Free));
         if depth > MAX_BEQ_DEPTH {
             self.push_type_error(TypeError::RecursionLimit(i1, i2));
             return true;
         }
 
         // We deliberately don't beta-reduce i1 here since we want to keep the inferred value small
-        match &self.checked_values[*i1] {
+        match &self.db.checked_values[*i1] {
             CorePrismExpr::Type => {
-                self.checked_values[*i2] = CorePrismExpr::Type;
+                self.db.checked_values[*i2] = CorePrismExpr::Type;
                 self.handle_constraints(i2, s2, depth + 1)
             }
             &CorePrismExpr::Let(v1, b1) => {
-                let v2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                self.checked_values[*i2] = CorePrismExpr::Let(v2, b2);
+                let v2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                let b2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                self.db.checked_values[*i2] = CorePrismExpr::Let(v2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
@@ -194,7 +199,7 @@ impl PrismDb {
                         // Sanity check, after the correct value is shifted away it should not be possible for another C value to reappear
                         assert_eq!(id, id2);
 
-                        self.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
+                        self.db.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     &CSubst(_, _) => {
@@ -215,7 +220,7 @@ impl PrismDb {
                             return true;
                         };
 
-                        self.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
+                        self.db.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     &RType(id) => {
@@ -245,7 +250,7 @@ impl PrismDb {
                             // TODO return true;
                         }
 
-                        self.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
+                        self.db.checked_values[*i2] = CorePrismExpr::DeBruijnIndex(v2);
                         true
                     }
                     RSubst(i1, s1) => {
@@ -256,9 +261,9 @@ impl PrismDb {
                 subst_equal && constraints_eq
             }
             &CorePrismExpr::FnType(a1, b1) => {
-                let a2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                self.checked_values[*i2] = CorePrismExpr::FnType(a2, b2);
+                let a2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                let b2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                self.db.checked_values[*i2] = CorePrismExpr::FnType(a2, b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
@@ -276,8 +281,8 @@ impl PrismDb {
                 constraints_eq && a_eq && b_eq
             }
             &CorePrismExpr::FnConstruct(b1) => {
-                let b2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                self.checked_values[*i2] = CorePrismExpr::FnConstruct(b2);
+                let b2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                self.db.checked_values[*i2] = CorePrismExpr::FnConstruct(b2);
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
@@ -293,9 +298,9 @@ impl PrismDb {
                 constraints_eq && b_eq
             }
             &CorePrismExpr::FnDestruct(f1, a1) => {
-                let f2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                let a2 = self.store_checked(CorePrismExpr::Free, FreeSub(i2));
-                self.checked_values[*i2] = CorePrismExpr::FnDestruct(f2, a2);
+                let f2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                let a2 = self.db.store_checked(CorePrismExpr::Free, FreeSub(i2));
+                self.db.checked_values[*i2] = CorePrismExpr::FnDestruct(f2, a2);
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
@@ -323,11 +328,11 @@ impl PrismDb {
                 self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2), depth + 1)
             }
             CorePrismExpr::GrammarType => {
-                self.checked_values[*i2] = CorePrismExpr::GrammarType;
+                self.db.checked_values[*i2] = CorePrismExpr::GrammarType;
                 self.handle_constraints(i2, s2, depth + 1)
             }
             CorePrismExpr::GrammarValue(g) => {
-                self.checked_values[*i2] = CorePrismExpr::GrammarValue(g.clone());
+                self.db.checked_values[*i2] = CorePrismExpr::GrammarValue(g.clone());
                 self.handle_constraints(i2, s2, depth + 1)
             }
         }

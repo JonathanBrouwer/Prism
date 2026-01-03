@@ -1,4 +1,3 @@
-use crate::lang::env::{DbEnv, UniqueVariableId};
 use crate::lang::error::PrismError;
 use crate::parser::{GRAMMAR, ParserPrismEnv};
 use prism_parser::core::input_table::{InputTable, InputTableIndex};
@@ -11,22 +10,13 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
-mod beta_reduce;
 mod beta_reduce_head;
 pub mod display;
 pub mod env;
 pub mod error;
-mod expect_beq;
-mod expect_beq_internal;
 pub mod grammar;
 pub mod is_beta_equal;
 pub mod simplify;
-pub mod type_check;
-
-type QueuedConstraint = (
-    (DbEnv, HashMap<UniqueVariableId, usize>),
-    (CoreIndex, DbEnv, HashMap<UniqueVariableId, usize>),
-);
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
@@ -80,12 +70,7 @@ pub struct PrismDb {
     // Checked Values
     pub checked_values: Vec<CorePrismExpr>,
     pub checked_origins: Vec<ValueOrigin>,
-    checked_types: HashMap<CoreIndex, CoreIndex>,
-
-    // State during type checking
-    tc_id: usize,
-    queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint>>,
-    queued_tc: HashMap<CoreIndex, (DbEnv, CoreIndex)>,
+    pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
     pub errors: Vec<PrismError>,
 }
@@ -116,10 +101,7 @@ impl PrismDb {
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),
-            tc_id: Default::default(),
             errors: Default::default(),
-            queued_beq_free: Default::default(),
-            queued_tc: Default::default(),
             files: Default::default(),
         }
     }
@@ -170,9 +152,7 @@ impl PrismDb {
     }
 
     pub fn reset(&mut self) {
-        self.queued_beq_free.clear();
         self.errors.clear();
-        self.tc_id = 0;
     }
 
     pub fn erase_arena(self) -> PrismDb {

@@ -2,6 +2,7 @@ use crate::lang::CorePrismExpr;
 use crate::lang::env::{DbEnv, EnvEntry};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
+use crate::type_check::UniqueVariableId;
 use prism_parser::core::input::Input;
 use prism_parser::core::span::Span;
 use prism_parser::env::GenericEnv;
@@ -26,7 +27,7 @@ pub fn eval_ctx_to_envs(
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
             let dummy_named_env = named_env.insert_name(Input::from_const("_"));
-            let dummy_db_env = db_env.cons(EnvEntry::RType(prism_env.db.new_tc_id()));
+            let dummy_db_env = db_env.cons(EnvEntry::RType(UniqueVariableId::DUMMY));
 
             // If the name or value of this entry is not known, continue
             let Some(key) = placeholders.get(*key) else {

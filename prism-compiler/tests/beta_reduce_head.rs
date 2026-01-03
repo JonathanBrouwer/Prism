@@ -1,5 +1,6 @@
 use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::env::DbEnv;
+use prism_compiler::type_check::TypecheckPrismEnv;
 use test_each_file::test_each_file;
 
 fn test([test]: [&str; 1]) {
@@ -17,13 +18,14 @@ fn test([test]: [&str; 1]) {
     let (expected_eval, _) = env.parse_prism_file(expected_eval);
     env.assert_no_errors();
 
+    let mut env = TypecheckPrismEnv::new(&mut env);
     assert!(
         env.is_beta_equal(input, &DbEnv::default(), expected_eval, &DbEnv::default()),
         "Expected terms to be equal under beta equality:\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n------\n{}\n------ Reduces to -->\n{}\n------\n\n.",
-        env.index_to_sm_string(input),
-        env.index_to_br_string(input, &DbEnv::default()),
-        env.index_to_sm_string(expected_eval),
-        env.index_to_br_string(expected_eval, &DbEnv::default()),
+        env.db.index_to_sm_string(input),
+        env.db.index_to_br_string(input, &DbEnv::default()),
+        env.db.index_to_sm_string(expected_eval),
+        env.db.index_to_br_string(expected_eval, &DbEnv::default()),
     );
 }
 

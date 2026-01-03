@@ -3,6 +3,7 @@ use std::fmt::Write;
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::{CorePrismExpr, PrismDb};
+use crate::type_check::TypecheckPrismEnv;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -104,12 +105,14 @@ impl PrismDb {
     }
 
     pub fn index_to_sm_string(&mut self, i: CoreIndex) -> String {
-        let i = self.simplify(i);
+        let mut env = TypecheckPrismEnv::new(self);
+        let i = env.simplify(i);
         self.index_to_string(i)
     }
 
     pub fn index_to_br_string(&mut self, i: CoreIndex, env: &DbEnv) -> String {
-        let i = self.beta_reduce(i, env);
+        let mut tc_env = TypecheckPrismEnv::new(self);
+        let i = tc_env.beta_reduce(i, env);
         self.index_to_string(i)
     }
 }

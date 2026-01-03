@@ -1,9 +1,10 @@
 use crate::lang::CoreIndex;
-use crate::lang::env::{DbEnv, EnvEntry, UniqueVariableId};
-use crate::lang::{CorePrismExpr, PrismDb};
+use crate::lang::CorePrismExpr;
+use crate::lang::env::{DbEnv, EnvEntry};
+use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
 use std::collections::HashMap;
 
-impl PrismDb {
+impl TypecheckPrismEnv<'_> {
     pub fn simplify(&mut self, i: CoreIndex) -> CoreIndex {
         self.simplify_inner(i, &DbEnv::default(), &mut HashMap::new())
     }
@@ -14,7 +15,7 @@ impl PrismDb {
         s: &DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CoreIndex {
-        let e_new = match &self.checked_values[*i] {
+        let e_new = match &self.db.checked_values[*i] {
             CorePrismExpr::Type => CorePrismExpr::Type,
             &CorePrismExpr::Let(v, b) => {
                 let v = self.simplify_inner(v, s, var_map);
@@ -66,6 +67,6 @@ impl PrismDb {
             CorePrismExpr::GrammarValue(p) => CorePrismExpr::GrammarValue(p.clone()),
             CorePrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
-        self.store_checked(e_new, self.checked_origins[*i])
+        self.db.store_checked(e_new, self.db.checked_origins[*i])
     }
 }
