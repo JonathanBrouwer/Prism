@@ -1,0 +1,9 @@
+[package]
+name = "prism-input"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+ariadne.workspace = true
