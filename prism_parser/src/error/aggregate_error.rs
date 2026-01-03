@@ -1,7 +1,7 @@
 use crate::error::ParseError;
 use crate::error::error_label::ErrorLabel;
 use prism_diag::RenderConfig;
-use prism_input::input_table::{InputTable, InputTableInner};
+use prism_input::input_table::InputTable;
 use std::io;
 
 #[must_use]

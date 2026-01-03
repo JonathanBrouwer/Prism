@@ -24,7 +24,6 @@ use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 use prism_input::input_table::{InputTable, InputTableIndex};
-use prism_input::pos::Pos;
 use std::collections::HashMap;
 use std::sync::Arc;
 

@@ -5,7 +5,7 @@ use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
 use crate::type_check::TypecheckPrismEnv;
-use crate::type_check::errors::ExpectedType;
+use crate::type_check::errors::{ExpectedFn, ExpectedFnArg, ExpectedType};
 use std::collections::HashMap;
 
 impl<'a> TypecheckPrismEnv<'a> {
@@ -60,10 +60,10 @@ impl<'a> TypecheckPrismEnv<'a> {
                     (at, s, &mut HashMap::new()),
                     0,
                 ) {
-                    self.push_type_error(TypeError::ExpectFnArg {
-                        function_type: (ft, s.clone()),
-                        function_arg_type: (f_at, s.clone()),
-                        arg_type: (at, s.clone()),
+                    self.db.push_error(ExpectedFnArg {
+                        function_type: ft,
+                        function_arg_type: f_at,
+                        arg_type: at,
                     })
                 }
 
@@ -87,10 +87,10 @@ impl<'a> TypecheckPrismEnv<'a> {
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?
                 if !self.handle_constraints(fr, &sr, 0) {
-                    self.push_type_error(TypeError::ExpectFnArg {
-                        function_type: (ft, s.clone()),
-                        function_arg_type: (f_at, s.clone()),
-                        arg_type: (at, s.clone()),
+                    self.db.push_error(ExpectedFnArg {
+                        function_type: ft,
+                        function_arg_type: f_at,
+                        arg_type: at,
                     })
                 }
 
@@ -113,7 +113,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 );
                 assert!(is_beq_free);
             }
-            _ => self.push_type_error(TypeError::ExpectFn(ft)),
+            _ => self.db.push_error(ExpectedFn { index: ft }),
         }
     }
 }

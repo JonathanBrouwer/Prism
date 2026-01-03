@@ -1,15 +1,13 @@
 use crate::lang::CoreIndex;
+use crate::lang::PrismDb;
 use crate::lang::env::DbEnv;
-use crate::lang::{PrismDb, ValueOrigin};
 use prism_diag::RenderConfig;
-use prism_input::span::Span;
 use std::mem;
 
 impl PrismDb {
     pub fn eprint_errors(&mut self) {
         let errors = mem::take(&mut self.errors);
         for error in errors {
-            let error = error(self);
             eprintln!(
                 "{}\n",
                 error.render(&RenderConfig::default(), &self.input.inner())
@@ -26,8 +24,6 @@ impl PrismDb {
 }
 
 pub enum TypeError {
-    // ExpectType(CoreIndex),
-    ExpectFn(CoreIndex),
     ExpectFnArg {
         function_type: (CoreIndex, DbEnv),
         function_arg_type: (CoreIndex, DbEnv),
@@ -44,28 +40,11 @@ pub enum TypeError {
         free_var: CoreIndex,
         inferred_var: CoreIndex,
     },
-    // UnknownName(Span),
 }
 
 impl PrismDb {
     // pub fn report(&mut self, error: &TypeError) -> Option<Report<'static, Span>> {
     //     Some(match error {
-    //         TypeError::ExpectType(i) => {
-    //             let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
-    //                 unreachable!()
-    //             };
-    //             let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
-    //                 unreachable!()
-    //             };
-    //
-    //             Report::build(ReportKind::Error, span)
-    //                 .with_message("Expected type")
-    //                 .with_label(Label::new(span).with_message(format!(
-    //                     "Expected a type, found value of type: {}",
-    //                     self.index_to_sm_string(self.checked_types[&j])
-    //                 )))
-    //                 .finish()
-    //         }
     //         TypeError::ExpectTypeAssert {
     //             expr,
     //             expr_type,
@@ -99,21 +78,6 @@ impl PrismDb {
     //             Report::build(ReportKind::Error, span)
     //                 .with_message(format!("De Bruijn index `{}` out of bounds", *i))
     //                 .with_label(Label::new(span).with_message("This index is out of bounds."))
-    //                 .finish()
-    //         }
-    //         TypeError::ExpectFn(i) => {
-    //             let ValueOrigin::TypeOf(j) = self.checked_origins[**i] else {
-    //                 unreachable!()
-    //             };
-    //             let ValueOrigin::SourceCode(span) = self.checked_origins[*j] else {
-    //                 unreachable!()
-    //             };
-    //             Report::build(ReportKind::Error, span)
-    //                 .with_message("Expected function")
-    //                 .with_label(Label::new(span).with_message(format!(
-    //                     "Expected a function, found value of type: {}",
-    //                     self.index_to_sm_string(self.checked_types[&j])
-    //                 )))
     //                 .finish()
     //         }
     //         TypeError::ExpectFnArg {
@@ -170,32 +134,4 @@ impl PrismDb {
     //         }
     //     })
     // }
-
-    fn label_value(&self, mut value: CoreIndex) -> Option<(Span, &'static str)> {
-        let mut origin_description = "this value";
-        let span = loop {
-            match self.checked_origins[*value] {
-                ValueOrigin::SourceCode(span) => break span,
-                ValueOrigin::TypeOf(sub_value) => {
-                    assert_eq!(origin_description, "this value");
-                    origin_description = "type of this value";
-                    value = sub_value;
-                }
-                ValueOrigin::FreeSub(v) => value = v,
-                ValueOrigin::Failure => return None,
-            }
-        };
-        Some((span, origin_description))
-    }
-
-    fn source_span(&self, mut idx: CoreIndex) -> Span {
-        loop {
-            match self.checked_origins[idx.0] {
-                ValueOrigin::SourceCode(span) => return span,
-                ValueOrigin::TypeOf(j) => idx = j,
-                ValueOrigin::FreeSub(j) => idx = j,
-                ValueOrigin::Failure => unreachable!(),
-            }
-        }
-    }
 }
