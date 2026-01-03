@@ -1,6 +1,6 @@
 use crate::error::ParseError;
 use crate::error::error_label::ErrorLabel;
-use prism_diags::{Annotation, AnnotationGroup, Diag};
+use prism_diag::{Annotation, AnnotationGroup, Diag};
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::max;
@@ -77,7 +77,7 @@ impl ParseError for SetError {
                     .into_iter()
                     .map(|(start, labels)| Annotation {
                         span: start.span_to(start),
-                        label: match labels[..] {
+                        label: Some(match labels[..] {
                             [] => unreachable!(),
                             [label] => format!("Expected: {}", label),
                             ref labels => format!(
@@ -88,7 +88,7 @@ impl ParseError for SetError {
                                     .collect::<Vec<_>>()
                                     .join(" ")
                             ),
-                        },
+                        }),
                     })
                     .collect(),
             }],

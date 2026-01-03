@@ -1,5 +1,5 @@
 use crate::lang::PrismDb;
-use prism_diags::Diag;
+use prism_diag::Diag;
 use prism_input::input_table::InputTableIndex;
 use prism_parser::META_GRAMMAR;
 use prism_parser::core::tokens::Tokens;

@@ -1,7 +1,7 @@
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::{PrismDb, ValueOrigin};
-use prism_diags::RenderConfig;
+use prism_diag::RenderConfig;
 use prism_input::span::Span;
 use std::mem;
 
@@ -9,8 +9,9 @@ impl PrismDb {
     pub fn eprint_errors(&mut self) {
         let errors = mem::take(&mut self.errors);
         for error in errors {
+            let error = error(self);
             eprintln!(
-                "{}",
+                "{}\n",
                 error.render(&RenderConfig::default(), &self.input.inner())
             );
         }
@@ -19,13 +20,13 @@ impl PrismDb {
     pub fn assert_no_errors(&mut self) {
         if !self.errors.is_empty() {
             self.eprint_errors();
-            panic!("Errors encounterd, see above");
+            panic!("Errors encountered, see above");
         }
     }
 }
 
 pub enum TypeError {
-    ExpectType(CoreIndex),
+    // ExpectType(CoreIndex),
     ExpectFn(CoreIndex),
     ExpectFnArg {
         function_type: (CoreIndex, DbEnv),
@@ -43,7 +44,7 @@ pub enum TypeError {
         free_var: CoreIndex,
         inferred_var: CoreIndex,
     },
-    UnknownName(Span),
+    // UnknownName(Span),
 }
 
 impl PrismDb {
@@ -151,10 +152,6 @@ impl PrismDb {
     //                 )
     //                 .finish()
     //         }
-    //         TypeError::UnknownName(name) => Report::build(ReportKind::Error, *name)
-    //             .with_message("Undefined name within this scope.")
-    //             .with_label(Label::new(*name).with_message("This name is undefined."))
-    //             .finish(),
     //         TypeError::RecursionLimit(left, right) => {
     //             let (left_span, left_description) = self.label_value(*left)?;
     //             let (right_span, right_description) = self.label_value(*left)?;

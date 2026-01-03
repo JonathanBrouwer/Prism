@@ -1,5 +1,5 @@
 [package]
-name = "prism_diags"
+name = "prism_diag"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true

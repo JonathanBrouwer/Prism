@@ -1,3 +1,4 @@
+pub(crate) mod errors;
 mod expect_beq;
 mod expect_beq_internal;
 

@@ -1,7 +1,8 @@
-use crate::lang::error::TypeError;
 use crate::lang::{CoreIndex, CorePrismExpr, ValueOrigin};
 use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
+use prism_diag_derive::Diagnostic;
+use prism_input::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::HashMap;
 
@@ -96,12 +97,16 @@ impl<'a> ParserPrismEnv<'a> {
                         }
                     }
                     None => {
-                        todo!();
-                        // self.db
-                        //     .errors
-                        //     .push(PrismError::TypeError(TypeError::UnknownName(
-                        //         self.parsed_spans[*i],
-                        //     )));
+                        #[derive(Diagnostic)]
+                        #[diag(title = "Undefined name within this scope.")]
+                        struct UnknownName {
+                            #[sugg]
+                            span: Span,
+                        }
+
+                        self.db.push_error(UnknownName {
+                            span: self.parsed_spans[*i],
+                        });
                         CorePrismExpr::Free
                     }
                 }

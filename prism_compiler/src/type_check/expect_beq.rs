@@ -5,6 +5,7 @@ use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::error::TypeError;
 use crate::type_check::TypecheckPrismEnv;
+use crate::type_check::errors::ExpectedType;
 use std::collections::HashMap;
 
 impl<'a> TypecheckPrismEnv<'a> {
@@ -37,11 +38,11 @@ impl<'a> TypecheckPrismEnv<'a> {
             CorePrismExpr::Free => {
                 self.db.checked_values[*i] = CorePrismExpr::Type;
                 if !self.handle_constraints(i, &s, 0) {
-                    self.push_type_error(TypeError::ExpectType(io));
+                    self.db.push_error(ExpectedType { index: io });
                 }
             }
             _ => {
-                self.push_type_error(TypeError::ExpectType(io));
+                self.db.push_error(ExpectedType { index: io });
             }
         }
     }

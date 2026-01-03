@@ -4,7 +4,7 @@ pub mod error_label;
 pub mod set_error;
 pub mod tree_error;
 
-use prism_diags::Diag;
+use prism_diag::Diag;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::Ordering;

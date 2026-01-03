@@ -1,0 +1,16 @@
+[package]
+name = "prism_diag_derive"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+synstructure.workspace = true
+prism_diag.workspace = true
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true

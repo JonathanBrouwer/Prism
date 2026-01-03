@@ -1,6 +1,6 @@
 use crate::error::ParseError;
 use crate::error::error_label::ErrorLabel;
-use prism_diags::RenderConfig;
+use prism_diag::RenderConfig;
 use prism_input::input_table::{InputTable, InputTableInner};
 use std::io;
 
@@ -13,7 +13,7 @@ impl<E: ParseError<L = ErrorLabel>> AggregatedParseError<E> {
     pub fn eprint(&self, input: &InputTable) -> io::Result<()> {
         for e in &self.errors {
             eprintln!(
-                "{}",
+                "{}\n",
                 e.diag().render(&RenderConfig::default(), &input.inner())
             );
         }

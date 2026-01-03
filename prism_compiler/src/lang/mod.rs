@@ -1,5 +1,5 @@
 use crate::parser::{GRAMMAR, ParserPrismEnv};
-use prism_diags::Diag;
+use prism_diag::{Diag, IntoDiag};
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use prism_parser::core::tokens::Tokens;
@@ -69,7 +69,7 @@ pub struct PrismDb {
     pub checked_origins: Vec<ValueOrigin>,
     pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
-    pub errors: Vec<Diag>,
+    pub errors: Vec<Box<dyn FnOnce(&mut PrismDb) -> Diag>>,
 }
 
 enum ProcessedFileTableEntry {
@@ -146,6 +146,10 @@ impl PrismDb {
         self.checked_values.push(e);
         self.checked_origins.push(origin);
         CoreIndex(self.checked_values.len() - 1)
+    }
+
+    pub fn push_error(&mut self, diag: impl IntoDiag<PrismDb> + 'static) {
+        self.errors.push(Box::new(|env| diag.into_diag(env)));
     }
 
     pub fn reset(&mut self) {

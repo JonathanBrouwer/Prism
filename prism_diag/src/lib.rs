@@ -1,7 +1,9 @@
+pub mod sugg;
+
 use annotate_snippets::level::ERROR;
 use annotate_snippets::renderer::DecorStyle;
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
-use prism_input::input_table::{InputTable, InputTableInner};
+use annotate_snippets::{AnnotationKind, Group, Renderer, Snippet};
+use prism_input::input_table::InputTableInner;
 use prism_input::span::Span;
 
 pub struct Diag {
@@ -17,7 +19,7 @@ pub struct AnnotationGroup {
 
 pub struct Annotation {
     pub span: Span,
-    pub label: String,
+    pub label: Option<String>,
 }
 
 #[derive(Copy, Clone, Default)]
@@ -56,29 +58,29 @@ impl Diag {
                         .span(
                             anno.span.start_pos().idx_in_file()..anno.span.end_pos().idx_in_file(),
                         )
-                        .label(&anno.label),
+                        .label(anno.label.clone()),
                 )
             }
 
             diag = diag.element(snippet);
         }
 
-        // for anno in &self.annotations {
-        //     let file = anno.span.start_pos().file();
-        //     group = group.element(
-        //         Snippet::<annotate_snippets::Annotation>::source(input.get_str(file))
-        //             .path(Some(input.get_path(file).to_string_lossy()))
-        //             .annotation(
-
-        //             ),
-        //     );
-        // }
-
         let renderer = match config.format {
             RenderFormat::Styled => Renderer::styled().decor_style(DecorStyle::Unicode),
             RenderFormat::Plain => Renderer::plain().decor_style(DecorStyle::Ascii),
         };
         renderer.render(&[diag])
+    }
+}
+
+pub trait IntoDiag<Env> {
+    #[must_use]
+    fn into_diag(self, env: &mut Env) -> Diag;
+}
+
+impl<Env: Sized> IntoDiag<Env> for Diag {
+    fn into_diag(self, _env: &mut Env) -> Diag {
+        self
     }
 }
 
