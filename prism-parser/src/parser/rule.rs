@@ -1,13 +1,13 @@
 use crate::core::adaptive::{GrammarState, RuleId, RuleState};
 use crate::core::arc_ref::BorrowedArcSlice;
 use crate::core::context::{PV, ParserContext};
-use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
+use prism_input::pos::Pos;
 
 impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     pub fn parse_rule(

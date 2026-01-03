@@ -1,5 +1,5 @@
-use crate::core::pos::Pos;
-use crate::core::span::Span;
+use crate::pos::Pos;
+use crate::span::Span;
 use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};

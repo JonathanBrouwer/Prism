@@ -1,8 +1,8 @@
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::core::tokens::TokenType;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

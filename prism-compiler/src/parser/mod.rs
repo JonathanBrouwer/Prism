@@ -1,8 +1,8 @@
 use crate::lang::error::PrismError;
 use crate::lang::{CoreIndex, PrismDb};
+use prism_input::input_table::{InputTable, InputTableIndex};
+use prism_input::span::Span;
 use prism_parser::core::input::Input;
-use prism_parser::core::input_table::{InputTable, InputTableIndex};
-use prism_parser::core::span::Span;
 use prism_parser::core::tokens::Tokens;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;

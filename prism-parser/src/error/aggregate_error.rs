@@ -1,6 +1,6 @@
-use crate::core::input_table::{InputTable, InputTableInner};
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
+use prism_input::input_table::{InputTable, InputTableInner};
 use std::io;
 
 #[must_use]

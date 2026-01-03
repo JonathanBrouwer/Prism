@@ -1,7 +1,7 @@
 use crate::lang::error::PrismError;
 use crate::parser::{GRAMMAR, ParserPrismEnv};
-use prism_parser::core::input_table::{InputTable, InputTableIndex};
-use prism_parser::core::span::Span;
+use prism_input::input_table::{InputTable, InputTableIndex};
+use prism_input::span::Span;
 use prism_parser::core::tokens::Tokens;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use std::collections::HashMap;

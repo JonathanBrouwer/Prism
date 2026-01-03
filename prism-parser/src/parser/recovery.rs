@@ -1,11 +1,11 @@
 use crate::core::context::{PV, ParserContext};
-use crate::core::input_table::InputTableIndex;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
+use prism_input::input_table::InputTableIndex;
 use std::sync::Arc;
 
 //TODO https://github.com/JonathanBrouwer/Prism/blob/73f5e7d550583ae449e94be3800da7ef8378ad16/prism-parser/src/core/recovery.rs#L14

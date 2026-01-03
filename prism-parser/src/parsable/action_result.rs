@@ -1,8 +1,8 @@
 use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use prism_input::span::Span;
 use std::sync::Arc;
 
 #[derive(Clone)]

@@ -1,6 +1,5 @@
 use crate::core::allocs::alloc_extend;
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::core::state::ParserState;
 use crate::error::ParseError;
 use crate::error::error_printer::ErrorLabel;
@@ -9,6 +8,7 @@ use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::placeholder_store::ParsedPlaceholder;
+use prism_input::span::Span;
 use std::collections::HashMap;
 use std::iter;
 use std::sync::Arc;

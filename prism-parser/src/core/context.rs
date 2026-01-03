@@ -1,8 +1,8 @@
-use crate::core::pos::Pos;
-use crate::core::span::Span;
 use crate::core::tokens::{Token, TokenType, Tokens};
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
+use prism_input::pos::Pos;
+use prism_input::span::Span;
 use std::collections::BTreeMap;
 use std::hash::Hash;
 use std::sync::Arc;

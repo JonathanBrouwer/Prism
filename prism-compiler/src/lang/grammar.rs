@@ -1,7 +1,7 @@
 use crate::lang::PrismDb;
 use crate::lang::error::PrismError;
+use prism_input::input_table::InputTableIndex;
 use prism_parser::META_GRAMMAR;
-use prism_parser::core::input_table::InputTableIndex;
 use prism_parser::core::tokens::Tokens;
 use prism_parser::error::set_error::SetError;
 use prism_parser::grammar::grammar_file::GrammarFile;

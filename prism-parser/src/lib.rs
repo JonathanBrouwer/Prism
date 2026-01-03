@@ -4,12 +4,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, LazyLock};
 
 use self::core::tokens::Tokens;
-use crate::core::input_table::InputTable;
 use crate::error::ParseError;
 use crate::error::aggregate_error::AggregatedParseError;
 use crate::error::error_printer::ErrorLabel;
 use crate::parser::instance::run_parser_rule;
 use grammar::grammar_file::GrammarFile;
+use prism_input::input_table::InputTable;
 
 pub mod core;
 pub mod env;

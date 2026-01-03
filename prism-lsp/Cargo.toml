@@ -11,3 +11,4 @@ prism-parser.workspace = true
 tower-lsp-server.workspace = true
 tokio.workspace = true
 ariadne.workspace = true
+prism-input.workspace = true

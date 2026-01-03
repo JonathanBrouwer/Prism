@@ -1,6 +1,6 @@
-use crate::core::input_table::InputTable;
-use crate::core::span::Span;
 use crate::parsable::parsed::{ArcExt, Parsed};
+use prism_input::input_table::InputTable;
+use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;

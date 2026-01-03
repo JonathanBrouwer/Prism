@@ -1,13 +1,13 @@
 use crate::core::adaptive::{BlockState, GrammarStateId};
 use crate::core::arc_ref::BorrowedArcSlice;
 use crate::core::context::{PV, ParserContext};
-use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
 use crate::error::error_printer::ErrorLabel;
 use crate::error::{ParseError, err_combine_opt};
 use crate::parser::VarMap;
+use prism_input::pos::Pos;
 use std::hash::{DefaultHasher, Hasher};
 use std::sync::Arc;
 

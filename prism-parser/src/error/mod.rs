@@ -4,9 +4,9 @@ pub mod error_printer;
 pub mod set_error;
 pub mod tree_error;
 
-use crate::core::pos::Pos;
-use crate::core::span::Span;
 use ariadne::Report;
+use prism_input::pos::Pos;
+use prism_input::span::Span;
 use std::cmp::Ordering;
 
 pub trait ParseError: Sized + Clone {

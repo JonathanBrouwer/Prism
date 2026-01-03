@@ -1,7 +1,7 @@
-use crate::core::pos::Pos;
 use crate::core::presult::PResult::{PErr, POk};
-use crate::core::span::Span;
 use crate::error::{ParseError, err_combine, err_combine_opt};
+use prism_input::pos::Pos;
+use prism_input::span::Span;
 
 #[derive(Clone)]
 pub enum PResult<O, E: ParseError> {
