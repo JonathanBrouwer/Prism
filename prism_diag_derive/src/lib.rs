@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{Data, DeriveInput, Expr, Fields, Ident, LitStr, Meta, Path, Token, Type, TypePath};
+use syn::{Data, Expr, Fields, Ident, Meta, Token, Type};
 use synstructure::{Structure, decl_derive};
 
 decl_derive!([Diagnostic, attributes(diag, sugg)] => derive_diagnostic);

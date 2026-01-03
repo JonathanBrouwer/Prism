@@ -1,6 +1,5 @@
 use clap::Parser;
 use prism_compiler::lang::PrismDb;
-use prism_compiler::lang::env::DbEnv;
 use std::process::exit;
 
 #[derive(Parser, Debug)]

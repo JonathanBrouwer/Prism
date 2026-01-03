@@ -5,7 +5,7 @@ pub trait SuggestionArgument<Env> {
 }
 
 impl<Env> SuggestionArgument<Env> for Span {
-    fn span(&self, env: &Env) -> Span {
+    fn span(&self, _env: &Env) -> Span {
         *self
     }
 }

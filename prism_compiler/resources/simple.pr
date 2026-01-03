@@ -1,1 +1,10 @@
-(pear: ((_: Type) => Type)) => pear
+//let Boolean = (
+//let true: Boolean =
+
+let Bool = (Type -> Type);
+let number = Type;
+
+
+let thing = (f: Bool) => f Type;
+
+thing number

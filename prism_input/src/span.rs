@@ -1,4 +1,3 @@
-use crate::input_table::InputTableIndex;
 use crate::pos::Pos;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]

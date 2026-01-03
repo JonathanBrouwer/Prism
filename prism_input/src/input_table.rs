@@ -1,8 +1,6 @@
 use crate::pos::Pos;
 use crate::span::Span;
-use std::convert::Infallible;
-use std::fmt::{Debug, Display};
-use std::mem;
+use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 

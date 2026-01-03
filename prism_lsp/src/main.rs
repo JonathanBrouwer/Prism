@@ -222,7 +222,7 @@ impl LanguageServer for Backend {
         &self,
         params: SemanticTokensParams,
     ) -> Result<Option<SemanticTokensResult>> {
-        let mut lsp_tokens = vec![];
+        // let mut lsp_tokens = vec![];
         {
             let mut inner = self.inner.write().await;
             let inner = inner.deref_mut();
@@ -231,10 +231,10 @@ impl LanguageServer for Backend {
             let prism_tokens = inner.document_parses[&index].clone();
 
             let file_inner = inner.db.input.inner();
-            let mut file_inner = &*file_inner;
+            // let mut file_inner = &*file_inner;
 
-            let mut prev_line = 0;
-            let mut prev_start = 0;
+            // let mut prev_line = 0;
+            // let mut prev_start = 0;
 
             for token in prism_tokens.to_vec() {
                 // Skip empty tokens

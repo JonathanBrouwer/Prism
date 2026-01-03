@@ -1,4 +1,4 @@
-pub(crate) mod errors;
+pub(self) mod errors;
 mod expect_beq;
 mod expect_beq_internal;
 
@@ -160,7 +160,7 @@ impl<'a> TypecheckPrismEnv<'a> {
         tid
     }
 
-    pub(super) fn push_type_error(&mut self, error: TypeError) {
+    pub(super) fn push_type_error(&mut self, _error: TypeError) {
         todo!()
         // self.db.errors.push(PrismError::TypeError(error))
     }
