@@ -1,10 +1,21 @@
-//let Boolean = (
-//let true: Boolean =
+// Define Bools
+let Bool = (T: Type) -> T -> T -> T;
+let true: Bool = (T: Type) => (v1: T) => (v2: T) => v1;
+let false: Bool = (T: Type) => (v1: T) => (v2: T) => v2;
 
-let Bool = (Type -> Type);
-let number = Type;
+let Pair
+    : (T1: Type) (T2 : (T1 -> Type)) -> Type
+    = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
+let pair
+    : (T1: Type) -> (T2 : (T1 -> Type)) -> (v1: T1) -> (v2: T2 v1) -> Pair T1 T2
+    = (T1: Type) => (T2 : (T1 -> Type)) => (v1: T1) => (v2: T2 v1)
+    => (Out: Type) => (destruct: ((v1: T1) -> (v2: T2 v1) -> Out))
+    => destruct v1 v2;
 
+let fst
+    : (T1: Type) (T2 : (T1 -> Type)) -> Pair T1 T2 -> T1
+    = (T1: Type) (T2: T1 -> Type) (p: Pair T1 T2) => p T1 (v1 v2 => v1);
 
-let thing = (f: Bool) => f Type;
+let test = pair Bool ((v1: Bool) => v1 Type Bool Type) true false;
 
-thing number
+fst Bool _ test

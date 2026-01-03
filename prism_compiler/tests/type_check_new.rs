@@ -24,7 +24,7 @@ fn main() -> ui_test::color_eyre::Result<()> {
             cfg_flag: None,
         },
         bless_command: Some("cargo uibless".into()),
-        diagnostic_extractor: |path, output| {
+        diagnostic_extractor: |_path, output| {
             println!("{:?}", String::from_utf8_lossy(output));
             Diagnostics {
                 rendered: vec![],

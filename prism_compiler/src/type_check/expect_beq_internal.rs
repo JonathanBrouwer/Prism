@@ -3,7 +3,7 @@ use crate::lang::CorePrismExpr;
 use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::TypeError;
+use crate::type_check::errors::{BadInfer, RecursionLimit};
 use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
 use std::collections::HashMap;
 
@@ -20,7 +20,10 @@ impl<'a> TypecheckPrismEnv<'a> {
         depth: usize,
     ) -> bool {
         if depth > MAX_BEQ_DEPTH {
-            self.push_type_error(TypeError::RecursionLimit(i1o, i2o));
+            self.db.push_error(RecursionLimit {
+                left: i1o,
+                right: i2o,
+            });
             return true;
         }
 
@@ -147,7 +150,10 @@ impl<'a> TypecheckPrismEnv<'a> {
     ) -> bool {
         assert!(matches!(self.db.checked_values[*i2], CorePrismExpr::Free));
         if depth > MAX_BEQ_DEPTH {
-            self.push_type_error(TypeError::RecursionLimit(i1, i2));
+            self.db.push_error(RecursionLimit {
+                left: i1,
+                right: i2,
+            });
             return true;
         }
 
@@ -183,14 +189,14 @@ impl<'a> TypecheckPrismEnv<'a> {
                     &CType(id, _) => {
                         // We may have shifted away part of the env that we need during this beq
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
                             return true;
                         };
                         let CType(id2, _) = s2[v2] else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -206,14 +212,14 @@ impl<'a> TypecheckPrismEnv<'a> {
                         // Same story as above, except we don't have the `id` to double check with here.
                         // The logic should still hold even without the sanity check though
                         let Some(v2) = (v1 + s2.len()).checked_sub(s1.len()) else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
                             return true;
                         };
                         let CSubst(_, _) = s2[v2] else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -226,7 +232,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                     &RType(id) => {
                         // If `id` still exists in s2, we will find it here
                         let Some(v2) = s2.len().checked_sub(var_map2[&id] + 1) else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -234,7 +240,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                         };
                         // Check if it still exists, if not we shifted it out and another entry came in the place for it
                         let RType(id2) = s2[v2] else {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
@@ -242,7 +248,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                             // TODO return true;
                         };
                         if id != id2 {
-                            self.push_type_error(TypeError::BadInfer {
+                            self.db.push_error(BadInfer {
                                 free_var: i2,
                                 inferred_var: i1,
                             });
