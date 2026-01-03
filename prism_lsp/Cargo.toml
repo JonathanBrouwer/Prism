@@ -1,14 +1,14 @@
 [package]
-name = "prism-lsp"
+name = "prism_lsp"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [dependencies]
-prism-compiler.workspace = true
-prism-parser.workspace = true
+prism_compiler.workspace = true
+prism_parser.workspace = true
 tower-lsp-server.workspace = true
 tokio.workspace = true
 ariadne.workspace = true
-prism-input.workspace = true
+prism_input.workspace = true

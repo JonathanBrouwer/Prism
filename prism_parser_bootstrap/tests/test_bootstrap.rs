@@ -7,7 +7,7 @@ use prism_parser::parse_grammar;
 pub fn test_bootstrap() {
     let grammar: &'static GrammarFile = &META_GRAMMAR;
 
-    let input = include_str!("../../prism-parser/resources/meta.pg");
+    let input = include_str!("../../prism_parser/resources/meta.pg");
     let (table, grammar2, _, errs) = parse_grammar::<SetError>(input);
     errs.unwrap_or_eprint(&table);
 

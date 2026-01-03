@@ -1,9 +1,11 @@
 [package]
-name = "prism-input"
+name = "prism_diags"
 edition.workspace = true
 version.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [dependencies]
-ariadne.workspace = true
+prism_input.workspace = true
+serde_json.workspace = true
+annotate-snippets.workspace = true
