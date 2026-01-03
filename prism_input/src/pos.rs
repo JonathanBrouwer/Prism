@@ -24,7 +24,7 @@ impl Ord for Pos {
 }
 
 impl Pos {
-    pub fn start_of(idx: InputTableIndex) -> Self {
+    pub(crate) fn start_of(idx: InputTableIndex) -> Self {
         Self(0, idx)
     }
 
@@ -54,8 +54,8 @@ impl Pos {
         }
     }
 
-    pub fn test() -> Self {
-        Self(0, InputTableIndex::test())
+    pub fn dummy() -> Self {
+        Self(0, InputTableIndex::dummy())
     }
 }
 

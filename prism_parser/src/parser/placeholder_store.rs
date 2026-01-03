@@ -96,7 +96,7 @@ impl<Db> PlaceholderStore<Db> {
             .map(|c| self.store[c.0].value.as_ref().unwrap().clone())
             .collect::<Vec<_>>();
 
-        let span = Span::test();
+        let span = Span::dummy();
         let value = (parent.parsable_dyn.from_construct)(span, &parent.constructor, &args, env);
 
         // Place value, which will recurse if needed

@@ -4,7 +4,7 @@ use ariadne::{Cache, Source};
 use std::convert::Infallible;
 use std::fmt::{Debug, Display};
 use std::mem;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Default)]
@@ -31,7 +31,7 @@ impl InputTableIndex {
         self.0
     }
 
-    pub fn test() -> Self {
+    pub fn dummy() -> Self {
         Self(0)
     }
 }
@@ -57,8 +57,8 @@ impl InputTableInner {
         unsafe { mem::transmute(s) }
     }
 
-    pub fn get_path(&self, idx: InputTableIndex) -> PathBuf {
-        self.files[idx.0].path.clone()
+    pub fn get_path(&self, idx: InputTableIndex) -> &Path {
+        &self.files[idx.0].path
     }
 
     pub fn update_file(&mut self, idx: InputTableIndex, new_content: String) {
@@ -72,8 +72,16 @@ impl InputTableInner {
         file.path = "[CLOSED]".into();
     }
 
-    pub fn end_of_file(&self, idx: InputTableIndex) -> Pos {
+    pub fn start_of(&self, idx: InputTableIndex) -> Pos {
+        Pos::start_of(idx)
+    }
+
+    pub fn end_of(&self, idx: InputTableIndex) -> Pos {
         Pos::start_of(idx) + self.get_str(idx).len()
+    }
+
+    pub fn span_of(&self, idx: InputTableIndex) -> Span {
+        Span::new_with_end(self.start_of(idx), self.end_of(idx))
     }
 
     pub fn slice(&self, span: Span) -> &str {

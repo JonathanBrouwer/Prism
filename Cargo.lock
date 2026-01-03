@@ -542,6 +542,7 @@ version = "0.2.0"
 dependencies = [
  "ariadne",
  "clap",
+ "prism_diags",
  "prism_input",
  "prism_parser",
  "test_each_file",
