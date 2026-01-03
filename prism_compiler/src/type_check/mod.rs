@@ -1,4 +1,4 @@
-pub(self) mod errors;
+mod errors;
 mod expect_beq;
 mod expect_beq_internal;
 
@@ -6,7 +6,6 @@ use crate::lang::PrismDb;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::TypeError;
 use crate::lang::{CoreIndex, CorePrismExpr};
 use std::collections::HashMap;
 
@@ -70,10 +69,11 @@ impl<'a> TypecheckPrismEnv<'a> {
                 Some(CType(_, t) | CSubst(_, t)) => CorePrismExpr::Shift(*t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
-                    self.push_type_error(TypeError::IndexOutOfBound(i));
-                    return self
-                        .db
-                        .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
+                    unreachable!("Index out of bound");
+                    // self.push_type_error(TypeError::IndexOutOfBound(i));
+                    // return self
+                    //     .db
+                    //     .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
             },
             CorePrismExpr::FnType(mut a, b) => {
@@ -158,11 +158,6 @@ impl<'a> TypecheckPrismEnv<'a> {
         let tid = self.db.store_checked(t, ValueOrigin::TypeOf(i));
         self.db.checked_types.insert(i, tid);
         tid
-    }
-
-    pub(super) fn push_type_error(&mut self, _error: TypeError) {
-        todo!()
-        // self.db.errors.push(PrismError::TypeError(error))
     }
 }
 

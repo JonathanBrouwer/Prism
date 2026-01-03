@@ -16,7 +16,7 @@ fn main() {
 
     //Load file
     let program = env.load_file(args.input.into());
-    let processed = env.process_file(program);
+    let _processed = env.process_file(program);
 
     // Print info
     // println!(

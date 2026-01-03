@@ -3,9 +3,8 @@ use crate::lang::CorePrismExpr;
 use crate::lang::ValueOrigin::FreeSub;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::error::TypeError;
 use crate::type_check::TypecheckPrismEnv;
-use crate::type_check::errors::{ExpectedFn, ExpectedFnArg, ExpectedType};
+use crate::type_check::errors::{ExpectedFn, ExpectedFnArg, ExpectedType, FailedTypeAssert};
 use std::collections::HashMap;
 
 impl<'a> TypecheckPrismEnv<'a> {
@@ -22,7 +21,7 @@ impl<'a> TypecheckPrismEnv<'a> {
             (expected_type, s, &mut HashMap::new()),
             0,
         ) {
-            self.push_type_error(TypeError::ExpectTypeAssert {
+            self.db.push_error(FailedTypeAssert {
                 expr,
                 expr_type,
                 expected_type,

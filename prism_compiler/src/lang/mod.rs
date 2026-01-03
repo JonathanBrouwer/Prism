@@ -152,12 +152,4 @@ impl PrismDb {
         let diag = diag.into_diag(self);
         self.errors.push(diag);
     }
-
-    pub fn reset(&mut self) {
-        self.errors.clear();
-    }
-
-    pub fn erase_arena(self) -> PrismDb {
-        todo!()
-    }
 }

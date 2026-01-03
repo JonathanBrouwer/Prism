@@ -1,4 +1,3 @@
-use crate::lang::env::DbEnv;
 use crate::lang::{CoreIndex, PrismDb, ValueOrigin};
 use prism_diag::sugg::SuggestionArgument;
 use prism_diag_derive::Diagnostic;
@@ -40,4 +39,32 @@ pub struct ExpectedFnArg {
     #[sugg(label = format!("Function expects an argument of type: {}", env.index_to_sm_string(self.function_arg_type)))]
     pub function_type: CoreIndex,
     pub function_arg_type: CoreIndex,
+}
+
+#[derive(Diagnostic)]
+#[diag(title = "Failed type assert", env = PrismDb)]
+pub struct FailedTypeAssert {
+    #[sugg(label = format!("Found a value of type: {}", env.index_to_sm_string(self.expr_type)))]
+    pub expr: CoreIndex,
+    pub expr_type: CoreIndex,
+    #[sugg(label = format!("Expected a value of type: {}", env.index_to_sm_string(self.expected_type)))]
+    pub expected_type: CoreIndex,
+}
+
+#[derive(Diagnostic)]
+#[diag(title = "Recursion limit reached during beta solving", env = PrismDb)]
+pub struct RecursionLimit {
+    #[sugg(label = "Left side of constraint")]
+    pub left: CoreIndex,
+    #[sugg(label = "Right side of constraint")]
+    pub right: CoreIndex,
+}
+
+#[derive(Diagnostic)]
+#[diag(title = "Internal problem when inferring this variable", env = PrismDb)]
+pub struct BadInfer {
+    #[sugg(label = "Free variable")]
+    pub free_var: CoreIndex,
+    #[sugg(label = "Inferred variable")]
+    pub inferred_var: CoreIndex,
 }
