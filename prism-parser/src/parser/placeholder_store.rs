@@ -1,7 +1,7 @@
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
+use prism_input::span::Span;
 
 #[derive(Copy, Clone, Debug)]
 pub struct ParsedPlaceholder(usize);

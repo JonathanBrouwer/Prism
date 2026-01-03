@@ -1,6 +1,6 @@
-use crate::core::input_table::InputTableIndex;
-use crate::core::span::Span;
 use ariadne::{Color, Config, Label, LabelAttach, Report, ReportBuilder, ReportKind};
+use prism_input::input_table::InputTableIndex;
+use prism_input::span::Span;
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, Hash, Clone, PartialEq)]
@@ -45,20 +45,4 @@ pub fn base_report(span: Span) -> ReportBuilder<'static, Span> {
                 .with_priority(1)
                 .with_order(i32::MIN),
         )
-}
-
-impl ariadne::Span for Span {
-    type SourceId = InputTableIndex;
-
-    fn source(&self) -> &Self::SourceId {
-        self.start_pos_ref().file_ref()
-    }
-
-    fn start(&self) -> usize {
-        self.start_pos().idx_in_file()
-    }
-
-    fn end(&self) -> usize {
-        self.end_pos().idx_in_file()
-    }
 }

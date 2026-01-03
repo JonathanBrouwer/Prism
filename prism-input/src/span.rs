@@ -1,4 +1,5 @@
-use crate::core::pos::Pos;
+use crate::input_table::InputTableIndex;
+use crate::pos::Pos;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Span {
@@ -44,5 +45,20 @@ impl Span {
             start: Pos::test(),
             len: 0,
         }
+    }
+}
+impl ariadne::Span for Span {
+    type SourceId = InputTableIndex;
+
+    fn source(&self) -> &Self::SourceId {
+        self.start_pos_ref().file_ref()
+    }
+
+    fn start(&self) -> usize {
+        self.start_pos().idx_in_file()
+    }
+
+    fn end(&self) -> usize {
+        self.end_pos().idx_in_file()
     }
 }

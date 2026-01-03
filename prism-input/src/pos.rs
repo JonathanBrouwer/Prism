@@ -1,5 +1,5 @@
-use crate::core::input_table::{InputTable, InputTableIndex};
-use crate::core::span::Span;
+use crate::input_table::{InputTable, InputTableIndex};
+use crate::span::Span;
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};

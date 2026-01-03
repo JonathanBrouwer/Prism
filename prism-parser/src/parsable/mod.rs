@@ -1,8 +1,8 @@
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
+use prism_input::span::Span;
 use std::any::{Any, type_name};
 use std::iter;
 use std::sync::Arc;

@@ -1,4 +1,4 @@
-use crate::core::span::Span;
+use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;

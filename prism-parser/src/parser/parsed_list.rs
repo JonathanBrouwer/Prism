@@ -1,8 +1,8 @@
 use crate::core::input::Input;
-use crate::core::span::Span;
 use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use prism_input::span::Span;
 
 pub type ParsedList = GenericEnv<(), Parsed>;
 

@@ -24,7 +24,7 @@ macro_rules! parse_test {
             use prism_parser::error::empty_error::EmptyError;
             use prism_parser::core::presult::PResult;
             use prism_parser::core::presult::PResult::*;
-            use prism_parser::core::pos::Pos;
+            use prism_input::pos::Pos;
             use prism_parser::error::error_printer::*;
             use prism_parser::core::context::ParserContext;
             use std::collections::HashMap;
@@ -33,7 +33,7 @@ macro_rules! parse_test {
             use prism_parser::parsable::parsed::Parsed;
             use prism_parser::parsable::parsable_dyn::ParsableDyn;
             use prism_parser::parsable::action_result::ActionResult;
-            use prism_parser::core::input_table::InputTable;
+            use prism_input::input_table::InputTable;
 
             let syntax: &'static str = $syntax;
             let (input_table, grammar, _, errs) = parse_grammar::<SetError>(syntax);

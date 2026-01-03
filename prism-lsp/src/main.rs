@@ -1,7 +1,7 @@
 use ariadne::Cache;
 use prism_compiler::lang::PrismDb;
 use prism_compiler::lang::error::PrismError;
-use prism_parser::core::input_table::InputTableIndex;
+use prism_input::input_table::InputTableIndex;
 use prism_parser::core::tokens::{TokenType, Tokens};
 use prism_parser::error::ParseError;
 use std::collections::HashMap;

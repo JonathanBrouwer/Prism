@@ -1,8 +1,8 @@
-use crate::core::pos::Pos;
-use crate::core::span::Span;
 use crate::error::ParseError;
 use crate::error::error_printer::{ErrorLabel, base_report};
 use ariadne::{Label, Report, ReportBuilder};
+use prism_input::pos::Pos;
+use prism_input::span::Span;
 use std::cmp::max;
 use std::hash::Hash;
 use std::mem;

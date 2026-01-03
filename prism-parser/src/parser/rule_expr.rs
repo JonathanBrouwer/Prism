@@ -2,7 +2,6 @@ use crate::core::adaptive::{BlockState, GrammarState, RuleId};
 use crate::core::arc_ref::BorrowedArcSlice;
 use crate::core::context::{PR, PV, ParserContext};
 use crate::core::input::Input;
-use crate::core::pos::Pos;
 use crate::core::presult::PResult;
 use crate::core::state::ParserState;
 use crate::core::tokens::TokenType;
@@ -15,6 +14,7 @@ use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::ParsedPlaceholder;
 use crate::parser::rule_closure::RuleClosure;
+use prism_input::pos::Pos;
 use std::collections::HashMap;
 use std::sync::Arc;
 

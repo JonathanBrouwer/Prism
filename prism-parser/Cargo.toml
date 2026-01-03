@@ -1,6 +1,5 @@
 [package]
 name = "prism-parser"
-description = "A PEG parsing library built for the Prism programming language"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -10,6 +9,7 @@ license.workspace = true
 serde.workspace = true
 ariadne.workspace = true
 rmp-serde.workspace = true
+prism-input.workspace = true
 
 [lints.clippy]
 used_underscore_binding = "deny"

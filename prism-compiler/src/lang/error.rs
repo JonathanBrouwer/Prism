@@ -2,7 +2,7 @@ use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
 use crate::lang::{PrismDb, ValueOrigin};
 use ariadne::{Color, Label, Report, ReportKind};
-use prism_parser::core::span::Span;
+use prism_input::span::Span;
 use prism_parser::error::ParseError;
 use prism_parser::error::set_error::SetError;
 use std::mem;
