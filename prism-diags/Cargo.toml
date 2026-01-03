@@ -1,0 +1,10 @@
+[package]
+name = "prism-diags"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+annotate-snippets.workspace = true
