@@ -1,6 +1,6 @@
 [workspace]
-members = ["prism-compiler", "prism-diags", "prism-input", "prism-lsp", "prism-parser", "prism-parser-bootstrap"]
-default-members = ["prism-compiler", "prism-lsp", "prism-parser", "prism-parser-bootstrap"]
+members = ["prism_compiler", "prism_diags", "prism_input", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
+default-members = ["prism_compiler", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
 resolver = "3"
 
 [workspace.package]
@@ -11,9 +11,9 @@ license = "MPL-2.0"
 
 [workspace.dependencies]
 # Internal
-prism-parser = { path = "./prism-parser" }
-prism-input = { path = "./prism-input" }
-prism-compiler = { path = "./prism-compiler" }
+prism_parser = { path = "prism_parser" }
+prism_input = { path = "prism_input" }
+prism_compiler = { path = "prism_compiler" }
 
 # External
 clap = { version = "4.5", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }

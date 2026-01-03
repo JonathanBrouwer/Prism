@@ -27,7 +27,7 @@ fn test([test]: [&str; 1]) {
     );
 }
 
-test_each_file! { for ["test"] in "prism-compiler/programs/ok" => test }
+test_each_file! { for ["test"] in "prism_compiler/programs/ok" => test }
 
 #[test]
 fn placeholder() {}

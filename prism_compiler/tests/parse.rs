@@ -16,7 +16,7 @@ fn test_ok([test_path]: [&Path; 1]) {
 
     env.assert_no_errors();
 }
-test_each_path! { for ["test"] in "prism-compiler/programs/ok" => test_ok }
+test_each_path! { for ["test"] in "prism_compiler/programs/ok" => test_ok }
 
 #[test]
 fn placeholder() {}

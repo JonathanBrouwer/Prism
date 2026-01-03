@@ -30,7 +30,7 @@ fn test_ok([test]: [&str; 1]) {
     );
 }
 
-test_each_file! { for ["test"] in "prism-compiler/programs/ok" as ok => test_ok }
+test_each_file! { for ["test"] in "prism_compiler/programs/ok" as ok => test_ok }
 
 fn test_fail([test]: [&str; 1]) {
     let mut env = PrismDb::new();
@@ -50,7 +50,7 @@ fn test_fail([test]: [&str; 1]) {
     }
 }
 
-test_each_file! { for ["test"] in "prism-compiler/programs/type_check_fails" as type_check_fails => test_fail }
+test_each_file! { for ["test"] in "prism_compiler/programs/type_check_fails" as type_check_fails => test_fail }
 
 #[test]
 fn placeholder() {}

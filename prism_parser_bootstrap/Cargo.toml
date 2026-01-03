@@ -1,12 +1,12 @@
 [package]
-name = "prism-parser-bootstrap"
+name = "prism_parser_bootstrap"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [dependencies]
-prism-parser.workspace = true
+prism_parser.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 rmp-serde.workspace = true

@@ -1,8 +1,11 @@
 use annotate_snippets::Level;
+use prism_input::span::Span;
 
 pub struct Diag {
     level: Level<'static>,
-    title: String,
+    title: &'static str,
+    id: &'static str,
+    primary_span: Span,
 }
 
 #[derive(Copy, Clone)]
@@ -17,6 +20,8 @@ pub struct RenderConfig {
 
 impl Diag {
     fn render(&self, config: &RenderConfig) -> String {
+        self.level.primary_title(self.title).id(self.id);
+
         match config.format {
             RenderFormat::Fancy => {
                 todo!()

@@ -1,5 +1,5 @@
 [package]
-name = "prism-compiler"
+name = "prism_compiler"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,8 +7,8 @@ license.workspace = true
 
 [dependencies]
 clap.workspace = true
-prism-parser.workspace = true
-prism-input.workspace = true
+prism_parser.workspace = true
+prism_input.workspace = true
 ariadne.workspace = true
 
 [dev-dependencies]

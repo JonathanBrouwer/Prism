@@ -537,59 +537,60 @@ dependencies = [
 ]
 
 [[package]]
-name = "prism-compiler"
+name = "prism_compiler"
 version = "0.2.0"
 dependencies = [
  "ariadne",
  "clap",
- "prism-input",
- "prism-parser",
+ "prism_input",
+ "prism_parser",
  "test_each_file",
  "ui_test",
 ]
 
 [[package]]
-name = "prism-diags"
+name = "prism_diags"
 version = "0.2.0"
 dependencies = [
  "annotate-snippets 0.12.10",
+ "prism_input",
  "serde_json",
 ]
 
 [[package]]
-name = "prism-input"
+name = "prism_input"
 version = "0.2.0"
 dependencies = [
  "ariadne",
 ]
 
 [[package]]
-name = "prism-lsp"
+name = "prism_lsp"
 version = "0.2.0"
 dependencies = [
  "ariadne",
- "prism-compiler",
- "prism-input",
- "prism-parser",
+ "prism_compiler",
+ "prism_input",
+ "prism_parser",
  "tokio",
  "tower-lsp-server",
 ]
 
 [[package]]
-name = "prism-parser"
+name = "prism_parser"
 version = "0.2.0"
 dependencies = [
  "ariadne",
- "prism-input",
+ "prism_input",
  "rmp-serde",
  "serde",
 ]
 
 [[package]]
-name = "prism-parser-bootstrap"
+name = "prism_parser_bootstrap"
 version = "0.2.0"
 dependencies = [
- "prism-parser",
+ "prism_parser",
  "rmp-serde",
  "serde",
  "serde_json",
