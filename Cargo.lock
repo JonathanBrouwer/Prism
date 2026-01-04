@@ -414,6 +414,9 @@ dependencies = [
 [[package]]
 name = "prism_input"
 version = "0.2.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "prism_lsp"

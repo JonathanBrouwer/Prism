@@ -1,10 +1,10 @@
 use crate::core::allocs::alloc_extend;
-use crate::core::input::Input;
 use crate::grammar::charclass::CharClass;
 use crate::grammar::rule_action::RuleAction;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
+use prism_input::input::Input;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -60,10 +60,13 @@ impl<Db> Parsable<Db> for RuleExpr {
                     .map(|((), v)| v)
                     .map(|sub| sub.value_cloned::<RuleExpr>()),
             )),
-            "NameBind" => RuleExpr::NameBind(
-                Input::from_parsed(&args[0]),
-                args[1].value_cloned::<RuleExpr>(),
-            ),
+            "NameBind" => {
+                let parsed = &args[0];
+                RuleExpr::NameBind(
+                    parsed.value_ref::<Input>().clone(),
+                    args[1].value_cloned::<RuleExpr>(),
+                )
+            }
             "Repeat" => RuleExpr::Repeat {
                 expr: args[0].value_cloned::<RuleExpr>(),
                 min: args[1].value_ref::<Input>().as_str().parse().unwrap(),
@@ -75,21 +78,27 @@ impl<Db> Parsable<Db> for RuleExpr {
             "SliceInput" => RuleExpr::SliceInput(args[0].value_cloned::<RuleExpr>()),
             "PosLookahead" => RuleExpr::PosLookahead(args[0].value_cloned::<RuleExpr>()),
             "NegLookahead" => RuleExpr::NegLookahead(args[0].value_cloned::<RuleExpr>()),
-            "RunVar" => RuleExpr::RunVar {
-                rule: Input::from_parsed(&args[0]),
-                args: alloc_extend(
-                    args[1]
-                        .value_ref::<ParsedList>()
-                        .iter()
-                        .map(|((), v)| v)
-                        .map(|sub| sub.value_cloned::<RuleExpr>()),
-                ),
-            },
-            "AtAdapt" => RuleExpr::AtAdapt {
-                ns: Input::from_parsed(&args[0]),
-                name: Input::from_parsed(&args[1]),
-                expr: args[2].value_cloned::<RuleExpr>(),
-            },
+            "RunVar" => {
+                let parsed = &args[0];
+                RuleExpr::RunVar {
+                    rule: parsed.value_ref::<Input>().clone(),
+                    args: alloc_extend(
+                        args[1]
+                            .value_ref::<ParsedList>()
+                            .iter()
+                            .map(|((), v)| v)
+                            .map(|sub| sub.value_cloned::<RuleExpr>()),
+                    ),
+                }
+            }
+            "AtAdapt" => {
+                let parsed = &args[1];
+                RuleExpr::AtAdapt {
+                    ns: args[0].value_ref::<Input>().clone(),
+                    name: parsed.value_ref::<Input>().clone(),
+                    expr: args[2].value_cloned::<RuleExpr>(),
+                }
+            }
             _ => unreachable!(),
         }
     }

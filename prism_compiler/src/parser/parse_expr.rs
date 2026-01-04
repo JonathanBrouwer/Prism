@@ -3,8 +3,8 @@ use crate::lang::env::{DbEnv, EnvEntry};
 use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use crate::type_check::UniqueVariableId;
+use prism_input::input::Input;
 use prism_input::span::Span;
-use prism_parser::core::input::Input;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::Parsable;
@@ -33,7 +33,7 @@ pub fn eval_ctx_to_envs(
             let Some(key) = placeholders.get(*key) else {
                 return (dummy_named_env, dummy_db_env);
             };
-            let key = Input::from_parsed(key);
+            let key = key.value_ref::<Input>().clone();
 
             // TODO we should also handle Nones here
             let Some(value) = value else {
@@ -70,7 +70,8 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
             }
             "Name" => {
                 assert_eq!(args.len(), 1);
-                let name = Input::from_parsed(&args[0]);
+                let parsed = &args[0];
+                let name = parsed.value_ref::<Input>().clone();
                 if name.as_str() == "_" {
                     ParsedPrismExpr::Free
                 } else {
@@ -79,21 +80,24 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
             }
             "Let" => {
                 assert_eq!(args.len(), 3);
-                let name = Input::from_parsed(&args[0]);
+                let parsed = &args[0];
+                let name = parsed.value_ref::<Input>().clone();
                 let v = *args[1].value_ref::<ParsedIndex>();
                 let b = *args[2].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::Let(name, v, b)
             }
             "FnType" => {
                 assert_eq!(args.len(), 3);
-                let name = Input::from_parsed(&args[0]);
+                let parsed = &args[0];
+                let name = parsed.value_ref::<Input>().clone();
                 let v = *args[1].value_ref::<ParsedIndex>();
                 let b = *args[2].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::FnType(name, v, b)
             }
             "FnConstruct" => {
                 assert_eq!(args.len(), 2);
-                let name = Input::from_parsed(&args[0]);
+                let parsed = &args[0];
+                let name = parsed.value_ref::<Input>().clone();
                 let b = *args[1].value_ref::<ParsedIndex>();
                 ParsedPrismExpr::FnConstruct(name, b)
             }
@@ -135,7 +139,8 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
             }
             "Include" => {
                 assert_eq!(args.len(), 1);
-                let name = Input::from_parsed(&args[0]);
+                let parsed = &args[0];
+                let name = parsed.value_ref::<Input>().clone();
 
                 let current_file = span.start_pos().file();
 

@@ -1,6 +1,5 @@
-use crate::parsable::parsed::{ArcExt, Parsed};
-use prism_input::input_table::InputTable;
-use prism_input::span::Span;
+use crate::input_table::InputTable;
+use crate::span::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
@@ -15,15 +14,6 @@ impl Display for Input {
 }
 
 impl Input {
-    pub fn from_parsed(parsed: &Parsed) -> Self {
-        parsed.value_ref::<Self>().clone()
-    }
-
-    pub fn to_parsed(self) -> Parsed {
-        //TODO this is in an extra layer of `Arc` :c
-        Arc::new(self).to_parsed()
-    }
-
     pub fn from_span(span: Span, input: &InputTable) -> Self {
         Self(input.inner().slice(span).to_string().into())
     }

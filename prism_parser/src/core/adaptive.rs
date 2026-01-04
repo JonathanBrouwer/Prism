@@ -1,11 +1,11 @@
 use crate::core::allocs::alloc_extend;
-use crate::core::input::Input;
 use crate::grammar::annotated_rule_expr::AnnotatedRuleExpr;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::grammar::rule::Rule;
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::parsed::ArcExt;
 use crate::parser::VarMap;
+use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::pos::Pos;
 use serde::{Deserialize, Serialize};

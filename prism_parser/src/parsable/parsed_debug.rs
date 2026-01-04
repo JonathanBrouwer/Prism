@@ -1,9 +1,9 @@
-use crate::core::input::Input;
 use crate::parsable::action_result::ActionResult;
 use crate::parsable::guid::Guid;
 use crate::parsable::parsed::Parsed;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
+use prism_input::input::Input;
 use std::fmt::{Debug, Formatter};
 
 impl Debug for Parsed {

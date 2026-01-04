@@ -1,6 +1,5 @@
 use crate::core::adaptive::{GrammarState, RuleId};
 use crate::core::context::{PV, ParserContext};
-use crate::core::input::Input;
 use crate::core::presult::PResult;
 use crate::core::presult::PResult::{PErr, POk};
 use crate::core::state::ParserState;
@@ -10,6 +9,7 @@ use crate::error::error_label::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
+use prism_input::input::Input;
 use prism_input::pos::Pos;
 use std::sync::Arc;
 

@@ -2,7 +2,6 @@ use crate::META_GRAMMAR;
 use crate::core::adaptive::{AdaptError, GrammarState, RuleId};
 
 use crate::core::context::{PV, ParserContext};
-use crate::core::input::Input;
 use crate::core::state::ParserState;
 use crate::core::tokens::Tokens;
 use crate::error::ParseError;
@@ -23,6 +22,7 @@ use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
+use prism_input::input::Input;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use std::collections::HashMap;
 use std::sync::Arc;

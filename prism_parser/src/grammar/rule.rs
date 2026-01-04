@@ -1,9 +1,9 @@
 use crate::core::allocs::alloc_extend;
-use crate::core::input::Input;
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
+use prism_input::input::Input;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -23,15 +23,21 @@ impl<Db> Parsable<Db> for Rule {
     fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
         assert_eq!(constructor.as_str(), "Rule");
 
+        let parsed = &args[0];
         Rule {
-            name: Input::from_parsed(&args[0]),
+            name: parsed.value_ref::<Input>().clone(),
             adapt: args[1].value_ref::<ParsedList>().iter().next().is_some(),
             args: alloc_extend(
                 args[2]
                     .value_ref::<ParsedList>()
                     .iter()
                     .map(|((), v)| v)
-                    .map(|n| (Input::from_const("ActionResult"), Input::from_parsed(n))),
+                    .map(|n| {
+                        (
+                            Input::from_const("ActionResult"),
+                            n.value_ref::<Input>().clone(),
+                        )
+                    }),
             ),
             blocks: alloc_extend(
                 args[3]

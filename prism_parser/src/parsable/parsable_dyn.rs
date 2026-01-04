@@ -1,9 +1,9 @@
-use crate::core::input::Input;
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
+use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use std::sync::Arc;

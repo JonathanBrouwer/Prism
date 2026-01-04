@@ -1,6 +1,6 @@
-use crate::core::input::Input;
 use crate::env::GenericEnv;
 use crate::parsable::parsed::Parsed;
+use prism_input::input::Input;
 
 pub mod apply_action;
 pub mod instance;

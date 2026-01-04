@@ -1,5 +1,5 @@
+use prism_input::input::Input;
 use prism_input::input_table::InputTable;
-use prism_parser::core::input::Input;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
 use prism_parser::parsable::parsed::Parsed;
@@ -35,7 +35,7 @@ impl NamedEnv {
     pub fn insert_name_at(&self, name: Input, depth: usize) -> Self {
         let names = self.names.insert(name.clone(), NamesEntry::FromEnv(depth));
         let hygienic_names = if let Some(NamesEntry::FromParsed(ar, _)) = self.names.get(&name) {
-            let new_name = Input::from_parsed(ar);
+            let new_name = ar.value_ref::<Input>().clone();
             self.hygienic_names.insert(new_name, depth)
         } else {
             self.hygienic_names.clone()

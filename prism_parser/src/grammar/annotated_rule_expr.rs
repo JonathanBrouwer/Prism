@@ -1,10 +1,10 @@
 use crate::core::allocs::alloc_extend;
-use crate::core::input::Input;
 use crate::grammar::rule_annotation::RuleAnnotation;
 use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
+use prism_input::input::Input;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

@@ -1,6 +1,6 @@
-use crate::core::input::Input;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
+use prism_input::input::Input;
 use prism_input::span::Span;
 
 impl<Db> Parsable<Db> for Option<u64> {
