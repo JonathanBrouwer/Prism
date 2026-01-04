@@ -42,8 +42,4 @@ impl Input {
 
         Self(result.into())
     }
-
-    pub fn from_const(c: &'static str) -> Self {
-        Self(c.to_string().into())
-    }
 }
