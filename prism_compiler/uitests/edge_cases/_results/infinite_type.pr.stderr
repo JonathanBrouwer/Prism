@@ -1,0 +1,11 @@
+error[expected_fn_arg]: Argument type mismatch in function application
+ --> ./uitests/edge_cases/infinite_type.pr:1:13
+  |
+1 | (v: _) -> v v (v Type)
+  |             ^ Found an argument of type: Type -> {25}
+  |
+ ::: ./uitests/edge_cases/infinite_type.pr:1:11
+  |
+1 | (v: _) -> v v (v Type)
+  |           ^ Function expects an argument of type: Type
+

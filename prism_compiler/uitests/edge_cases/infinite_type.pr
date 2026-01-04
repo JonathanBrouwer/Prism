@@ -1,1 +1,1 @@
-v: _ -> v v (v Type)
+(v: _) -> v v (v Type)

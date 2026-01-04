@@ -1,0 +1,18 @@
+error[unknown_name]: Undefined name within this scope.
+ --> ./uitests/edge_cases/weird4.pr:1:1
+  |
+1 | v: _ -> v Type v
+  | ^
+
+error[unknown_name]: Undefined name within this scope.
+ --> ./uitests/edge_cases/weird4.pr:1:9
+  |
+1 | v: _ -> v Type v
+  |         ^
+
+error[unknown_name]: Undefined name within this scope.
+ --> ./uitests/edge_cases/weird4.pr:1:16
+  |
+1 | v: _ -> v Type v
+  |                ^
+

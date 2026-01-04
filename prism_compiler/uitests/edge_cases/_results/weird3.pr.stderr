@@ -1,0 +1,6 @@
+error[expected_fn]: Expected function
+ --> ./uitests/edge_cases/weird3.pr:1:4
+  |
+1 | _ (Type Type)
+  |    ^^^^ Expected a function, found value of type: Type
+

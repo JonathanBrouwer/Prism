@@ -1,0 +1,22 @@
+error[recursion_limit]: Recursion limit reached during beta solving
+ --> ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Left side of constraint
+  |
+ ::: ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Right side of constraint
+
+error[recursion_limit]: Recursion limit reached during beta solving
+ --> ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Left side of constraint
+  |
+ ::: ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Right side of constraint
+

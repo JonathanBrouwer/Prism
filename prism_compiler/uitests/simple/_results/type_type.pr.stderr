@@ -1,0 +1,6 @@
+error[expected_fn]: Expected function
+ --> ./uitests/simple/type_type.pr:1:1
+  |
+1 | Type Type
+  | ^^^^ Expected a function, found value of type: Type
+

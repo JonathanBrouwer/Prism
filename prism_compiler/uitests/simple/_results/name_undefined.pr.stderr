@@ -1,0 +1,6 @@
+error[unknown_name]: Undefined name within this scope.
+ --> ./uitests/simple/name_undefined.pr:1:1
+  |
+1 | x
+  | ^
+
