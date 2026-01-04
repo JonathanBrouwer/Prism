@@ -18,11 +18,11 @@ impl Input {
         Self(input.inner().slice(span).to_string().into())
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn as_str(&self, _input: &InputTable) -> &str {
         &self.0
     }
 
-    pub fn parse_escaped_string(&self) -> Self {
+    pub fn parse_escaped_string(&self, _input: &InputTable) -> Self {
         let mut result = String::new();
         let mut chars = self.0.chars();
 

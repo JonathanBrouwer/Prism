@@ -37,7 +37,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 let mut arg_values = Vec::new();
                 for arg in &**args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = &**arg {
-                        let r_str = r.as_str();
+                        let r_str = r.as_str(&self.input);
                         if args.is_empty() && !["#this", "#next"].contains(&r_str) {
                             vars.get(r).unwrap().clone()
                         } else {
@@ -67,7 +67,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
 
                 // Handle #this and #next logic
-                let rule_str = rule.as_str();
+                let rule_str = rule.as_str(&self.input);
                 if rule_str == "#this" || rule_str == "#next" {
                     let blocks = match rule_str {
                         "#this" => blocks,
@@ -138,7 +138,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     rules,
                     vars,
                     |state, pos, _penv| {
-                        let mut res = state.parse_lit(literal.as_str(), pos);
+                        let mut res = state.parse_lit(literal.as_str(&state.input), pos);
 
                         let span = pos.span_to(res.end_pos());
                         res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
@@ -147,7 +147,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                             let value = Arc::new(Input::from_span(span, &state.input)).to_parsed();
 
                             let token_type = if literal
-                                .as_str()
+                                .as_str(&state.input)
                                 .chars()
                                 .all(|c| c.is_alphanumeric() || c == '_')
                             {
@@ -310,12 +310,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 res
             }
             RuleExpr::NameBind(name, sub) => {
-                let (eval_ctx, placeholder) =
-                    if let Some((eval_ctx, placeholder)) = eval_ctxs.get(name.as_str()) {
-                        (eval_ctx, Some(*placeholder))
-                    } else {
-                        (eval_ctx, None)
-                    };
+                let (eval_ctx, placeholder) = if let Some((eval_ctx, placeholder)) =
+                    eval_ctxs.get(name.as_str(&self.input))
+                {
+                    (eval_ctx, Some(*placeholder))
+                } else {
+                    (eval_ctx, None)
+                };
 
                 let res = self.parse_expr(
                     sub,
@@ -335,6 +336,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                             placeholder,
                             res.rtrn.parsed.clone(),
                             penv,
+                            &self.input,
                         );
                     }
 
@@ -430,7 +432,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 name: grammar,
                 expr: body,
             } => {
-                let ns = ns.as_str();
+                let ns = ns.as_str(&self.input);
 
                 let ns = self
                     .parsables

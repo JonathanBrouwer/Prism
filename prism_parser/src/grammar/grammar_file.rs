@@ -7,6 +7,7 @@ use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use crate::parser::placeholder_store::PlaceholderStore;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 
@@ -18,8 +19,14 @@ pub struct GrammarFile {
 impl<Db> Parsable<Db> for GrammarFile {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        assert_eq!(constructor.as_str(), "GrammarFile");
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        assert_eq!(constructor.as_str(input), "GrammarFile");
         GrammarFile {
             rules: alloc_extend(
                 args[0]

@@ -52,7 +52,7 @@ impl<'a> ParserPrismEnv<'a> {
                 self.parsed_to_checked_with_env(t, env, jump_labels),
             ),
             ParsedPrismExpr::Name(name) => {
-                assert_ne!(name.as_str(), "_");
+                assert_ne!(name.as_str(&self.db.input), "_");
 
                 match env.resolve_name_use(name) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
@@ -93,7 +93,10 @@ impl<'a> ParserPrismEnv<'a> {
                                 jump_labels,
                             );
                         } else {
-                            unreachable!("Found name `{}` referring to {parsed:?}", name.as_str(),);
+                            unreachable!(
+                                "Found name `{}` referring to {parsed:?}",
+                                name.as_str(&self.db.input),
+                            );
                         }
                     }
                     None => {

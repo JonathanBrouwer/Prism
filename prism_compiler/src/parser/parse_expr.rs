@@ -4,6 +4,7 @@ use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use crate::type_check::UniqueVariableId;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -61,8 +62,9 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
         constructor: &Input,
         args: &[Parsed],
         env: &mut ParserPrismEnv<'_>,
+        input: &InputTable,
     ) -> Self {
-        let expr: ParsedPrismExpr = match constructor.as_str() {
+        let expr: ParsedPrismExpr = match constructor.as_str(&input) {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -72,7 +74,7 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
                 assert_eq!(args.len(), 1);
                 let parsed = &args[0];
                 let name = parsed.value_ref::<Input>().clone();
-                if name.as_str() == "_" {
+                if name.as_str(input) == "_" {
                     ParsedPrismExpr::Free
                 } else {
                     ParsedPrismExpr::Name(name)
@@ -146,7 +148,7 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
 
                 let mut path = env.db.input.inner().get_path(current_file).to_path_buf();
                 assert!(path.pop());
-                path.push(format!("{}.pr", name.as_str()));
+                path.push(format!("{}.pr", name.as_str(input)));
 
                 let next_file = env.db.load_file(path);
 
@@ -165,9 +167,9 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
         constructor: &Input,
         parent_ctx: &Self::EvalCtx,
         arg_placeholders: &[ParsedPlaceholder],
-        _env: &mut ParserPrismEnv<'_>,
+        env: &mut ParserPrismEnv<'_>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        match constructor.as_str() {
+        match constructor.as_str(&env.db.input) {
             "Type" => {
                 assert_eq!(arg_placeholders.len(), 0);
                 vec![]

@@ -4,6 +4,7 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -20,8 +21,14 @@ pub struct Rule {
 impl<Db> Parsable<Db> for Rule {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        assert_eq!(constructor.as_str(), "Rule");
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        assert_eq!(constructor.as_str(input), "Rule");
 
         let parsed = &args[0];
         Rule {

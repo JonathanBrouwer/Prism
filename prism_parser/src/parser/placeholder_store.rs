@@ -1,6 +1,7 @@
 use crate::parsable::parsable_dyn::ParsableDyn;
 use crate::parsable::parsed::Parsed;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 
 #[derive(Copy, Clone, Debug)]
@@ -45,6 +46,7 @@ impl<Db> PlaceholderStore<Db> {
         parsable_dyn: ParsableDyn<Db>,
         children: Vec<ParsedPlaceholder>,
         env: &mut Db,
+        input: &InputTable,
     ) {
         // Store info in children
         for child in &children {
@@ -61,10 +63,16 @@ impl<Db> PlaceholderStore<Db> {
             parsable_dyn,
         });
 
-        self.bubble_up(cur, env);
+        self.bubble_up(cur, env, input);
     }
 
-    pub fn place_into_empty(&mut self, cur: ParsedPlaceholder, value: Parsed, env: &mut Db) {
+    pub fn place_into_empty(
+        &mut self,
+        cur: ParsedPlaceholder,
+        value: Parsed,
+        env: &mut Db,
+        input: &InputTable,
+    ) {
         // Store value
         let cur = &mut self.store[cur.0];
         assert!(cur.value.is_none());
@@ -76,10 +84,10 @@ impl<Db> PlaceholderStore<Db> {
         let parent = &mut self.store[parent_idx.0].construct_info.as_mut().unwrap();
         parent.children_left -= 1;
 
-        self.bubble_up(parent_idx, env);
+        self.bubble_up(parent_idx, env, input);
     }
 
-    fn bubble_up(&mut self, parent_idx: ParsedPlaceholder, env: &mut Db) {
+    fn bubble_up(&mut self, parent_idx: ParsedPlaceholder, env: &mut Db, input: &InputTable) {
         // Resolve parent
         let parent = &mut self.store[parent_idx.0].construct_info.as_mut().unwrap();
 
@@ -97,10 +105,11 @@ impl<Db> PlaceholderStore<Db> {
             .collect::<Vec<_>>();
 
         let span = Span::dummy();
-        let value = (parent.parsable_dyn.from_construct)(span, &parent.constructor, &args, env);
+        let value =
+            (parent.parsable_dyn.from_construct)(span, &parent.constructor, &args, env, input);
 
         // Place value, which will recurse if needed
-        self.place_into_empty(parent_idx, value, env);
+        self.place_into_empty(parent_idx, value, env, input);
     }
 }
 

@@ -28,7 +28,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             rule_state.args.len(),
             args.len(),
             "Invalid arguments to rule {}, expected {}, got {}",
-            rule_state.name.as_str(),
+            rule_state.name.as_str(&self.input),
             rule_state.args.len(),
             args.len()
         );

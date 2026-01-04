@@ -151,10 +151,10 @@ impl RuleState {
 
         input_table: &InputTable,
     ) -> Result<Self, UpdateError> {
-        assert_eq!(self.name.as_str(), r.name.as_str());
+        assert_eq!(self.name.as_str(input_table), r.name.as_str(input_table));
         for (a1, a2) in self.args.iter().zip(r.args.iter()) {
-            assert_eq!(a1.0.as_str(), a2.0.as_str());
-            assert_eq!(a1.1.as_str(), a2.1.as_str());
+            assert_eq!(a1.0.as_str(input_table), a2.0.as_str(input_table));
+            assert_eq!(a1.1.as_str(input_table), a2.1.as_str(input_table));
         }
 
         let mut result: Vec<Arc<BlockState>> =
@@ -174,7 +174,7 @@ impl RuleState {
                     return Err(UpdateError::ToposortCycle);
                 };
                 // If this is not the matching block, add it and continue searching
-                if old_block.name.as_str() != new_block.name.as_str() {
+                if old_block.name.as_str(input_table) != new_block.name.as_str(input_table) {
                     result.push(old_block.clone());
                     continue;
                 }
@@ -211,8 +211,8 @@ impl BlockState {
     }
 
     #[must_use]
-    pub fn update(&self, b: &RuleBlock, ctx: VarMap, _input_table: &InputTable) -> Arc<Self> {
-        assert_eq!(self.name.as_str(), b.name.as_str());
+    pub fn update(&self, b: &RuleBlock, ctx: VarMap, input_table: &InputTable) -> Arc<Self> {
+        assert_eq!(self.name.as_str(input_table), b.name.as_str(input_table));
         Arc::new(Self {
             name: self.name.clone(),
             constructors: alloc_extend(

@@ -39,20 +39,20 @@ impl<'a> ParserPrismEnv<'a> {
         match e {
             ParsedPrismExpr::Type => write!(w, "Type")?,
             &ParsedPrismExpr::Let(ref n, v, b) => {
-                write!(w, "let {} = ", n.as_str())?;
+                write!(w, "let {} = ", n.as_str(&self.db.input))?;
                 self.parse_display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.parse_display(b, w, PrecedenceLevel::Let)?;
             }
-            ParsedPrismExpr::Name(n) => write!(w, "{}", n.as_str())?,
+            ParsedPrismExpr::Name(n) => write!(w, "{}", n.as_str(&self.db.input))?,
             &ParsedPrismExpr::FnType(ref n, a, b) => {
-                write!(w, "({}: ", n.as_str())?;
+                write!(w, "({}: ", n.as_str(&self.db.input))?;
                 self.parse_display(a, w, PrecedenceLevel::TypeAssert)?;
                 write!(w, ") -> ")?;
                 self.parse_display(b, w, PrecedenceLevel::FnType)?;
             }
             &ParsedPrismExpr::FnConstruct(ref n, b) => {
-                write!(w, "{} => ", n.as_str())?;
+                write!(w, "{} => ", n.as_str(&self.db.input))?;
                 self.parse_display(b, w, PrecedenceLevel::Construct)?;
             }
             &ParsedPrismExpr::FnDestruct(a, b) => {
@@ -80,7 +80,7 @@ impl<'a> ParserPrismEnv<'a> {
             } => {
                 writeln!(w, "[SHIFT {adapt_env_len}]")?;
                 for (n, v) in vars.iter() {
-                    write!(w, "  * {} = ", n.as_str())?;
+                    write!(w, "  * {} = ", n.as_str(&self.db.input))?;
                     if let Some(v) = v.try_value_ref::<ParsedIndex>() {
                         self.parse_display(*v, w, PrecedenceLevel::Base)?;
                     } else {
@@ -91,7 +91,7 @@ impl<'a> ParserPrismEnv<'a> {
                 self.parse_display(*expr, w, PrecedenceLevel::default())?;
             }
             ParsedPrismExpr::Include(n, _) => {
-                write!(w, "include!({})", n.as_str())?;
+                write!(w, "include!({})", n.as_str(&self.db.input))?;
             }
         }
 

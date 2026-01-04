@@ -2,6 +2,7 @@ use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 
 pub type ParsedList = GenericEnv<(), Parsed>;
@@ -9,8 +10,14 @@ pub type ParsedList = GenericEnv<(), Parsed>;
 impl<Db> Parsable<Db> for ParsedList {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        match constructor.as_str() {
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        match constructor.as_str(&input) {
             "Cons" => {
                 assert_eq!(args.len(), 2);
                 args[1]

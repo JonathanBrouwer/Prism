@@ -2,6 +2,7 @@ use crate::core::tokens::TokenType;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 
@@ -13,10 +14,16 @@ pub enum RuleAnnotation {
 impl<Db> Parsable<Db> for RuleAnnotation {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        match constructor.as_str() {
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        match constructor.as_str(input) {
             "Token" => {
-                RuleAnnotation::Token(args[0].value_ref::<Input>().as_str().parse().unwrap())
+                RuleAnnotation::Token(args[0].value_ref::<Input>().as_str(input).parse().unwrap())
             }
             _ => unreachable!(),
         }

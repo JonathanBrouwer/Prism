@@ -10,8 +10,13 @@ use std::sync::Arc;
 
 #[allow(clippy::type_complexity)]
 pub struct ParsableDyn<Db> {
-    pub from_construct:
-        fn(span: Span, constructor: &Input, args: &[Parsed], env: &mut Db) -> Parsed,
+    pub from_construct: fn(
+        span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        env: &mut Db,
+        input: &InputTable,
+    ) -> Parsed,
 
     pub create_eval_ctx: fn(
         constructor: &Input,
@@ -55,8 +60,9 @@ fn from_construct_dyn<Db, P: Parsable<Db>>(
     constructor: &Input,
     args: &[Parsed],
     env: &mut Db,
+    input: &InputTable,
 ) -> Parsed {
-    Arc::new(P::from_construct(span, constructor, args, env)).to_parsed()
+    Arc::new(P::from_construct(span, constructor, args, env, input)).to_parsed()
 }
 
 fn create_eval_ctx_dyn<Db, P: Parsable<Db>>(

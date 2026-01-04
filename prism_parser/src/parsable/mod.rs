@@ -2,6 +2,7 @@ use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use std::any::{Any, type_name};
 use std::iter;
@@ -18,11 +19,17 @@ pub mod void;
 pub trait Parsable<Db>: Sized + Sync + Send + Any {
     type EvalCtx: Default + Clone + Send + Sync + Any;
 
-    fn from_construct(_span: Span, constructor: &Input, _args: &[Parsed], _env: &mut Db) -> Self {
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        _args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
         panic!(
             "Cannot parse a {} from a {} constructor",
             type_name::<Self>(),
-            constructor.as_str()
+            constructor.as_str(input)
         )
     }
 

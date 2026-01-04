@@ -25,7 +25,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     ) {
         match rule {
             RuleAction::Name(n) => {
-                let n = n.as_str();
+                let n = n.as_str(&self.input);
                 if eval_ctxs.contains_key(n) {
                     // If ctx is void, ignore
                     if eval_ctx.try_value_ref::<Void>().is_some() {
@@ -44,7 +44,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 name: constructor,
                 args,
             } => {
-                let namespace = namespace.as_str();
+                let namespace = namespace.as_str(&self.input);
 
                 // Get placeholders for args
                 let mut placeholders = Vec::with_capacity(args.len());
@@ -63,6 +63,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     *ns,
                     placeholders.clone(),
                     penv,
+                    &self.input,
                 );
 
                 // Create envs for args
@@ -86,7 +87,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             RuleAction::InputLiteral(lit) => {
                 let parsed = Arc::new(lit.clone()).to_parsed();
                 self.placeholders
-                    .place_into_empty(placeholder, parsed, penv);
+                    .place_into_empty(placeholder, parsed, penv, &self.input);
             }
             RuleAction::Value { .. } => {
                 //TODO
@@ -106,12 +107,12 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 if let Some(ar) = vars.get(name) {
                     ar.clone()
                 } else {
-                    panic!("Name '{}' not in context", name.as_str())
+                    panic!("Name '{}' not in context", name.as_str(&self.input))
                 }
             }
             RuleAction::InputLiteral(lit) => Arc::new(lit.clone()).to_parsed(),
             RuleAction::Construct { ns, name, args } => {
-                let ns = ns.as_str();
+                let ns = ns.as_str(&self.input);
 
                 let ns = self
                     .parsables
@@ -119,10 +120,10 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let args_vals =
                     alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
-                (ns.from_construct)(span, name, &args_vals, penv)
+                (ns.from_construct)(span, name, &args_vals, penv, &self.input)
             }
             RuleAction::Value { ns, value } => {
-                let ns = ns.as_str();
+                let ns = ns.as_str(&self.input);
 
                 let ns = self
                     .parsables
@@ -133,6 +134,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     &Input::from_const("EnvCapture"),
                     &[value.clone(), Arc::new(vars.clone()).to_parsed()],
                     penv,
+                    &self.input,
                 )
             }
         }

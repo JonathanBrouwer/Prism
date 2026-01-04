@@ -5,6 +5,7 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -18,8 +19,14 @@ pub struct AnnotatedRuleExpr {
 impl<Db> Parsable<Db> for AnnotatedRuleExpr {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        assert_eq!("AnnotatedExpr", constructor.as_str());
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        assert_eq!("AnnotatedExpr", constructor.as_str(input));
         Self {
             annotations: alloc_extend(
                 args[0]

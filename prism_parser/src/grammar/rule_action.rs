@@ -5,6 +5,7 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
 use prism_input::input::Input;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
 
@@ -27,8 +28,14 @@ pub enum RuleAction {
 impl<Db> Parsable<Db> for RuleAction {
     type EvalCtx = ();
 
-    fn from_construct(_span: Span, constructor: &Input, args: &[Parsed], _env: &mut Db) -> Self {
-        match constructor.as_str() {
+    fn from_construct(
+        _span: Span,
+        constructor: &Input,
+        args: &[Parsed],
+        _env: &mut Db,
+        input: &InputTable,
+    ) -> Self {
+        match constructor.as_str(input) {
             "Construct" => {
                 let parsed = &args[1];
                 RuleAction::Construct {
@@ -44,7 +51,7 @@ impl<Db> Parsable<Db> for RuleAction {
                 }
             }
             "InputLiteral" => {
-                RuleAction::InputLiteral(args[0].value_ref::<Input>().parse_escaped_string())
+                RuleAction::InputLiteral(args[0].value_ref::<Input>().parse_escaped_string(input))
             }
             "Name" => {
                 let parsed = &args[0];
