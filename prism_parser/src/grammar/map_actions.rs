@@ -24,7 +24,6 @@ impl Rule {
             name: self.name.clone(),
             adapt: self.adapt,
             args: self.args.clone(),
-            return_type: self.return_type.clone(),
         })
     }
 }

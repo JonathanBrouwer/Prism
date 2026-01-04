@@ -27,15 +27,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "grammar",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -91,15 +90,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -354,8 +352,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_params",
@@ -425,15 +422,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_body",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -530,15 +526,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_block",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -720,15 +715,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_constructors",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -764,15 +758,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_annotated_expr",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -874,8 +867,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_annotation",
@@ -930,15 +922,14 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_expr",
       "adapt": false,
       "args": [
         [
-          "ActionResult",
+          "",
           "action"
         ]
       ],
@@ -2300,8 +2291,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_runnable",
@@ -2333,8 +2323,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "charclass",
@@ -2409,8 +2398,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "charclass_part",
@@ -2505,8 +2493,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "charclass_char",
@@ -2602,8 +2589,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "pstring",
@@ -2662,8 +2648,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "str_char",
@@ -2707,8 +2692,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "char_escapes",
@@ -2786,8 +2770,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "layout",
@@ -2892,8 +2875,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "integer",
@@ -2935,8 +2917,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "identifier",
@@ -3066,8 +3047,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "reserved",
@@ -3128,8 +3108,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     },
     {
       "name": "prule_action",
@@ -3491,8 +3470,7 @@
             }
           ]
         }
-      ],
-      "return_type": "ActionResult"
+      ]
     }
   ]
 }

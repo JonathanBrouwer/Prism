@@ -1,3 +1,4 @@
+use crate::core::adaptive::ArgsSlice;
 use crate::core::allocs::alloc_extend;
 use crate::grammar::rule_block::RuleBlock;
 use crate::parsable::Parsable;
@@ -13,9 +14,8 @@ use std::sync::Arc;
 pub struct Rule {
     pub name: Input,
     pub adapt: bool,
-    pub args: Arc<[(Input, Input)]>,
+    pub args: ArgsSlice,
     pub blocks: Arc<[Arc<RuleBlock>]>,
-    pub return_type: Input,
 }
 
 impl<Db> Parsable<Db> for Rule {
@@ -39,12 +39,7 @@ impl<Db> Parsable<Db> for Rule {
                     .value_ref::<ParsedList>()
                     .iter()
                     .map(|((), v)| v)
-                    .map(|n| {
-                        (
-                            Input::from_const("ActionResult"),
-                            n.value_ref::<Input>().clone(),
-                        )
-                    }),
+                    .map(|n| (Input::from_const(""), n.value_ref::<Input>().clone())),
             ),
             blocks: alloc_extend(
                 args[3]
@@ -53,7 +48,6 @@ impl<Db> Parsable<Db> for Rule {
                     .map(|((), v)| v)
                     .map(|block| block.value_cloned::<RuleBlock>()),
             ),
-            return_type: Input::from_const("ActionResult"),
         }
     }
 }

@@ -157,9 +157,8 @@ impl RuleState {
         input_table: &InputTable,
     ) -> Result<Self, UpdateError> {
         assert_eq!(self.name.as_str(input_table), r.name.as_str(input_table));
-        for (a1, a2) in self.args.iter().zip(r.args.iter()) {
-            assert_eq!(a1.0.as_str(input_table), a2.0.as_str(input_table));
-            assert_eq!(a1.1.as_str(input_table), a2.1.as_str(input_table));
+        for ((_, a1), (_, a2)) in self.args.iter().zip(r.args.iter()) {
+            assert_eq!(a1.as_str(input_table), a2.as_str(input_table));
         }
 
         let mut result: Vec<Arc<BlockState>> =
