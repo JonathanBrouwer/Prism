@@ -1,0 +1,11 @@
+error[expected_fn_arg]: Argument type mismatch in function application
+ --> ./uitests/simple/fn_arg_wrong.pr:4:3
+  |
+4 | x Type
+  |   ^^^^ Found an argument of type: Type
+  |
+ ::: ./uitests/simple/fn_arg_wrong.pr:4:1
+  |
+4 | x Type
+  | ^ Function expects an argument of type: Type -> Type
+

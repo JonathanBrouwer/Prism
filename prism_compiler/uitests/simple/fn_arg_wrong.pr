@@ -1,0 +1,4 @@
+let Bool = Type -> Type;
+
+let x = (b: Bool) => b;
+x Type
