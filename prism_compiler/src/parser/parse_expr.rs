@@ -47,7 +47,7 @@ pub fn eval_ctx_to_envs(
             let value =
                 prism_env.parsed_to_checked_with_env(value, &named_env, &mut Default::default());
 
-            let named_env = named_env.insert_name(key, &prism_env.db.input);
+            let named_env = named_env.insert_name(&key, &prism_env.db.input);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
             (named_env, db_env)
         }

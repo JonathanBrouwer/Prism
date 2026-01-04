@@ -38,8 +38,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 for arg in &**args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = &**arg {
                         let r = r.as_str(&self.input);
-                        if args.is_empty() && !["#this", "#next"].contains(&r) {
-                            vars.get(r).unwrap().clone()
+                        if args.is_empty() && !["#this", "#next"].contains(&r.as_ref()) {
+                            vars.get(r.as_ref()).unwrap().clone()
                         } else {
                             Arc::new(RuleClosure {
                                 expr: arg.clone(),
@@ -69,7 +69,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 // Handle #this and #next logic
                 let rule_str = rule.as_str(&self.input);
                 if rule_str == "#this" || rule_str == "#next" {
-                    let blocks = match rule_str {
+                    let blocks = match rule_str.as_ref() {
                         "#this" => blocks,
                         "#next" => blocks.slice(1..),
                         _ => unreachable!(),
@@ -94,7 +94,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
 
                 // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get(rule.as_str(&self.input)) else {
+                let Some(rule) = vars.get(rule.as_str(&self.input).as_ref()) else {
                     panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
                 };
                 if let Some(rule) = rule.try_value_ref::<RuleId>() {
@@ -138,7 +138,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     rules,
                     vars,
                     |state, pos, _penv| {
-                        let mut res = state.parse_lit(literal.as_str(&state.input), pos);
+                        let mut res = state.parse_lit(literal.as_str(&state.input).as_ref(), pos);
 
                         let span = pos.span_to(res.end_pos());
                         res.add_label_implicit(ErrorLabel::Literal(span, literal.to_string()));
@@ -311,7 +311,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             }
             RuleExpr::NameBind(name, sub) => {
                 let (eval_ctx, placeholder) = if let Some((eval_ctx, placeholder)) =
-                    eval_ctxs.get(name.as_str(&self.input))
+                    eval_ctxs.get(name.as_str(&self.input).as_ref())
                 {
                     (eval_ctx, Some(*placeholder))
                 } else {
@@ -438,9 +438,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                 let ns = self
                     .parsables
-                    .get(ns)
+                    .get(ns.as_ref())
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let grammar = vars.get(grammar.as_str(&self.input)).unwrap();
+                let grammar = vars.get(grammar.as_str(&self.input).as_ref()).unwrap();
                 let grammar =
                     (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
 

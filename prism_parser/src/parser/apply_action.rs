@@ -25,7 +25,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         match rule {
             RuleAction::Name(n) => {
                 let n = n.as_str(&self.input);
-                if eval_ctxs.contains_key(n) {
+                if eval_ctxs.contains_key(n.as_ref()) {
                     // If ctx is void, ignore
                     if eval_ctx.try_value_ref::<Void>().is_some() {
                         return;
@@ -54,7 +54,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 // Store construct info
                 let ns = self
                     .parsables
-                    .get(namespace)
+                    .get(namespace.as_ref())
                     .unwrap_or_else(|| panic!("Namespace '{namespace}' exists"));
                 self.placeholders.place_construct_info(
                     placeholder,
@@ -67,7 +67,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                 // Create envs for args
                 let arg_envs = (ns.create_eval_ctx)(
-                    constructor.as_str(&self.input),
+                    constructor.as_str(&self.input).as_ref(),
                     eval_ctx,
                     &placeholders,
                     &self.input,
@@ -108,7 +108,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     ) -> Parsed {
         match rule {
             RuleAction::Name(name) => {
-                if let Some(ar) = vars.get(name.as_str(&self.input)) {
+                if let Some(ar) = vars.get(name.as_str(&self.input).as_ref()) {
                     ar.clone()
                 } else {
                     panic!("Name '{}' not in context", name.as_str(&self.input))
@@ -120,13 +120,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                 let ns = self
                     .parsables
-                    .get(ns)
+                    .get(ns.as_ref())
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let args_vals =
                     alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
                 (ns.from_construct)(
                     span,
-                    name.as_str(&self.input),
+                    name.as_str(&self.input).as_ref(),
                     &args_vals,
                     penv,
                     &self.input,
@@ -137,7 +137,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
 
                 let ns = self
                     .parsables
-                    .get(ns)
+                    .get(ns.as_ref())
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 (ns.from_construct)(
                     span,

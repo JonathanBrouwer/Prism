@@ -72,7 +72,7 @@ impl GrammarState {
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
                     let value = ctx
-                        .get(new_rule.name.as_str(input_table))
+                        .get(new_rule.name.as_str(input_table).as_ref())
                         .expect("Name exists in context");
                     *value.value_ref::<RuleId>()
                 } else {

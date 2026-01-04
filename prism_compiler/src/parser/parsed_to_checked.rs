@@ -23,7 +23,7 @@ impl<'a> ParserPrismEnv<'a> {
             ParsedPrismExpr::Type => CorePrismExpr::Type,
             &ParsedPrismExpr::Let(ref n, v, b) => {
                 let n = n.as_str(&self.db.input);
-                let new_env = env.insert_name(n, &self.db.input);
+                let new_env = env.insert_name(&n, &self.db.input);
                 CorePrismExpr::Let(
                     self.parsed_to_checked_with_env(v, env, jump_labels),
                     self.parsed_to_checked_with_env(b, &new_env, jump_labels),
@@ -31,7 +31,7 @@ impl<'a> ParserPrismEnv<'a> {
             }
             &ParsedPrismExpr::FnType(ref n, a, b) => {
                 let n = n.as_str(&self.db.input);
-                let new_env = env.insert_name(n, &self.db.input);
+                let new_env = env.insert_name(&n, &self.db.input);
                 CorePrismExpr::FnType(
                     self.parsed_to_checked_with_env(a, env, jump_labels),
                     self.parsed_to_checked_with_env(b, &new_env, jump_labels),
@@ -41,7 +41,7 @@ impl<'a> ParserPrismEnv<'a> {
                 let n = n.as_str(&self.db.input);
                 CorePrismExpr::FnConstruct(self.parsed_to_checked_with_env(
                     b,
-                    &env.insert_name(n, &self.db.input),
+                    &env.insert_name(&n, &self.db.input),
                     jump_labels,
                 ))
             }
@@ -56,7 +56,7 @@ impl<'a> ParserPrismEnv<'a> {
             ParsedPrismExpr::Name(name) => {
                 assert_ne!(name.as_str(&self.db.input), "_");
 
-                match env.resolve_name_use(name.as_str(&self.db.input)) {
+                match env.resolve_name_use(&name.as_str(&self.db.input)) {
                     Some(NamesEntry::FromEnv(prev_env_len)) => {
                         CorePrismExpr::DeBruijnIndex(env.len() - prev_env_len - 1)
                     }
