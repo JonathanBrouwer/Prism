@@ -6,7 +6,6 @@ use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
-use std::iter;
 use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -43,13 +42,6 @@ impl<Db> Parsable<Db> for CharClass {
             ),
         }
     }
-
-    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
-        Self {
-            neg: false,
-            ranges: alloc_extend(iter::empty()),
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq, Hash)]
@@ -70,10 +62,6 @@ impl<Db> Parsable<Db> for CharClassRange {
             parse_string_char(&args[0], input),
             parse_string_char(&args[1], input),
         )
-    }
-
-    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
-        Self('\0', '\0')
     }
 }
 

@@ -67,12 +67,4 @@ impl<Db> Parsable<Db> for RuleAction {
             _ => unreachable!(),
         }
     }
-
-    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
-        RuleAction::Construct {
-            ns: Input::from_const("[ERROR]"),
-            name: Input::from_const("[ERROR]"),
-            args: Arc::new([]),
-        }
-    }
 }

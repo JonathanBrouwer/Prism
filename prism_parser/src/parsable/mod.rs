@@ -32,8 +32,6 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
         )
     }
 
-    fn error_fallback(_env: &mut Db, _span: Span) -> Self;
-
     fn eval_to_grammar(
         self: &Arc<Self>,
         _eval_ctx: &Self::EvalCtx,

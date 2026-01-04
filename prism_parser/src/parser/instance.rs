@@ -150,13 +150,10 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
     parsables: HashMap<&'static str, ParsableDyn<Db>>,
     penv: &mut Db,
 ) -> (Arc<P>, Arc<Tokens>, AggregatedParseError<E>) {
-    let full_span = input_table.inner().span_of(file);
     let (pv, errs) = run_parser_rule_raw(rules, rule, input_table, file, parsables, penv);
 
     (
-        pv.parsed
-            .try_into_value()
-            .unwrap_or_else(|| Arc::new(P::error_fallback(penv, full_span))),
+        pv.parsed.try_into_value().unwrap_or_else(|| unreachable!()),
         pv.tokens,
         errs,
     )

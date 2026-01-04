@@ -37,12 +37,6 @@ impl<Db> Parsable<Db> for GrammarFile {
         }
     }
 
-    fn error_fallback(_env: &mut Db, _span: Span) -> Self {
-        Self {
-            rules: Arc::new([]),
-        }
-    }
-
     fn eval_to_grammar(
         self: &Arc<Self>,
         _eval_ctx: &Self::EvalCtx,

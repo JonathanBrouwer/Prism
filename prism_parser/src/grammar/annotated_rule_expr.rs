@@ -36,11 +36,4 @@ impl<Db> Parsable<Db> for AnnotatedRuleExpr {
             expr: args[1].value_cloned::<RuleExpr>(),
         }
     }
-
-    fn error_fallback(env: &mut Db, span: Span) -> Self {
-        Self {
-            annotations: Arc::new([]),
-            expr: Arc::new(RuleExpr::error_fallback(env, span)),
-        }
-    }
 }

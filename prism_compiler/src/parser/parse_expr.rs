@@ -272,10 +272,6 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
             Arc::new(EnvWrapper(e.clone(), eval_ctx.len(), grammar.clone())).to_parsed()
         })
     }
-
-    fn error_fallback(env: &mut ParserPrismEnv<'_>, span: Span) -> Self {
-        env.store_from_source(ParsedPrismExpr::Free, span)
-    }
 }
 
 #[derive(Clone)]
