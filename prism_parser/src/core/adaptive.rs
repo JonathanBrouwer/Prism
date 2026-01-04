@@ -128,7 +128,7 @@ impl GrammarState {
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct GrammarStateId(usize);
 
-pub type ArgsSlice = Arc<[(Input, Input)]>;
+pub type ArgsSlice = Arc<[Input]>;
 
 pub struct RuleState {
     pub name: Input,
@@ -157,7 +157,7 @@ impl RuleState {
         input_table: &InputTable,
     ) -> Result<Self, UpdateError> {
         assert_eq!(self.name.as_str(input_table), r.name.as_str(input_table));
-        for ((_, a1), (_, a2)) in self.args.iter().zip(r.args.iter()) {
+        for (a1, a2) in self.args.iter().zip(r.args.iter()) {
             assert_eq!(a1.as_str(input_table), a2.as_str(input_table));
         }
 

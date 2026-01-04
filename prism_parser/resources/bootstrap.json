@@ -33,10 +33,7 @@
       "name": "grammar",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -96,10 +93,7 @@
       "name": "prule",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -428,10 +422,7 @@
       "name": "prule_body",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -532,10 +523,7 @@
       "name": "prule_block",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -721,10 +709,7 @@
       "name": "prule_constructors",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -764,10 +749,7 @@
       "name": "prule_annotated_expr",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {
@@ -928,10 +910,7 @@
       "name": "prule_expr",
       "adapt": false,
       "args": [
-        [
-          "",
-          "action"
-        ]
+        "action"
       ],
       "blocks": [
         {

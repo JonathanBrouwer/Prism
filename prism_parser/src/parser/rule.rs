@@ -36,7 +36,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
             rule_state
                 .args
                 .iter()
-                .map(|(_, arg_name)| arg_name.as_str(&self.input).to_string())
+                .map(|arg_name| arg_name.as_str(&self.input).to_string())
                 .zip(args.iter().cloned()),
         );
 

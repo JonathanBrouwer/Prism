@@ -39,7 +39,7 @@ impl<Db> Parsable<Db> for Rule {
                     .value_ref::<ParsedList>()
                     .iter()
                     .map(|((), v)| v)
-                    .map(|n| (Input::from_const(""), n.value_ref::<Input>().clone())),
+                    .map(|n| n.value_ref::<Input>().clone()),
             ),
             blocks: alloc_extend(
                 args[3]
