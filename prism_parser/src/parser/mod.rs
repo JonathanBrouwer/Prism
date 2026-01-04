@@ -1,6 +1,5 @@
 use crate::env::GenericEnv;
 use crate::parsable::parsed::Parsed;
-use prism_input::input::Input;
 
 pub mod apply_action;
 pub mod instance;
@@ -13,4 +12,4 @@ pub mod rule_block;
 pub mod rule_closure;
 pub mod rule_expr;
 
-pub type VarMap = GenericEnv<Input, Parsed>;
+pub type VarMap = GenericEnv<String, Parsed>;

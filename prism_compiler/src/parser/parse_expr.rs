@@ -27,14 +27,14 @@ pub fn eval_ctx_to_envs(
             let (named_env, db_env) = eval_ctx_to_envs(&rest, placeholders, prism_env);
 
             // Create dummy env entries, so that environments are safely reusable after the placeholders are filled in
-            let dummy_named_env = named_env.insert_name(Input::from_const("_"));
+            let dummy_named_env = named_env.insert_name("_", &prism_env.db.input);
             let dummy_db_env = db_env.cons(EnvEntry::RType(UniqueVariableId::DUMMY));
 
             // If the name or value of this entry is not known, continue
             let Some(key) = placeholders.get(*key) else {
                 return (dummy_named_env, dummy_db_env);
             };
-            let key = key.value_ref::<Input>().clone();
+            let key = key.value_ref::<Input>().as_str(&prism_env.db.input);
 
             // TODO we should also handle Nones here
             let Some(value) = value else {
@@ -47,7 +47,7 @@ pub fn eval_ctx_to_envs(
             let value =
                 prism_env.parsed_to_checked_with_env(value, &named_env, &mut Default::default());
 
-            let named_env = named_env.insert_name(key);
+            let named_env = named_env.insert_name(key, &prism_env.db.input);
             let db_env = db_env.cons(EnvEntry::RSubst(value, db_env.clone()));
             (named_env, db_env)
         }

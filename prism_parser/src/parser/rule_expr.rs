@@ -37,8 +37,8 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 let mut arg_values = Vec::new();
                 for arg in &**args {
                     arg_values.push(if let RuleExpr::RunVar { rule: r, args } = &**arg {
-                        let r_str = r.as_str(&self.input);
-                        if args.is_empty() && !["#this", "#next"].contains(&r_str) {
+                        let r = r.as_str(&self.input);
+                        if args.is_empty() && !["#this", "#next"].contains(&r) {
                             vars.get(r).unwrap().clone()
                         } else {
                             Arc::new(RuleClosure {
@@ -94,7 +94,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 }
 
                 // Figure out which rule the variable `rule` refers to
-                let Some(rule) = vars.get(rule) else {
+                let Some(rule) = vars.get(rule.as_str(&self.input)) else {
                     panic!("Tried to run variable `{rule_str}` as a rule, but it was not defined.");
                 };
                 if let Some(rule) = rule.try_value_ref::<RuleId>() {
@@ -341,7 +341,9 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     }
 
                     PR {
-                        free: res.free.insert(name.clone(), res.rtrn.parsed),
+                        free: res
+                            .free
+                            .insert(name.as_str(&self.input).to_string(), res.rtrn.parsed),
                         rtrn: PV::new_from(Arc::new(Void).to_parsed(), res.rtrn.tokens),
                     }
                 })
@@ -438,7 +440,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .parsables
                     .get(ns)
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
-                let grammar = vars.get(grammar).unwrap();
+                let grammar = vars.get(grammar.as_str(&self.input)).unwrap();
                 let grammar =
                     (ns.eval_to_grammar)(grammar, eval_ctx, &self.placeholders, &self.input, penv);
 

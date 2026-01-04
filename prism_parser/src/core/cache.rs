@@ -40,7 +40,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         //Check if this result is cached
         let mut args_hash = DefaultHasher::new();
         for (name, value) in rule_args.iter() {
-            args_hash.write(name.as_str(&self.input).as_bytes());
+            args_hash.write(name.as_bytes());
             args_hash.write_usize(value.as_ptr().as_ptr() as usize);
         }
 

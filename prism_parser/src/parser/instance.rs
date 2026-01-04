@@ -22,7 +22,6 @@ use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::parsed_list::ParsedList;
-use prism_input::input::Input;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -58,16 +57,16 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
         let (grammar_state, meta_vars) = GrammarState::new_with(&META_GRAMMAR, &state.input);
         let visible_rules = VarMap::from_iter([
             (
-                Input::from_const("grammar"),
+                "grammar".to_string(),
                 meta_vars
-                    .get(&Input::from_const("grammar"))
+                    .get("grammar")
                     .expect("Meta grammar contains 'grammar' rule")
                     .clone(),
             ),
             (
-                Input::from_const("prule_action"),
+                "prule_action".to_string(),
                 meta_vars
-                    .get(&Input::from_const("prule_action"))
+                    .get("prule_action")
                     .expect("Meta grammar contains 'prule_action' rule")
                     .clone(),
             ),
@@ -93,7 +92,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserInstance<Db, E> {
     ) -> (PV, AggregatedParseError<E>) {
         let rule = *self
             .rules
-            .get(&Input::from_const(rule))
+            .get(rule)
             .as_ref()
             .expect("Rule exists")
             .value_ref::<RuleId>();

@@ -107,7 +107,7 @@ impl<Db> PlaceholderStore<Db> {
         let span = Span::dummy();
         let value = (parent.parsable_dyn.from_construct)(
             span,
-            &parent.constructor.as_str(input),
+            parent.constructor.as_str(input),
             &args,
             env,
             input,

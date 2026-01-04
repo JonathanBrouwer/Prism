@@ -71,7 +71,9 @@ impl GrammarState {
             .iter()
             .map(|new_rule| {
                 let rule = if new_rule.adapt {
-                    let value = ctx.get(&new_rule.name).expect("Name exists in context");
+                    let value = ctx
+                        .get(new_rule.name.as_str(input_table))
+                        .expect("Name exists in context");
                     *value.value_ref::<RuleId>()
                 } else {
                     new_rules.push(Arc::new(RuleState::new_empty(
@@ -80,7 +82,10 @@ impl GrammarState {
                     )));
                     RuleId(new_rules.len() - 1)
                 };
-                new_ctx = new_ctx.insert(new_rule.name.clone(), Arc::new(rule).to_parsed());
+                new_ctx = new_ctx.insert(
+                    new_rule.name.as_str(input_table).to_string(),
+                    Arc::new(rule).to_parsed(),
+                );
                 rule
             })
             .collect();

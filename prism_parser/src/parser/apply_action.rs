@@ -108,7 +108,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
     ) -> Parsed {
         match rule {
             RuleAction::Name(name) => {
-                if let Some(ar) = vars.get(name) {
+                if let Some(ar) = vars.get(name.as_str(&self.input)) {
                     ar.clone()
                 } else {
                     panic!("Name '{}' not in context", name.as_str(&self.input))
@@ -141,7 +141,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 (ns.from_construct)(
                     span,
-                    &"EnvCapture",
+                    "EnvCapture",
                     &[value.clone(), Arc::new(vars.clone()).to_parsed()],
                     penv,
                     &self.input,

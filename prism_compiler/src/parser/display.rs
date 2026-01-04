@@ -80,7 +80,7 @@ impl<'a> ParserPrismEnv<'a> {
             } => {
                 writeln!(w, "[SHIFT {adapt_env_len}]")?;
                 for (n, v) in vars.iter() {
-                    write!(w, "  * {} = ", n.as_str(&self.db.input))?;
+                    write!(w, "  * {} = ", n)?;
                     if let Some(v) = v.try_value_ref::<ParsedIndex>() {
                         self.parse_display(*v, w, PrecedenceLevel::Base)?;
                     } else {

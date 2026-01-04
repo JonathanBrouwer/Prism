@@ -9,7 +9,6 @@ use crate::error::error_label::ErrorLabel;
 use crate::parsable::parsed::ArcExt;
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
-use prism_input::input::Input;
 use prism_input::pos::Pos;
 use std::sync::Arc;
 
@@ -26,7 +25,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
         if context.layout_disabled {
             return sub(self, pos, penv);
         }
-        let Some(layout) = vars.get(&Input::from_const("layout")) else {
+        let Some(layout) = vars.get("layout") else {
             return sub(self, pos, penv);
         };
         let layout = *layout.value_ref::<RuleId>();
