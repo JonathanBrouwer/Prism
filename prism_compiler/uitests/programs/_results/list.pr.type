@@ -1,0 +1,3 @@
+let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
+List Type
+

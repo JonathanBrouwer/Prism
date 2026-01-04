@@ -2,8 +2,3 @@ let z = _ => Type;
 let g = f => f z;
 g (v => v) Type
 
-### Eval
-Type
-
-### Type
-Type

@@ -9,8 +9,3 @@ let _ = v1 (v2: Type) => v2;
 let f = v1 (v2: Type) v3 => v1 v2;
 f
 
-### Eval
-(v1: Type -> _) => (v2: Type) => (v3: _) => v1 v2
-
-### Type
-(Type -> _) -> Type -> _ -> _

@@ -22,14 +22,3 @@ adapt grammar {
 
 list![Type, List Type, Type -> Type]
 
-### Eval
-let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
-let nil = (T : Type) => (Out: Type) => (nil: Out) => (_cons: T -> Out -> Out) => nil;
-let cons = (T : Type) => (head: T) => (tail: List T) => (Out: Type) => (nil: Out) => (cons: T -> Out -> Out) => cons head (tail Out nil cons);
-
-cons _ Type (cons _ (List Type) (cons _ (Type -> Type) (nil _)))
-
-### Type
-let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
-List Type
-

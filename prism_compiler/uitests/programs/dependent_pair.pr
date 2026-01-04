@@ -5,8 +5,3 @@ let fst = (T1: Type) => (T2 : (T1 -> Type)) => (p: Pair T1 T2) => p T1 (v1 => v2
 
 fst _ _ (pair _ _ ((v: Type) => v) Type)
 
-### Eval
-(v: Type) => v
-
-### Type
-Type -> Type

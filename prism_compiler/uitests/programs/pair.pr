@@ -5,8 +5,3 @@ let snd = (T1: Type) => (T2: Type) => (p: Pair T1 T2) => p T2 (v1 => v2 => v2);
 
 snd _ _ (pair _ _ Type ((v: Type) => v))
 
-### Eval
-(v: Type) => v
-
-### Type
-(Type -> Type)

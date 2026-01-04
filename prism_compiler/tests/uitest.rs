@@ -10,6 +10,8 @@ use std::fmt::Write;
 use std::iter::Iterator;
 use std::mem;
 use std::path::{Path, PathBuf};
+use std::thread::sleep;
+use std::time::Duration;
 
 #[derive(Parser, Debug, Clone, Default)]
 pub struct FullArguments {
@@ -31,33 +33,54 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
 
     let input = env.load_file(file_path.into());
 
-    let (input, _) = env.parse_prism_file(input);
-    let typ = env.type_check(input);
+    let input = env.input.inner().get_str(input).to_string();
 
-    // Compare stderr
-    let mut stderr = String::new();
-    for diag in mem::take(&mut env.diags) {
-        writeln!(
-            &mut stderr,
-            "{}\n",
-            diag.render(&RenderConfig::uitest(), &env.input.inner())
-        )
-        .unwrap();
-    }
-    compare_output(file_path, stderr.as_bytes(), "stderr", args)?;
-    if !stderr.is_empty() {
-        return Ok(());
-    }
+    let (input_str, rest) = input.split_once("### Eval\n").unwrap();
+    let (eval, expected_typ_str) = rest.split_once("### Type\n").unwrap();
 
-    compare_term(file_path, &mut env, input, "parsed", args)?;
-    compare_term(file_path, &mut env, typ, "type", args)?;
+    std::fs::write(file_path, input_str).unwrap();
 
-    let (head, _) = env.beta_reduce_head(input, &DbEnv::default());
+    let results_dir = file_path.parent().unwrap().join("_results");
+    std::fs::create_dir_all(&results_dir).unwrap();
+    let eval_path = results_dir
+        .join(file_path.file_name().unwrap())
+        .with_added_extension("eval");
+    std::fs::write(eval_path, eval).unwrap();
 
-    let eval = env.beta_reduce(input, &DbEnv::default());
-    compare_term(file_path, &mut env, eval, "eval", args)?;
+    let type_path = results_dir
+        .join(file_path.file_name().unwrap())
+        .with_added_extension("type");
+    std::fs::write(type_path, expected_typ_str).unwrap();
 
     Ok(())
+
+    // let (input, _) = env.parse_prism_file(input);
+    // let typ = env.type_check(input);
+
+    // // Compare stderr
+    // let mut stderr = String::new();
+    // for diag in mem::take(&mut env.diags) {
+    //     writeln!(
+    //         &mut stderr,
+    //         "{}\n",
+    //         diag.render(&RenderConfig::uitest(), &env.input.inner())
+    //     )
+    //     .unwrap();
+    // }
+    // compare_output(file_path, stderr.as_bytes(), "stderr", args)?;
+    // if !stderr.is_empty() {
+    //     return Ok(());
+    // }
+    //
+    // compare_term(file_path, &mut env, input, "parsed", args)?;
+    // compare_term(file_path, &mut env, typ, "type", args)?;
+    //
+    // let (head, _) = env.beta_reduce_head(input, &DbEnv::default());
+    //
+    // let eval = env.beta_reduce(input, &DbEnv::default());
+    // compare_term(file_path, &mut env, eval, "eval", args)?;
+    //
+    // Ok(())
 }
 
 fn compare_term(

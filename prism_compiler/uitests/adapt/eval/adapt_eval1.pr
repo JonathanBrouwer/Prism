@@ -10,8 +10,3 @@ adapt test;
 let w = Type -> Type;
 %
 
-### Eval
-Type
-
-### Type
-Type

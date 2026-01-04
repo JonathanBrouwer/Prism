@@ -9,8 +9,3 @@ let test2 = (x => x) test;
 adapt test2;
 %
 
-### Eval
-Type
-
-### Type
-Type

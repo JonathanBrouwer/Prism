@@ -34,10 +34,3 @@ if true && x || !false {
     false
 }
 
-### Eval
-(T: Type) => (v1: T) => (v2: T) => v1
-
-### Type
-(T: Type) -> T -> T -> T
-
-

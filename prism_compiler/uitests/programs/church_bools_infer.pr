@@ -3,10 +3,3 @@ let true = (T: Type) => (v1: T) => (v2: T) => v1;
 let false = (T: Type) => (v1: T) => (v2: T) => v2;
 true _ true false
 
-### Eval
-(T: Type) => (v1: T) => (v2: T) => v1
-
-### Type
-(T: Type) -> T -> T -> T
-
-

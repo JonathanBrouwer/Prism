@@ -9,8 +9,3 @@ adapt grammar {
 let y = Type -> Type;
 %
 
-### Eval
-Type
-
-### Type
-Type

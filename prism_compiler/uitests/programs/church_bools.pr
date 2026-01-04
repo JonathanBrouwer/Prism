@@ -11,9 +11,3 @@ let or = (b1: Bool) => (b2: Bool) => b1 Bool true b2;
 // example
 and true true
 
-### Eval
-(T: Type) => (v1: T) => (_: T) => v1
-
-### Type
-(T: Type) -> T -> T -> T
-

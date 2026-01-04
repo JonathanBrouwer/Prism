@@ -11,8 +11,3 @@ let y2 = %y;
 let w = Type;
 %z
 
-### Eval
-Type -> Type
-
-### Type
-Type
