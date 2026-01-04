@@ -54,11 +54,8 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
         return Ok(());
     }
 
-    // compare_term(file_path, &mut env, input, "parsed", args)?;
     compare_term(file_path, &mut env, typ, "type", args)?;
 
-    // let (head, _) = env.beta_reduce_head(input, &DbEnv::default());
-    //
     let eval = env.beta_reduce(input, &DbEnv::default());
     compare_term(file_path, &mut env, eval, "eval", args)?;
 
