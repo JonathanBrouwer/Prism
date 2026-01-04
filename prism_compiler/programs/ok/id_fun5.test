@@ -1,8 +1,0 @@
-### Input
-((T: Type) => (v: T) => v) Type Type
-
-### Eval
-Type
-
-### Type
-Type

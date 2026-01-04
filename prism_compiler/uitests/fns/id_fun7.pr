@@ -1,0 +1,7 @@
+((T: Type) => (v: T) => v) (Type -> Type) ((v: Type) => v)
+
+### Eval
+((v: Type) => v)
+
+### Type
+(Type -> Type)

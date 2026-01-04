@@ -1,8 +1,0 @@
-### Input
-(v: Type) => v
-
-### Eval
-(v: Type) => v
-
-### Type
-Type -> Type

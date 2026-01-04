@@ -1,0 +1,19 @@
+adapt grammar {
+    adapt rule expr {
+        adapt group statement {
+            let n = Type; n <- "tel" n:identifier;
+        }
+    }
+    adapt rule keyword {
+        "tel";
+    }
+};
+
+tel x
+
+
+### Eval
+Type
+
+### Type
+Type

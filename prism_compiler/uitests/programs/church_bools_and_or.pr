@@ -1,0 +1,43 @@
+let Bool = (T: Type) -> T -> T -> T;
+let true = (T: Type) => (v1: T) => (v2: T) => v1; // true returns v1
+let false = (T: Type) => (v1: T) => (v2: T) => v2; // false returns v2
+
+// and : Bool -> Bool -> Bool
+let and = (b1: Bool) => (b2: Bool) => b1 Bool b2 false;
+
+// or : Bool -> Bool -> Bool
+let or = (b1: Bool) => (b2: Bool) => b1 Bool true b2;
+
+adapt grammar {
+    adapt rule expr {
+        group or {
+            or e1 e2 <- e1:#this "||" e2:#next;
+        }
+        group and {
+            and e1 e2 <- e1:#this "&&" e2:#next;
+        }
+        adapt group base {
+            b _ e1 e2 <- "if" b:expr "{" e1:expr "}" "else" "{" e2:expr "}";
+            c Bool false true <- "!" c:#this;
+        }
+    }
+    adapt rule keyword {
+        "if";
+    }
+
+};
+
+let x = false;
+if true && x || !false {
+    true
+} else {
+    false
+}
+
+### Eval
+(T: Type) => (v1: T) => (v2: T) => v1
+
+### Type
+(T: Type) -> T -> T -> T
+
+

@@ -6,7 +6,6 @@ pub enum ErrorFormat {
     #[default]
     Pretty,
     Plain,
-    Json,
 }
 
 impl Display for ErrorFormat {
@@ -14,7 +13,6 @@ impl Display for ErrorFormat {
         match self {
             ErrorFormat::Pretty => write!(f, "pretty"),
             ErrorFormat::Plain => write!(f, "plain"),
-            ErrorFormat::Json => write!(f, "json"),
         }
     }
 }

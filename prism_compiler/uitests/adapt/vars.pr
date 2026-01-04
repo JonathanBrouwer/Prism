@@ -1,0 +1,14 @@
+adapt grammar {
+    adapt rule expr {
+        adapt group base {
+            x <- "%" x:#this;
+        }
+    }
+};
+%Type
+
+### Eval
+Type
+
+### Type
+Type

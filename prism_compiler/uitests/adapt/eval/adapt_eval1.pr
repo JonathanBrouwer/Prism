@@ -1,0 +1,17 @@
+let test = grammar {
+    adapt rule expr {
+        adapt group base {
+            Type <- "%";
+        }
+    }
+};
+let z = Type -> Type;
+adapt test;
+let w = Type -> Type;
+%
+
+### Eval
+Type
+
+### Type
+Type

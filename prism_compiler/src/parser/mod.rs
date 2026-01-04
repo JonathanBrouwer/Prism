@@ -90,7 +90,7 @@ impl<'a> ParserPrismEnv<'a> {
         );
 
         for err in errs.errors {
-            self.db.errors.push(err.diag());
+            self.db.diags.push(err.diag());
         }
 
         (*expr, tokens)

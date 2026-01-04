@@ -72,7 +72,7 @@ pub struct PrismDb {
     pub checked_origins: Vec<ValueOrigin>,
     pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
-    pub errors: Vec<Diag>,
+    pub diags: Vec<Diag>,
 }
 
 enum ProcessedFileTableEntry {
@@ -102,7 +102,7 @@ impl PrismDb {
             checked_values: Default::default(),
             checked_origins: Default::default(),
             checked_types: Default::default(),
-            errors: Default::default(),
+            diags: Default::default(),
             files: Default::default(),
         }
     }
@@ -154,6 +154,6 @@ impl PrismDb {
 
     pub fn push_error(&mut self, diag: impl IntoDiag<PrismDb>) {
         let diag = diag.into_diag(self);
-        self.errors.push(diag);
+        self.diags.push(diag);
     }
 }

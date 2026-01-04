@@ -1,27 +1,26 @@
 use crate::pos::Pos;
 use crate::span::Span;
-use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct InputTable {
     inner: RwLock<InputTableInner>,
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Clone)]
 pub struct InputTableInner {
     files: Vec<InputTableEntry>,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 struct InputTableEntry {
     path: PathBuf,
     source: String,
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct InputTableIndex(usize);
 
 impl InputTableIndex {

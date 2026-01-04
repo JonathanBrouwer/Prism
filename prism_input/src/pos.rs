@@ -1,11 +1,10 @@
 use crate::input_table::{InputTable, InputTableIndex};
 use crate::span::Span;
-use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub struct Pos {
     file: InputTableIndex,
     idx: usize,

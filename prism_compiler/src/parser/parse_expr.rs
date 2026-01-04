@@ -219,9 +219,9 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
         env: &mut ParserPrismEnv<'_>,
     ) -> Arc<GrammarFile> {
         // Create context, ignore any errors that occur in this process
-        let error_count = env.db.errors.len();
+        let error_count = env.db.diags.len();
         let (named_env, db_env) = eval_ctx_to_envs(eval_ctx, placeholders, env);
-        env.db.errors.truncate(error_count);
+        env.db.diags.truncate(error_count);
 
         // Get original grammar function
         let original_e =

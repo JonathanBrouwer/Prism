@@ -21,7 +21,7 @@ fn main() {
     //     env.index_to_string(processed.core),
     // );
 
-    if !env.errors.is_empty() {
+    if !env.diags.is_empty() {
         env.eprint_errors();
         exit(1);
     }

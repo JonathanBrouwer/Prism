@@ -1,6 +1,10 @@
 [workspace]
-members = ["prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
-default-members = ["prism_compiler", "prism_lsp", "prism_parser", "prism_parser_bootstrap"]
+members = [
+    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_parser", "prism_lsp", "prism_parser_bootstrap"
+]
+default-members = [
+    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_parser", "prism_lsp", "prism_parser_bootstrap"
+]
 resolver = "3"
 
 [workspace.package]
@@ -25,9 +29,9 @@ test_each_file = "0.3"
 rmp-serde = "1.3"
 tower-lsp-server = "0.23"
 tokio = { version = "1.49", default-features = false, features = ["macros", "rt-multi-thread", "io-std"] }
-ui_test = { version = "0.30", default-features = false, features = ["indicatif"] }
 annotate-snippets = "0.12"
 synstructure = "0.13.2"
 syn = "2.0.112"
 quote = "1.0.42"
 proc-macro2 = "1.0.104"
+libtest-mimic = "0.8.1"

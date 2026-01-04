@@ -11,13 +11,11 @@ prism_parser.workspace = true
 prism_input.workspace = true
 prism_diag.workspace = true
 prism_diag_derive.workspace = true
-serde_json.workspace = true
-serde.workspace = true
 
 [dev-dependencies]
 test_each_file.workspace = true
-ui_test.workspace = true
+libtest-mimic.workspace = true
 
 [[test]]
-name = "type_check_new"
+name = "uitest"
 harness = false

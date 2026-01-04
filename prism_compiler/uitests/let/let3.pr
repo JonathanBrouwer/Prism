@@ -1,0 +1,9 @@
+let v = Type -> Type;
+let w = v;
+w
+
+### Eval
+Type -> Type
+
+### Type
+Type

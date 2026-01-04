@@ -1,8 +1,0 @@
-### Input
-((f: Type -> Type) => f) ((v: Type) => v)
-
-### Eval
-(v: Type) => v
-
-### Type
-Type -> Type

@@ -1,0 +1,13 @@
+(a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+
+### Eval
+(a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+
+### Type
+(a: (b: Type) -> b -> (b -> b) -> b) -> (c: Type) -> c -> (c -> c) -> (c -> c) -> c
+
+
+
+
+
+

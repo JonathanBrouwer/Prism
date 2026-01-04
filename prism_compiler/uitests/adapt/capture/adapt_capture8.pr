@@ -1,0 +1,18 @@
+adapt grammar {
+    adapt rule expr {
+        adapt group base {
+            x <- "%" x:#this;
+        }
+    }
+};
+let y = Type;
+let z = Type -> Type;
+let y2 = %y;
+let w = Type;
+%z
+
+### Eval
+Type -> Type
+
+### Type
+Type

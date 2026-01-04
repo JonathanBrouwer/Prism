@@ -1,0 +1,7 @@
+(f: Type -> Type) => f Type
+
+### Eval
+(f: Type -> Type) => f Type
+
+### Type
+(Type -> Type) -> Type

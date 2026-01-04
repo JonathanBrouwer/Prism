@@ -5,9 +5,7 @@ use annotate_snippets::renderer::DecorStyle;
 use annotate_snippets::{AnnotationKind, Group, Renderer, Snippet};
 use prism_input::input_table::InputTableInner;
 use prism_input::span::Span;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
 pub struct Diag {
     // pub level: Level<'static>,
     pub title: String,
@@ -15,12 +13,10 @@ pub struct Diag {
     pub groups: Vec<AnnotationGroup>,
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct AnnotationGroup {
     pub annotations: Vec<Annotation>,
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct Annotation {
     pub span: Span,
     pub label: Option<String>,

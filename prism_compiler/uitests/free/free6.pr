@@ -1,0 +1,8 @@
+let v = Type -> Type;
+(w: v) -> _ _ w
+
+### Eval
+(v: Type -> Type) -> _ _ v
+
+### Type
+Type

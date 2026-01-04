@@ -54,9 +54,9 @@ impl<'a> TypecheckPrismEnv<'a> {
             CorePrismExpr::Type => CorePrismExpr::Type,
             CorePrismExpr::Let(mut v, b) => {
                 // Check `v`
-                let err_count = self.db.errors.len();
+                let err_count = self.db.diags.len();
                 let vt = self._type_check(v, env);
-                if self.db.errors.len() > err_count {
+                if self.db.diags.len() > err_count {
                     v = self
                         .db
                         .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
@@ -77,21 +77,21 @@ impl<'a> TypecheckPrismEnv<'a> {
                 }
             },
             CorePrismExpr::FnType(mut a, b) => {
-                let err_count = self.db.errors.len();
+                let err_count = self.db.diags.len();
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, env);
-                if self.db.errors.len() > err_count {
+                if self.db.diags.len() > err_count {
                     a = self
                         .db
                         .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
 
-                let err_count = self.db.errors.len();
+                let err_count = self.db.diags.len();
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
 
                 // Check if `b` typechecked without errors.
-                if self.db.errors.len() == err_count {
+                if self.db.diags.len() == err_count {
                     self.expect_beq_type(bt, &bs);
                 }
 
@@ -106,9 +106,9 @@ impl<'a> TypecheckPrismEnv<'a> {
                 CorePrismExpr::FnType(a, bt)
             }
             CorePrismExpr::FnDestruct(f, mut a) => {
-                let err_count = self.db.errors.len();
+                let err_count = self.db.diags.len();
                 let at = self._type_check(a, env);
-                if self.db.errors.len() > err_count {
+                if self.db.diags.len() > err_count {
                     a = self
                         .db
                         .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
@@ -118,25 +118,25 @@ impl<'a> TypecheckPrismEnv<'a> {
                     .db
                     .store_checked(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
 
-                let err_count = self.db.errors.len();
+                let err_count = self.db.diags.len();
                 let ft = self._type_check(f, env);
-                if self.db.errors.len() == err_count {
+                if self.db.diags.len() == err_count {
                     self.expect_beq_fn_type(ft, at, rt, env)
                 }
 
                 CorePrismExpr::Let(a, rt)
             }
             CorePrismExpr::TypeAssert(e, typ) => {
-                let err_count1 = self.db.errors.len();
+                let err_count1 = self.db.diags.len();
                 let et = self._type_check(e, env);
 
-                let err_count2 = self.db.errors.len();
+                let err_count2 = self.db.diags.len();
                 let typt = self._type_check(typ, env);
-                if self.db.errors.len() == err_count2 {
+                if self.db.diags.len() == err_count2 {
                     self.expect_beq_type(typt, env);
                 }
 
-                if self.db.errors.len() == err_count1 {
+                if self.db.diags.len() == err_count1 {
                     self.expect_beq_assert(e, et, typ, env);
                 }
 

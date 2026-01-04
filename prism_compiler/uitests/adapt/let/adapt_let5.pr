@@ -1,0 +1,31 @@
+adapt grammar {
+    adapt rule expr {
+        adapt group statement {
+            let x = Type; e <- "tle" x:identifier "in" e:#this;
+        }
+    }
+    adapt rule keyword {
+        "tle";
+    }
+};
+
+adapt grammar {
+    adapt rule expr {
+        adapt group statement {
+            tle y in e <- "tel" y:identifier "in" e:expr;
+        }
+    }
+    adapt rule keyword {
+        "tel";
+        "in";
+    }
+};
+
+tel z in z
+
+
+### Eval
+Type
+
+### Type
+Type
