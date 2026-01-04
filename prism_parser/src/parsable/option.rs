@@ -9,12 +9,12 @@ impl<Db> Parsable<Db> for Option<u64> {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
         input: &InputTable,
     ) -> Self {
-        match constructor.as_str(&input) {
+        match constructor {
             "None" => {
                 assert_eq!(args.len(), 0);
                 Option::None

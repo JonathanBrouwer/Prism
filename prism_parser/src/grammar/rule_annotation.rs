@@ -16,12 +16,12 @@ impl<Db> Parsable<Db> for RuleAnnotation {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
         input: &InputTable,
     ) -> Self {
-        match constructor.as_str(input) {
+        match constructor {
             "Token" => {
                 RuleAnnotation::Token(args[0].value_ref::<Input>().as_str(input).parse().unwrap())
             }

@@ -23,12 +23,12 @@ impl<Db> Parsable<Db> for Rule {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
-        assert_eq!(constructor.as_str(input), "Rule");
+        assert_eq!(constructor, "Rule");
 
         let parsed = &args[0];
         Rule {

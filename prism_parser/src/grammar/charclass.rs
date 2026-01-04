@@ -26,12 +26,12 @@ impl<Db> Parsable<Db> for CharClass {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
-        assert_eq!(constructor.as_str(input), "CharClass");
+        assert_eq!(constructor, "CharClass");
         CharClass {
             neg: args[0].value_ref::<ParsedList>().iter().next().is_some(),
             ranges: alloc_extend(
@@ -60,12 +60,12 @@ impl<Db> Parsable<Db> for CharClassRange {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
         input: &InputTable,
     ) -> Self {
-        assert_eq!(constructor.as_str(input), "Range");
+        assert_eq!(constructor, "Range");
         CharClassRange(
             parse_string_char(&args[0], input),
             parse_string_char(&args[1], input),

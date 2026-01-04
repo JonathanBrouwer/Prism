@@ -4,7 +4,6 @@ use crate::grammar::rule_expr::RuleExpr;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
 use crate::parser::parsed_list::ParsedList;
-use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use serde::{Deserialize, Serialize};
@@ -21,12 +20,12 @@ impl<Db> Parsable<Db> for AnnotatedRuleExpr {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
-        assert_eq!("AnnotatedExpr", constructor.as_str(input));
+        assert_eq!("AnnotatedExpr", constructor);
         Self {
             annotations: alloc_extend(
                 args[0]

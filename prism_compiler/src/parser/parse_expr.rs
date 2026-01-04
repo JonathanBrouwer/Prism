@@ -59,12 +59,12 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
 
     fn from_construct(
         span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         env: &mut ParserPrismEnv<'_>,
         input: &InputTable,
     ) -> Self {
-        let expr: ParsedPrismExpr = match constructor.as_str(&input) {
+        let expr: ParsedPrismExpr = match constructor {
             "Type" => {
                 assert_eq!(args.len(), 0);
 
@@ -164,12 +164,12 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
     }
 
     fn create_eval_ctx(
-        constructor: &Input,
+        constructor: &str,
         parent_ctx: &Self::EvalCtx,
         arg_placeholders: &[ParsedPlaceholder],
-        env: &mut ParserPrismEnv<'_>,
+        _env: &mut ParserPrismEnv<'_>,
     ) -> impl Iterator<Item = Option<Self::EvalCtx>> {
-        match constructor.as_str(&env.db.input) {
+        match constructor {
             "Type" => {
                 assert_eq!(arg_placeholders.len(), 0);
                 vec![]

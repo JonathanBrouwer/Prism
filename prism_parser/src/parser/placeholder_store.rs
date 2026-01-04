@@ -105,8 +105,13 @@ impl<Db> PlaceholderStore<Db> {
             .collect::<Vec<_>>();
 
         let span = Span::dummy();
-        let value =
-            (parent.parsable_dyn.from_construct)(span, &parent.constructor, &args, env, input);
+        let value = (parent.parsable_dyn.from_construct)(
+            span,
+            &parent.constructor.as_str(input),
+            &args,
+            env,
+            input,
+        );
 
         // Place value, which will recurse if needed
         self.place_into_empty(parent_idx, value, env, input);

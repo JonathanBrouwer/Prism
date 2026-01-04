@@ -46,12 +46,12 @@ impl<Db> Parsable<Db> for RuleExpr {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
         input: &InputTable,
     ) -> Self {
-        match constructor.as_str(&input) {
+        match constructor {
             "Action" => RuleExpr::Action(args[0].value_cloned(), args[1].value_cloned()),
             "Choice" => RuleExpr::Choice(alloc_extend(
                 args[0]

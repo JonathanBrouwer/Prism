@@ -1,7 +1,6 @@
 use crate::core::allocs::alloc_extend;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use std::sync::Arc;
@@ -18,14 +17,14 @@ impl<Db> Parsable<Db> for ActionResult {
 
     fn from_construct(
         span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
         Self {
             span,
-            constructor: constructor.as_str(input).to_string().into(),
+            constructor: constructor.to_string().into(),
             args: alloc_extend(args.iter().cloned()),
         }
     }

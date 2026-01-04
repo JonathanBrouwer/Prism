@@ -1,7 +1,6 @@
 use crate::env::GenericEnv;
 use crate::parsable::Parsable;
 use crate::parsable::parsed::Parsed;
-use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 
@@ -12,12 +11,12 @@ impl<Db> Parsable<Db> for ParsedList {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
-        match constructor.as_str(&input) {
+        match constructor {
             "Cons" => {
                 assert_eq!(args.len(), 2);
                 args[1]

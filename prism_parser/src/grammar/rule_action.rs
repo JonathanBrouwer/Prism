@@ -30,12 +30,12 @@ impl<Db> Parsable<Db> for RuleAction {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         _env: &mut Db,
         input: &InputTable,
     ) -> Self {
-        match constructor.as_str(input) {
+        match constructor {
             "Construct" => {
                 let parsed = &args[1];
                 RuleAction::Construct {

@@ -3,7 +3,6 @@ use crate::parsable::Parsable;
 use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
-use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use std::sync::Arc;
@@ -12,14 +11,14 @@ use std::sync::Arc;
 pub struct ParsableDyn<Db> {
     pub from_construct: fn(
         span: Span,
-        constructor: &Input,
+        constructor: &str,
         args: &[Parsed],
         env: &mut Db,
         input: &InputTable,
     ) -> Parsed,
 
     pub create_eval_ctx: fn(
-        constructor: &Input,
+        constructor: &str,
         parent_ctx: &Parsed,
         arg_placeholders: &[ParsedPlaceholder],
         // Env
@@ -57,7 +56,7 @@ impl<Db> ParsableDyn<Db> {
 
 fn from_construct_dyn<Db, P: Parsable<Db>>(
     span: Span,
-    constructor: &Input,
+    constructor: &str,
     args: &[Parsed],
     env: &mut Db,
     input: &InputTable,
@@ -66,7 +65,7 @@ fn from_construct_dyn<Db, P: Parsable<Db>>(
 }
 
 fn create_eval_ctx_dyn<Db, P: Parsable<Db>>(
-    constructor: &Input,
+    constructor: &str,
     parent_ctx: &Parsed,
     arg_placeholders: &[ParsedPlaceholder],
 

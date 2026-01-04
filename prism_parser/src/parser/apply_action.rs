@@ -7,7 +7,6 @@ use crate::parsable::parsed::{ArcExt, Parsed};
 use crate::parsable::void::Void;
 use crate::parser::VarMap;
 use crate::parser::placeholder_store::ParsedPlaceholder;
-use prism_input::input::Input;
 use prism_input::span::Span;
 use std::collections::HashMap;
 use std::iter;
@@ -67,8 +66,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                 );
 
                 // Create envs for args
-                let arg_envs =
-                    (ns.create_eval_ctx)(constructor, eval_ctx, &placeholders, &self.input, penv);
+                let arg_envs = (ns.create_eval_ctx)(
+                    constructor.as_str(&self.input),
+                    eval_ctx,
+                    &placeholders,
+                    &self.input,
+                    penv,
+                );
 
                 // Recurse on args
                 for ((arg, env), placeholder) in args
@@ -120,7 +124,13 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 let args_vals =
                     alloc_extend(args.iter().map(|a| self.apply_action(a, span, vars, penv)));
-                (ns.from_construct)(span, name, &args_vals, penv, &self.input)
+                (ns.from_construct)(
+                    span,
+                    name.as_str(&self.input),
+                    &args_vals,
+                    penv,
+                    &self.input,
+                )
             }
             RuleAction::Value { ns, value } => {
                 let ns = ns.as_str(&self.input);
@@ -131,7 +141,7 @@ impl<Db, E: ParseError<L = ErrorLabel>> ParserState<Db, E> {
                     .unwrap_or_else(|| panic!("Namespace '{ns}' exists"));
                 (ns.from_construct)(
                     span,
-                    &Input::from_const("EnvCapture"),
+                    &"EnvCapture",
                     &[value.clone(), Arc::new(vars.clone()).to_parsed()],
                     penv,
                     &self.input,

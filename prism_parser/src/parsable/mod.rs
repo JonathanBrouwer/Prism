@@ -1,7 +1,6 @@
 use crate::grammar::grammar_file::GrammarFile;
 use crate::parser::placeholder_store::{ParsedPlaceholder, PlaceholderStore};
 use parsed::Parsed;
-use prism_input::input::Input;
 use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use std::any::{Any, type_name};
@@ -21,15 +20,15 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
 
     fn from_construct(
         _span: Span,
-        constructor: &Input,
+        constructor: &str,
         _args: &[Parsed],
         _env: &mut Db,
-        input: &InputTable,
+        _input: &InputTable,
     ) -> Self {
         panic!(
             "Cannot parse a {} from a {} constructor",
             type_name::<Self>(),
-            constructor.as_str(input)
+            constructor
         )
     }
 
@@ -45,7 +44,7 @@ pub trait Parsable<Db>: Sized + Sync + Send + Any {
     }
 
     fn create_eval_ctx(
-        _constructor: &Input,
+        _constructor: &str,
         _parent_ctx: &Self::EvalCtx,
         _arg_placeholders: &[ParsedPlaceholder],
         _env: &mut Db,
