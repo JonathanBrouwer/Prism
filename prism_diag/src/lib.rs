@@ -87,6 +87,7 @@ impl<Env: Sized> IntoDiag<Env> for Diag {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use prism_input::input_table::InputTable;
 
     #[test]
     fn test() {
@@ -98,12 +99,12 @@ mod tests {
 
         let diag = Diag {
             // level: Level::ERROR,
-            title: "Something is badd",
-            id: "baddy",
+            title: "Something is badd".to_string(),
+            id: "baddy".to_string(),
             groups: vec![AnnotationGroup {
                 annotations: vec![Annotation {
                     span,
-                    label: "This is wrong".to_string(),
+                    label: Some("This is wrong".to_string()),
                 }],
             }],
         };
