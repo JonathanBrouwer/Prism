@@ -35,17 +35,11 @@ impl PrismDb {
 
     pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
         let program = std::fs::read_to_string(&path).unwrap();
-        self.input.inner_mut().get_or_push_file(program, path)
+        self.load_input(program, path)
     }
 
     pub fn load_input(&mut self, data: String, path: PathBuf) -> InputTableIndex {
         self.input.inner_mut().get_or_push_file(data, path)
-    }
-
-    pub fn load_test(&mut self, data: &str, test_name: &'static str) -> InputTableIndex {
-        self.input
-            .inner_mut()
-            .get_or_push_file(data.to_string(), test_name.into())
     }
 }
 

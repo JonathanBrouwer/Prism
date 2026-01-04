@@ -10,8 +10,6 @@ use std::fmt::Write;
 use std::iter::Iterator;
 use std::mem;
 use std::path::{Path, PathBuf};
-use std::thread::sleep;
-use std::time::Duration;
 
 #[derive(Parser, Debug, Clone, Default)]
 pub struct FullArguments {
@@ -45,18 +43,24 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
         )
         .unwrap();
     }
-    compare_output(file_path, stderr.as_bytes(), "stderr", args)?;
+    compare_output(
+        file_path,
+        stderr.as_bytes(),
+        |exp| exp == stderr.as_bytes(),
+        "stderr",
+        args,
+    )?;
     if !stderr.is_empty() {
         return Ok(());
     }
 
     // compare_term(file_path, &mut env, input, "parsed", args)?;
-    // compare_term(file_path, &mut env, typ, "type", args)?;
-    //
+    compare_term(file_path, &mut env, typ, "type", args)?;
+
     // let (head, _) = env.beta_reduce_head(input, &DbEnv::default());
     //
-    // let eval = env.beta_reduce(input, &DbEnv::default());
-    // compare_term(file_path, &mut env, eval, "eval", args)?;
+    let eval = env.beta_reduce(input, &DbEnv::default());
+    compare_term(file_path, &mut env, eval, "eval", args)?;
 
     Ok(())
 }
@@ -68,13 +72,28 @@ fn compare_term(
     output_ext: &'static str,
     args: &UitestArguments,
 ) -> Result<(), String> {
-    let term = env.index_to_sm_string(term);
-    compare_output(file_path, term.as_bytes(), output_ext, args)
+    let term_str = env.index_to_sm_string(term);
+    compare_output(
+        file_path,
+        term_str.as_bytes(),
+        |expected| {
+            let expected = env.load_input(
+                String::from_utf8_lossy(expected).to_string(),
+                file_path.with_added_extension(output_ext),
+            );
+            let (expected, _) = env.parse_prism_file(expected);
+            env.assert_no_errors();
+            env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default())
+        },
+        output_ext,
+        args,
+    )
 }
 
 fn compare_output(
     file_path: &Path,
     output: &[u8],
+    compare_with: impl FnOnce(&[u8]) -> bool,
     output_ext: &'static str,
     args: &UitestArguments,
 ) -> Result<(), String> {
@@ -83,17 +102,20 @@ fn compare_output(
     let output_path = results_dir
         .join(file_path.file_name().unwrap())
         .with_added_extension(output_ext);
-    if args.bless {
+
+    let expected_output = if output_path.exists() {
+        std::fs::read(&output_path).unwrap()
+    } else {
+        vec![]
+    };
+    if compare_with(&expected_output) {
+        return Ok(());
+    } else if args.bless {
         if output.is_empty() {
             _ = std::fs::remove_file(&output_path);
         } else {
             std::fs::write(&output_path, output).unwrap();
         }
-        return Ok(());
-    }
-
-    let expected_output = std::fs::read(&output_path).unwrap();
-    if expected_output == output {
         return Ok(());
     }
 
