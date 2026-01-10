@@ -1,19 +1,14 @@
 mod language_server;
 
 use prism_compiler::lang::PrismDb;
-use prism_input::input_table::{InputTableIndex, InputTableInner};
-use prism_input::span::Span;
-use prism_parser::core::tokens::{TokenType, Tokens};
+use prism_input::input_table::InputTableIndex;
+use prism_parser::core::tokens::Tokens;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::mem::take;
-use std::ops::DerefMut;
-use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tower_lsp_server::jsonrpc::Result;
+use tower_lsp_server::Client;
 use tower_lsp_server::ls_types::*;
-use tower_lsp_server::{Client, LanguageServer, LspService, Server};
 
 pub struct LspBackend {
     client: Client,
