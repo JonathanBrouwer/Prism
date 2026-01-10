@@ -91,7 +91,10 @@ impl InputTableInner {
             .filter(|c| *c == '\n')
             .count();
 
-        let last_line_start = input[0..pos.idx_in_file()].rfind('\n').unwrap_or(0);
+        let last_line_start = input[0..pos.idx_in_file()]
+            .rfind('\n')
+            .map(|p| p + '\n'.len_utf8())
+            .unwrap_or(0);
         let col = input[last_line_start..pos.idx_in_file()].len();
         (line, col)
     }
