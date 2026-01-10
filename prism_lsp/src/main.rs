@@ -1,5 +1,6 @@
 use prism_compiler::lang::PrismDb;
-use prism_input::input_table::InputTableIndex;
+use prism_input::input_table::{InputTableIndex, InputTableInner};
+use prism_input::span::Span;
 use prism_parser::core::tokens::{TokenType, Tokens};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -257,7 +258,6 @@ impl LanguageServer for Backend {
                     TokenType::String => 4,
                     TokenType::Number => 5,
                 };
-                eprintln!("{cur_line} {cur_start} {:?}", token.token_type);
 
                 lsp_tokens.push(SemanticToken {
                     delta_line: (cur_line - prev_line) as u32,
@@ -311,26 +311,38 @@ impl BackendInner {
         // Update diagnostics
         let mut lsp_diags = Vec::new();
         {
-            let file_inner = self.db.input.inner();
+            let input = self.db.input.inner();
             for diag in diags {
                 let first_span = diag.groups[0].annotations[0].span;
 
-                let (start_line, start_char) = file_inner.line_col_of(first_span.start_pos());
-                let (end_line, end_char) = file_inner.line_col_of(first_span.end_pos());
+                let related_information = diag
+                    .groups
+                    .iter()
+                    .flat_map(|group| {
+                        group
+                            .annotations
+                            .iter()
+                            .map(|annot| DiagnosticRelatedInformation {
+                                location: Location {
+                                    uri: Uri::from_file_path(
+                                        input.get_path(annot.span.start_pos().file()),
+                                    )
+                                    .unwrap(),
+                                    range: Self::span_to_range(&input, annot.span),
+                                },
+                                message: match annot.label.as_ref() {
+                                    Some(label) => label.to_string(),
+                                    None => "<no label>".to_string(),
+                                },
+                            })
+                    })
+                    .collect();
 
                 lsp_diags.push(Diagnostic {
-                    range: Range {
-                        start: Position {
-                            line: start_line as u32,
-                            character: start_char as u32,
-                        },
-                        end: Position {
-                            line: end_line as u32,
-                            character: end_char as u32,
-                        },
-                    },
+                    range: Self::span_to_range(&input, first_span),
                     severity: Some(DiagnosticSeverity::ERROR),
                     message: diag.title,
+                    related_information: Some(related_information),
                     ..Diagnostic::default()
                 });
             }
@@ -352,6 +364,21 @@ impl BackendInner {
 
         // Store document parse
         self.document_parses.insert(index, tokens);
+    }
+
+    fn span_to_range(input: &InputTableInner, span: Span) -> Range {
+        let (start_line, start_char) = input.line_col_of(span.start_pos());
+        let (end_line, end_char) = input.line_col_of(span.end_pos());
+        Range {
+            start: Position {
+                line: start_line as u32,
+                character: start_char as u32,
+            },
+            end: Position {
+                line: end_line as u32,
+                character: end_char as u32,
+            },
+        }
     }
 }
 
