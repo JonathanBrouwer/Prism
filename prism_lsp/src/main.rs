@@ -213,10 +213,11 @@ impl LanguageServer for Backend {
     }
 
     async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
-        Ok(Some(Hover {
-            contents: HoverContents::Scalar(MarkedString::String("You're hovering!".to_string())),
-            range: None,
-        }))
+        Ok(None)
+        // Ok(Some(Hover {
+        //     contents: HoverContents::Scalar(MarkedString::String("You're hovering!".to_string())),
+        //     range: None,
+        // }))
     }
 
     async fn semantic_tokens_full(
