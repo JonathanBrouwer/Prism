@@ -29,7 +29,7 @@ pub struct UitestArguments {
 fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
     let mut env = PrismDb::default();
 
-    let input = env.load_file(file_path.into());
+    let input = env.load_file(file_path.into()).unwrap();
     let (input, _) = env.parse_prism_file(input);
     let typ = env.type_check(input);
 

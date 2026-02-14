@@ -1,4 +1,5 @@
 use crate::lang::{CoreIndex, PrismDb};
+use prism_diag_derive::Diagnostic;
 use prism_input::input::Input;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
@@ -28,14 +29,20 @@ pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| 
 });
 
 impl PrismDb {
-    pub fn load_main_file(&mut self) -> InputTableIndex {
-        let file = self.args.input.clone();
-        self.load_file(file.into())
-    }
+    pub fn load_file(&mut self, path: PathBuf) -> Option<InputTableIndex> {
+        #[derive(Diagnostic)]
+        #[diag(title = format!("Failed to read file `{:?}`", self.path))]
+        struct FailedToRead {
+            path: PathBuf,
+        }
 
-    pub fn load_file(&mut self, path: PathBuf) -> InputTableIndex {
-        let program = std::fs::read_to_string(&path).unwrap();
-        self.load_input(program, path)
+        match std::fs::read_to_string(&path) {
+            Ok(program) => Some(self.load_input(program, path)),
+            Err(err) => {
+                self.push_error(FailedToRead { path });
+                None
+            }
+        }
     }
 
     pub fn load_input(&mut self, data: String, path: PathBuf) -> InputTableIndex {

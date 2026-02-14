@@ -4,7 +4,7 @@ use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use crate::type_check::UniqueVariableId;
 use prism_input::input::Input;
-use prism_input::input_table::InputTable;
+use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
@@ -150,12 +150,13 @@ impl Parsable<ParserPrismEnv<'_>> for ParsedIndex {
                 assert!(path.pop());
                 path.push(format!("{}.pr", name.as_str(input)));
 
-                let next_file = env.db.load_file(path);
-
-                //TODO properly do errors
-                let processed_file = env.db.process_file(next_file);
-
-                ParsedPrismExpr::Include(name, processed_file.core)
+                match env.db.load_file(path) {
+                    None => ParsedPrismExpr::Free,
+                    Some(next_file) => {
+                        let processed_file = env.db.process_file(next_file);
+                        ParsedPrismExpr::Include(name, processed_file.core)
+                    }
+                }
             }
             _ => unreachable!(),
         };

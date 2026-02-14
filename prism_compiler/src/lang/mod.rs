@@ -107,6 +107,12 @@ impl PrismDb {
         }
     }
 
+    pub fn process_main_file(&mut self) -> ProcessedFile {
+        let file = self.args.input.clone();
+        let file = self.load_file(file.into()).unwrap();
+        self.process_file(file)
+    }
+
     pub fn process_file(&mut self, file: InputTableIndex) -> ProcessedFile {
         match self.files.entry(file) {
             Entry::Occupied(v) => match v.get() {

@@ -152,11 +152,7 @@ pub fn run_parser_rule<Db, P: Parsable<Db>, E: ParseError<L = ErrorLabel>>(
 ) -> (Arc<P>, Arc<Tokens>, AggregatedParseError<E>) {
     let (pv, errs) = run_parser_rule_raw(rules, rule, input_table, file, parsables, penv);
 
-    (
-        pv.parsed.try_into_value().unwrap_or_else(|| unreachable!()),
-        pv.tokens,
-        errs,
-    )
+    (pv.parsed.into_value::<P>(), pv.tokens, errs)
 }
 
 #[macro_export]

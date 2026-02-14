@@ -8,8 +8,7 @@ fn main() {
     let mut env = PrismDb::new(args);
 
     //Load file
-    let program = env.load_main_file();
-    let _processed = env.process_file(program);
+    let _processed = env.process_main_file();
 
     // Print info
     // println!(
