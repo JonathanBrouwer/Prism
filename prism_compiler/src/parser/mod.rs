@@ -12,6 +12,7 @@ use prism_parser::parse_grammar;
 use prism_parser::parser::VarMap;
 use prism_parser::parser::instance::run_parser_rule;
 use std::collections::HashMap;
+use std::io;
 use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, LazyLock};
@@ -31,15 +32,16 @@ pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| 
 impl PrismDb {
     pub fn load_file(&mut self, path: PathBuf) -> Option<InputTableIndex> {
         #[derive(Diagnostic)]
-        #[diag(title = format!("Failed to read file `{:?}`", self.path))]
+        #[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
         struct FailedToRead {
             path: PathBuf,
+            error: io::Error,
         }
 
         match std::fs::read_to_string(&path) {
             Ok(program) => Some(self.load_input(program, path)),
-            Err(err) => {
-                self.push_error(FailedToRead { path });
+            Err(error) => {
+                self.push_error(FailedToRead { path, error });
                 None
             }
         }

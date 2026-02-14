@@ -25,7 +25,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 expr,
                 expr_type,
                 expected_type,
-            })
+            });
         }
     }
 
@@ -63,7 +63,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                         function_type: ft,
                         function_arg_type: f_at,
                         arg_type: at,
-                    })
+                    });
                 }
 
                 let mut var_map1 = HashMap::new();
@@ -90,7 +90,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                         function_type: ft,
                         function_arg_type: f_at,
                         arg_type: at,
-                    })
+                    });
                 }
 
                 let is_beq_free = self.expect_beq_free(
@@ -112,7 +112,9 @@ impl<'a> TypecheckPrismEnv<'a> {
                 );
                 assert!(is_beq_free);
             }
-            _ => self.db.push_error(ExpectedFn { index: ft }),
+            _ => {
+                self.db.push_error(ExpectedFn { index: ft });
+            }
         }
     }
 }

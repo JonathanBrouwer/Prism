@@ -11,6 +11,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
+mod diags;
 pub mod display;
 pub mod env;
 pub mod error;
@@ -109,7 +110,14 @@ impl PrismDb {
 
     pub fn process_main_file(&mut self) -> ProcessedFile {
         let file = self.args.input.clone();
-        let file = self.load_file(file.into()).unwrap();
+        let Some(file) = self.load_file(file.into()) else {
+            todo!()
+            // return ProcessedFile {
+            //     core: self.
+            //     typ: CoreIndex(),
+            //     tokens: Arc::new(Tokens::Multi(vec![])),
+            // }
+        };
         self.process_file(file)
     }
 
@@ -156,10 +164,5 @@ impl PrismDb {
         self.checked_values.push(e);
         self.checked_origins.push(origin);
         CoreIndex(self.checked_values.len() - 1)
-    }
-
-    pub fn push_error(&mut self, diag: impl IntoDiag<PrismDb>) {
-        let diag = diag.into_diag(self);
-        self.diags.push(diag);
     }
 }

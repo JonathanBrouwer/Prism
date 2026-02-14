@@ -4,7 +4,7 @@ use crate::parser::named_env::NamedEnv;
 use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use crate::type_check::UniqueVariableId;
 use prism_input::input::Input;
-use prism_input::input_table::{InputTable, InputTableIndex};
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 use prism_parser::env::GenericEnv;
 use prism_parser::grammar::grammar_file::GrammarFile;
