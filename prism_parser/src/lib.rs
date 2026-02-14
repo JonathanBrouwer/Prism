@@ -12,7 +12,6 @@ use grammar::grammar_file::GrammarFile;
 use prism_input::input_table::InputTable;
 
 pub mod core;
-pub mod env;
 pub mod error;
 pub mod grammar;
 pub mod parsable;
