@@ -59,6 +59,7 @@ impl LanguageServer for LspBackend {
                                     SemanticTokenType::OPERATOR,
                                     SemanticTokenType::STRING,
                                     SemanticTokenType::NUMBER,
+                                    SemanticTokenType::PARAMETER,
                                     // SemanticTokenType::NAMESPACE,
                                     // SemanticTokenType::TYPE,
                                     // SemanticTokenType::CLASS,
@@ -66,7 +67,6 @@ impl LanguageServer for LspBackend {
                                     // SemanticTokenType::INTERFACE,
                                     // SemanticTokenType::STRUCT,
                                     // SemanticTokenType::TYPE_PARAMETER,
-                                    // SemanticTokenType::PARAMETER,
                                     // SemanticTokenType::PROPERTY,
                                     // SemanticTokenType::ENUM_MEMBER,
                                     // SemanticTokenType::EVENT,
@@ -198,6 +198,13 @@ impl LanguageServer for LspBackend {
         &self,
         params: SemanticTokensParams,
     ) -> tower_lsp_server::jsonrpc::Result<Option<SemanticTokensResult>> {
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!("TOKENS {}...", params.text_document.uri.path().as_str(),),
+            )
+            .await;
+
         let mut lsp_tokens = vec![];
         {
             let mut inner = self.inner.write().await;
@@ -227,7 +234,7 @@ impl LanguageServer for LspBackend {
                     TokenType::Layout => 0,
                     TokenType::CharClass => 1,
                     TokenType::Slice => 1,
-                    TokenType::Variable => 1,
+                    TokenType::Variable => 6,
                     TokenType::Keyword => 2,
                     TokenType::Symbol => 3,
                     TokenType::String => 4,
