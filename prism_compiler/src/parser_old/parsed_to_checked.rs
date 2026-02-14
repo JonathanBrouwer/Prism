@@ -1,6 +1,6 @@
 use crate::lang::{CoreIndex, CorePrismExpr, ValueOrigin};
-use crate::parser::named_env::{NamedEnv, NamesEntry, NamesEnv};
-use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
+use crate::parser_old::named_env::{NamedEnv, NamesEntry, NamesEnv};
+use crate::parser_old::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use prism_diag_derive::Diagnostic;
 use prism_input::span::Span;
 use prism_parser::grammar::grammar_file::GrammarFile;

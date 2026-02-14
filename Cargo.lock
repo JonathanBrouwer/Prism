@@ -386,12 +386,16 @@ version = "0.2.0"
 dependencies = [
  "clap",
  "libtest-mimic",
+ "prism_data_structures",
  "prism_diag",
  "prism_diag_derive",
  "prism_input",
- "prism_parser",
  "test_each_file",
 ]
+
+[[package]]
+name = "prism_data_structures"
+version = "0.2.0"
 
 [[package]]
 name = "prism_diag"
@@ -425,7 +429,6 @@ version = "0.2.0"
 dependencies = [
  "prism_compiler",
  "prism_input",
- "prism_parser",
  "tokio",
  "tower-lsp-server",
 ]

@@ -41,7 +41,7 @@ impl PrismDb {
         w: &mut impl Write,
         max_precedence: PrecedenceLevel,
     ) -> std::fmt::Result {
-        let e = &self.checked_values[*i];
+        let e = &self.values[*i];
 
         if e.precedence_level() < max_precedence {
             write!(w, "(")?;

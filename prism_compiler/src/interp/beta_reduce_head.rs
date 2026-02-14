@@ -16,7 +16,7 @@ impl PrismDb {
         let mut start_env = start_env.clone();
 
         loop {
-            match self.checked_values[*e] {
+            match self.values[*e] {
                 // Values
                 CorePrismExpr::Type
                 | CorePrismExpr::FnType(..)

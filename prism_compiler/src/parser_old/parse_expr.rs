@@ -1,7 +1,7 @@
 use crate::lang::CorePrismExpr;
 use crate::lang::env::{DbEnv, EnvEntry};
-use crate::parser::named_env::NamedEnv;
-use crate::parser::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
+use crate::parser_old::named_env::NamedEnv;
+use crate::parser_old::{ParsedIndex, ParsedPrismExpr, ParserPrismEnv};
 use crate::type_check::UniqueVariableId;
 use prism_input::input::Input;
 use prism_input::input_table::InputTable;

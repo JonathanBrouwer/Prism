@@ -20,7 +20,7 @@ impl<'a> TypecheckPrismEnv<'a> {
     ) -> CoreIndex {
         let (i, s) = self.db.beta_reduce_head(i, s);
 
-        let e_new = match self.db.checked_values[*i] {
+        let e_new = match self.db.values[*i] {
             // Values
             CorePrismExpr::Type | CorePrismExpr::GrammarValue(..) | CorePrismExpr::GrammarType => {
                 return i;
@@ -59,6 +59,6 @@ impl<'a> TypecheckPrismEnv<'a> {
             CorePrismExpr::Shift(_, _) => unreachable!(),
             CorePrismExpr::TypeAssert(_, _) => unreachable!(),
         };
-        self.db.store_checked(e_new, self.db.checked_origins[*i])
+        self.db.store(e_new, self.db.origins[*i])
     }
 }

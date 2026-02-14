@@ -50,16 +50,14 @@ impl<'a> TypecheckPrismEnv<'a> {
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
     pub fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
-        let t = match self.db.checked_values[*i] {
+        let t = match self.db.values[*i] {
             CorePrismExpr::Type => CorePrismExpr::Type,
             CorePrismExpr::Let(mut v, b) => {
                 // Check `v`
                 let err_count = self.db.diags.len();
                 let vt = self._type_check(v, env);
                 if self.db.diags.len() > err_count {
-                    v = self
-                        .db
-                        .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
+                    v = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
 
                 let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
@@ -81,9 +79,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, env);
                 if self.db.diags.len() > err_count {
-                    a = self
-                        .db
-                        .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
+                    a = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
 
                 let err_count = self.db.diags.len();
@@ -98,9 +94,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 CorePrismExpr::Type
             }
             CorePrismExpr::FnConstruct(b) => {
-                let a = self
-                    .db
-                    .store_checked(CorePrismExpr::Free, ValueOrigin::FreeSub(i));
+                let a = self.db.store(CorePrismExpr::Free, ValueOrigin::FreeSub(i));
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
                 CorePrismExpr::FnType(a, bt)
@@ -109,14 +103,10 @@ impl<'a> TypecheckPrismEnv<'a> {
                 let err_count = self.db.diags.len();
                 let at = self._type_check(a, env);
                 if self.db.diags.len() > err_count {
-                    a = self
-                        .db
-                        .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
+                    a = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
                 };
 
-                let rt = self
-                    .db
-                    .store_checked(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
+                let rt = self.db.store(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
 
                 let err_count = self.db.diags.len();
                 let ft = self._type_check(f, env);
@@ -143,9 +133,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 return et;
             }
             CorePrismExpr::Free => {
-                let tid = self
-                    .db
-                    .store_checked(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
+                let tid = self.db.store(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
                 self.queued_tc.insert(i, (env.clone(), tid));
                 return tid;
             }
@@ -155,7 +143,7 @@ impl<'a> TypecheckPrismEnv<'a> {
             CorePrismExpr::GrammarValue(_) => CorePrismExpr::GrammarType,
             CorePrismExpr::GrammarType => CorePrismExpr::Type,
         };
-        let tid = self.db.store_checked(t, ValueOrigin::TypeOf(i));
+        let tid = self.db.store(t, ValueOrigin::TypeOf(i));
         self.db.checked_types.insert(i, tid);
         tid
     }

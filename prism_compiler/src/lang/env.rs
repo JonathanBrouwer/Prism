@@ -1,6 +1,6 @@
 use crate::lang::CoreIndex;
 use crate::type_check::UniqueVariableId;
-use prism_parser::env::GenericEnv;
+use prism_data_structures::generic_env::GenericEnv;
 
 pub type DbEnv = GenericEnv<(), EnvEntry>;
 

@@ -32,10 +32,10 @@ impl<'a> TypecheckPrismEnv<'a> {
     /// Expect `io` to be equal to `Type`.
     pub fn expect_beq_type(&mut self, io: CoreIndex, s: &DbEnv) {
         let (i, s) = self.db.beta_reduce_head(io, s);
-        match self.db.checked_values[*i] {
+        match self.db.values[*i] {
             CorePrismExpr::Type => {}
             CorePrismExpr::Free => {
-                self.db.checked_values[*i] = CorePrismExpr::Type;
+                self.db.values[*i] = CorePrismExpr::Type;
                 if !self.handle_constraints(i, &s, 0) {
                     self.db.push_error(ExpectedType { index: io });
                 }
@@ -51,7 +51,7 @@ impl<'a> TypecheckPrismEnv<'a> {
     pub fn expect_beq_fn_type(&mut self, ft: CoreIndex, at: CoreIndex, rt: CoreIndex, s: &DbEnv) {
         let (fr, sr) = self.db.beta_reduce_head(ft, s);
 
-        match self.db.checked_values[*fr] {
+        match self.db.values[*fr] {
             CorePrismExpr::FnType(f_at, f_rt) => {
                 // Check
                 if !self.expect_beq_internal(
@@ -79,9 +79,9 @@ impl<'a> TypecheckPrismEnv<'a> {
                 assert!(is_beq_free);
             }
             CorePrismExpr::Free => {
-                let f_at = self.db.store_checked(CorePrismExpr::Free, FreeSub(fr));
-                let f_rt = self.db.store_checked(CorePrismExpr::Free, FreeSub(fr));
-                self.db.checked_values[*fr] = CorePrismExpr::FnType(f_at, f_rt);
+                let f_at = self.db.store(CorePrismExpr::Free, FreeSub(fr));
+                let f_rt = self.db.store(CorePrismExpr::Free, FreeSub(fr));
+                self.db.values[*fr] = CorePrismExpr::FnType(f_at, f_rt);
 
                 // TODO this won't give good errors :c
                 // Figure out a way to keep the context of this constraint, maybe using tokio?

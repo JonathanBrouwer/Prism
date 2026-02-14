@@ -18,7 +18,7 @@ impl TypecheckPrismEnv<'_> {
         s: &DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CoreIndex {
-        let e_new = match &self.db.checked_values[*i] {
+        let e_new = match &self.db.values[*i] {
             CorePrismExpr::Type => CorePrismExpr::Type,
             &CorePrismExpr::Let(v, b) => {
                 let v = self.simplify_inner(v, s, var_map);
@@ -70,6 +70,6 @@ impl TypecheckPrismEnv<'_> {
             CorePrismExpr::GrammarValue(p) => CorePrismExpr::GrammarValue(p.clone()),
             CorePrismExpr::GrammarType => CorePrismExpr::GrammarType,
         };
-        self.db.store_checked(e_new, self.db.checked_origins[*i])
+        self.db.store(e_new, self.db.origins[*i])
     }
 }
