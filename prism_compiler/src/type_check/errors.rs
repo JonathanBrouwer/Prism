@@ -11,7 +11,7 @@ impl SuggestionArgument<PrismDb> for CoreIndex {
                 ValueOrigin::SourceCode(span) => return span,
                 ValueOrigin::TypeOf(i) => origin = env.origins[i.0],
                 ValueOrigin::FreeSub(s) => origin = env.origins[s.0],
-                ValueOrigin::Failure => todo!(),
+                ValueOrigin::Failure { .. } => todo!(),
             }
         }
     }

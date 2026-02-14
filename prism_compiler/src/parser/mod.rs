@@ -1,3 +1,4 @@
+use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, PrismDb};
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
@@ -7,7 +8,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 impl PrismDb {
-    pub fn load_file(&mut self, path: PathBuf) -> Option<InputTableIndex> {
+    pub fn load_file(&mut self, path: PathBuf) -> Result<InputTableIndex, ErrorGuaranteed> {
         #[derive(Diagnostic)]
         #[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
         struct FailedToRead {
@@ -16,11 +17,8 @@ impl PrismDb {
         }
 
         match std::fs::read_to_string(&path) {
-            Ok(program) => Some(self.load_input(program, path)),
-            Err(error) => {
-                self.push_error(FailedToRead { path, error });
-                None
-            }
+            Ok(program) => Ok(self.load_input(program, path)),
+            Err(error) => Err(self.push_error(FailedToRead { path, error })),
         }
     }
 
@@ -44,8 +42,9 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn parse_file(&mut self, file: InputTableIndex) -> (CoreIndex, Arc<Tokens>) {
-        // self.db.store()
         todo!()
+        // let free = self.db.store(CorePrismExpr::Type, ValueOrigin::Failure);
+        // (free, Arc::new(Tokens::Multi(vec![])))
         // let mut parsables = HashMap::new();
         // parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
         //

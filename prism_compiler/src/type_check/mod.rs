@@ -54,10 +54,12 @@ impl<'a> TypecheckPrismEnv<'a> {
             CorePrismExpr::Type => CorePrismExpr::Type,
             CorePrismExpr::Let(mut v, b) => {
                 // Check `v`
-                let err_count = self.db.diags.len();
+                let recovery_token = self.db.recovery_point();
                 let vt = self._type_check(v, env);
-                if self.db.diags.len() > err_count {
-                    v = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
+                if let Some(err) = self.db.try_recover(recovery_token) {
+                    v = self
+                        .db
+                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
                 }
 
                 let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
@@ -75,11 +77,13 @@ impl<'a> TypecheckPrismEnv<'a> {
                 }
             },
             CorePrismExpr::FnType(mut a, b) => {
-                let err_count = self.db.diags.len();
+                let recovery_token = self.db.recovery_point();
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, env);
-                if self.db.diags.len() > err_count {
-                    a = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
+                if let Some(err) = self.db.try_recover(recovery_token) {
+                    a = self
+                        .db
+                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
                 }
 
                 let err_count = self.db.diags.len();
@@ -100,11 +104,13 @@ impl<'a> TypecheckPrismEnv<'a> {
                 CorePrismExpr::FnType(a, bt)
             }
             CorePrismExpr::FnDestruct(f, mut a) => {
-                let err_count = self.db.diags.len();
+                let recovery_token = self.db.recovery_point();
                 let at = self._type_check(a, env);
-                if self.db.diags.len() > err_count {
-                    a = self.db.store(CorePrismExpr::Free, ValueOrigin::Failure);
-                };
+                if let Some(err) = self.db.try_recover(recovery_token) {
+                    a = self
+                        .db
+                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
+                }
 
                 let rt = self.db.store(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
 

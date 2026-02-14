@@ -1,6 +1,6 @@
 use crate::args::PrismArgs;
-use crate::parser::ParserPrismEnv;
-use prism_diag::{Diag, IntoDiag};
+use crate::lang::diags::ErrorGuaranteed;
+use prism_diag::Diag;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use prism_input::tokens::Tokens;
@@ -10,7 +10,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
-mod diags;
+pub mod diags;
 pub mod display;
 pub mod env;
 pub mod error;
@@ -24,7 +24,7 @@ pub enum ValueOrigin {
     /// This is an AST node generated from expanding the given free variable
     FreeSub(CoreIndex),
     /// This is an (initially free) AST node generated because type checking a node failed
-    Failure,
+    Failure(ErrorGuaranteed),
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
@@ -107,14 +107,17 @@ impl PrismDb {
 
     pub fn process_main_file(&mut self) -> ProcessedFile {
         let file = self.args.input.clone();
-        let Some(file) = self.load_file(file.into()) else {
-            todo!()
-            // return ProcessedFile {
-            //     core: self.
-            //     typ: CoreIndex(),
-            //     tokens: Arc::new(Tokens::Multi(vec![])),
-            // }
+        let file = match self.load_file(file.into()) {
+            Ok(file) => file,
+            Err(err) => {
+                return ProcessedFile {
+                    core: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
+                    typ: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
+                    tokens: Arc::new(Tokens::Multi(vec![])),
+                };
+            }
         };
+
         self.process_file(file)
     }
 
