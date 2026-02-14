@@ -23,7 +23,7 @@ fn derive_diagnostic(s: Structure<'_>) -> proc_macro::TokenStream {
     };
 
     let struct_name = &s.ast().ident;
-    let diag_id = id.unwrap_or(struct_name_to_id(&struct_name.to_string()));
+    let diag_id = id.unwrap_or(struct_name.to_string());
 
     let (env_param, env_generic) = match env {
         Some(env) => (None, quote!(#env)),
@@ -76,17 +76,6 @@ fn derive_diagnostic(s: Structure<'_>) -> proc_macro::TokenStream {
         }
     }
     .into()
-}
-
-fn struct_name_to_id(name: &str) -> String {
-    let mut buffer = String::new();
-    for char in name.chars() {
-        if char.is_uppercase() && !buffer.is_empty() {
-            buffer.push('_');
-        }
-        buffer.push_str(char.to_lowercase().to_string().as_str());
-    }
-    buffer
 }
 
 struct DiagArgs {

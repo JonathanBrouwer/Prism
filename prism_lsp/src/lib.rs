@@ -2,7 +2,7 @@ mod language_server;
 
 use prism_compiler::lang::PrismDb;
 use prism_input::input_table::InputTableIndex;
-use prism_parser::core::tokens::Tokens;
+use prism_input::tokens::Tokens;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;

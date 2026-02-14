@@ -113,7 +113,7 @@ impl PrismDb {
                 return ProcessedFile {
                     core: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
                     typ: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
-                    tokens: Arc::new(Tokens::Multi(vec![])),
+                    tokens: Arc::new(Tokens(vec![])),
                 };
             }
         };

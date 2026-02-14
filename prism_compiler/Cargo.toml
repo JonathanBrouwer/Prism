@@ -13,7 +13,6 @@ prism_diag_derive.workspace = true
 prism_data_structures.workspace = true
 
 [dev-dependencies]
-test_each_file.workspace = true
 libtest-mimic.workspace = true
 
 [[test]]

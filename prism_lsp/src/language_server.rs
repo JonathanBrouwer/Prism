@@ -1,7 +1,7 @@
 use crate::{DocumentType, LspBackend, LspBackendInner, OpenDocument};
 use prism_input::input_table::{InputTableIndex, InputTableInner};
 use prism_input::span::Span;
-use prism_parser::core::tokens::TokenType;
+use prism_input::tokens::TokenType;
 use std::mem::take;
 use std::ops::DerefMut;
 use std::path::PathBuf;
@@ -218,7 +218,7 @@ impl LanguageServer for LspBackend {
             let mut prev_line = 0;
             let mut prev_start = 0;
 
-            for token in prism_tokens.to_vec() {
+            for token in &prism_tokens.0 {
                 // Skip empty tokens
                 if file_inner
                     .slice(token.span)
@@ -231,7 +231,7 @@ impl LanguageServer for LspBackend {
                 // Convert span to LSP token info
                 let (cur_line, cur_start) = file_inner.line_col_of(token.span.start_pos());
                 let token_type = match token.token_type {
-                    TokenType::Layout => 0,
+                    TokenType::Comment => 0,
                     TokenType::CharClass => 1,
                     TokenType::Slice => 1,
                     TokenType::Variable => 6,
@@ -285,8 +285,9 @@ impl LspBackendInner {
                 (file.tokens, diags)
             }
             DocumentType::PrismGrammar => {
-                let (_, tokens, diags) = self.db.parse_grammar_file(index);
-                (tokens, diags)
+                todo!()
+                // let (_, tokens, diags) = self.db.parse_grammar_file(index);
+                // (tokens, diags)
             }
         };
 
