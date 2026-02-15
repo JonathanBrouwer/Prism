@@ -70,18 +70,22 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     fn parse_expr(&mut self) -> PResult<CoreIndex> {
-        self.parse_base()
+        self.parse_statement()
     }
 
-    // fn parse_statement(&mut self) -> PResult<()> {
-    //     if self.eat_lit("let").is_ok() {
-    //         return Ok(())
-    //     } else if self.eat_lit("adapt").is_ok() {
-    //         return Ok(())
-    //     } else {
-    //         return Err(self.fail())
-    //     }
-    // }
+    fn parse_statement(&mut self) -> PResult<CoreIndex> {
+        if let Ok(kw) = self.eat_keyword("let") {
+            let name = self.eat_identifier()?;
+            let _ = self.eat_symbol('=')?;
+            let value = self.parse_base()?;
+            let _ = self.eat_symbol(';')?;
+            let body = self.parse_statement()?;
+            // let span = kw.start_pos().span_to(self)
+            Ok(self.store(CorePrismExpr::Let(), span))
+        } else {
+            self.parse_base()
+        }
+    }
 
     fn parse_base(&mut self) -> PResult<CoreIndex> {
         if let Ok(span) = self.eat_keyword("Type") {
@@ -90,19 +94,11 @@ impl<'a> ParserPrismEnv<'a> {
             let expr = self.parse_expr()?;
             self.eat_paren_close(")")?;
             Ok(expr)
+        } else if let Ok(ident) = self.eat_identifier() {
+            Ok(self.store(CorePrismExpr::DeBruijnIndex(0), ident))
         } else {
             Err(self.fail())
         }
-
-        // if let Ok(span) = self.eat_lit("Type") {
-        //     Ok(self.store(CorePrismExpr::Type, span))
-        // } else if let Ok(paren_ctx) = self.eat_open_paren("(", ")") {
-        //     let expr = self.parse_expr()?;
-        //     self.eat_close_paren(paren_ctx)?;
-        //     Ok(expr)
-        // } else {
-        //     Err(self.fail())
-        // }
     }
 
     pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {

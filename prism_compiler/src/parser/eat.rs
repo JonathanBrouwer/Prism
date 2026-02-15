@@ -19,7 +19,7 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn eat_keyword(&mut self, expected_str: &str) -> PResult<Span> {
-        let token = self.eat_token(Expected::Literal(expected_str.to_string()), |token, env| {
+        self.eat_token(Expected::Literal(expected_str.to_string()), |token, env| {
             if let Token::Identifier { span, .. } = token
                 && env.db.input.inner().slice(span) == expected_str
             {
@@ -28,8 +28,8 @@ impl<'a> ParserPrismEnv<'a> {
             } else {
                 false
             }
-        })?;
-        Ok(token.span())
+        })
+        .map(|tok| tok.span())
     }
 
     pub fn eat_paren_open(&mut self, open: &str) -> PResult<()> {
@@ -56,5 +56,28 @@ impl<'a> ParserPrismEnv<'a> {
             }
         })
         .map(|_| ())
+    }
+
+    pub fn eat_identifier(&mut self) -> PResult<Span> {
+        self.eat_token(Expected::Rule("identifier".to_string()), |token, _env| {
+            matches!(token, Token::Identifier { .. })
+        })
+        .map(|tok| tok.span())
+    }
+
+    pub fn eat_symbol(&mut self, expected_symbol: char) -> PResult<Span> {
+        self.eat_token(
+            Expected::Literal(expected_symbol.to_string()),
+            |token, env| {
+                if let Token::Symbol(span) = token
+                    && env.db.input.inner().slice(span) == String::from_iter([expected_symbol])
+                {
+                    true
+                } else {
+                    false
+                }
+            },
+        )
+        .map(|tok| tok.span())
     }
 }

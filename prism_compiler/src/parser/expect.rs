@@ -10,12 +10,14 @@ pub type PResult<T> = Result<T, ExpectedGuaranteed>;
 
 pub enum Expected {
     Literal(String),
+    Rule(String),
 }
 
 impl Display for Expected {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Expected::Literal(exp) => write!(f, "`{exp}`"),
+            Expected::Rule(rule) => write!(f, "{rule}"),
         }
     }
 }
