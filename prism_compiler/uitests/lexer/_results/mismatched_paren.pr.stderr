@@ -1,0 +1,6 @@
+error[MismatchedClosingDelim]: mismatched closing delimiter
+ --> ./uitests/lexer/mismatched_paren.pr:1:2
+  |
+1 | (}
+  |  ^ mismatched delimiter
+

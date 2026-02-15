@@ -1,0 +1,6 @@
+error[UnmatchedOpenDelim]: unmatched open delimiter
+ --> ./uitests/parser/type_parens_unclosed.pr:1:1
+  |
+1 | (Type
+  | ^ unmatched delimiter
+

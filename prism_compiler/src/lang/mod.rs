@@ -1,9 +1,9 @@
 use crate::args::PrismArgs;
 use crate::lang::diags::ErrorGuaranteed;
+use crate::parser::lexer::Tokens;
 use prism_diag::Diag;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
-use prism_input::tokens::Tokens;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::fmt::{Display, Formatter};
@@ -113,7 +113,7 @@ impl PrismDb {
                 return ProcessedFile {
                     core: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
                     typ: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
-                    tokens: Arc::new(Tokens(vec![])),
+                    tokens: Arc::new(vec![]),
                 };
             }
         };

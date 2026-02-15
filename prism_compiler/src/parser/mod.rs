@@ -1,15 +1,14 @@
 mod eat;
 mod expect;
-mod layout;
+pub mod lexer;
 
 use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
-use crate::parser::expect::{ErrorState, PResult};
+use crate::parser::expect::ErrorState;
+use crate::parser::lexer::{LexerState, Tokens};
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
-use prism_input::pos::Pos;
 use prism_input::span::Span;
-use prism_input::tokens::{Token, Tokens};
 use std::io;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -41,8 +40,7 @@ impl PrismDb {
 
 struct ParserPrismEnv<'a> {
     db: &'a mut PrismDb,
-    pos: Pos,
-    tokens: Vec<Token>,
+    lexer: LexerState,
     error_state: ErrorState,
 }
 
@@ -50,38 +48,46 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn new(db: &'a mut PrismDb, file: InputTableIndex) -> Self {
         let pos = db.input.inner().start_of(file);
         Self {
-            pos,
-            tokens: vec![],
             db,
+            lexer: LexerState::new(pos),
             error_state: ErrorState::new(pos),
         }
     }
 
     pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
-        let start = self.pos;
+        while let Some(c) = self.next_real_token() {}
+        let tokens = self.finish_lexing();
 
-        _ = self.parse_program();
-        self.eat_layout();
+        let p = self
+            .db
+            .store(CorePrismExpr::Free, ValueOrigin::SourceCode(Span::dummy()));
+        (p, Arc::new(tokens))
 
-        let free = self.db.store(
-            CorePrismExpr::Type,
-            ValueOrigin::SourceCode(start.span_to(start)),
-        );
-
-        if let Some(diag) = self.expected_into_diag() {
-            self.db.push_error(diag);
-        } else {
-            assert!(self.pos.next(&self.db.input).is_none());
-        }
-
-        (free, Arc::new(Tokens(self.tokens)))
+        // let start = self.pos;
+        //
+        // let program = match self.parse_program() {
+        //     Ok(program) if self.pos.next(&self.db.input).is_none() => {
+        //         self.eat_layout();
+        //         program
+        //     }
+        //     _ => {
+        //         let diag = self.expected_into_diag().unwrap();
+        //         let err = self.db.push_error(diag);
+        //         self.db
+        //             .store(CorePrismExpr::Free, ValueOrigin::Failure(err))
+        //     }
+        // };
+        //
+        // (program, Arc::new(Tokens(self.tokens)))
     }
 
-    fn parse_program(&mut self) -> PResult<()> {
-        self.parse_expr()?;
-
-        Ok(())
-    }
+    // fn parse_program(&mut self) -> PResult<CoreIndex> {
+    //     self.parse_expr()
+    // }
+    //
+    // fn parse_expr(&mut self) -> PResult<CoreIndex> {
+    //     self.parse_base()
+    // }
 
     // fn parse_statement(&mut self) -> PResult<()> {
     //     if self.eat_lit("let").is_ok() {
@@ -93,13 +99,17 @@ impl<'a> ParserPrismEnv<'a> {
     //     }
     // }
 
-    fn parse_expr(&mut self) -> PResult<CoreIndex> {
-        if let Ok(span) = self.eat_lit("Type") {
-            Ok(self.store(CorePrismExpr::Type, span))
-        } else {
-            Err(self.fail())
-        }
-    }
+    // fn parse_base(&mut self) -> PResult<CoreIndex> {
+    //     if let Ok(span) = self.eat_lit("Type") {
+    //         Ok(self.store(CorePrismExpr::Type, span))
+    //     } else if let Ok(paren_ctx) = self.eat_open_paren("(", ")") {
+    //         let expr = self.parse_expr()?;
+    //         self.eat_close_paren(paren_ctx)?;
+    //         Ok(expr)
+    //     } else {
+    //         Err(self.fail())
+    //     }
+    // }
 
     pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {
         self.db.store(e, ValueOrigin::SourceCode(span))

@@ -1,0 +1,6 @@
+error[UnmatchedOpenDelim]: unmatched open delimiter
+ --> ./uitests/lexer/unclosed_paren.pr:1:1
+  |
+1 | (
+  | ^ unmatched delimiter
+

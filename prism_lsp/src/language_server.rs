@@ -1,7 +1,7 @@
 use crate::{DocumentType, LspBackend, LspBackendInner, OpenDocument};
+use prism_compiler::parser::lexer::Token;
 use prism_input::input_table::{InputTableIndex, InputTableInner};
 use prism_input::span::Span;
-use prism_input::tokens::TokenType;
 use std::mem::take;
 use std::ops::DerefMut;
 use std::path::PathBuf;
@@ -217,27 +217,20 @@ impl LanguageServer for LspBackend {
             let mut prev_line = 0;
             let mut prev_start = 0;
 
-            for token in &prism_tokens.0 {
-                // Skip empty tokens
-                if file_inner
-                    .slice(token.span)
-                    .chars()
-                    .all(|c| c.is_ascii_whitespace())
-                {
-                    continue;
-                }
-
+            for token in &*prism_tokens {
                 // Convert span to LSP token info
-                let (cur_line, cur_start) = file_inner.line_col_of(token.span.start_pos());
-                let token_type = match token.token_type {
-                    TokenType::Comment => 0,
-                    TokenType::CharClass => 1,
-                    TokenType::Slice => 1,
-                    TokenType::Variable => 6,
-                    TokenType::Keyword => 2,
-                    TokenType::Symbol => 3,
-                    TokenType::String => 4,
-                    TokenType::Number => 5,
+                let (cur_line, cur_start) = file_inner.line_col_of(token.span().start_pos());
+                let token_type = match token {
+                    Token::Newline(_) => continue,
+                    Token::Whitespace(_) => continue,
+                    Token::Comment(_) => 0,
+                    Token::OpenParen(_) => continue,
+                    Token::CloseParen(_) => continue,
+                    Token::Identifier(_) => 6,
+                    Token::Keyword(_) => 2,
+                    Token::Symbol(_) => 3,
+                    Token::StringLit(_) => 4,
+                    Token::NumLit(_) => 5,
                 };
 
                 lsp_tokens.push(SemanticToken {
@@ -247,7 +240,7 @@ impl LanguageServer for LspBackend {
                     } else {
                         cur_start
                     } as u32,
-                    length: token.span.len() as u32,
+                    length: token.span().len() as u32,
                     token_type,
                     token_modifiers_bitset: 0,
                 });
