@@ -6,7 +6,9 @@ impl<'a> ParserPrismEnv<'a> {
         let start = self.pos;
         while let Ok(_) = self.peek_lit_raw("//") {
             loop {
-                let Ok(c) = self.eat_char() else { break };
+                let Ok(c) = self.eat_char(|_| true) else {
+                    break;
+                };
                 if c == '\n' {
                     break;
                 }

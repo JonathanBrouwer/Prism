@@ -1,8 +1,5 @@
 use crate::span::Span;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
-use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct Tokens(pub Vec<Token>);

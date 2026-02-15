@@ -1,0 +1,6 @@
+error[parser]: Parsing failed
+ --> ./uitests/parser/type_suffix.pr:1:1
+  |
+1 | Types
+  | ^^^^^ Expected: `Type`
+

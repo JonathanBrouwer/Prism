@@ -34,7 +34,6 @@ struct LspBackendInner {
 #[derive(Copy, Clone)]
 enum DocumentType {
     Prism,
-    PrismGrammar,
 }
 
 impl Display for DocumentType {
@@ -44,7 +43,6 @@ impl Display for DocumentType {
             "{}",
             match self {
                 DocumentType::Prism => "Prism",
-                DocumentType::PrismGrammar => "Prism Grammar",
             }
         )
     }

@@ -390,6 +390,7 @@ dependencies = [
  "prism_diag",
  "prism_diag_derive",
  "prism_input",
+ "unicode-ident",
 ]
 
 [[package]]

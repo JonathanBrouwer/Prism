@@ -120,7 +120,6 @@ impl LanguageServer for LspBackend {
         let path = PathBuf::from(doc.uri.path().as_str());
         let document_type = match doc.language_id.as_str() {
             "prism" => DocumentType::Prism,
-            "prism-grammar" => DocumentType::PrismGrammar,
             lang => {
                 self.client
                     .log_message(MessageType::ERROR, format!("Unknown language: {lang}"))
@@ -283,11 +282,6 @@ impl LspBackendInner {
                 let file = self.db.process_file(index);
                 let diags = take(&mut self.db.diags);
                 (file.tokens, diags)
-            }
-            DocumentType::PrismGrammar => {
-                todo!()
-                // let (_, tokens, diags) = self.db.parse_grammar_file(index);
-                // (tokens, diags)
             }
         };
 
