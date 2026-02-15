@@ -4,8 +4,8 @@ pub mod lexer;
 
 use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
-use crate::parser::expect::ErrorState;
-use crate::parser::lexer::{LexerState, Tokens};
+use crate::parser::expect::{ErrorState, PResult};
+use crate::parser::lexer::{LexerState, Token, Tokens};
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
@@ -15,13 +15,6 @@ use std::sync::Arc;
 
 impl PrismDb {
     pub fn load_file(&mut self, path: PathBuf) -> Result<InputTableIndex, ErrorGuaranteed> {
-        #[derive(Diagnostic)]
-        #[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
-        struct FailedToRead {
-            path: PathBuf,
-            error: io::Error,
-        }
-
         match std::fs::read_to_string(&path) {
             Ok(program) => Ok(self.load_input(program, path)),
             Err(error) => Err(self.push_error(FailedToRead { path, error })),
@@ -55,39 +48,30 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
-        while let Some(c) = self.next_real_token() {}
+        self.next_token();
+        let program = self.parse_program();
         let tokens = self.finish_lexing();
 
-        let p = self
-            .db
-            .store(CorePrismExpr::Free, ValueOrigin::SourceCode(Span::dummy()));
-        (p, Arc::new(tokens))
+        let program = match program {
+            Ok(program) if matches!(self.token(), Token::EOF(..)) => program,
+            _ => {
+                let diag = self.expected_into_diag().unwrap();
+                let err = self.db.push_error(diag);
+                self.db
+                    .store(CorePrismExpr::Free, ValueOrigin::Failure(err))
+            }
+        };
 
-        // let start = self.pos;
-        //
-        // let program = match self.parse_program() {
-        //     Ok(program) if self.pos.next(&self.db.input).is_none() => {
-        //         self.eat_layout();
-        //         program
-        //     }
-        //     _ => {
-        //         let diag = self.expected_into_diag().unwrap();
-        //         let err = self.db.push_error(diag);
-        //         self.db
-        //             .store(CorePrismExpr::Free, ValueOrigin::Failure(err))
-        //     }
-        // };
-        //
-        // (program, Arc::new(Tokens(self.tokens)))
+        (program, Arc::new(tokens))
     }
 
-    // fn parse_program(&mut self) -> PResult<CoreIndex> {
-    //     self.parse_expr()
-    // }
-    //
-    // fn parse_expr(&mut self) -> PResult<CoreIndex> {
-    //     self.parse_base()
-    // }
+    fn parse_program(&mut self) -> PResult<CoreIndex> {
+        self.parse_expr()
+    }
+
+    fn parse_expr(&mut self) -> PResult<CoreIndex> {
+        self.parse_base()
+    }
 
     // fn parse_statement(&mut self) -> PResult<()> {
     //     if self.eat_lit("let").is_ok() {
@@ -99,19 +83,36 @@ impl<'a> ParserPrismEnv<'a> {
     //     }
     // }
 
-    // fn parse_base(&mut self) -> PResult<CoreIndex> {
-    //     if let Ok(span) = self.eat_lit("Type") {
-    //         Ok(self.store(CorePrismExpr::Type, span))
-    //     } else if let Ok(paren_ctx) = self.eat_open_paren("(", ")") {
-    //         let expr = self.parse_expr()?;
-    //         self.eat_close_paren(paren_ctx)?;
-    //         Ok(expr)
-    //     } else {
-    //         Err(self.fail())
-    //     }
-    // }
+    fn parse_base(&mut self) -> PResult<CoreIndex> {
+        if let Ok(span) = self.eat_keyword("Type") {
+            Ok(self.store(CorePrismExpr::Type, span))
+        } else if let Ok(()) = self.eat_paren_open("(") {
+            let expr = self.parse_expr()?;
+            self.eat_paren_close(")")?;
+            Ok(expr)
+        } else {
+            Err(self.fail())
+        }
+
+        // if let Ok(span) = self.eat_lit("Type") {
+        //     Ok(self.store(CorePrismExpr::Type, span))
+        // } else if let Ok(paren_ctx) = self.eat_open_paren("(", ")") {
+        //     let expr = self.parse_expr()?;
+        //     self.eat_close_paren(paren_ctx)?;
+        //     Ok(expr)
+        // } else {
+        //     Err(self.fail())
+        // }
+    }
 
     pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {
         self.db.store(e, ValueOrigin::SourceCode(span))
     }
+}
+
+#[derive(Diagnostic)]
+#[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
+struct FailedToRead {
+    path: PathBuf,
+    error: io::Error,
 }

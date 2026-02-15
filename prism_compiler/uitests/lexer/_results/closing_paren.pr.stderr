@@ -4,3 +4,9 @@ error[MismatchedClosingDelim]: mismatched closing delimiter
 1 | )
   | ^ mismatched delimiter
 
+error[Parser]: Parsing failed
+ --> ./uitests/lexer/closing_paren.pr:1:2
+  |
+1 | )
+  |  ^ Expected one of: `Type` `(`
+

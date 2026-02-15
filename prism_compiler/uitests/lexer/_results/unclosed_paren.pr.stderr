@@ -4,3 +4,9 @@ error[UnmatchedOpenDelim]: unmatched open delimiter
 1 | (
   | ^ unmatched delimiter
 
+error[Parser]: Parsing failed
+ --> ./uitests/lexer/unclosed_paren.pr:1:2
+  |
+1 | (
+  |  ^ Expected one of: `Type` `(`
+

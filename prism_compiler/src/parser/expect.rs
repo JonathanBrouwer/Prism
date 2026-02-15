@@ -71,7 +71,7 @@ impl<'a> ParserPrismEnv<'a> {
 
         Some(Diag {
             title: "Parsing failed".into(),
-            id: "parser".into(),
+            id: "Parser".into(),
             groups: vec![AnnotationGroup {
                 annotations: labels_map
                     .into_iter()

@@ -226,11 +226,12 @@ impl LanguageServer for LspBackend {
                     Token::Comment(_) => 0,
                     Token::OpenParen(_) => continue,
                     Token::CloseParen(_) => continue,
-                    Token::Identifier(_) => 6,
-                    Token::Keyword(_) => 2,
+                    Token::Identifier { keyword: false, .. } => 6,
+                    Token::Identifier { keyword: true, .. } => 2,
                     Token::Symbol(_) => 3,
                     Token::StringLit(_) => 4,
                     Token::NumLit(_) => 5,
+                    Token::EOF(_) => continue,
                 };
 
                 lsp_tokens.push(SemanticToken {

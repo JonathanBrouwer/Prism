@@ -11,11 +11,11 @@ pub enum Token {
     Newline(Span),
     Whitespace(Span),
     Comment(Span),
+    EOF(Pos),
 
     OpenParen(Span),
     CloseParen(Span),
-    Identifier(Span),
-    Keyword(Span),
+    Identifier { span: Span, keyword: bool },
     Symbol(Span),
     StringLit(StrLit),
     NumLit(NumLit),
@@ -45,8 +45,7 @@ impl Token {
             | Token::OpenParen(span)
             | Token::CloseParen(span)
             | Token::Symbol(span)
-            | Token::Keyword(span)
-            | Token::Identifier(span) => *span,
+            | Token::Identifier { span, .. } => *span,
             Token::StringLit(StrLit {
                 prefix: start,
                 suffix: end,
@@ -56,6 +55,7 @@ impl Token {
                 value: start,
                 suffix: end,
             }) => start.start_pos().span_to(end.end_pos()),
+            Token::EOF(pos) => pos.span_to(*pos),
         }
     }
 }
@@ -79,7 +79,7 @@ impl LexerState {
 }
 
 impl<'a> ParserPrismEnv<'a> {
-    pub fn next_char(&mut self, f: impl Fn(char) -> bool) -> Option<(char, Span)> {
+    fn next_char(&mut self, f: impl Fn(char) -> bool) -> Option<(char, Span)> {
         let (next_char, next_pos) = self.lexer.pos.next(&self.db.input)?;
         if !f(next_char) {
             return None;
@@ -89,10 +89,12 @@ impl<'a> ParserPrismEnv<'a> {
         Some((next_char, span))
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn next_token_incl_layout(&mut self) -> Token {
         let mut invalid_token_start = None;
         let token = loop {
-            let (ch, ch_span) = self.next_char(|_| true)?;
+            let Some((ch, ch_span)) = self.next_char(|_| true) else {
+                break Token::EOF(self.lexer.pos);
+            };
             break match ch {
                 // Newline
                 '\r' => {
@@ -121,6 +123,7 @@ impl<'a> ParserPrismEnv<'a> {
                         }
                         Token::Comment(ch_span.start_pos().span_to(self.lexer.pos))
                     } else if let Some(_) = self.next_char(|c| c == '*') {
+                        //TODO incomplete block comment
                         while let Some(_) = self.next_char(|_| true) {
                             if ch == '*' && self.next_char(|c| c == '/').is_some() {
                                 break;
@@ -168,7 +171,11 @@ impl<'a> ParserPrismEnv<'a> {
                 }
                 c if unicode_ident::is_xid_start(c) => {
                     while let Some(_) = self.next_char(|c| unicode_ident::is_xid_continue(c)) {}
-                    Token::Identifier(ch_span.start_pos().span_to(self.lexer.pos))
+                    Token::Identifier {
+                        span: ch_span.start_pos().span_to(self.lexer.pos),
+                        // `keyword` will be set to true by the parser if applicable
+                        keyword: false,
+                    }
                 }
                 c if SYMBOL_CHARS.contains(c) => Token::Symbol(ch_span),
                 _ => {
@@ -187,16 +194,16 @@ impl<'a> ParserPrismEnv<'a> {
         }
 
         self.lexer.tokens.push(token);
-        Some(token)
+        token
     }
 
-    pub fn next_real_token(&mut self) -> Option<Token> {
+    pub fn next_token(&mut self) -> Token {
         loop {
-            let token = self.next_token()?;
+            let token = self.next_token_incl_layout();
             if let Token::Whitespace(..) | Token::Comment(..) = token {
                 continue;
             }
-            return Some(token);
+            return token;
         }
     }
 
@@ -207,6 +214,21 @@ impl<'a> ParserPrismEnv<'a> {
 
         let tokens = mem::take(&mut self.lexer.tokens);
         tokens
+    }
+
+    pub fn token(&self) -> Token {
+        self.lexer
+            .tokens
+            .last()
+            .copied()
+            .unwrap_or(Token::EOF(self.lexer.pos))
+    }
+
+    pub fn mark_token_keyword(&mut self) {
+        let Some(Token::Identifier { keyword, .. }) = self.lexer.tokens.last_mut() else {
+            unreachable!()
+        };
+        *keyword = true;
     }
 }
 
