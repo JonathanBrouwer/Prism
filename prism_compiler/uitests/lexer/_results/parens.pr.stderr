@@ -1,6 +1,12 @@
-error[Parser]: Parsing failed
+error[MismatchedClosingDelim]: mismatched closing delimiter
  --> ./uitests/lexer/parens.pr:1:2
   |
 1 | ()
-  |  ^ Expected one of: `let` `Type` `(` identifier
+  |  ^ mismatched delimiter
+
+error[Parser]: Parsing failed
+ --> ./uitests/lexer/parens.pr:1:3
+  |
+1 | ()
+  |   ^ Expected one of: `(` `Type` `let` identifier
 

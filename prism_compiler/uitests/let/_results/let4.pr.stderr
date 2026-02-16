@@ -1,0 +1,11 @@
+error[FailedTypeAssert]: Failed type assert
+ --> ./uitests/let/let4.pr:2:2
+  |
+2 | (v: T) => v
+  |  ^^^^ Found a value of type: Type
+  |
+ ::: ./uitests/let/let4.pr:2:5
+  |
+2 | (v: T) => v
+  |     ^ Expected a value of type: #0
+

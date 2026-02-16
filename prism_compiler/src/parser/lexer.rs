@@ -1,10 +1,11 @@
 use crate::parser::ParserPrismEnv;
+use crate::parser::expect::PResult;
 use prism_diag_derive::Diagnostic;
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::mem;
 
-const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=";
+pub const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=";
 
 #[derive(Copy, Clone, Debug)]
 pub enum Token {
@@ -58,6 +59,19 @@ impl Token {
             Token::EOF(pos) => pos.span_to(*pos),
         }
     }
+
+    pub fn is_layout(&self) -> bool {
+        match self {
+            Token::Newline(_) | Token::Whitespace(_) | Token::Comment(_) => true,
+            Token::OpenParen(_)
+            | Token::CloseParen(_)
+            | Token::Identifier { .. }
+            | Token::Symbol(_)
+            | Token::StringLit(_)
+            | Token::NumLit(_) => false,
+            Token::EOF(_) => unreachable!(),
+        }
+    }
 }
 
 pub type Tokens = Vec<Token>;
@@ -66,6 +80,12 @@ pub struct LexerState {
     pos: Pos,
     tokens: Tokens,
     paren_stack: Vec<Span>,
+}
+
+pub struct Fork {
+    pos: Pos,
+    tokens_len: usize,
+    paren_stack_len: usize,
 }
 
 impl LexerState {
@@ -229,6 +249,29 @@ impl<'a> ParserPrismEnv<'a> {
             unreachable!()
         };
         *keyword = true;
+    }
+
+    pub fn fork_lexer(&self) -> Fork {
+        Fork {
+            pos: self.lexer.pos,
+            tokens_len: self.lexer.tokens.len(),
+            paren_stack_len: self.lexer.paren_stack.len(),
+        }
+    }
+
+    pub fn recover_lexer_fork(&mut self, fork: &Fork) {
+        self.lexer.pos = fork.pos;
+        self.lexer.tokens.truncate(fork.tokens_len);
+        self.lexer.paren_stack.truncate(fork.paren_stack_len);
+    }
+
+    pub fn try_parse<T>(&mut self, f: impl FnOnce(&mut Self) -> PResult<T>) -> PResult<T> {
+        let fork = self.fork_lexer();
+        let res = f(self);
+        if res.is_err() {
+            self.recover_lexer_fork(&fork);
+        }
+        res
     }
 }
 

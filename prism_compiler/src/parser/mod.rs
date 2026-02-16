@@ -7,6 +7,7 @@ use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
 use crate::parser::expect::{ErrorState, PResult};
 use crate::parser::lexer::{LexerState, Token, Tokens};
 use prism_data_structures::generic_env::GenericEnv;
+use prism_diag::sugg::SuggestionArgument;
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
@@ -79,24 +80,86 @@ impl<'a> ParserPrismEnv<'a> {
     fn parse_statement(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(kw) = self.eat_keyword("let") {
             let name = self.eat_identifier()?;
+            let typ = if let Ok(_) = self.eat_symbol(':') {
+                let typ = self.parse_fnconstruct(env)?;
+                Some(typ)
+            } else {
+                None
+            };
+
             let _ = self.eat_symbol('=')?;
-            let value = self.parse_base(env)?;
+            let value = self.parse_fnconstruct(env)?;
             let _ = self.eat_symbol(';')?;
 
             let body_env = env.insert(name, ());
             let body = self.parse_statement(&body_env)?;
 
             let span = kw.span_to(self.span_of(body));
+            let value = if let Some(typ) = typ {
+                let assert_span = name.span_to(self.span_of(value));
+                self.store(CorePrismExpr::TypeAssert(value, typ), assert_span)
+            } else {
+                value
+            };
             Ok(self.store(CorePrismExpr::Let(value, body), span))
         } else {
-            self.parse_base(env)
+            self.parse_fnconstruct(env)
         }
+    }
+
+    fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok((start, binding, typ)) = self.try_parse(|parser| {
+            let start = parser.eat_paren_open("(")?;
+            let binding = parser.eat_identifier()?;
+            let typ = if let Ok(_) = parser.eat_symbol(':') {
+                Some(parser.parse_fntype(env)?)
+            } else {
+                None
+            };
+            parser.eat_paren_close(")")?;
+            parser.eat_multi_symbol("=>")?;
+            Ok((start, binding, typ))
+        }) {
+            let body_env = env.insert(binding, ());
+            // Insert dummy entry for let binding of assert
+            let body_env = if typ.is_some() {
+                body_env.insert(Span::new(binding.start_pos(), 0), ())
+            } else {
+                body_env
+            };
+            let body = self.parse_fnconstruct(&body_env)?;
+
+            let span = start.span_to(self.span_of(body));
+            let body = if let Some(typ) = typ {
+                let assert_span = binding.span_to(self.span_of(typ));
+                let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), assert_span);
+                let typ_assert = self.store(CorePrismExpr::TypeAssert(var_ref, typ), assert_span);
+                self.store(CorePrismExpr::Let(typ_assert, body), assert_span)
+            } else {
+                body
+            };
+            Ok(self.store(CorePrismExpr::FnConstruct(body), span))
+        } else {
+            self.parse_fntype(env)
+        }
+    }
+
+    fn parse_fntype(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_assert(env)
+    }
+
+    fn parse_assert(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_fndestruct(env)
+    }
+
+    fn parse_fndestruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_base(env)
     }
 
     fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(span) = self.eat_keyword("Type") {
             Ok(self.store(CorePrismExpr::Type, span))
-        } else if let Ok(()) = self.eat_paren_open("(") {
+        } else if let Ok(_) = self.eat_paren_open("(") {
             let expr = self.parse_expr(env)?;
             self.eat_paren_close(")")?;
             Ok(expr)

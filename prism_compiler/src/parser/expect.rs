@@ -3,11 +3,12 @@ use prism_diag::{Annotation, AnnotationGroup, Diag};
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 
 pub type PResult<T> = Result<T, ExpectedGuaranteed>;
 
+#[derive(Eq, PartialEq, Ord, PartialOrd)]
 pub enum Expected {
     Literal(String),
     Rule(String),
@@ -77,19 +78,24 @@ impl<'a> ParserPrismEnv<'a> {
             groups: vec![AnnotationGroup {
                 annotations: labels_map
                     .into_iter()
-                    .map(|(start, (end, labels))| Annotation {
+                    .map(|(start, (end, mut labels))| Annotation {
                         span: start.span_to(end),
                         label: Some(match &labels[..] {
                             [] => unreachable!(),
                             [label] => format!("Expected: {}", label),
-                            ref labels => format!(
-                                "Expected one of: {}",
-                                labels
-                                    .iter()
-                                    .map(|v| v.to_string())
-                                    .collect::<Vec<_>>()
-                                    .join(" ")
-                            ),
+                            _ => {
+                                labels.sort();
+                                labels.dedup();
+
+                                format!(
+                                    "Expected one of: {}",
+                                    labels
+                                        .iter()
+                                        .map(|v| v.to_string())
+                                        .collect::<Vec<_>>()
+                                        .join(" ")
+                                )
+                            }
                         }),
                     })
                     .collect(),

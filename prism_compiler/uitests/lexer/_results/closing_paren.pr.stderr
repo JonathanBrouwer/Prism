@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/lexer/closing_paren.pr:1:2
   |
 1 | )
-  |  ^ Expected one of: `let` `Type` `(` identifier
+  |  ^ Expected one of: `(` `Type` `let` identifier
 
