@@ -6,6 +6,7 @@ use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
 use crate::parser::expect::{ErrorState, PResult};
 use crate::parser::lexer::{LexerState, Token, Tokens};
+use prism_data_structures::generic_env::GenericEnv;
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
@@ -31,6 +32,8 @@ impl PrismDb {
     }
 }
 
+type NamesEnv = GenericEnv<Span, ()>;
+
 struct ParserPrismEnv<'a> {
     db: &'a mut PrismDb,
     lexer: LexerState,
@@ -49,7 +52,7 @@ impl<'a> ParserPrismEnv<'a> {
 
     pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
         self.next_token();
-        let program = self.parse_program();
+        let program = self.parse_program(&NamesEnv::default());
         let tokens = self.finish_lexing();
 
         let program = match program {
@@ -65,40 +68,67 @@ impl<'a> ParserPrismEnv<'a> {
         (program, Arc::new(tokens))
     }
 
-    fn parse_program(&mut self) -> PResult<CoreIndex> {
-        self.parse_expr()
+    fn parse_program(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_expr(env)
     }
 
-    fn parse_expr(&mut self) -> PResult<CoreIndex> {
-        self.parse_statement()
+    fn parse_expr(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_statement(env)
     }
 
-    fn parse_statement(&mut self) -> PResult<CoreIndex> {
+    fn parse_statement(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(kw) = self.eat_keyword("let") {
             let name = self.eat_identifier()?;
             let _ = self.eat_symbol('=')?;
-            let value = self.parse_base()?;
+            let value = self.parse_base(env)?;
             let _ = self.eat_symbol(';')?;
-            let body = self.parse_statement()?;
-            // let span = kw.start_pos().span_to(self)
-            Ok(self.store(CorePrismExpr::Let(), span))
+
+            let body_env = env.insert(name, ());
+            let body = self.parse_statement(&body_env)?;
+
+            let span = kw.span_to(self.span_of(body));
+            Ok(self.store(CorePrismExpr::Let(value, body), span))
         } else {
-            self.parse_base()
+            self.parse_base(env)
         }
     }
 
-    fn parse_base(&mut self) -> PResult<CoreIndex> {
+    fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(span) = self.eat_keyword("Type") {
             Ok(self.store(CorePrismExpr::Type, span))
         } else if let Ok(()) = self.eat_paren_open("(") {
-            let expr = self.parse_expr()?;
+            let expr = self.parse_expr(env)?;
             self.eat_paren_close(")")?;
             Ok(expr)
-        } else if let Ok(ident) = self.eat_identifier() {
-            Ok(self.store(CorePrismExpr::DeBruijnIndex(0), ident))
+        } else if let Ok(found_name_span) = self.eat_identifier() {
+            let input = self.db.input.inner();
+            let found_name = input.slice(found_name_span);
+
+            if let Some(idx) = env
+                .iter()
+                .position(|(name, _)| input.slice(*name) == found_name)
+            {
+                drop(input);
+                Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), found_name_span))
+            } else {
+                drop(input);
+                let err = self.db.push_error(UnknownName {
+                    span: found_name_span,
+                });
+                Ok(self
+                    .db
+                    .store(CorePrismExpr::Free, ValueOrigin::Failure(err)))
+            }
         } else {
             Err(self.fail())
         }
+    }
+
+    fn span_of(&mut self, e: CoreIndex) -> Span {
+        let ValueOrigin::SourceCode(span) = self.db.origins[*e] else {
+            unreachable!()
+        };
+        span
     }
 
     pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {
@@ -111,4 +141,11 @@ impl<'a> ParserPrismEnv<'a> {
 struct FailedToRead {
     path: PathBuf,
     error: io::Error,
+}
+
+#[derive(Diagnostic)]
+#[diag(title = "Undefined name within this scope.")]
+struct UnknownName {
+    #[sugg]
+    span: Span,
 }

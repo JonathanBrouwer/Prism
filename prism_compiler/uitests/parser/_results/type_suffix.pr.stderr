@@ -1,6 +1,6 @@
-error[Parser]: Parsing failed
+error[UnknownName]: Undefined name within this scope.
  --> ./uitests/parser/type_suffix.pr:1:1
   |
 1 | Types
-  | ^^^^^ Expected one of: `Type` `(`
+  | ^^^^^
 

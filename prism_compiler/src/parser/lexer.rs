@@ -54,7 +54,7 @@ impl Token {
             | Token::NumLit(NumLit {
                 value: start,
                 suffix: end,
-            }) => start.start_pos().span_to(end.end_pos()),
+            }) => start.span_to(*end),
             Token::EOF(pos) => pos.span_to(*pos),
         }
     }
@@ -99,7 +99,7 @@ impl<'a> ParserPrismEnv<'a> {
                 // Newline
                 '\r' => {
                     let span = if let Some(('\n', nl_span)) = self.next_char(|c| c == '\n') {
-                        ch_span.start_pos().span_to(nl_span.end_pos())
+                        ch_span.span_to(nl_span)
                     } else {
                         self.db
                             .push_error(CarriageReturnWithoutNewline { span: ch_span });
@@ -111,7 +111,7 @@ impl<'a> ParserPrismEnv<'a> {
                 // Whitespace
                 ch if ch.is_whitespace() => {
                     while self.next_char(|c| c.is_whitespace()).is_some() {}
-                    Token::Whitespace(ch_span.start_pos().span_to(self.lexer.pos))
+                    Token::Whitespace(ch_span.span_to_pos(self.lexer.pos))
                 }
                 // Comment
                 '/' => {
@@ -121,7 +121,7 @@ impl<'a> ParserPrismEnv<'a> {
                                 break;
                             }
                         }
-                        Token::Comment(ch_span.start_pos().span_to(self.lexer.pos))
+                        Token::Comment(ch_span.span_to_pos(self.lexer.pos))
                     } else if let Some(_) = self.next_char(|c| c == '*') {
                         //TODO incomplete block comment
                         while let Some(_) = self.next_char(|_| true) {
@@ -129,7 +129,7 @@ impl<'a> ParserPrismEnv<'a> {
                                 break;
                             }
                         }
-                        Token::Comment(ch_span.start_pos().span_to(self.lexer.pos))
+                        Token::Comment(ch_span.span_to_pos(self.lexer.pos))
                     } else {
                         Token::Symbol(ch_span)
                     }
@@ -172,7 +172,7 @@ impl<'a> ParserPrismEnv<'a> {
                 c if unicode_ident::is_xid_start(c) => {
                     while let Some(_) = self.next_char(|c| unicode_ident::is_xid_continue(c)) {}
                     Token::Identifier {
-                        span: ch_span.start_pos().span_to(self.lexer.pos),
+                        span: ch_span.span_to_pos(self.lexer.pos),
                         // `keyword` will be set to true by the parser if applicable
                         keyword: false,
                     }

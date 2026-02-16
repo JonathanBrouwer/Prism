@@ -2,5 +2,5 @@ error[Parser]: Parsing failed
  --> ./uitests/lexer/empty.pr:1:1
   |
 1 |
-  | ^ Expected one of: `Type` `(`
+  | ^ Expected one of: `let` `Type` `(` identifier
 
