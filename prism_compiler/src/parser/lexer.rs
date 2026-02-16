@@ -4,9 +4,9 @@ use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::mem;
 
-const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|";
+const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=";
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Token {
     Newline(Span),
     Whitespace(Span),
@@ -21,7 +21,7 @@ pub enum Token {
     NumLit(NumLit),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct StrLit {
     pub prefix: Span,
     pub open_quote: Span,
@@ -30,7 +30,7 @@ pub struct StrLit {
     pub suffix: Span,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct NumLit {
     pub value: Span,
     pub suffix: Span,
@@ -200,7 +200,7 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn next_token(&mut self) -> Token {
         loop {
             let token = self.next_token_incl_layout();
-            if let Token::Whitespace(..) | Token::Comment(..) = token {
+            if let Token::Whitespace(..) | Token::Comment(..) | Token::Newline(..) = token {
                 continue;
             }
             return token;
