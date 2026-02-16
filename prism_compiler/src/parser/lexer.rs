@@ -85,7 +85,7 @@ pub struct LexerState {
 pub struct Fork {
     pos: Pos,
     tokens_len: usize,
-    paren_stack_len: usize,
+    paren_stack: Vec<Span>,
 }
 
 impl LexerState {
@@ -255,14 +255,16 @@ impl<'a> ParserPrismEnv<'a> {
         Fork {
             pos: self.lexer.pos,
             tokens_len: self.lexer.tokens.len(),
-            paren_stack_len: self.lexer.paren_stack.len(),
+            paren_stack: self.lexer.paren_stack.clone(), //TODO perf
         }
     }
 
     pub fn recover_lexer_fork(&mut self, fork: &Fork) {
         self.lexer.pos = fork.pos;
         self.lexer.tokens.truncate(fork.tokens_len);
-        self.lexer.paren_stack.truncate(fork.paren_stack_len);
+        // TODO perf again
+        // truncating doesn't work because the attempted parse might've popped parens
+        self.lexer.paren_stack = fork.paren_stack.clone();
     }
 
     pub fn try_parse<T>(&mut self, f: impl FnOnce(&mut Self) -> PResult<T>) -> PResult<T> {
