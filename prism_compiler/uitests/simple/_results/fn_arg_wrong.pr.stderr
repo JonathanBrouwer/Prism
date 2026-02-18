@@ -1,11 +1,11 @@
-error[FailedTypeAssert]: Failed type assert
- --> ./uitests/simple/fn_arg_wrong.pr:3:9
+error[ExpectedFnArg]: Argument type mismatch in function application
+ --> ./uitests/simple/fn_arg_wrong.pr:4:3
   |
-3 | let x = (b: Bool) => b;
-  |         ^^^^^^^^^ Found a value of type: Type
+4 | x Type
+  |   ^^^^ Found an argument of type: Type
   |
- ::: ./uitests/simple/fn_arg_wrong.pr:3:13
+ ::: ./uitests/simple/fn_arg_wrong.pr:4:1
   |
-3 | let x = (b: Bool) => b;
-  |             ^^^^ Expected a value of type: #0
+4 | x Type
+  | ^ Function expects an argument of type: Type -> Type
 

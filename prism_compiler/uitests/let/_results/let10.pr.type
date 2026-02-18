@@ -1,4 +1,5 @@
-(Type -> Type) -> (Type -> Type)
-
-
-
+let Type -> Type;
+let => (let #0: #1;
+#0);
+(Type -> Type) -> (let #0: #2;
+Type -> Type)
