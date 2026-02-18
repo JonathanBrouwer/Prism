@@ -149,7 +149,31 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     fn parse_fntype(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
-        self.parse_assert(env)
+        if let Ok((start, binding, typ)) = self.try_parse(|parser| {
+            let start = parser.eat_paren_open("(")?;
+            let binding = parser.eat_identifier()?;
+            _ = parser.eat_symbol(':')?;
+            let typ = parser.parse_fndestruct(env)?;
+            parser.eat_paren_close(")")?;
+            parser.eat_multi_symbol("->")?;
+            Ok((start, binding, typ))
+        }) {
+            let body_env = env.insert(binding, ());
+            let body = self.parse_fndestruct(&body_env)?;
+
+            let span = start.span_to(self.span_of(body));
+            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+        } else if let Ok(typ) = self.try_parse(|parser| {
+            let typ = parser.parse_fndestruct(env)?;
+            parser.eat_multi_symbol("->")?;
+            Ok(typ)
+        }) {
+            let body = self.parse_fndestruct(env)?;
+            let span = self.span_of(typ).span_to(self.span_of(body));
+            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+        } else {
+            self.parse_assert(env)
+        }
     }
 
     fn parse_assert(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {

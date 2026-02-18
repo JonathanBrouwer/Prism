@@ -4,3 +4,9 @@ error[UnknownName]: Undefined name within this scope.
 1 | Types
   | ^^^^^
 
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/parser/type_suffix.pr:1:1
+  |
+1 | Types
+  | ^^^^^
+

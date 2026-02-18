@@ -1,12 +1,11 @@
-error[InvalidToken]: invalid token found
- --> ./uitests/let/let10.pr:1:14
+error[FailedTypeAssert]: Failed type assert
+ --> ./uitests/let/let10.pr:2:10
   |
-1 | let v = Type -> Type;
-  |              ^
-
-error[Parser]: Parsing failed
- --> ./uitests/let/let10.pr:1:15
+2 | let w = (x: v) => x;
+  |          ^^^^ Found a value of type: Type
   |
-1 | let v = Type -> Type;
-  |               ^ Expected: `;`
+ ::: ./uitests/let/let10.pr:2:13
+  |
+2 | let w = (x: v) => x;
+  |             ^ Expected a value of type: #0
 

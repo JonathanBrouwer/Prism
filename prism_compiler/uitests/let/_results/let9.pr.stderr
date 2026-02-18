@@ -1,12 +1,6 @@
-error[InvalidToken]: invalid token found
- --> ./uitests/let/let9.pr:2:14
-  |
-2 | let x = Type -> Type;
-  |              ^
-
 error[Parser]: Parsing failed
- --> ./uitests/let/let9.pr:2:15
+ --> ./uitests/let/let9.pr:3:15
   |
-2 | let x = Type -> Type;
-  |               ^ Expected: `;`
+3 | ((y: x) => y) v
+  |               ^ Expected one of: `->` end of file
 

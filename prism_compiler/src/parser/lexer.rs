@@ -5,7 +5,7 @@ use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::mem;
 
-pub const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=";
+pub const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=+-";
 
 #[derive(Copy, Clone, Debug)]
 pub enum Token {

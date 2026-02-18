@@ -5,14 +5,38 @@ error[UnknownName]: Undefined name within this scope.
   |      ^
 
 error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/let/let11.pr:1:6
+  |
+1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+  |      ^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/let/let11.pr:1:2
+  |
+1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+  |  ^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/let/let11.pr:1:2
+  |
+1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+  |  ^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/let/let11.pr:1:2
+  |
+1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
+  |  ^
+
+error[UnknownName]: Undefined name within this scope.
  --> ./uitests/let/let11.pr:1:2
   |
 1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
   |  ^
 
 error[Parser]: Parsing failed
- --> ./uitests/let/let11.pr:1:7
+ --> ./uitests/let/let11.pr:1:20
   |
 1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
-  |       ^ Expected: `)`
+  |                    ^ Expected: `)`
 
