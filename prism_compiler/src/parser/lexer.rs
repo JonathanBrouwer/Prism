@@ -134,16 +134,16 @@ impl<'a> ParserPrismEnv<'a> {
                 }
                 // Comment
                 '/' => {
-                    if let Some(_) = self.next_char(|c| c == '/') {
-                        while let Some(_) = self.next_char(|_| true) {
+                    if self.next_char(|c| c == '/').is_some() {
+                        while self.next_char(|_| true).is_some() {
                             if ch == '\n' {
                                 break;
                             }
                         }
                         Token::Comment(ch_span.span_to_pos(self.lexer.pos))
-                    } else if let Some(_) = self.next_char(|c| c == '*') {
+                    } else if self.next_char(|c| c == '*').is_some() {
                         //TODO incomplete block comment
-                        while let Some(_) = self.next_char(|_| true) {
+                        while self.next_char(|_| true).is_some() {
                             if ch == '*' && self.next_char(|c| c == '/').is_some() {
                                 break;
                             }
@@ -158,9 +158,12 @@ impl<'a> ParserPrismEnv<'a> {
                 // CloseParen
                 ')' | '}' | ']' => Token::CloseParen(ch_span),
                 c if unicode_ident::is_xid_start(c) || IDENTIFIER_CHARS.contains(c) => {
-                    while let Some(_) = self.next_char(|c| {
-                        unicode_ident::is_xid_continue(c) || IDENTIFIER_CHARS.contains(c)
-                    }) {}
+                    while self
+                        .next_char(|c| {
+                            unicode_ident::is_xid_continue(c) || IDENTIFIER_CHARS.contains(c)
+                        })
+                        .is_some()
+                    {}
                     Token::Identifier {
                         span: ch_span.span_to_pos(self.lexer.pos),
                         // `keyword` will be set to true by the parser if applicable
@@ -203,8 +206,7 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn finish_lexing(&mut self) -> Tokens {
-        let tokens = mem::take(&mut self.lexer.tokens);
-        tokens
+        mem::take(&mut self.lexer.tokens)
     }
 
     pub fn mark_token_keyword(&mut self) {

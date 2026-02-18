@@ -57,7 +57,7 @@ impl<'a> ParserPrismEnv<'a> {
         let program = match program {
             Ok(program)
                 if self
-                    .eat_token(Expected::EOF, |t, _| matches!(t, Token::EOF(..)))
+                    .eat_token(Expected::EndOfFile, |t, _| matches!(t, Token::EOF(..)))
                     .is_ok() =>
             {
                 program
@@ -84,7 +84,7 @@ impl<'a> ParserPrismEnv<'a> {
     fn parse_statement(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(kw) = self.eat_keyword("let") {
             let name = self.eat_identifier()?;
-            let typ = if let Ok(_) = self.eat_symbol(':') {
+            let typ = if self.eat_symbol(':').is_ok() {
                 let typ = self.parse_fnconstruct(env)?;
                 Some(typ)
             } else {
@@ -208,14 +208,9 @@ impl<'a> ParserPrismEnv<'a> {
     fn parse_fndestruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         let mut current = self.parse_base(env)?;
 
-        loop {
-            match self.try_parse(|parser| parser.parse_base(env)) {
-                Ok(next) => {
-                    let span = self.span_of(current).span_to(self.span_of(next));
-                    current = self.store(CorePrismExpr::FnDestruct(current, next), span);
-                }
-                Err(_err) => break,
-            }
+        while let Ok(next) = self.try_parse(|parser| parser.parse_base(env)) {
+            let span = self.span_of(current).span_to(self.span_of(next));
+            current = self.store(CorePrismExpr::FnDestruct(current, next), span);
         }
 
         Ok(current)
@@ -224,7 +219,7 @@ impl<'a> ParserPrismEnv<'a> {
     fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(span) = self.eat_keyword("Type") {
             Ok(self.store(CorePrismExpr::Type, span))
-        } else if let Ok(_) = self.eat_paren_open("(") {
+        } else if self.eat_paren_open("(").is_ok() {
             let expr = self.parse_expr(env)?;
             self.eat_paren_close(")")?;
             Ok(expr)

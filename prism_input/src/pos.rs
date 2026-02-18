@@ -48,10 +48,10 @@ impl Pos {
     }
 
     pub fn next(self, input: &InputTable) -> Option<(char, Self)> {
-        match input.inner().get_str(self.file)[self.idx..].chars().next() {
-            None => None,
-            Some(c) => Some((c, self + c.len_utf8())),
-        }
+        input.inner().get_str(self.file)[self.idx..]
+            .chars()
+            .next()
+            .map(|c| (c, self + c.len_utf8()))
     }
 
     pub fn dummy() -> Self {

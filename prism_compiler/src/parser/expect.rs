@@ -12,7 +12,7 @@ pub type PResult<T> = Result<T, ExpectedGuaranteed>;
 pub enum Expected {
     Literal(String),
     Rule(String),
-    EOF,
+    EndOfFile,
 }
 
 impl Display for Expected {
@@ -20,7 +20,7 @@ impl Display for Expected {
         match self {
             Expected::Literal(exp) => write!(f, "`{exp}`"),
             Expected::Rule(rule) => write!(f, "{rule}"),
-            Expected::EOF => write!(f, "end of file"),
+            Expected::EndOfFile => write!(f, "end of file"),
         }
     }
 }
