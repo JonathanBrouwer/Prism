@@ -3,7 +3,7 @@ use prism_diag::{Annotation, AnnotationGroup, Diag};
 use prism_input::pos::Pos;
 use prism_input::span::Span;
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
 pub type PResult<T> = Result<T, ExpectedGuaranteed>;
@@ -12,6 +12,7 @@ pub type PResult<T> = Result<T, ExpectedGuaranteed>;
 pub enum Expected {
     Literal(String),
     Rule(String),
+    EOF,
 }
 
 impl Display for Expected {
@@ -19,6 +20,7 @@ impl Display for Expected {
         match self {
             Expected::Literal(exp) => write!(f, "`{exp}`"),
             Expected::Rule(rule) => write!(f, "{rule}"),
+            Expected::EOF => write!(f, "end of file"),
         }
     }
 }

@@ -4,10 +4,9 @@ pub mod lexer;
 
 use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
-use crate::parser::expect::{ErrorState, PResult};
+use crate::parser::expect::{ErrorState, Expected, PResult};
 use crate::parser::lexer::{LexerState, Token, Tokens};
 use prism_data_structures::generic_env::GenericEnv;
-use prism_diag::sugg::SuggestionArgument;
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
@@ -52,12 +51,17 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
-        self.next_token();
         let program = self.parse_program(&NamesEnv::default());
         let tokens = self.finish_lexing();
 
         let program = match program {
-            Ok(program) if matches!(self.token(), Token::EOF(..)) => program,
+            Ok(program)
+                if self
+                    .eat_token(Expected::EOF, |t, _| matches!(t, Token::EOF(..)))
+                    .is_ok() =>
+            {
+                program
+            }
             _ => {
                 let diag = self.expected_into_diag().unwrap();
                 let err = self.db.push_error(diag);

@@ -79,13 +79,11 @@ pub type Tokens = Vec<Token>;
 pub struct LexerState {
     pos: Pos,
     tokens: Tokens,
-    paren_stack: Vec<Span>,
 }
 
 pub struct Fork {
     pos: Pos,
     tokens_len: usize,
-    paren_stack: Vec<Span>,
 }
 
 impl LexerState {
@@ -93,7 +91,6 @@ impl LexerState {
         Self {
             pos,
             tokens: Tokens::default(),
-            paren_stack: vec![],
         }
     }
 }
@@ -155,40 +152,9 @@ impl<'a> ParserPrismEnv<'a> {
                     }
                 }
                 // OpenParen
-                '(' | '{' | '[' => {
-                    self.lexer.paren_stack.push(ch_span);
-                    Token::OpenParen(ch_span)
-                }
+                '(' | '{' | '[' => Token::OpenParen(ch_span),
                 // CloseParen
-                ')' | '}' | ']' => {
-                    let expected_open_char = match ch {
-                        ')' => '(',
-                        '}' => '{',
-                        ']' => '[',
-                        _ => unreachable!(),
-                    };
-                    let Some(last_open_span) = self.lexer.paren_stack.last().copied() else {
-                        self.db.push_error(MismatchedClosingDelim {
-                            span: ch_span,
-                            last_open_span: None,
-                        });
-                        continue;
-                    };
-                    let last_open_char = {
-                        let input = self.db.input.inner();
-                        let last_open_str = input.slice(last_open_span);
-                        assert_eq!(last_open_str.len(), 1);
-                        last_open_str.chars().next().unwrap()
-                    };
-                    if last_open_char != expected_open_char {
-                        self.db.push_error(MismatchedClosingDelim {
-                            span: ch_span,
-                            last_open_span: Some(last_open_span),
-                        });
-                    };
-                    self.lexer.paren_stack.pop();
-                    Token::CloseParen(ch_span)
-                }
+                ')' | '}' | ']' => Token::CloseParen(ch_span),
                 c if unicode_ident::is_xid_start(c) => {
                     while let Some(_) = self.next_char(|c| unicode_ident::is_xid_continue(c)) {}
                     Token::Identifier {
@@ -227,21 +193,14 @@ impl<'a> ParserPrismEnv<'a> {
         }
     }
 
-    pub fn finish_lexing(&mut self) -> Tokens {
-        while let Some(open_paren) = self.lexer.paren_stack.pop() {
-            self.db.push_error(UnmatchedOpenDelim { span: open_paren });
-        }
-
-        let tokens = mem::take(&mut self.lexer.tokens);
-        tokens
+    pub fn pop_token(&mut self) {
+        let token = self.lexer.tokens.pop().unwrap();
+        self.lexer.pos = token.span().start_pos();
     }
 
-    pub fn token(&self) -> Token {
-        self.lexer
-            .tokens
-            .last()
-            .copied()
-            .unwrap_or(Token::EOF(self.lexer.pos))
+    pub fn finish_lexing(&mut self) -> Tokens {
+        let tokens = mem::take(&mut self.lexer.tokens);
+        tokens
     }
 
     pub fn mark_token_keyword(&mut self) {
@@ -255,16 +214,12 @@ impl<'a> ParserPrismEnv<'a> {
         Fork {
             pos: self.lexer.pos,
             tokens_len: self.lexer.tokens.len(),
-            paren_stack: self.lexer.paren_stack.clone(), //TODO perf
         }
     }
 
     pub fn recover_lexer_fork(&mut self, fork: &Fork) {
         self.lexer.pos = fork.pos;
         self.lexer.tokens.truncate(fork.tokens_len);
-        // TODO perf again
-        // truncating doesn't work because the attempted parse might've popped parens
-        self.lexer.paren_stack = fork.paren_stack.clone();
     }
 
     pub fn try_parse<T>(&mut self, f: impl FnOnce(&mut Self) -> PResult<T>) -> PResult<T> {
@@ -288,21 +243,5 @@ struct CarriageReturnWithoutNewline {
 #[diag(title = "invalid token found")]
 struct InvalidToken {
     #[sugg]
-    span: Span,
-}
-
-#[derive(Diagnostic)]
-#[diag(title = "mismatched closing delimiter")]
-struct MismatchedClosingDelim {
-    #[sugg(label = "mismatched delimiter")]
-    span: Span,
-    #[allow(unused)]
-    last_open_span: Option<Span>,
-}
-
-#[derive(Diagnostic)]
-#[diag(title = "unmatched open delimiter")]
-struct UnmatchedOpenDelim {
-    #[sugg(label = "unmatched delimiter")]
     span: Span,
 }

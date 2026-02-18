@@ -9,12 +9,12 @@ impl<'a> ParserPrismEnv<'a> {
         expected: Expected,
         f: impl Fn(Token, &mut Self) -> bool,
     ) -> PResult<Token> {
-        let token = self.token();
+        let token = self.next_token();
         if f(token, self) {
-            self.next_token();
             Ok(token)
         } else {
-            Err(self.expect(self.token().span(), expected))
+            self.pop_token();
+            Err(self.expect(token.span(), expected))
         }
     }
 
@@ -86,25 +86,24 @@ impl<'a> ParserPrismEnv<'a> {
         assert!(expected_symbol.chars().all(|c| SYMBOL_CHARS.contains(c)));
         assert!(expected_symbol.len() >= 2);
         let fork = self.fork_lexer();
-        let start = self.token().span().start_pos();
 
-        for symbol in expected_symbol.chars() {
-            let token = self.token();
+        let mut token = self.next_token();
+        let start = token.span().start_pos();
+        for (i, symbol) in expected_symbol.chars().enumerate() {
+            if i != 0 {
+                token = self.next_token_incl_layout();
+            }
 
             if let Token::Symbol(span) = token
                 && self.db.input.inner().slice(span) == String::from_iter([symbol])
             {
-                self.next_token_incl_layout();
             } else {
                 let span = start.span_to(token.span().end_pos());
                 self.recover_lexer_fork(&fork);
                 return Err(self.expect(span, Expected::Literal(expected_symbol.to_string())));
             }
         }
-        let span = start.span_to(self.token().span().start_pos());
-        if self.token().is_layout() {
-            self.next_token();
-        }
+        let span = start.span_to(token.span().end_pos());
         Ok(span)
     }
 }
