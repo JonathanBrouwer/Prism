@@ -1,4 +1,4 @@
-error[InvalidToken]: invalid token found
+error[UnknownName]: Undefined name within this scope.
  --> ./uitests/free/free2.pr:1:1
   |
 1 | _ Type

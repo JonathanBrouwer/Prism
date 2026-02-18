@@ -6,6 +6,7 @@ use prism_input::span::Span;
 use std::mem;
 
 pub const SYMBOL_CHARS: &str = "<>,.!@#$%^&*/\\:;|=+-";
+pub const IDENTIFIER_CHARS: &str = "_";
 
 #[derive(Copy, Clone, Debug)]
 pub enum Token {
@@ -156,8 +157,10 @@ impl<'a> ParserPrismEnv<'a> {
                 '(' | '{' | '[' => Token::OpenParen(ch_span),
                 // CloseParen
                 ')' | '}' | ']' => Token::CloseParen(ch_span),
-                c if unicode_ident::is_xid_start(c) => {
-                    while let Some(_) = self.next_char(|c| unicode_ident::is_xid_continue(c)) {}
+                c if unicode_ident::is_xid_start(c) || IDENTIFIER_CHARS.contains(c) => {
+                    while let Some(_) = self.next_char(|c| {
+                        unicode_ident::is_xid_continue(c) || IDENTIFIER_CHARS.contains(c)
+                    }) {}
                     Token::Identifier {
                         span: ch_span.span_to_pos(self.lexer.pos),
                         // `keyword` will be set to true by the parser if applicable

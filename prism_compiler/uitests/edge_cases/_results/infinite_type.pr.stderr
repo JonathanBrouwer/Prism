@@ -1,12 +1,17 @@
 error[UnknownName]: Undefined name within this scope.
- --> ./uitests/edge_cases/infinite_type.pr:1:2
+ --> ./uitests/edge_cases/infinite_type.pr:1:5
   |
 1 | (v: _) -> v v (v Type)
-  |  ^
+  |     ^
 
-error[Parser]: Parsing failed
- --> ./uitests/edge_cases/infinite_type.pr:1:6
+error[ExpectedFnArg]: Argument type mismatch in function application
+ --> ./uitests/edge_cases/infinite_type.pr:1:13
   |
 1 | (v: _) -> v v (v Type)
-  |      ^ Expected one of: `(` `Type` identifier
+  |             ^ Found an argument of type: Type -> {30}
+  |
+ ::: ./uitests/edge_cases/infinite_type.pr:1:11
+  |
+1 | (v: _) -> v v (v Type)
+  |           ^ Function expects an argument of type: Type
 

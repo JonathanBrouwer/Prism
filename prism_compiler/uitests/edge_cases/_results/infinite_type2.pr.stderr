@@ -1,12 +1,28 @@
 error[UnknownName]: Undefined name within this scope.
- --> ./uitests/edge_cases/infinite_type2.pr:1:2
+ --> ./uitests/edge_cases/infinite_type2.pr:1:5
   |
 1 | (v: _) -> v v
-  |  ^
+  |     ^
 
-error[Parser]: Parsing failed
- --> ./uitests/edge_cases/infinite_type2.pr:1:6
+error[RecursionLimit]: Recursion limit reached during beta solving
+ --> ./uitests/edge_cases/infinite_type2.pr:1:5
   |
 1 | (v: _) -> v v
-  |      ^ Expected one of: `(` `Type` identifier
+  |     ^ Left side of constraint
+  |
+ ::: ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Right side of constraint
+
+error[RecursionLimit]: Recursion limit reached during beta solving
+ --> ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Left side of constraint
+  |
+ ::: ./uitests/edge_cases/infinite_type2.pr:1:5
+  |
+1 | (v: _) -> v v
+  |     ^ Right side of constraint
 
