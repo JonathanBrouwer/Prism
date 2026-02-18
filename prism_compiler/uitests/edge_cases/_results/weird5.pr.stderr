@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/edge_cases/weird5.pr:1:23
   |
 1 | (w: (v: _) -> v Type) -> w Type
-  |                       ^ Expected: `=>`
+  |                       ^ Expected one of: `(` `=>` identifier
 

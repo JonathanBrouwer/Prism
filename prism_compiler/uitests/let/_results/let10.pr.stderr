@@ -1,8 +1,8 @@
 error[FailedTypeAssert]: Failed type assert
- --> ./uitests/let/let10.pr:2:10
+ --> ./uitests/let/let10.pr:2:9
   |
 2 | let w = (x: v) => x;
-  |          ^^^^ Found a value of type: Type
+  |         ^^^^^^ Found a value of type: Type
   |
  ::: ./uitests/let/let10.pr:2:13
   |

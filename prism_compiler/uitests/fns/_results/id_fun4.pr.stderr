@@ -1,0 +1,11 @@
+error[FailedTypeAssert]: Failed type assert
+ --> ./uitests/fns/id_fun4.pr:1:15
+  |
+1 | ((T: Type) => (v: T) => v) Type
+  |               ^^^^^^ Found a value of type: Type
+  |
+ ::: ./uitests/fns/id_fun4.pr:1:19
+  |
+1 | ((T: Type) => (v: T) => v) Type
+  |                   ^ Expected a value of type: #0
+

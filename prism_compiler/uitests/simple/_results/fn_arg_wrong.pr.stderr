@@ -1,8 +1,8 @@
 error[FailedTypeAssert]: Failed type assert
- --> ./uitests/simple/fn_arg_wrong.pr:3:10
+ --> ./uitests/simple/fn_arg_wrong.pr:3:9
   |
 3 | let x = (b: Bool) => b;
-  |          ^^^^^^^ Found a value of type: Type
+  |         ^^^^^^^^^ Found a value of type: Type
   |
  ::: ./uitests/simple/fn_arg_wrong.pr:3:13
   |

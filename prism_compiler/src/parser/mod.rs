@@ -111,44 +111,58 @@ impl<'a> ParserPrismEnv<'a> {
         }
     }
 
-    fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
-        if let Ok((start, binding, typ)) = self.try_parse(|parser| {
-            let start = parser.eat_paren_open("(")?;
-            let binding = parser.eat_identifier()?;
-            _ = parser.eat_symbol(':')?;
-            let typ = parser.parse_fntype(env)?;
-            parser.eat_paren_close(")")?;
-            parser.eat_multi_symbol("=>")?;
-            Ok((start, binding, typ))
-        }) {
-            let body_env = env.insert(binding, ());
-            // Insert dummy entry for let binding of assert
-            let body_env = body_env.insert(Span::new(binding.start_pos(), 0), ());
-            let body = self.parse_fnconstruct(&body_env)?;
+    /// Returns (binding, type, full span)
+    fn parse_fnconstruct_binding(
+        &mut self,
+        env: &NamesEnv,
+    ) -> PResult<(Span, Option<CoreIndex>, Span)> {
+        if let Ok(start) = self.eat_paren_open("(") {
+            let binding = self.eat_identifier()?;
+            _ = self.eat_symbol(':')?;
+            let typ = self.parse_fntype(env)?;
+            let close = self.eat_paren_close(")")?;
+            Ok((binding, Some(typ), start.span_to(close)))
+        } else if let Ok(binding) = self.eat_identifier() {
+            Ok((binding, None, binding))
+        } else {
+            Err(self.fail())
+        }
+    }
 
-            let span = start.span_to(self.span_of(body));
-            let body = {
-                let assert_span = binding.span_to(self.span_of(typ));
-                let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), assert_span);
-                let typ_assert = self.store(CorePrismExpr::TypeAssert(var_ref, typ), assert_span);
-                self.store(CorePrismExpr::Let(typ_assert, body), assert_span)
-            };
-            Ok(self.store(CorePrismExpr::FnConstruct(body), span))
-        } else if let Ok(bindings) = self.try_parse(|parser| {
-            let mut bindings = vec![parser.eat_identifier()?];
-            while let Ok(binding) = parser.eat_identifier() {
+    fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok((bindings, body_env)) = self.try_parse(|parser| {
+            let mut bindings = vec![parser.parse_fnconstruct_binding(env)?];
+            let mut body_env = env.insert(bindings[0].0, ());
+
+            while let Ok(binding) = parser.parse_fnconstruct_binding(&body_env) {
                 bindings.push(binding);
+                if binding.1.is_some() {
+                    // Insert dummy entry for let binding of assert
+                    body_env = body_env.insert(Span::new(binding.0.start_pos(), 0), ());
+                }
+                body_env = body_env.insert(binding.0, ());
             }
+
             parser.eat_multi_symbol("=>")?;
-            Ok(bindings)
+            Ok((bindings, body_env))
         }) {
-            let mut body_env = env.clone();
-            for binding in &bindings {
-                body_env = body_env.insert(*binding, ());
+            let mut body = self.parse_fnconstruct(&body_env)?;
+
+            for (_, binding_ty, binding_span) in bindings.into_iter().rev() {
+                if let Some(binding_ty) = binding_ty {
+                    body = {
+                        let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), binding_span);
+                        let typ_assert = self
+                            .store(CorePrismExpr::TypeAssert(var_ref, binding_ty), binding_span);
+                        self.store(CorePrismExpr::Let(typ_assert, body), binding_span)
+                    };
+                }
+                let span = binding_span.span_to(self.span_of(body));
+                body = self.store(CorePrismExpr::FnConstruct(body), span);
             }
-            let body = self.parse_fnconstruct(&body_env)?;
-            let span = bindings[0].span_to(self.span_of(body));
-            Ok(self.store(CorePrismExpr::FnConstruct(body), span))
+
+            eprintln!("{}", self.db.index_to_sm_string(body));
+            Ok(body)
         } else {
             self.parse_fntype(env)
         }

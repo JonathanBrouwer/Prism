@@ -1,8 +1,8 @@
 error[FailedTypeAssert]: Failed type assert
- --> ./uitests/let/let9.pr:3:3
+ --> ./uitests/let/let9.pr:3:2
   |
 3 | ((y: x) => y) v
-  |   ^^^^ Found a value of type: Type
+  |  ^^^^^^ Found a value of type: Type
   |
  ::: ./uitests/let/let9.pr:3:6
   |
