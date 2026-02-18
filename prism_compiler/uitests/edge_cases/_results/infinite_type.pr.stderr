@@ -1,9 +1,3 @@
-error[UnknownName]: Undefined name within this scope.
- --> ./uitests/edge_cases/infinite_type.pr:1:5
-  |
-1 | (v: _) -> v v (v Type)
-  |     ^
-
 error[ExpectedFnArg]: Argument type mismatch in function application
  --> ./uitests/edge_cases/infinite_type.pr:1:13
   |

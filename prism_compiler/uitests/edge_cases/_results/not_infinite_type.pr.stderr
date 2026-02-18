@@ -1,9 +1,3 @@
-error[UnknownName]: Undefined name within this scope.
- --> ./uitests/edge_cases/not_infinite_type.pr:1:9
-  |
-1 | let z = _ => Type;
-  |         ^
-
 error[Parser]: Parsing failed
  --> ./uitests/edge_cases/not_infinite_type.pr:1:11
   |

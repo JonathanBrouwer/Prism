@@ -1,2 +1,1 @@
-(v: Type -> Type) -> _ _ v
-
+(Type -> Type) -> {51} {52} #0

@@ -1,6 +1,0 @@
-error[UnknownName]: Undefined name within this scope.
- --> ./uitests/free/free1.pr:1:1
-  |
-1 | _
-  | ^
-

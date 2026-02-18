@@ -207,7 +207,10 @@ impl<'a> ParserPrismEnv<'a> {
             let input = self.db.input.inner();
             let found_name = input.slice(found_name_span);
 
-            if let Some(idx) = env
+            if found_name == "_" {
+                drop(input);
+                Ok(self.store(CorePrismExpr::Free, found_name_span))
+            } else if let Some(idx) = env
                 .iter()
                 .position(|(name, _)| input.slice(*name) == found_name)
             {
