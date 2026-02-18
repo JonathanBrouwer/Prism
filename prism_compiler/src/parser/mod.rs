@@ -136,9 +136,9 @@ impl<'a> ParserPrismEnv<'a> {
             Ok(self.store(CorePrismExpr::FnConstruct(body), span))
         } else if let Ok(bindings) = self.try_parse(|parser| {
             let mut bindings = vec![parser.eat_identifier()?];
-            // while let Ok(binding) = parser.eat_identifier() {
-            //     bindings.push(binding);
-            // }
+            while let Ok(binding) = parser.eat_identifier() {
+                bindings.push(binding);
+            }
             parser.eat_multi_symbol("=>")?;
             Ok(bindings)
         }) {

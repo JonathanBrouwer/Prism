@@ -14,5 +14,5 @@ error[Parser]: Parsing failed
  --> ./uitests/adapt/let/adapt_let4.pr:1:15
   |
 1 | adapt grammar {
-  |               ^ Expected one of: `(` `->` `Type` identifier end of file
+  |               ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

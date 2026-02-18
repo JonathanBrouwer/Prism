@@ -14,5 +14,5 @@ error[Parser]: Parsing failed
  --> ./uitests/adapt/capture/adapt_capture10.pr:2:15
   |
 2 | adapt grammar {
-  |               ^ Expected one of: `(` `->` `Type` identifier end of file
+  |               ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 
