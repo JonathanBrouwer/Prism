@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/adapt/eval/adapt_eval2.pr:1:20
   |
 1 | let test = grammar {
-  |                    ^ Expected one of: `(` `->` `;` `Type` identifier
+  |                    ^ Expected one of: `(` `->` `;` `=>` `Type` identifier
 

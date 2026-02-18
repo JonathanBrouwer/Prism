@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/include/include_simple.pr:1:8
   |
 1 | include!(simple)
-  |        ^ Expected one of: `(` `->` `Type` identifier end of file
+  |        ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

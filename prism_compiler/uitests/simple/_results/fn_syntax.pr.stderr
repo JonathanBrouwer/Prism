@@ -1,12 +1,18 @@
 error[UnknownName]: Undefined name within this scope.
- --> ./uitests/simple/fn_syntax.pr:1:9
+ --> ./uitests/simple/fn_syntax.pr:3:9
   |
-1 | let _ = v => v;
-  |         ^
+3 | let _ = v1 v2 => v1;
+  |         ^^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/simple/fn_syntax.pr:3:12
+  |
+3 | let _ = v1 v2 => v1;
+  |            ^^
 
 error[Parser]: Parsing failed
- --> ./uitests/simple/fn_syntax.pr:1:11
+ --> ./uitests/simple/fn_syntax.pr:3:15
   |
-1 | let _ = v => v;
-  |           ^ Expected one of: `(` `->` `;` `Type` identifier
+3 | let _ = v1 v2 => v1;
+  |               ^ Expected one of: `(` `->` `;` `Type` identifier
 

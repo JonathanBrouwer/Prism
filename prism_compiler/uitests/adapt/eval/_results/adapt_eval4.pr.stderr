@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/adapt/eval/adapt_eval4.pr:6:13
   |
 6 |     grammar {
-  |             ^ Expected one of: `(` `)` `->` `Type` identifier
+  |             ^ Expected one of: `(` `)` `->` `=>` `Type` identifier
 

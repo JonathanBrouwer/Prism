@@ -115,33 +115,39 @@ impl<'a> ParserPrismEnv<'a> {
         if let Ok((start, binding, typ)) = self.try_parse(|parser| {
             let start = parser.eat_paren_open("(")?;
             let binding = parser.eat_identifier()?;
-            let typ = if let Ok(_) = parser.eat_symbol(':') {
-                Some(parser.parse_fntype(env)?)
-            } else {
-                None
-            };
+            _ = parser.eat_symbol(':')?;
+            let typ = parser.parse_fntype(env)?;
             parser.eat_paren_close(")")?;
             parser.eat_multi_symbol("=>")?;
             Ok((start, binding, typ))
         }) {
             let body_env = env.insert(binding, ());
             // Insert dummy entry for let binding of assert
-            let body_env = if typ.is_some() {
-                body_env.insert(Span::new(binding.start_pos(), 0), ())
-            } else {
-                body_env
-            };
+            let body_env = body_env.insert(Span::new(binding.start_pos(), 0), ());
             let body = self.parse_fnconstruct(&body_env)?;
 
             let span = start.span_to(self.span_of(body));
-            let body = if let Some(typ) = typ {
+            let body = {
                 let assert_span = binding.span_to(self.span_of(typ));
                 let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), assert_span);
                 let typ_assert = self.store(CorePrismExpr::TypeAssert(var_ref, typ), assert_span);
                 self.store(CorePrismExpr::Let(typ_assert, body), assert_span)
-            } else {
-                body
             };
+            Ok(self.store(CorePrismExpr::FnConstruct(body), span))
+        } else if let Ok(bindings) = self.try_parse(|parser| {
+            let mut bindings = vec![parser.eat_identifier()?];
+            // while let Ok(binding) = parser.eat_identifier() {
+            //     bindings.push(binding);
+            // }
+            parser.eat_multi_symbol("=>")?;
+            Ok(bindings)
+        }) {
+            let mut body_env = env.clone();
+            for binding in &bindings {
+                body_env = body_env.insert(*binding, ());
+            }
+            let body = self.parse_fnconstruct(&body_env)?;
+            let span = bindings[0].span_to(self.span_of(body));
             Ok(self.store(CorePrismExpr::FnConstruct(body), span))
         } else {
             self.parse_fntype(env)

@@ -1,6 +1,18 @@
-error[Parser]: Parsing failed
- --> ./uitests/adapt/capture/adapt_capture10.pr:1:11
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/adapt/capture/adapt_capture10.pr:2:1
   |
-1 | let z = _ => Type;
-  |           ^ Expected one of: `(` `->` `;` `Type` identifier
+2 | adapt grammar {
+  | ^^^^^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/adapt/capture/adapt_capture10.pr:2:7
+  |
+2 | adapt grammar {
+  |       ^^^^^^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/adapt/capture/adapt_capture10.pr:2:15
+  |
+2 | adapt grammar {
+  |               ^ Expected one of: `(` `->` `Type` identifier end of file
 

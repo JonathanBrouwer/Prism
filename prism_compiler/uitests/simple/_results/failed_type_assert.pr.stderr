@@ -2,5 +2,5 @@ error[Parser]: Parsing failed
  --> ./uitests/simple/failed_type_assert.pr:1:6
   |
 1 | Type : (Type -> Type)
-  |      ^ Expected one of: `(` `->` `Type` identifier end of file
+  |      ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

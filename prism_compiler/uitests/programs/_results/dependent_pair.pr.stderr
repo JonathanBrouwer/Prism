@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/programs/dependent_pair.pr:1:73
   |
 1 | let Pair = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
-  |                                                                         ^ Expected one of: `(` `)` `->` `Type` identifier
+  |                                                                         ^ Expected one of: `(` `)` `->` `=>` `Type` identifier
 
