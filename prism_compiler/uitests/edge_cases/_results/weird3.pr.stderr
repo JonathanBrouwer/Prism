@@ -1,0 +1,12 @@
+error[InvalidToken]: invalid token found
+ --> ./uitests/edge_cases/weird3.pr:1:1
+  |
+1 | _ (Type Type)
+  | ^
+
+error[ExpectedFn]: Expected function
+ --> ./uitests/edge_cases/weird3.pr:1:4
+  |
+1 | _ (Type Type)
+  |    ^^^^ Expected a function, found value of type: Type
+

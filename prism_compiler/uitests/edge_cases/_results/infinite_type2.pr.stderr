@@ -1,0 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/edge_cases/infinite_type2.pr:1:2
+  |
+1 | (v: _) -> v v
+  |  ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/edge_cases/infinite_type2.pr:1:6
+  |
+1 | (v: _) -> v v
+  |      ^ Expected one of: `(` `Type` identifier
+

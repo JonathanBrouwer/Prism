@@ -2,5 +2,5 @@ error[Parser]: Parsing failed
  --> ./uitests/parser/type_parens_unclosed.pr:1:6
   |
 1 | (Type
-  |      ^ Expected one of: `)` `->` `:`
+  |      ^ Expected one of: `(` `)` `->` `:` `Type` identifier
 

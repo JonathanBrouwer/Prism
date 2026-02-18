@@ -1,0 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/programs/list.pr:1:41
+  |
+1 | let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
+  |                                         ^^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/programs/list.pr:1:44
+  |
+1 | let List = (T: Type) => (Out: Type) -> (nil: Out) -> (cons: T -> Out -> Out) -> Out;
+  |                                            ^ Expected one of: `(` `)` `->` `Type` identifier
+

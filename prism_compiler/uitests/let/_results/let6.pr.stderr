@@ -1,6 +1,0 @@
-error[Parser]: Parsing failed
- --> ./uitests/let/let6.pr:2:3
-  |
-2 | v Type
-  |   ^^^^ Expected one of: `->` end of file
-

@@ -181,7 +181,19 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     fn parse_fndestruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
-        self.parse_base(env)
+        let mut current = self.parse_base(env)?;
+
+        loop {
+            match self.try_parse(|parser| parser.parse_base(env)) {
+                Ok(next) => {
+                    let span = self.span_of(current).span_to(self.span_of(next));
+                    current = self.store(CorePrismExpr::FnDestruct(current, next), span);
+                }
+                Err(_err) => break,
+            }
+        }
+
+        Ok(current)
     }
 
     fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
@@ -203,12 +215,10 @@ impl<'a> ParserPrismEnv<'a> {
                 Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), found_name_span))
             } else {
                 drop(input);
-                let err = self.db.push_error(UnknownName {
+                self.db.push_error(UnknownName {
                     span: found_name_span,
                 });
-                Ok(self
-                    .db
-                    .store(CorePrismExpr::Free, ValueOrigin::Failure(err)))
+                Ok(self.store(CorePrismExpr::Free, found_name_span))
             }
         } else {
             Err(self.fail())

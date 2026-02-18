@@ -1,0 +1,11 @@
+error[FailedTypeAssert]: Failed type assert
+ --> ./uitests/simple/fn_arg_wrong.pr:3:10
+  |
+3 | let x = (b: Bool) => b;
+  |          ^^^^^^^ Found a value of type: Type
+  |
+ ::: ./uitests/simple/fn_arg_wrong.pr:3:13
+  |
+3 | let x = (b: Bool) => b;
+  |             ^^^^ Expected a value of type: #0
+

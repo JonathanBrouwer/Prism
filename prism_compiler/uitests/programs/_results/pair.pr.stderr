@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/programs/pair.pr:1:65
+  |
+1 | let Pair = (T1: Type) => (T2: Type) => (Out: Type) -> (T1 -> T2 -> Out) -> Out;
+  |                                                                 ^ Expected one of: `(` `)` `Type` identifier
+

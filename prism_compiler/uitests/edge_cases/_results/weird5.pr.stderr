@@ -1,0 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/edge_cases/weird5.pr:1:2
+  |
+1 | (w: (v: _) -> v Type) -> w Type
+  |  ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/edge_cases/weird5.pr:1:10
+  |
+1 | (w: (v: _) -> v Type) -> w Type
+  |          ^ Expected one of: `(` `Type` identifier
+

@@ -1,6 +1,0 @@
-error[Parser]: Parsing failed
- --> ./uitests/let/let7.pr:1:26
-  |
-1 | let v = ((w: Type) => w) Type;
-  |                          ^^^^ Expected one of: `->` `;`
-

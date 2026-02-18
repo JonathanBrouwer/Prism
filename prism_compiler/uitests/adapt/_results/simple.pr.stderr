@@ -1,0 +1,18 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/adapt/simple.pr:1:1
+  |
+1 | adapt grammar {
+  | ^^^^^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/adapt/simple.pr:1:7
+  |
+1 | adapt grammar {
+  |       ^^^^^^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/adapt/simple.pr:1:15
+  |
+1 | adapt grammar {
+  |               ^ Expected one of: `(` `->` `Type` identifier end of file
+

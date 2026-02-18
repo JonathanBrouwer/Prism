@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/programs/church_nats.pr:1:26
+  |
+1 | let Nat = (T: Type) -> T -> (T -> T) -> T;
+  |                          ^ Expected one of: `(` `;` `Type` identifier
+

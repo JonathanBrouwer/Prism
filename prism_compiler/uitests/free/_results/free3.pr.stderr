@@ -1,0 +1,12 @@
+error[InvalidToken]: invalid token found
+ --> ./uitests/free/free3.pr:1:9
+  |
+1 | let v = _;
+  |         ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/free/free3.pr:1:10
+  |
+1 | let v = _;
+  |          ^ Expected one of: `(` `Type` identifier
+

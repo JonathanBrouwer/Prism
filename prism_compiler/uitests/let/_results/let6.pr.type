@@ -1,4 +1,5 @@
 let => (let #0: Type;
 #1);
-Type -> (let #0: Type;
-Type)
+let Type;
+let #0;
+Type

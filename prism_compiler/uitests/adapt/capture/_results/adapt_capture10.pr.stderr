@@ -1,0 +1,12 @@
+error[InvalidToken]: invalid token found
+ --> ./uitests/adapt/capture/adapt_capture10.pr:1:9
+  |
+1 | let z = _ => Type;
+  |         ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/adapt/capture/adapt_capture10.pr:1:11
+  |
+1 | let z = _ => Type;
+  |           ^ Expected one of: `(` `Type` identifier
+

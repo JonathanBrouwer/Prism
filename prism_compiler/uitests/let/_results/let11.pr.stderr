@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/let/let11.pr:1:20
   |
 1 | (a: (b: Type) -> b -> (b -> b) -> b) => (c: Type) => (d: c) => (e: c -> c) => a c d
-  |                    ^ Expected: `)`
+  |                    ^ Expected one of: `(` `)` `Type` identifier
 

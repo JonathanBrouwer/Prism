@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/fns/id_fun_type.pr:1:16
+  |
+1 | (T: Type) -> T -> T
+  |                ^ Expected one of: `(` `Type` identifier end of file
+

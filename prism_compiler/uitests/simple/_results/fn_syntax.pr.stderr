@@ -1,0 +1,12 @@
+error[InvalidToken]: invalid token found
+ --> ./uitests/simple/fn_syntax.pr:1:5
+  |
+1 | let _ = v => v;
+  |     ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/simple/fn_syntax.pr:1:7
+  |
+1 | let _ = v => v;
+  |       ^ Expected: identifier
+
