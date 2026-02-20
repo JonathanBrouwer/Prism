@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_parser", "prism_lsp", "prism_parser_bootstrap", "prism_data_structures"]
+    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_data_structures"]
 default-members = [
     "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_data_structures"
 ]
