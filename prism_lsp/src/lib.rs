@@ -1,8 +1,8 @@
 mod language_server;
 
 use prism_compiler::lang::PrismDb;
+use prism_compiler::parser::lexer::Tokens;
 use prism_input::input_table::InputTableIndex;
-use prism_parser::core::tokens::Tokens;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
@@ -34,7 +34,6 @@ struct LspBackendInner {
 #[derive(Copy, Clone)]
 enum DocumentType {
     Prism,
-    PrismGrammar,
 }
 
 impl Display for DocumentType {
@@ -44,7 +43,6 @@ impl Display for DocumentType {
             "{}",
             match self {
                 DocumentType::Prism => "Prism",
-                DocumentType::PrismGrammar => "Prism Grammar",
             }
         )
     }

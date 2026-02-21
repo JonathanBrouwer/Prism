@@ -41,7 +41,7 @@ impl PrismDb {
         w: &mut impl Write,
         max_precedence: PrecedenceLevel,
     ) -> std::fmt::Result {
-        let e = &self.checked_values[*i];
+        let e = &self.values[*i];
 
         if e.precedence_level() < max_precedence {
             write!(w, "(")?;
@@ -70,7 +70,7 @@ impl PrismDb {
                 write!(w, " ")?;
                 self.display(b, w, PrecedenceLevel::Base)?;
             }
-            CorePrismExpr::Free => write!(w, "{{{}}}", i.0)?,
+            CorePrismExpr::Free => write!(w, "_")?,
             &CorePrismExpr::Shift(v, i) => {
                 write!(w, "([SHIFT {i}] ")?;
                 self.display(v, w, PrecedenceLevel::default())?;

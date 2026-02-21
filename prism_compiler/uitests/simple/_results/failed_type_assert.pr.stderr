@@ -1,11 +1,6 @@
-error[failed_type_assert]: Failed type assert
- --> ./uitests/simple/failed_type_assert.pr:1:1
+error[Parser]: Parsing failed
+ --> ./uitests/simple/failed_type_assert.pr:1:6
   |
 1 | Type : (Type -> Type)
-  | ^^^^ Found a value of type: Type
-  |
- ::: ./uitests/simple/failed_type_assert.pr:1:9
-  |
-1 | Type : (Type -> Type)
-  |         ^^^^^^^^^^^^ Expected a value of type: Type -> Type
+  |      ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

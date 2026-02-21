@@ -79,7 +79,9 @@ fn compare_term(
                 file_path.with_added_extension(output_ext),
             );
             let (expected, _) = env.parse_prism_file(expected);
-            env.assert_no_errors();
+            if !env.diags.is_empty() {
+                return false;
+            }
             env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default())
         },
         output_ext,

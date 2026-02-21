@@ -1,136 +1,274 @@
-use crate::lang::{CoreIndex, PrismDb};
+mod eat;
+mod expect;
+pub mod lexer;
+
+use crate::lang::diags::ErrorGuaranteed;
+use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
+use crate::parser::expect::{ErrorState, Expected, PResult};
+use crate::parser::lexer::{LexerState, Token, Tokens};
+use prism_data_structures::generic_env::GenericEnv;
 use prism_diag_derive::Diagnostic;
-use prism_input::input::Input;
-use prism_input::input_table::{InputTable, InputTableIndex};
+use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
-use prism_parser::core::tokens::Tokens;
-use prism_parser::error::ParseError;
-use prism_parser::error::set_error::SetError;
-use prism_parser::grammar::grammar_file::GrammarFile;
-use prism_parser::parsable::parsable_dyn::ParsableDyn;
-use prism_parser::parse_grammar;
-use prism_parser::parser::VarMap;
-use prism_parser::parser::instance::run_parser_rule;
-use std::collections::HashMap;
 use std::io;
-use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::{Arc, LazyLock};
-
-mod display;
-pub mod named_env;
-pub mod parse_expr;
-mod parsed_to_checked;
-
-pub static GRAMMAR: LazyLock<(InputTable, Arc<GrammarFile>)> = LazyLock::new(|| {
-    let (table, grammar, _tokens, errs) =
-        parse_grammar::<SetError>(include_str!("../../resources/prism.pg"));
-    errs.unwrap_or_eprint(&table);
-    (table.deep_clone(), grammar)
-});
+use std::sync::Arc;
 
 impl PrismDb {
-    pub fn load_file(&mut self, path: PathBuf) -> Option<InputTableIndex> {
-        #[derive(Diagnostic)]
-        #[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
-        struct FailedToRead {
-            path: PathBuf,
-            error: io::Error,
-        }
-
+    pub fn load_file(&mut self, path: PathBuf) -> Result<InputTableIndex, ErrorGuaranteed> {
         match std::fs::read_to_string(&path) {
-            Ok(program) => Some(self.load_input(program, path)),
-            Err(error) => {
-                self.push_error(FailedToRead { path, error });
-                None
-            }
+            Ok(program) => Ok(self.load_input(program, path)),
+            Err(error) => Err(self.push_error(FailedToRead { path, error })),
         }
     }
 
     pub fn load_input(&mut self, data: String, path: PathBuf) -> InputTableIndex {
         self.input.inner_mut().get_or_push_file(data, path)
     }
+
+    pub fn parse_prism_file(&mut self, file: InputTableIndex) -> (CoreIndex, Arc<Tokens>) {
+        let parse_env = ParserPrismEnv::new(self, file);
+        parse_env.parse_file()
+    }
 }
 
-pub struct ParserPrismEnv<'a> {
-    db: &'a mut PrismDb,
+type NamesEnv = GenericEnv<Span, ()>;
 
-    // Parsed Values
-    pub parsed_values: Vec<ParsedPrismExpr>,
-    pub parsed_spans: Vec<Span>,
+struct ParserPrismEnv<'a> {
+    db: &'a mut PrismDb,
+    lexer: LexerState,
+    error_state: ErrorState,
 }
 
 impl<'a> ParserPrismEnv<'a> {
-    pub fn new(db: &'a mut PrismDb) -> Self {
+    pub fn new(db: &'a mut PrismDb, file: InputTableIndex) -> Self {
+        let pos = db.input.inner().start_of(file);
         Self {
             db,
-            parsed_values: Default::default(),
-            parsed_spans: Default::default(),
+            lexer: LexerState::new(pos),
+            error_state: ErrorState::new(pos),
         }
     }
 
-    pub fn store_from_source(&mut self, e: ParsedPrismExpr, span: Span) -> ParsedIndex {
-        self.store_parsed(e, span)
+    pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
+        let program = self.parse_program(&NamesEnv::default());
+        let tokens = self.finish_lexing();
+
+        let program = match program {
+            Ok(program)
+                if self
+                    .eat_token(Expected::EndOfFile, |t, _| matches!(t, Token::EOF(..)))
+                    .is_ok() =>
+            {
+                program
+            }
+            _ => {
+                let diag = self.expected_into_diag().unwrap();
+                let err = self.db.push_error(diag);
+                self.db
+                    .store(CorePrismExpr::Free, ValueOrigin::Failure(err))
+            }
+        };
+
+        (program, Arc::new(tokens))
     }
 
-    fn store_parsed(&mut self, e: ParsedPrismExpr, origin: Span) -> ParsedIndex {
-        self.parsed_values.push(e);
-        self.parsed_spans.push(origin);
-        ParsedIndex(self.parsed_values.len() - 1)
+    fn parse_program(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_expr(env)
     }
 
-    pub fn parse_file(&mut self, file: InputTableIndex) -> (ParsedIndex, Arc<Tokens>) {
-        let mut parsables = HashMap::new();
-        parsables.insert("Expr", ParsableDyn::new::<ParsedIndex>());
+    fn parse_expr(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_statement(env)
+    }
 
-        let (expr, tokens, errs) = run_parser_rule::<ParserPrismEnv<'a>, ParsedIndex, SetError>(
-            &GRAMMAR.1,
-            "expr",
-            self.db.input.clone(),
-            file,
-            parsables,
-            self,
-        );
+    fn parse_statement(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok(kw) = self.eat_keyword("let") {
+            let name = self.eat_identifier()?;
+            let typ = if self.eat_symbol(':').is_ok() {
+                let typ = self.parse_fnconstruct(env)?;
+                Some(typ)
+            } else {
+                None
+            };
 
-        for err in errs.errors {
-            self.db.diags.push(err.diag());
+            let _ = self.eat_symbol('=')?;
+            let value = self.parse_fnconstruct(env)?;
+            let _ = self.eat_symbol(';')?;
+
+            let body_env = env.insert(name, ());
+            let body = self.parse_statement(&body_env)?;
+
+            let span = kw.span_to(self.span_of(body));
+            let value = if let Some(typ) = typ {
+                let assert_span = name.span_to(self.span_of(value));
+                self.store(CorePrismExpr::TypeAssert(value, typ), assert_span)
+            } else {
+                value
+            };
+            Ok(self.store(CorePrismExpr::Let(value, body), span))
+        } else {
+            self.parse_fnconstruct(env)
+        }
+    }
+
+    /// Returns (binding, type, full span)
+    fn parse_fnconstruct_binding(
+        &mut self,
+        env: &NamesEnv,
+    ) -> PResult<(Span, Option<CoreIndex>, Span)> {
+        if let Ok(start) = self.eat_paren_open("(") {
+            let binding = self.eat_identifier()?;
+            _ = self.eat_symbol(':')?;
+            let typ = self.parse_fntype(env)?;
+            let close = self.eat_paren_close(")")?;
+            Ok((binding, Some(typ), start.span_to(close)))
+        } else if let Ok(binding) = self.eat_identifier() {
+            Ok((binding, None, binding))
+        } else {
+            Err(self.fail())
+        }
+    }
+
+    fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok((bindings, body_env)) = self.try_parse(|parser| {
+            let typ_env = env.insert(Span::dummy(), ());
+            let mut bindings = vec![parser.parse_fnconstruct_binding(&typ_env)?];
+            let mut body_env = env.insert(bindings[0].0, ());
+
+            loop {
+                let typ_env = body_env.insert(Span::dummy(), ());
+                let Ok(binding) = parser.parse_fnconstruct_binding(&typ_env) else {
+                    break;
+                };
+                bindings.push(binding);
+                if binding.1.is_some() {
+                    // Insert dummy entry for let binding of assert
+                    body_env = body_env.insert(Span::new(binding.0.start_pos(), 0), ());
+                }
+                body_env = body_env.insert(binding.0, ());
+            }
+
+            parser.eat_multi_symbol("=>")?;
+            Ok((bindings, body_env))
+        }) {
+            let mut body = self.parse_fnconstruct(&body_env)?;
+
+            for (_, binding_ty, binding_span) in bindings.into_iter().rev() {
+                if let Some(binding_ty) = binding_ty {
+                    body = {
+                        let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), binding_span);
+                        let typ_assert = self
+                            .store(CorePrismExpr::TypeAssert(var_ref, binding_ty), binding_span);
+                        self.store(CorePrismExpr::Let(typ_assert, body), binding_span)
+                    };
+                }
+                let span = binding_span.span_to(self.span_of(body));
+                body = self.store(CorePrismExpr::FnConstruct(body), span);
+            }
+
+            Ok(body)
+        } else {
+            self.parse_fntype(env)
+        }
+    }
+
+    fn parse_fntype(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok((start, binding, typ)) = self.try_parse(|parser| {
+            let start = parser.eat_paren_open("(")?;
+            let binding = parser.eat_identifier()?;
+            _ = parser.eat_symbol(':')?;
+            let typ = parser.parse_fndestruct(env)?;
+            parser.eat_paren_close(")")?;
+            parser.eat_multi_symbol("->")?;
+            Ok((start, binding, typ))
+        }) {
+            let body_env = env.insert(binding, ());
+            let body = self.parse_fndestruct(&body_env)?;
+
+            let span = start.span_to(self.span_of(body));
+            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+        } else if let Ok(typ) = self.try_parse(|parser| {
+            let typ = parser.parse_fndestruct(env)?;
+            parser.eat_multi_symbol("->")?;
+            Ok(typ)
+        }) {
+            let body = self.parse_fndestruct(env)?;
+            let span = self.span_of(typ).span_to(self.span_of(body));
+            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+        } else {
+            self.parse_assert(env)
+        }
+    }
+
+    fn parse_assert(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        self.parse_fndestruct(env)
+    }
+
+    fn parse_fndestruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        let mut current = self.parse_base(env)?;
+
+        while let Ok(next) = self.try_parse(|parser| parser.parse_base(env)) {
+            let span = self.span_of(current).span_to(self.span_of(next));
+            current = self.store(CorePrismExpr::FnDestruct(current, next), span);
         }
 
-        (*expr, tokens)
+        Ok(current)
+    }
+
+    fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
+        if let Ok(span) = self.eat_keyword("Type") {
+            Ok(self.store(CorePrismExpr::Type, span))
+        } else if self.eat_paren_open("(").is_ok() {
+            let expr = self.parse_expr(env)?;
+            self.eat_paren_close(")")?;
+            Ok(expr)
+        } else if let Ok(found_name_span) = self.eat_identifier() {
+            let input = self.db.input.inner();
+            let found_name = input.slice(found_name_span);
+
+            if found_name == "_" {
+                drop(input);
+                Ok(self.store(CorePrismExpr::Free, found_name_span))
+            } else if let Some(idx) = env
+                .iter()
+                .position(|(name, _)| input.slice(*name) == found_name)
+            {
+                drop(input);
+                Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), found_name_span))
+            } else {
+                drop(input);
+                self.db.push_error(UnknownName {
+                    span: found_name_span,
+                });
+                Ok(self.store(CorePrismExpr::Free, found_name_span))
+            }
+        } else {
+            Err(self.fail())
+        }
+    }
+
+    fn span_of(&mut self, e: CoreIndex) -> Span {
+        let ValueOrigin::SourceCode(span) = self.db.origins[*e] else {
+            unreachable!()
+        };
+        span
+    }
+
+    pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {
+        self.db.store(e, ValueOrigin::SourceCode(span))
     }
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
-pub struct ParsedIndex(pub usize);
-
-impl Deref for ParsedIndex {
-    type Target = usize;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+#[derive(Diagnostic)]
+#[diag(title = format!("Failed to read file `{:?}`: {}", self.path, self.error))]
+struct FailedToRead {
+    path: PathBuf,
+    error: io::Error,
 }
 
-#[derive(Clone)]
-pub enum ParsedPrismExpr {
-    // Real expressions
-    Free,
-    Type,
-    Let(Input, ParsedIndex, ParsedIndex),
-    FnType(Input, ParsedIndex, ParsedIndex),
-    FnConstruct(Input, ParsedIndex),
-    FnDestruct(ParsedIndex, ParsedIndex),
-    TypeAssert(ParsedIndex, ParsedIndex),
-
-    // Temporary expressions after parsing
-    Name(Input),
-    ShiftTo {
-        expr: ParsedIndex,
-        captured_env: VarMap,
-        adapt_env_len: usize,
-        grammar: Arc<GrammarFile>,
-    },
-    GrammarValue(Arc<GrammarFile>),
-    GrammarType,
-    Include(Input, CoreIndex),
+#[derive(Diagnostic)]
+#[diag(title = "Undefined name within this scope.")]
+struct UnknownName {
+    #[sugg]
+    span: Span,
 }

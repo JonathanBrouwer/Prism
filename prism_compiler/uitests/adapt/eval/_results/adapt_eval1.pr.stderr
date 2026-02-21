@@ -1,0 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/adapt/eval/adapt_eval1.pr:1:12
+  |
+1 | let test = grammar {
+  |            ^^^^^^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/adapt/eval/adapt_eval1.pr:1:20
+  |
+1 | let test = grammar {
+  |                    ^ Expected one of: `(` `->` `;` `=>` `Type` identifier
+

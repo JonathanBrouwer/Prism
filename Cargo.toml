@@ -1,9 +1,8 @@
 [workspace]
 members = [
-    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_parser", "prism_lsp", "prism_parser_bootstrap"
-]
+    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_data_structures"]
 default-members = [
-    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_parser", "prism_lsp", "prism_parser_bootstrap"
+    "prism_compiler", "prism_diag", "prism_diag_derive", "prism_input", "prism_lsp", "prism_data_structures"
 ]
 resolver = "3"
 
@@ -15,17 +14,16 @@ license = "MPL-2.0"
 
 [workspace.dependencies]
 # Internal
-prism_parser = { path = "prism_parser" }
 prism_input = { path = "prism_input" }
 prism_compiler = { path = "prism_compiler" }
 prism_diag = { path = "prism_diag" }
 prism_diag_derive = { path = "prism_diag_derive" }
+prism_data_structures = { path = "prism_data_structures" }
 
 # External
 clap = { version = "4.5", default-features = false, features = ["help", "usage", "error-context", "std", "derive"] }
 serde = { version = "1.0", features = ["derive", "std", "rc"] }
 serde_json = "1.0"
-test_each_file = "0.3"
 rmp-serde = "1.3"
 tower-lsp-server = "0.23"
 tokio = { version = "1.49", default-features = false, features = ["macros", "rt-multi-thread", "io-std"] }
@@ -35,3 +33,4 @@ syn = "2.0.112"
 quote = "1.0.42"
 proc-macro2 = "1.0.104"
 libtest-mimic = "0.8.1"
+unicode-ident = "1.0.23"

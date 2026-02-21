@@ -17,7 +17,7 @@ impl TypecheckPrismEnv<'_> {
         let (i1, s1) = self.db.beta_reduce_head(i1, s1);
         let (i2, s2) = self.db.beta_reduce_head(i2, s2);
 
-        match (&self.db.checked_values[*i1], &self.db.checked_values[*i2]) {
+        match (&self.db.values[*i1], &self.db.values[*i2]) {
             (CorePrismExpr::Type, CorePrismExpr::Type) => {}
             (CorePrismExpr::GrammarType, CorePrismExpr::GrammarType) => {}
             (&CorePrismExpr::DeBruijnIndex(i1), &CorePrismExpr::DeBruijnIndex(i2)) => {

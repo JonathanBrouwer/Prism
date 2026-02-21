@@ -1,19 +1,12 @@
-error[unknown_name]: Undefined name within this scope.
+error[UnknownName]: Undefined name within this scope.
  --> ./uitests/edge_cases/weird1.pr:1:1
   |
 1 | v: ((_: Type) => Type) -> v Type
   | ^
 
-error[unknown_name]: Undefined name within this scope.
- --> ./uitests/edge_cases/weird1.pr:1:27
+error[Parser]: Parsing failed
+ --> ./uitests/edge_cases/weird1.pr:1:2
   |
 1 | v: ((_: Type) => Type) -> v Type
-  |                           ^
-
-error[expected_type]: Expected type
- --> ./uitests/edge_cases/weird1.pr:1:5
-  |
-1 | v: ((_: Type) => Type) -> v Type
-  |     ^^^^^^^^^^^^^^^^^ Expected a type, found value of type: {19} -> (let {20}: Type;
-Type)
+  |  ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

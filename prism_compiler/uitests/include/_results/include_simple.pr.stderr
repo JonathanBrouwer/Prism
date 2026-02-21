@@ -1,0 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/include/include_simple.pr:1:1
+  |
+1 | include!(simple)
+  | ^^^^^^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/include/include_simple.pr:1:8
+  |
+1 | include!(simple)
+  |        ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
+

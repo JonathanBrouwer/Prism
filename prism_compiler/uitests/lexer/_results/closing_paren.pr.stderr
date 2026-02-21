@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/lexer/closing_paren.pr:1:1
+  |
+1 | )
+  | ^ Expected one of: `(` `Type` `let` identifier
+

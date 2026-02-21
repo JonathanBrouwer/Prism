@@ -5,13 +5,13 @@ use prism_input::span::Span;
 
 impl SuggestionArgument<PrismDb> for CoreIndex {
     fn span(&self, env: &PrismDb) -> Span {
-        let mut origin = env.checked_origins[self.0];
+        let mut origin = env.origins[self.0];
         loop {
             match origin {
                 ValueOrigin::SourceCode(span) => return span,
-                ValueOrigin::TypeOf(i) => origin = env.checked_origins[i.0],
-                ValueOrigin::FreeSub(s) => origin = env.checked_origins[s.0],
-                ValueOrigin::Failure => todo!(),
+                ValueOrigin::TypeOf(i) => origin = env.origins[i.0],
+                ValueOrigin::FreeSub(s) => origin = env.origins[s.0],
+                ValueOrigin::Failure { .. } => todo!(),
             }
         }
     }

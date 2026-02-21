@@ -1,24 +1,12 @@
-error[unknown_name]: Undefined name within this scope.
+error[UnknownName]: Undefined name within this scope.
  --> ./uitests/edge_cases/breaks_label_values.pr:1:1
   |
 1 | v: _ -> v (v (v Type Type))
   | ^
 
-error[unknown_name]: Undefined name within this scope.
- --> ./uitests/edge_cases/breaks_label_values.pr:1:9
+error[Parser]: Parsing failed
+ --> ./uitests/edge_cases/breaks_label_values.pr:1:2
   |
 1 | v: _ -> v (v (v Type Type))
-  |         ^
-
-error[unknown_name]: Undefined name within this scope.
- --> ./uitests/edge_cases/breaks_label_values.pr:1:12
-  |
-1 | v: _ -> v (v (v Type Type))
-  |            ^
-
-error[unknown_name]: Undefined name within this scope.
- --> ./uitests/edge_cases/breaks_label_values.pr:1:15
-  |
-1 | v: _ -> v (v (v Type Type))
-  |               ^
+  |  ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
 

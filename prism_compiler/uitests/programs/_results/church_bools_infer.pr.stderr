@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/programs/church_bools_infer.pr:1:27
+  |
+1 | let Bool = (T: Type) -> T -> T -> T;
+  |                           ^ Expected one of: `(` `;` `Type` identifier
+

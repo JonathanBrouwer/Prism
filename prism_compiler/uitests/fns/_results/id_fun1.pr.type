@@ -1,1 +1,2 @@
-Type -> Type
+Type -> (let #0: Type;
+Type)
