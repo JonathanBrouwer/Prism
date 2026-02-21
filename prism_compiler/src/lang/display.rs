@@ -70,7 +70,7 @@ impl PrismDb {
                 write!(w, " ")?;
                 self.display(b, w, PrecedenceLevel::Base)?;
             }
-            CorePrismExpr::Free => write!(w, "{{{}}}", i.0)?,
+            CorePrismExpr::Free => write!(w, "_")?,
             &CorePrismExpr::Shift(v, i) => {
                 write!(w, "([SHIFT {i}] ")?;
                 self.display(v, w, PrecedenceLevel::default())?;

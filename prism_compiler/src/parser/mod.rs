@@ -166,7 +166,6 @@ impl<'a> ParserPrismEnv<'a> {
                 body = self.store(CorePrismExpr::FnConstruct(body), span);
             }
 
-            eprintln!("{}", self.db.index_to_sm_string(body));
             Ok(body)
         } else {
             self.parse_fntype(env)

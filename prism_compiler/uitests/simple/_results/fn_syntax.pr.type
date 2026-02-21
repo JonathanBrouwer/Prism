@@ -15,6 +15,6 @@ let => => (let #0: Type;
 #0);
 let => => (let #0: Type;
 => #3 #1);
-(Type -> {293}) -> Type -> (let #0: Type;
-{299} -> (let #1;
-{301}))
+(Type -> _) -> Type -> (let #0: Type;
+_ -> (let #1;
+_))
