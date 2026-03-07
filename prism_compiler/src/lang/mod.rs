@@ -45,16 +45,32 @@ impl Deref for CoreIndex {
 }
 
 #[derive(Clone)]
-pub enum CorePrismExpr {
+pub enum Expr {
     Free,
     Type,
-    Let(CoreIndex, CoreIndex),
-    DeBruijnIndex(usize),
-    FnType(CoreIndex, CoreIndex),
-    FnConstruct(CoreIndex),
-    FnDestruct(CoreIndex, CoreIndex),
+    Let {
+        value: CoreIndex,
+        body: CoreIndex,
+    },
+    DeBruijnIndex {
+        idx: usize,
+    },
+    FnType {
+        arg_type: CoreIndex,
+        body: CoreIndex,
+    },
+    FnConstruct {
+        body: CoreIndex,
+    },
+    FnDestruct {
+        function: CoreIndex,
+        arg: CoreIndex,
+    },
     Shift(CoreIndex, usize),
-    TypeAssert(CoreIndex, CoreIndex),
+    TypeAssert {
+        value: CoreIndex,
+        type_hint: CoreIndex,
+    },
     GrammarValue(Arc<()>),
     GrammarType,
 }
@@ -67,8 +83,8 @@ pub struct PrismDb {
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
 
     // Checked Values
-    pub values: Vec<CorePrismExpr>,
-    pub origins: Vec<ValueOrigin>,
+    pub exprs: Vec<Expr>,
+    pub expr_origins: Vec<ValueOrigin>,
     pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
     pub diags: Vec<Diag>,
@@ -97,8 +113,8 @@ impl PrismDb {
         Self {
             args,
             input: Default::default(),
-            values: Default::default(),
-            origins: Default::default(),
+            exprs: Default::default(),
+            expr_origins: Default::default(),
             checked_types: Default::default(),
             diags: Default::default(),
             files: Default::default(),
@@ -111,8 +127,8 @@ impl PrismDb {
             Ok(file) => file,
             Err(err) => {
                 return ProcessedFile {
-                    core: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
-                    typ: self.store(CorePrismExpr::Free, ValueOrigin::Failure(err)),
+                    core: self.store(Expr::Free, ValueOrigin::Failure(err)),
+                    typ: self.store(Expr::Free, ValueOrigin::Failure(err)),
                     tokens: Arc::new(vec![]),
                 };
             }
@@ -153,9 +169,9 @@ impl PrismDb {
         self.input.inner_mut().remove(file);
     }
 
-    pub fn store(&mut self, e: CorePrismExpr, origin: ValueOrigin) -> CoreIndex {
-        self.values.push(e);
-        self.origins.push(origin);
-        CoreIndex(self.values.len() - 1)
+    pub fn store(&mut self, e: Expr, origin: ValueOrigin) -> CoreIndex {
+        self.exprs.push(e);
+        self.expr_origins.push(origin);
+        CoreIndex(self.exprs.len() - 1)
     }
 }

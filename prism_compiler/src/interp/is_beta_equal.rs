@@ -1,4 +1,4 @@
-use crate::lang::CorePrismExpr;
+use crate::lang::Expr;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
 use crate::lang::{CoreIndex, PrismDb};
@@ -17,10 +17,10 @@ impl TypecheckPrismEnv<'_> {
         let (i1, s1) = self.db.beta_reduce_head(i1, s1);
         let (i2, s2) = self.db.beta_reduce_head(i2, s2);
 
-        match (&self.db.values[*i1], &self.db.values[*i2]) {
-            (CorePrismExpr::Type, CorePrismExpr::Type) => {}
-            (CorePrismExpr::GrammarType, CorePrismExpr::GrammarType) => {}
-            (&CorePrismExpr::DeBruijnIndex(i1), &CorePrismExpr::DeBruijnIndex(i2)) => {
+        match (&self.db.exprs[*i1], &self.db.exprs[*i2]) {
+            (Expr::Type, Expr::Type) => {}
+            (Expr::GrammarType, Expr::GrammarType) => {}
+            (&Expr::DeBruijnIndex { idx: i1 }, &Expr::DeBruijnIndex { idx: i2 }) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
                     CSubst(..) | RSubst(..) => unreachable!(),
@@ -33,7 +33,16 @@ impl TypecheckPrismEnv<'_> {
                     return false;
                 }
             }
-            (&CorePrismExpr::FnType(a1, b1), &CorePrismExpr::FnType(a2, b2)) => {
+            (
+                &Expr::FnType {
+                    arg_type: a1,
+                    body: b1,
+                },
+                &Expr::FnType {
+                    arg_type: a2,
+                    body: b2,
+                },
+            ) => {
                 if !self.is_beta_equal(a1, &s1, a2, &s2) {
                     return false;
                 }
@@ -42,13 +51,22 @@ impl TypecheckPrismEnv<'_> {
                     return false;
                 }
             }
-            (&CorePrismExpr::FnConstruct(b1), &CorePrismExpr::FnConstruct(b2)) => {
+            (&Expr::FnConstruct { body: b1 }, &Expr::FnConstruct { body: b2 }) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;
                 }
             }
-            (&CorePrismExpr::FnDestruct(f1, a1), &CorePrismExpr::FnDestruct(f2, a2)) => {
+            (
+                &Expr::FnDestruct {
+                    function: f1,
+                    arg: a1,
+                },
+                &Expr::FnDestruct {
+                    function: f2,
+                    arg: a2,
+                },
+            ) => {
                 if !self.is_beta_equal(f1, &s1, f2, &s2) {
                     return false;
                 }
@@ -56,7 +74,7 @@ impl TypecheckPrismEnv<'_> {
                     return false;
                 }
             }
-            (CorePrismExpr::Free, CorePrismExpr::Free) => {}
+            (Expr::Free, Expr::Free) => {}
             _ => {
                 return false;
             }

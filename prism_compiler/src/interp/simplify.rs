@@ -1,4 +1,4 @@
-use crate::lang::CorePrismExpr;
+use crate::lang::Expr;
 use crate::lang::env::{DbEnv, EnvEntry};
 use crate::lang::{CoreIndex, PrismDb};
 use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
@@ -18,58 +18,76 @@ impl TypecheckPrismEnv<'_> {
         s: &DbEnv,
         var_map: &mut HashMap<UniqueVariableId, usize>,
     ) -> CoreIndex {
-        let e_new = match &self.db.values[*i] {
-            CorePrismExpr::Type => CorePrismExpr::Type,
-            &CorePrismExpr::Let(v, b) => {
+        let e_new = match &self.db.exprs[*i] {
+            Expr::Type => Expr::Type,
+            &Expr::Let { value: v, body: b } => {
                 let v = self.simplify_inner(v, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                CorePrismExpr::Let(v, b)
+                Expr::Let { value: v, body: b }
             }
-            &CorePrismExpr::DeBruijnIndex(v) => match s.get_idx(v) {
+            &Expr::DeBruijnIndex { idx: v } => match s.get_idx(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
-                Some(EnvEntry::RType(id)) => {
-                    CorePrismExpr::DeBruijnIndex(var_map.len() - var_map[id] - 1)
-                }
+                Some(EnvEntry::RType(id)) => Expr::DeBruijnIndex {
+                    idx: var_map.len() - var_map[id] - 1,
+                },
                 Some(EnvEntry::RSubst(subst, subst_env)) => {
                     return self.simplify_inner(*subst, subst_env, var_map);
                 }
-                None => CorePrismExpr::DeBruijnIndex(v),
+                None => Expr::DeBruijnIndex { idx: v },
             },
-            &CorePrismExpr::FnType(a, b) => {
+            &Expr::FnType {
+                arg_type: a,
+                body: b,
+            } => {
                 let a = self.simplify_inner(a, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                CorePrismExpr::FnType(a, b)
+                Expr::FnType {
+                    arg_type: a,
+                    body: b,
+                }
             }
-            &CorePrismExpr::FnConstruct(b) => {
+            &Expr::FnConstruct { body: b } => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                CorePrismExpr::FnConstruct(b)
+                Expr::FnConstruct { body: b }
             }
-            &CorePrismExpr::FnDestruct(a, b) => {
+            &Expr::FnDestruct {
+                function: a,
+                arg: b,
+            } => {
                 let a = self.simplify_inner(a, s, var_map);
                 let b = self.simplify_inner(b, s, var_map);
-                CorePrismExpr::FnDestruct(a, b)
+                Expr::FnDestruct {
+                    function: a,
+                    arg: b,
+                }
             }
-            CorePrismExpr::Free => CorePrismExpr::Free,
-            &CorePrismExpr::Shift(b, i) => {
+            Expr::Free => Expr::Free,
+            &Expr::Shift(b, i) => {
                 return self.simplify_inner(b, &s.shift(i.min(s.len())), var_map);
             }
-            &CorePrismExpr::TypeAssert(e, typ) => {
+            &Expr::TypeAssert {
+                value: e,
+                type_hint: typ,
+            } => {
                 let e = self.simplify_inner(e, s, var_map);
                 let typ = self.simplify_inner(typ, s, var_map);
-                CorePrismExpr::TypeAssert(e, typ)
+                Expr::TypeAssert {
+                    value: e,
+                    type_hint: typ,
+                }
             }
-            CorePrismExpr::GrammarValue(p) => CorePrismExpr::GrammarValue(p.clone()),
-            CorePrismExpr::GrammarType => CorePrismExpr::GrammarType,
+            Expr::GrammarValue(p) => Expr::GrammarValue(p.clone()),
+            Expr::GrammarType => Expr::GrammarType,
         };
-        self.db.store(e_new, self.db.origins[*i])
+        self.db.store(e_new, self.db.expr_origins[*i])
     }
 }

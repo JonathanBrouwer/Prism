@@ -2,7 +2,7 @@ use std::fmt::Write;
 
 use crate::lang::CoreIndex;
 use crate::lang::env::DbEnv;
-use crate::lang::{CorePrismExpr, PrismDb};
+use crate::lang::{Expr, PrismDb};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -15,21 +15,21 @@ pub enum PrecedenceLevel {
     Base,
 }
 
-impl CorePrismExpr {
+impl Expr {
     /// Returns the precedence level of a `PartialExpr`
     fn precedence_level(&self) -> PrecedenceLevel {
         match self {
-            CorePrismExpr::Let(..) => PrecedenceLevel::Let,
-            CorePrismExpr::FnConstruct(..) => PrecedenceLevel::Construct,
-            CorePrismExpr::FnType(..) => PrecedenceLevel::FnType,
-            CorePrismExpr::TypeAssert(..) => PrecedenceLevel::TypeAssert,
-            CorePrismExpr::FnDestruct(..) => PrecedenceLevel::Destruct,
-            CorePrismExpr::Free => PrecedenceLevel::Base,
-            CorePrismExpr::Shift(..) => PrecedenceLevel::Base,
-            CorePrismExpr::Type => PrecedenceLevel::Base,
-            CorePrismExpr::DeBruijnIndex(..) => PrecedenceLevel::Base,
-            CorePrismExpr::GrammarValue(..) => PrecedenceLevel::Base,
-            CorePrismExpr::GrammarType => PrecedenceLevel::Base,
+            Expr::Let { .. } => PrecedenceLevel::Let,
+            Expr::FnConstruct { .. } => PrecedenceLevel::Construct,
+            Expr::FnType { .. } => PrecedenceLevel::FnType,
+            Expr::TypeAssert { .. } => PrecedenceLevel::TypeAssert,
+            Expr::FnDestruct { .. } => PrecedenceLevel::Destruct,
+            Expr::Free => PrecedenceLevel::Base,
+            Expr::Shift(..) => PrecedenceLevel::Base,
+            Expr::Type => PrecedenceLevel::Base,
+            Expr::DeBruijnIndex { .. } => PrecedenceLevel::Base,
+            Expr::GrammarValue(..) => PrecedenceLevel::Base,
+            Expr::GrammarType => PrecedenceLevel::Base,
         }
     }
 }
@@ -41,50 +41,59 @@ impl PrismDb {
         w: &mut impl Write,
         max_precedence: PrecedenceLevel,
     ) -> std::fmt::Result {
-        let e = &self.values[*i];
+        let e = &self.exprs[*i];
 
         if e.precedence_level() < max_precedence {
             write!(w, "(")?;
         }
 
         match e {
-            CorePrismExpr::Type => write!(w, "Type")?,
-            &CorePrismExpr::Let(v, b) => {
+            Expr::Type => write!(w, "Type")?,
+            &Expr::Let { value: v, body: b } => {
                 write!(w, "let _ = ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
             }
-            &CorePrismExpr::DeBruijnIndex(i) => write!(w, "#{i}")?,
-            &CorePrismExpr::FnType(a, b) => {
+            &Expr::DeBruijnIndex { idx: i } => write!(w, "#{i}")?,
+            &Expr::FnType {
+                arg_type: a,
+                body: b,
+            } => {
                 self.display(a, w, PrecedenceLevel::TypeAssert)?;
                 write!(w, " -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            &CorePrismExpr::FnConstruct(b) => {
+            &Expr::FnConstruct { body: b } => {
                 write!(w, "_ => ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
-            &CorePrismExpr::FnDestruct(a, b) => {
+            &Expr::FnDestruct {
+                function: a,
+                arg: b,
+            } => {
                 self.display(a, w, PrecedenceLevel::Destruct)?;
                 write!(w, " ")?;
                 self.display(b, w, PrecedenceLevel::Base)?;
             }
-            CorePrismExpr::Free => write!(w, "_")?,
-            &CorePrismExpr::Shift(v, i) => {
+            Expr::Free => write!(w, "_")?,
+            &Expr::Shift(v, i) => {
                 write!(w, "([SHIFT {i}] ")?;
                 self.display(v, w, PrecedenceLevel::default())?;
                 write!(w, ")")?;
             }
-            &CorePrismExpr::TypeAssert(e, typ) => {
+            &Expr::TypeAssert {
+                value: e,
+                type_hint: typ,
+            } => {
                 self.display(e, w, PrecedenceLevel::Destruct)?;
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
             }
-            CorePrismExpr::GrammarValue(_) => {
+            Expr::GrammarValue(_) => {
                 write!(w, "[GRAMMAR]")?;
             }
-            CorePrismExpr::GrammarType => {
+            Expr::GrammarType => {
                 write!(w, "Grammar")?;
             }
         }

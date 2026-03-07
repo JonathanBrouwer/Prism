@@ -3,7 +3,7 @@ mod expect;
 pub mod lexer;
 
 use crate::lang::diags::ErrorGuaranteed;
-use crate::lang::{CoreIndex, CorePrismExpr, PrismDb, ValueOrigin};
+use crate::lang::{CoreIndex, Expr, PrismDb, ValueOrigin};
 use crate::parser::expect::{ErrorState, Expected, PResult};
 use crate::parser::lexer::{LexerState, Token, Tokens};
 use prism_data_structures::generic_env::GenericEnv;
@@ -66,8 +66,7 @@ impl<'a> ParserPrismEnv<'a> {
             _ => {
                 let diag = self.expected_into_diag().unwrap();
                 let err = self.db.push_error(diag);
-                self.db
-                    .store(CorePrismExpr::Free, ValueOrigin::Failure(err))
+                self.db.store(Expr::Free, ValueOrigin::Failure(err))
             }
         };
 
@@ -102,11 +101,23 @@ impl<'a> ParserPrismEnv<'a> {
             let span = kw.span_to(self.span_of(body));
             let value = if let Some(typ) = typ {
                 let assert_span = name.span_to(self.span_of(value));
-                self.store(CorePrismExpr::TypeAssert(value, typ), assert_span)
+                self.store(
+                    Expr::TypeAssert {
+                        value: value,
+                        type_hint: typ,
+                    },
+                    assert_span,
+                )
             } else {
                 value
             };
-            Ok(self.store(CorePrismExpr::Let(value, body), span))
+            Ok(self.store(
+                Expr::Let {
+                    value: value,
+                    body: body,
+                },
+                span,
+            ))
         } else {
             self.parse_fnconstruct(env)
         }
@@ -157,14 +168,25 @@ impl<'a> ParserPrismEnv<'a> {
             for (_, binding_ty, binding_span) in bindings.into_iter().rev() {
                 if let Some(binding_ty) = binding_ty {
                     body = {
-                        let var_ref = self.store(CorePrismExpr::DeBruijnIndex(0), binding_span);
-                        let typ_assert = self
-                            .store(CorePrismExpr::TypeAssert(var_ref, binding_ty), binding_span);
-                        self.store(CorePrismExpr::Let(typ_assert, body), binding_span)
+                        let var_ref = self.store(Expr::DeBruijnIndex { idx: 0 }, binding_span);
+                        let typ_assert = self.store(
+                            Expr::TypeAssert {
+                                value: var_ref,
+                                type_hint: binding_ty,
+                            },
+                            binding_span,
+                        );
+                        self.store(
+                            Expr::Let {
+                                value: typ_assert,
+                                body: body,
+                            },
+                            binding_span,
+                        )
                     };
                 }
                 let span = binding_span.span_to(self.span_of(body));
-                body = self.store(CorePrismExpr::FnConstruct(body), span);
+                body = self.store(Expr::FnConstruct { body: body }, span);
             }
 
             Ok(body)
@@ -187,7 +209,13 @@ impl<'a> ParserPrismEnv<'a> {
             let body = self.parse_fndestruct(&body_env)?;
 
             let span = start.span_to(self.span_of(body));
-            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+            Ok(self.store(
+                Expr::FnType {
+                    arg_type: typ,
+                    body: body,
+                },
+                span,
+            ))
         } else if let Ok(typ) = self.try_parse(|parser| {
             let typ = parser.parse_fndestruct(env)?;
             parser.eat_multi_symbol("->")?;
@@ -195,7 +223,13 @@ impl<'a> ParserPrismEnv<'a> {
         }) {
             let body = self.parse_fndestruct(env)?;
             let span = self.span_of(typ).span_to(self.span_of(body));
-            Ok(self.store(CorePrismExpr::FnType(typ, body), span))
+            Ok(self.store(
+                Expr::FnType {
+                    arg_type: typ,
+                    body: body,
+                },
+                span,
+            ))
         } else {
             self.parse_assert(env)
         }
@@ -210,7 +244,13 @@ impl<'a> ParserPrismEnv<'a> {
 
         while let Ok(next) = self.try_parse(|parser| parser.parse_base(env)) {
             let span = self.span_of(current).span_to(self.span_of(next));
-            current = self.store(CorePrismExpr::FnDestruct(current, next), span);
+            current = self.store(
+                Expr::FnDestruct {
+                    function: current,
+                    arg: next,
+                },
+                span,
+            );
         }
 
         Ok(current)
@@ -218,7 +258,7 @@ impl<'a> ParserPrismEnv<'a> {
 
     fn parse_base(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok(span) = self.eat_keyword("Type") {
-            Ok(self.store(CorePrismExpr::Type, span))
+            Ok(self.store(Expr::Type, span))
         } else if self.eat_paren_open("(").is_ok() {
             let expr = self.parse_expr(env)?;
             self.eat_paren_close(")")?;
@@ -238,29 +278,29 @@ impl<'a> ParserPrismEnv<'a> {
                     span: idx_span,
                     env_size: env.len(),
                 });
-                return Ok(self.store(CorePrismExpr::Free, idx_span));
+                return Ok(self.store(Expr::Free, idx_span));
             };
 
-            Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), start.span_to(idx_span)))
+            Ok(self.store(Expr::DeBruijnIndex { idx: idx }, start.span_to(idx_span)))
         } else if let Ok(found_name_span) = self.eat_identifier() {
             let input = self.db.input.inner();
             let found_name = input.slice(found_name_span);
 
             if found_name == "_" {
                 drop(input);
-                Ok(self.store(CorePrismExpr::Free, found_name_span))
+                Ok(self.store(Expr::Free, found_name_span))
             } else if let Some(idx) = env
                 .iter()
                 .position(|(name, _)| input.slice(*name) == found_name)
             {
                 drop(input);
-                Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), found_name_span))
+                Ok(self.store(Expr::DeBruijnIndex { idx: idx }, found_name_span))
             } else {
                 drop(input);
                 self.db.push_error(UnknownName {
                     span: found_name_span,
                 });
-                Ok(self.store(CorePrismExpr::Free, found_name_span))
+                Ok(self.store(Expr::Free, found_name_span))
             }
         } else {
             Err(self.fail())
@@ -268,13 +308,13 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     fn span_of(&mut self, e: CoreIndex) -> Span {
-        let ValueOrigin::SourceCode(span) = self.db.origins[*e] else {
+        let ValueOrigin::SourceCode(span) = self.db.expr_origins[*e] else {
             unreachable!()
         };
         span
     }
 
-    pub fn store(&mut self, e: CorePrismExpr, span: Span) -> CoreIndex {
+    pub fn store(&mut self, e: Expr, span: Span) -> CoreIndex {
         self.db.store(e, ValueOrigin::SourceCode(span))
     }
 }

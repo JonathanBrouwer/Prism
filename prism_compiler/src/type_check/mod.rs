@@ -6,7 +6,7 @@ use crate::lang::PrismDb;
 use crate::lang::ValueOrigin;
 use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{CoreIndex, CorePrismExpr};
+use crate::lang::{CoreIndex, Expr};
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
@@ -50,23 +50,24 @@ impl<'a> TypecheckPrismEnv<'a> {
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
     pub fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
-        let t = match self.db.values[*i] {
-            CorePrismExpr::Type => CorePrismExpr::Type,
-            CorePrismExpr::Let(mut v, b) => {
+        let t = match self.db.exprs[*i] {
+            Expr::Type => Expr::Type,
+            Expr::Let {
+                value: mut v,
+                body: b,
+            } => {
                 // Check `v`
                 let recovery_token = self.db.recovery_point();
                 let vt = self._type_check(v, env);
                 if let Some(err) = self.db.try_recover(recovery_token) {
-                    v = self
-                        .db
-                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
+                    v = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
                 let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
-                CorePrismExpr::Let(v, bt)
+                Expr::Let { value: v, body: bt }
             }
-            CorePrismExpr::DeBruijnIndex(index) => match env.get_idx(index) {
-                Some(CType(_, t) | CSubst(_, t)) => CorePrismExpr::Shift(*t, index + 1),
+            Expr::DeBruijnIndex { idx: index } => match env.get_idx(index) {
+                Some(CType(_, t) | CSubst(_, t)) => Expr::Shift(*t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
                     unreachable!("Index out of bound");
@@ -76,14 +77,15 @@ impl<'a> TypecheckPrismEnv<'a> {
                     //     .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
                 }
             },
-            CorePrismExpr::FnType(mut a, b) => {
+            Expr::FnType {
+                arg_type: mut a,
+                body: b,
+            } => {
                 let recovery_token = self.db.recovery_point();
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, env);
                 if let Some(err) = self.db.try_recover(recovery_token) {
-                    a = self
-                        .db
-                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
+                    a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
                 let err_count = self.db.diags.len();
@@ -95,24 +97,28 @@ impl<'a> TypecheckPrismEnv<'a> {
                     self.expect_beq_type(bt, &bs);
                 }
 
-                CorePrismExpr::Type
+                Expr::Type
             }
-            CorePrismExpr::FnConstruct(b) => {
-                let a = self.db.store(CorePrismExpr::Free, ValueOrigin::FreeSub(i));
+            Expr::FnConstruct { body: b } => {
+                let a = self.db.store(Expr::Free, ValueOrigin::FreeSub(i));
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
-                CorePrismExpr::FnType(a, bt)
+                Expr::FnType {
+                    arg_type: a,
+                    body: bt,
+                }
             }
-            CorePrismExpr::FnDestruct(f, mut a) => {
+            Expr::FnDestruct {
+                function: f,
+                arg: mut a,
+            } => {
                 let recovery_token = self.db.recovery_point();
                 let at = self._type_check(a, env);
                 if let Some(err) = self.db.try_recover(recovery_token) {
-                    a = self
-                        .db
-                        .store(CorePrismExpr::Free, ValueOrigin::Failure(err));
+                    a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
-                let rt = self.db.store(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
+                let rt = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
 
                 let err_count = self.db.diags.len();
                 let ft = self._type_check(f, env);
@@ -120,9 +126,12 @@ impl<'a> TypecheckPrismEnv<'a> {
                     self.expect_beq_fn_type(ft, at, rt, env)
                 }
 
-                CorePrismExpr::Let(a, rt)
+                Expr::Let { value: a, body: rt }
             }
-            CorePrismExpr::TypeAssert(e, typ) => {
+            Expr::TypeAssert {
+                value: e,
+                type_hint: typ,
+            } => {
                 let err_count1 = self.db.diags.len();
                 let et = self._type_check(e, env);
 
@@ -138,16 +147,14 @@ impl<'a> TypecheckPrismEnv<'a> {
 
                 return et;
             }
-            CorePrismExpr::Free => {
-                let tid = self.db.store(CorePrismExpr::Free, ValueOrigin::TypeOf(i));
+            Expr::Free => {
+                let tid = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
                 self.queued_tc.insert(i, (env.clone(), tid));
                 return tid;
             }
-            CorePrismExpr::Shift(v, shift) => {
-                CorePrismExpr::Shift(self._type_check(v, &env.shift(shift)), shift)
-            }
-            CorePrismExpr::GrammarValue(_) => CorePrismExpr::GrammarType,
-            CorePrismExpr::GrammarType => CorePrismExpr::Type,
+            Expr::Shift(v, shift) => Expr::Shift(self._type_check(v, &env.shift(shift)), shift),
+            Expr::GrammarValue(_) => Expr::GrammarType,
+            Expr::GrammarType => Expr::Type,
         };
         let tid = self.db.store(t, ValueOrigin::TypeOf(i));
         self.db.checked_types.insert(i, tid);
