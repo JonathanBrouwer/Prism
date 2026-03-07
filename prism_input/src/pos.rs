@@ -47,14 +47,11 @@ impl Pos {
         Span::new(self, other - self)
     }
 
-    pub fn next(self, input: &InputTable) -> (Self, Option<(Span, char)>) {
-        match input.inner().get_str(self.file)[self.idx..].chars().next() {
-            None => (self, None),
-            Some(c) => (
-                self + c.len_utf8(),
-                Some((Span::new(self, c.len_utf8()), c)),
-            ),
-        }
+    pub fn next(self, input: &InputTable) -> Option<(char, Self)> {
+        input.inner().get_str(self.file)[self.idx..]
+            .chars()
+            .next()
+            .map(|c| (c, self + c.len_utf8()))
     }
 
     pub fn dummy() -> Self {

@@ -1,1 +1,3 @@
-(Type -> Type)
+let _ = _ => (let _ = #0: Type;
+#0);
+Type -> Type

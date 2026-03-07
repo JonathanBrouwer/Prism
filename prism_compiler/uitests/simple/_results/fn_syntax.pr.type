@@ -1,1 +1,20 @@
-(Type -> _) -> Type -> _ -> _
+let _ = _ => #0;
+let _ = _ => (let _ = #0: Type;
+#0);
+let _ = _ => _ => #1;
+let _ = _ => _ => #0;
+let _ = _ => (let _ = #0: Type;
+_ => (let _ = #0: Type;
+#2));
+let _ = _ => (let _ = #0: Type;
+_ => (let _ = #0: Type;
+#0));
+let _ = _ => (let _ = #0: Type;
+_ => #0);
+let _ = _ => _ => (let _ = #0: Type;
+#0);
+let _ = _ => _ => (let _ = #0: Type;
+_ => #3 #1);
+(Type -> _) -> Type -> (let _ = #0: Type;
+_ -> (let _ = #1;
+_))

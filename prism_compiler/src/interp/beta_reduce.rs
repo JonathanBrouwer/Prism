@@ -1,4 +1,4 @@
-use crate::lang::CorePrismExpr;
+use crate::lang::Expr;
 use crate::lang::env::{DbEnv, EnvEntry};
 use crate::lang::{CoreIndex, PrismDb};
 use crate::type_check::{TypecheckPrismEnv, UniqueVariableId};
@@ -20,45 +20,62 @@ impl<'a> TypecheckPrismEnv<'a> {
     ) -> CoreIndex {
         let (i, s) = self.db.beta_reduce_head(i, s);
 
-        let e_new = match self.db.checked_values[*i] {
+        let e_new = match self.db.exprs[*i] {
             // Values
-            CorePrismExpr::Type | CorePrismExpr::GrammarValue(..) | CorePrismExpr::GrammarType => {
+            Expr::Type | Expr::GrammarValue(..) | Expr::GrammarType => {
                 return i;
             }
 
-            CorePrismExpr::Let(_, _) => unreachable!(),
-            CorePrismExpr::DeBruijnIndex(v) => {
+            Expr::Let { value: _, body: _ } => unreachable!(),
+            Expr::DeBruijnIndex { idx: v } => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
                 };
-                CorePrismExpr::DeBruijnIndex(var_map.len() - var_map[&id] - 1)
+                Expr::DeBruijnIndex {
+                    idx: var_map.len() - var_map[&id] - 1,
+                }
             }
-            CorePrismExpr::FnType(a, b) => {
+            Expr::FnType {
+                arg_type: a,
+                body: b,
+            } => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let sub_env = s.cons(EnvEntry::RType(id));
                 let b = self.beta_reduce_inner(b, &sub_env, var_map);
                 var_map.remove(&id);
-                CorePrismExpr::FnType(a, b)
+                Expr::FnType {
+                    arg_type: a,
+                    body: b,
+                }
             }
-            CorePrismExpr::FnConstruct(b) => {
+            Expr::FnConstruct { body: b } => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let sub_env = s.cons(EnvEntry::RType(id));
                 let b = self.beta_reduce_inner(b, &sub_env, var_map);
                 var_map.remove(&id);
-                CorePrismExpr::FnConstruct(b)
+                Expr::FnConstruct { body: b }
             }
-            CorePrismExpr::FnDestruct(a, b) => {
+            Expr::FnDestruct {
+                function: a,
+                arg: b,
+            } => {
                 let a = self.beta_reduce_inner(a, &s, var_map);
                 let b = self.beta_reduce_inner(b, &s, var_map);
-                CorePrismExpr::FnDestruct(a, b)
+                Expr::FnDestruct {
+                    function: a,
+                    arg: b,
+                }
             }
-            CorePrismExpr::Free => CorePrismExpr::Free,
-            CorePrismExpr::Shift(_, _) => unreachable!(),
-            CorePrismExpr::TypeAssert(_, _) => unreachable!(),
+            Expr::Free => Expr::Free,
+            Expr::Shift(_, _) => unreachable!(),
+            Expr::TypeAssert {
+                value: _,
+                type_hint: _,
+            } => unreachable!(),
         };
-        self.db.store_checked(e_new, self.db.checked_origins[*i])
+        self.db.store(e_new, self.db.expr_origins[*i])
     }
 }

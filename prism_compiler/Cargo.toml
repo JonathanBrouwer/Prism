@@ -7,13 +7,13 @@ license.workspace = true
 
 [dependencies]
 clap.workspace = true
-prism_parser.workspace = true
 prism_input.workspace = true
 prism_diag.workspace = true
 prism_diag_derive.workspace = true
+prism_data_structures.workspace = true
+unicode-ident.workspace = true
 
 [dev-dependencies]
-test_each_file.workspace = true
 libtest-mimic.workspace = true
 
 [[test]]
