@@ -32,10 +32,29 @@ pub struct StrLit {
     pub suffix: Span,
 }
 
+impl StrLit {
+    pub fn span(self) -> Span {
+        self.prefix.span_to(self.suffix)
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 pub struct NumLit {
     pub value: Span,
+    pub decimal: Option<NumLitDecimal>,
     pub suffix: Span,
+}
+
+impl NumLit {
+    pub fn span(self) -> Span {
+        self.value.span_to(self.suffix)
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct NumLitDecimal {
+    pub dot: Span,
+    pub value: Span,
 }
 
 impl Token {
@@ -48,15 +67,8 @@ impl Token {
             | Token::CloseParen(span)
             | Token::Symbol(span)
             | Token::Identifier { span, .. } => *span,
-            Token::StringLit(StrLit {
-                prefix: start,
-                suffix: end,
-                ..
-            })
-            | Token::NumLit(NumLit {
-                value: start,
-                suffix: end,
-            }) => start.span_to(*end),
+            Token::StringLit(lit) => lit.span(),
+            Token::NumLit(lit) => lit.span(),
             Token::EOF(pos) => pos.span_to(*pos),
         }
     }
@@ -171,6 +183,28 @@ impl<'a> ParserPrismEnv<'a> {
                     }
                 }
                 c if SYMBOL_CHARS.contains(c) => Token::Symbol(ch_span),
+                c if c.is_ascii_digit() => {
+                    while self.next_char(|c| c.is_ascii_digit()).is_some() {}
+                    let value = ch_span.span_to_pos(self.lexer.pos);
+                    let decimal = self.next_char(|c| c == '.').map(|(_, dot)| {
+                        while self.next_char(|c| c.is_ascii_digit()).is_some() {}
+                        let value = dot.end_pos().span_to(self.lexer.pos);
+                        NumLitDecimal { dot, value }
+                    });
+                    while self
+                        .next_char(|c| {
+                            unicode_ident::is_xid_continue(c) || IDENTIFIER_CHARS.contains(c)
+                        })
+                        .is_some()
+                    {}
+                    let suffix = value.end_pos().span_to(self.lexer.pos);
+
+                    Token::NumLit(NumLit {
+                        value,
+                        decimal,
+                        suffix,
+                    })
+                }
                 _ => {
                     if invalid_token_start.is_none() {
                         invalid_token_start = Some(ch_span.start_pos());

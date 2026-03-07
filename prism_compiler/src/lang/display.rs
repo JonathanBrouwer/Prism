@@ -50,7 +50,7 @@ impl PrismDb {
         match e {
             CorePrismExpr::Type => write!(w, "Type")?,
             &CorePrismExpr::Let(v, b) => {
-                write!(w, "let ")?;
+                write!(w, "let _ = ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
@@ -62,7 +62,7 @@ impl PrismDb {
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
             &CorePrismExpr::FnConstruct(b) => {
-                write!(w, "=> ")?;
+                write!(w, "_ => ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
             &CorePrismExpr::FnDestruct(a, b) => {

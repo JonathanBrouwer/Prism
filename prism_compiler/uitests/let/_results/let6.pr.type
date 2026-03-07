@@ -1,5 +1,5 @@
-let => (let #0: Type;
+let _ = _ => (let _ = #0: Type;
 #0);
-let Type;
-let #0;
+let _ = Type;
+let _ = #0;
 Type

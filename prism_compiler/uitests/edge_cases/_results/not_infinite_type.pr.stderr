@@ -8,5 +8,5 @@ error[Parser]: Parsing failed
  --> ./uitests/edge_cases/not_infinite_type.pr:3:10
   |
 3 | g (v => v) Type
-  |          ^ Expected one of: `(` `->` `=>` `Type` identifier end of file
+  |          ^ Expected one of: `#` `(` `->` `=>` `Type` identifier end of file
 

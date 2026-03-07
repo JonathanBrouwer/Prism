@@ -46,7 +46,13 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
     compare_output(
         file_path,
         stderr.as_bytes(),
-        |exp| exp == stderr.as_bytes(),
+        |exp| {
+            if exp == stderr.as_bytes() {
+                Ok(())
+            } else {
+                Err("stderrs not exactly equal".to_string())
+            }
+        },
         "stderr",
         args,
     )?;
@@ -80,9 +86,21 @@ fn compare_term(
             );
             let (expected, _) = env.parse_prism_file(expected);
             if !env.diags.is_empty() {
-                return false;
+                let mut errs = String::new();
+                for diag in mem::take(&mut env.diags) {
+                    writeln!(
+                        &mut errs,
+                        "{}",
+                        diag.render(&RenderConfig::uitest(), &env.input.inner())
+                    )
+                    .unwrap();
+                }
+                return Err(errs);
             }
-            env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default())
+            match env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default()) {
+                true => Ok(()),
+                false => Err("Not beta-equal".to_string()),
+            }
         },
         output_ext,
         args,
@@ -92,7 +110,7 @@ fn compare_term(
 fn compare_output(
     file_path: &Path,
     output: &[u8],
-    compare_with: impl FnOnce(&[u8]) -> bool,
+    mut compare_with: impl FnMut(&[u8]) -> Result<(), String>,
     output_ext: &'static str,
     args: &UitestArguments,
 ) -> Result<(), String> {
@@ -107,7 +125,9 @@ fn compare_output(
     } else {
         vec![]
     };
-    if compare_with(&expected_output) {
+
+    let comparison = compare_with(&expected_output);
+    let err = if let Ok(()) = comparison {
         return Ok(());
     } else if args.bless {
         if output.is_empty() {
@@ -115,8 +135,18 @@ fn compare_output(
         } else {
             std::fs::write(&output_path, output).unwrap();
         }
+        if let Err(e) = compare_with(output) {
+            return Err(format!(
+                "Output does not compare equal to itself:\n\n-- OUTPUT\n{}\n\n-- ERROR\n{e}",
+                String::from_utf8_lossy(output)
+            ));
+        }
         return Ok(());
-    }
+    } else if let Err(err) = comparison {
+        err
+    } else {
+        unreachable!()
+    };
 
     if expected_output.is_empty() {
         return Err(format!(
@@ -129,7 +159,7 @@ fn compare_output(
     }
 
     Err(format!(
-        "The `{output_ext}` differed. \n\n-- Expected:\n{}\n-- Actual:\n{}",
+        "The `{output_ext}` differed. \n\n-- Expected:\n{}\n-- Actual:\n{}\n-- Error:\n{err}",
         String::from_utf8_lossy(&expected_output),
         String::from_utf8_lossy(output)
     ))

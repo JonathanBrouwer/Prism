@@ -1,3 +1,3 @@
-let Type;
-Type -> (let #0: #1;
+let _ = Type;
+Type -> (let _ = #0: #1;
 Type)

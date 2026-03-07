@@ -2,5 +2,5 @@ error[Parser]: Parsing failed
   --> ./uitests/edge_cases/bad_infer.pr:21:16
    |
 21 | fst Bool _ test
-   |                ^ Expected one of: `(` `Type` `let` identifier
+   |                ^ Expected one of: `#` `(` `Type` `let` identifier
 

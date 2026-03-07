@@ -12,6 +12,7 @@ use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
 use std::io;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::Arc;
 
 impl PrismDb {
@@ -222,6 +223,25 @@ impl<'a> ParserPrismEnv<'a> {
             let expr = self.parse_expr(env)?;
             self.eat_paren_close(")")?;
             Ok(expr)
+        } else if let Ok(start) = self.eat_symbol('#') {
+            let idx_span = self.eat_simple_nat()?;
+            let input = self.db.input.inner();
+            let idx = input.slice(idx_span);
+            let idx = if let Ok(idx) = usize::from_str(idx)
+                && idx < env.len()
+            {
+                drop(input);
+                idx
+            } else {
+                drop(input);
+                self.db.push_error(DeBruijnIndexOutOfBounds {
+                    span: idx_span,
+                    env_size: env.len(),
+                });
+                return Ok(self.store(CorePrismExpr::Free, idx_span));
+            };
+
+            Ok(self.store(CorePrismExpr::DeBruijnIndex(idx), start.span_to(idx_span)))
         } else if let Ok(found_name_span) = self.eat_identifier() {
             let input = self.db.input.inner();
             let found_name = input.slice(found_name_span);
@@ -271,4 +291,12 @@ struct FailedToRead {
 struct UnknownName {
     #[sugg]
     span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(title = "De Bruijn index out of bounds.")]
+struct DeBruijnIndexOutOfBounds {
+    #[sugg(label = format!("The environment size is {}", self.env_size))]
+    span: Span,
+    env_size: usize,
 }

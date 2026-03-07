@@ -1,9 +1,23 @@
 use crate::parser::ParserPrismEnv;
 use crate::parser::expect::{Expected, PResult};
-use crate::parser::lexer::{SYMBOL_CHARS, Token};
+use crate::parser::lexer::{NumLit, SYMBOL_CHARS, Token};
 use prism_input::span::Span;
 
 impl<'a> ParserPrismEnv<'a> {
+    pub fn eat_token_into<T>(
+        &mut self,
+        expected: Expected,
+        f: impl Fn(Token, &mut Self) -> Option<T>,
+    ) -> PResult<T> {
+        let token = self.next_token();
+        if let Some(t) = f(token, self) {
+            Ok(t)
+        } else {
+            self.pop_token();
+            Err(self.expect(token.span(), expected))
+        }
+    }
+
     pub fn eat_token(
         &mut self,
         expected: Expected,
@@ -63,6 +77,24 @@ impl<'a> ParserPrismEnv<'a> {
             matches!(token, Token::Identifier { .. })
         })
         .map(|tok| tok.span())
+    }
+
+    pub fn eat_num_lit(&mut self) -> PResult<NumLit> {
+        self.eat_token_into(Expected::Rule("number".to_string()), |token, _env| {
+            if let Token::NumLit(lit) = token {
+                Some(lit)
+            } else {
+                None
+            }
+        })
+    }
+
+    pub fn eat_simple_nat(&mut self) -> PResult<Span> {
+        let lit = self.eat_num_lit()?;
+        if lit.decimal.is_some() || !lit.suffix.is_empty() {
+            return Err(self.expect(lit.span(), Expected::Rule("".to_string())));
+        }
+        Ok(lit.value)
     }
 
     pub fn eat_symbol(&mut self, expected_symbol: char) -> PResult<Span> {

@@ -1,2 +1,2 @@
-let Type;
+let _ = Type;
 Type
