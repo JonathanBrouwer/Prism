@@ -49,6 +49,7 @@ pub enum Expr {
     Free,
     Type,
     Let {
+        name: Option<Span>,
         value: CoreIndex,
         body: CoreIndex,
     },
@@ -56,10 +57,12 @@ pub enum Expr {
         idx: usize,
     },
     FnType {
+        arg_name: Option<Span>,
         arg_type: CoreIndex,
         body: CoreIndex,
     },
     FnConstruct {
+        arg_name: Option<Span>,
         body: CoreIndex,
     },
     FnDestruct {
@@ -71,15 +74,13 @@ pub enum Expr {
         value: CoreIndex,
         type_hint: CoreIndex,
     },
-    GrammarValue(Arc<()>),
-    GrammarType,
 }
 
 pub struct PrismDb {
     pub args: PrismArgs,
 
     // File info
-    pub input: Arc<InputTable>,
+    pub input: Arc<InputTable>, //TODO can we remove this arc?
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
 
     // Checked Values

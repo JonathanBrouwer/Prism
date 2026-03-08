@@ -1,1 +1,1 @@
-(Type -> Type) -> _ _ #0
+(w: (Type -> Type)) -> _ _ #0

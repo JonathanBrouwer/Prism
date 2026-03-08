@@ -20,13 +20,21 @@ impl TypecheckPrismEnv<'_> {
     ) -> CoreIndex {
         let e_new = match &self.db.exprs[*i] {
             Expr::Type => Expr::Type,
-            &Expr::Let { value: v, body: b } => {
+            &Expr::Let {
+                name,
+                value: v,
+                body: b,
+            } => {
                 let v = self.simplify_inner(v, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                Expr::Let { value: v, body: b }
+                Expr::Let {
+                    name,
+                    value: v,
+                    body: b,
+                }
             }
             &Expr::DeBruijnIndex { idx: v } => match s.get_idx(v) {
                 Some(EnvEntry::CType(_, _)) | Some(EnvEntry::CSubst(_, _)) => unreachable!(),
@@ -39,6 +47,7 @@ impl TypecheckPrismEnv<'_> {
                 None => Expr::DeBruijnIndex { idx: v },
             },
             &Expr::FnType {
+                arg_name,
                 arg_type: a,
                 body: b,
             } => {
@@ -48,16 +57,17 @@ impl TypecheckPrismEnv<'_> {
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
                 Expr::FnType {
+                    arg_name,
                     arg_type: a,
                     body: b,
                 }
             }
-            &Expr::FnConstruct { body: b } => {
+            &Expr::FnConstruct { arg_name, body: b } => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                Expr::FnConstruct { body: b }
+                Expr::FnConstruct { arg_name, body: b }
             }
             &Expr::FnDestruct {
                 function: a,
@@ -85,8 +95,6 @@ impl TypecheckPrismEnv<'_> {
                     type_hint: typ,
                 }
             }
-            Expr::GrammarValue(p) => Expr::GrammarValue(p.clone()),
-            Expr::GrammarType => Expr::GrammarType,
         };
         self.db.store(e_new, self.db.expr_origins[*i])
     }

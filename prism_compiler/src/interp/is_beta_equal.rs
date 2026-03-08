@@ -19,7 +19,6 @@ impl TypecheckPrismEnv<'_> {
 
         match (&self.db.exprs[*i1], &self.db.exprs[*i2]) {
             (Expr::Type, Expr::Type) => {}
-            (Expr::GrammarType, Expr::GrammarType) => {}
             (&Expr::DeBruijnIndex { idx: i1 }, &Expr::DeBruijnIndex { idx: i2 }) => {
                 let id1 = match s1[i1] {
                     CType(id, _) | RType(id) => id,
@@ -35,10 +34,12 @@ impl TypecheckPrismEnv<'_> {
             }
             (
                 &Expr::FnType {
+                    arg_name: _,
                     arg_type: a1,
                     body: b1,
                 },
                 &Expr::FnType {
+                    arg_name: _,
                     arg_type: a2,
                     body: b2,
                 },
@@ -51,7 +52,16 @@ impl TypecheckPrismEnv<'_> {
                     return false;
                 }
             }
-            (&Expr::FnConstruct { body: b1 }, &Expr::FnConstruct { body: b2 }) => {
+            (
+                &Expr::FnConstruct {
+                    arg_name: _,
+                    body: b1,
+                },
+                &Expr::FnConstruct {
+                    arg_name: _,
+                    body: b2,
+                },
+            ) => {
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;

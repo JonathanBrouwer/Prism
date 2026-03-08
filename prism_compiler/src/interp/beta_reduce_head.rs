@@ -18,11 +18,15 @@ impl PrismDb {
         loop {
             match self.exprs[*e] {
                 // Values
-                Expr::Type | Expr::FnType { .. } | Expr::GrammarValue(..) | Expr::GrammarType => {
+                Expr::Type | Expr::FnType { .. } => {
                     assert!(args.is_empty());
                     return (e, s);
                 }
-                Expr::Let { value: v, body: b } => {
+                Expr::Let {
+                    name: _,
+                    value: v,
+                    body: b,
+                } => {
                     e = b;
                     let s_clone = s.clone();
                     s = s.cons(RSubst(v, s_clone))
@@ -44,7 +48,10 @@ impl PrismDb {
                         s = vs.clone();
                     }
                 },
-                Expr::FnConstruct { body: b } => match args.pop() {
+                Expr::FnConstruct {
+                    arg_name: _,
+                    body: b,
+                } => match args.pop() {
                     None => return (e, s),
                     Some((arg, arg_env)) => {
                         e = b;

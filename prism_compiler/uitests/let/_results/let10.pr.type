@@ -1,5 +1,5 @@
-let _ = Type -> Type;
-let _ = _ => (let _ = #0: #1;
+let v = Type -> Type;
+let w = x => (let _ = #0: #1;
 #0);
-(Type -> Type) -> (let _ = #0: #2;
+(x: (Type -> Type)) -> (let _ = #0: #2;
 Type -> Type)

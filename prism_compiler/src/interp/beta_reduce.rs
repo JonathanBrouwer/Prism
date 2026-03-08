@@ -22,11 +22,15 @@ impl<'a> TypecheckPrismEnv<'a> {
 
         let e_new = match self.db.exprs[*i] {
             // Values
-            Expr::Type | Expr::GrammarValue(..) | Expr::GrammarType => {
+            Expr::Type => {
                 return i;
             }
 
-            Expr::Let { value: _, body: _ } => unreachable!(),
+            Expr::Let {
+                name: _,
+                value: _,
+                body: _,
+            } => unreachable!(),
             Expr::DeBruijnIndex { idx: v } => {
                 let EnvEntry::RType(id) = s[v] else {
                     unreachable!()
@@ -36,6 +40,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 }
             }
             Expr::FnType {
+                arg_name,
                 arg_type: a,
                 body: b,
             } => {
@@ -46,17 +51,18 @@ impl<'a> TypecheckPrismEnv<'a> {
                 let b = self.beta_reduce_inner(b, &sub_env, var_map);
                 var_map.remove(&id);
                 Expr::FnType {
+                    arg_name,
                     arg_type: a,
                     body: b,
                 }
             }
-            Expr::FnConstruct { body: b } => {
+            Expr::FnConstruct { arg_name, body: b } => {
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let sub_env = s.cons(EnvEntry::RType(id));
                 let b = self.beta_reduce_inner(b, &sub_env, var_map);
                 var_map.remove(&id);
-                Expr::FnConstruct { body: b }
+                Expr::FnConstruct { arg_name, body: b }
             }
             Expr::FnDestruct {
                 function: a,

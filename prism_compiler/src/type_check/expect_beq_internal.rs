@@ -37,8 +37,6 @@ impl<'a> TypecheckPrismEnv<'a> {
                 // If beta_reduce returns a Type, we're done. Easy work!
                 true
             }
-            // ParsedType is always equal to ParsedType
-            (Expr::GrammarType, Expr::GrammarType) => true,
             // Two de bruijn indices are equal if they refer to the same `CType` or `RType` (function argument)
             // Because `i1` and `i2` live in a different scope, the equality of `index1` and `index2` needs to be retrieved from the scope
             (&Expr::DeBruijnIndex { idx: index1 }, &Expr::DeBruijnIndex { idx: index2 }) => {
@@ -58,10 +56,12 @@ impl<'a> TypecheckPrismEnv<'a> {
             // Two function types are equal if their argument types and body types are equal
             (
                 &Expr::FnType {
+                    arg_name: _,
                     arg_type: a1,
                     body: b1,
                 },
                 &Expr::FnType {
+                    arg_name: _,
                     arg_type: a2,
                     body: b2,
                 },
@@ -84,7 +84,16 @@ impl<'a> TypecheckPrismEnv<'a> {
                 a_equal && b_equal
             }
             // Function construct works the same as above
-            (&Expr::FnConstruct { body: b1 }, &Expr::FnConstruct { body: b2 }) => {
+            (
+                &Expr::FnConstruct {
+                    arg_name: _,
+                    body: b1,
+                },
+                &Expr::FnConstruct {
+                    arg_name: _,
+                    body: b2,
+                },
+            ) => {
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
@@ -119,47 +128,47 @@ impl<'a> TypecheckPrismEnv<'a> {
             (Expr::Free, _) => {
                 self.expect_beq_free((i2, &s2, var_map2), (i1, &s1, var_map1), depth + 1)
             }
-            (
-                &Expr::FnDestruct {
-                    function: f,
-                    arg: _,
-                },
-                _,
-            ) => self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2)),
-            (
-                _,
-                &Expr::FnDestruct {
-                    function: f,
-                    arg: _,
-                },
-            ) => self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1)),
+            // (
+            //     &Expr::FnDestruct {
+            //         function: f,
+            //         arg: _,
+            //     },
+            //     _,
+            // ) => self.expect_beq_in_destruct(f, &s1, var_map1, (i2, &s2, var_map2)),
+            // (
+            //     _,
+            //     &Expr::FnDestruct {
+            //         function: f,
+            //         arg: _,
+            //     },
+            // ) => self.expect_beq_in_destruct(f, &s2, var_map2, (i1, &s1, var_map1)),
             _ => false,
         }
     }
 
-    pub fn expect_beq_in_destruct(
-        &mut self,
-        f1: CoreIndex,
-        s1: &DbEnv,
-        var_map1: &mut HashMap<UniqueVariableId, usize>,
-        (i2, s2, var_map2): (CoreIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
-    ) -> bool {
-        let (f1, f1s) = self.db.beta_reduce_head(f1, s1);
-        assert!(matches!(
-            self.db.exprs[*i2],
-            Expr::Type
-                | Expr::FnType { .. }
-                | Expr::FnConstruct { .. }
-                | Expr::DeBruijnIndex { .. }
-        ));
-
-        // We are in the case `f1 a1 = i2`
-        // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
-        // We construct a value in scope 2 and set them equal
-        let b = self.db.store(Expr::Shift(i2, 1), FreeSub(i2));
-        let f = self.db.store(Expr::FnConstruct { body: b }, FreeSub(i2));
-        self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2), 0)
-    }
+    // pub fn expect_beq_in_destruct(
+    //     &mut self,
+    //     f1: CoreIndex,
+    //     s1: &DbEnv,
+    //     var_map1: &mut HashMap<UniqueVariableId, usize>,
+    //     (i2, s2, var_map2): (CoreIndex, &DbEnv, &mut HashMap<UniqueVariableId, usize>),
+    // ) -> bool {
+    //     let (f1, f1s) = self.db.beta_reduce_head(f1, s1);
+    //     assert!(matches!(
+    //         self.db.exprs[*i2],
+    //         Expr::Type
+    //             | Expr::FnType { .. }
+    //             | Expr::FnConstruct { .. }
+    //             | Expr::DeBruijnIndex { .. }
+    //     ));
+    //
+    //     // We are in the case `f1 a1 = i2`
+    //     // This means the return value of `f1` must be `i2` (so `f1` ignores its argument)
+    //     // We construct a value in scope 2 and set them equal
+    //     let b = self.db.store(Expr::Shift(i2, 1), FreeSub(i2));
+    //     let f = self.db.store(Expr::FnConstruct { arg_name: _, body: b }, FreeSub(i2));
+    //     self.expect_beq_internal((f1, &f1s, var_map1), (f, s2, var_map2), 0)
+    // }
 
     /// Precondition: i2 should be free
     ///
@@ -186,12 +195,14 @@ impl<'a> TypecheckPrismEnv<'a> {
                 self.handle_constraints(i2, s2, depth + 1)
             }
             &Expr::Let {
+                name,
                 value: v1,
                 body: b1,
             } => {
                 let v2 = self.db.store(Expr::Free, FreeSub(i2));
                 let b2 = self.db.store(Expr::Free, FreeSub(i2));
                 self.db.exprs[*i2] = Expr::Let {
+                    name,
                     value: v2,
                     body: b2,
                 };
@@ -295,12 +306,14 @@ impl<'a> TypecheckPrismEnv<'a> {
                 subst_equal && constraints_eq
             }
             &Expr::FnType {
+                arg_name,
                 arg_type: a1,
                 body: b1,
             } => {
                 let a2 = self.db.store(Expr::Free, FreeSub(i2));
                 let b2 = self.db.store(Expr::Free, FreeSub(i2));
                 self.db.exprs[*i2] = Expr::FnType {
+                    arg_name,
                     arg_type: a2,
                     body: b2,
                 };
@@ -320,9 +333,9 @@ impl<'a> TypecheckPrismEnv<'a> {
 
                 constraints_eq && a_eq && b_eq
             }
-            &Expr::FnConstruct { body: b1 } => {
+            &Expr::FnConstruct { arg_name, body: b1 } => {
                 let b2 = self.db.store(Expr::Free, FreeSub(i2));
-                self.db.exprs[*i2] = Expr::FnConstruct { body: b2 };
+                self.db.exprs[*i2] = Expr::FnConstruct { arg_name, body: b2 };
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 
@@ -374,14 +387,6 @@ impl<'a> TypecheckPrismEnv<'a> {
                 value: v,
                 type_hint: _t,
             } => self.expect_beq_free((v, s1, var_map1), (i2, s2, var_map2), depth + 1),
-            Expr::GrammarType => {
-                self.db.exprs[*i2] = Expr::GrammarType;
-                self.handle_constraints(i2, s2, depth + 1)
-            }
-            Expr::GrammarValue(g) => {
-                self.db.exprs[*i2] = Expr::GrammarValue(g.clone());
-                self.handle_constraints(i2, s2, depth + 1)
-            }
         }
     }
 

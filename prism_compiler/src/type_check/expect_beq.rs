@@ -53,6 +53,7 @@ impl<'a> TypecheckPrismEnv<'a> {
 
         match self.db.exprs[*fr] {
             Expr::FnType {
+                arg_name: _,
                 arg_type: f_at,
                 body: f_rt,
             } => {
@@ -85,6 +86,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 let f_at = self.db.store(Expr::Free, FreeSub(fr));
                 let f_rt = self.db.store(Expr::Free, FreeSub(fr));
                 self.db.exprs[*fr] = Expr::FnType {
+                    arg_name: None,
                     arg_type: f_at,
                     body: f_rt,
                 };

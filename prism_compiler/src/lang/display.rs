@@ -28,8 +28,6 @@ impl Expr {
             Expr::Shift(..) => PrecedenceLevel::Base,
             Expr::Type => PrecedenceLevel::Base,
             Expr::DeBruijnIndex { .. } => PrecedenceLevel::Base,
-            Expr::GrammarValue(..) => PrecedenceLevel::Base,
-            Expr::GrammarType => PrecedenceLevel::Base,
         }
     }
 }
@@ -49,23 +47,42 @@ impl PrismDb {
 
         match e {
             Expr::Type => write!(w, "Type")?,
-            &Expr::Let { value: v, body: b } => {
-                write!(w, "let _ = ")?;
+            &Expr::Let {
+                name,
+                value: v,
+                body: b,
+            } => {
+                let input = self.input.inner();
+                let name = name.map(|name| input.slice(name)).unwrap_or("_");
+                write!(w, "let {name} = ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
                 self.display(b, w, PrecedenceLevel::Let)?;
             }
             &Expr::DeBruijnIndex { idx: i } => write!(w, "#{i}")?,
             &Expr::FnType {
+                arg_name,
                 arg_type: a,
                 body: b,
             } => {
+                if let Some(arg_name) = arg_name {
+                    let input = self.input.inner();
+                    let arg_name = input.slice(arg_name);
+                    write!(w, "({arg_name}: ")?;
+                }
                 self.display(a, w, PrecedenceLevel::TypeAssert)?;
+                if let Some(_) = arg_name {
+                    write!(w, ")")?;
+                }
                 write!(w, " -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            &Expr::FnConstruct { body: b } => {
-                write!(w, "_ => ")?;
+            &Expr::FnConstruct { arg_name, body: b } => {
+                let input = self.input.inner();
+                let arg_name = arg_name
+                    .map(|arg_name| input.slice(arg_name))
+                    .unwrap_or("_");
+                write!(w, "{arg_name} => ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
             &Expr::FnDestruct {
@@ -89,12 +106,6 @@ impl PrismDb {
                 self.display(e, w, PrecedenceLevel::Destruct)?;
                 write!(w, ": ")?;
                 self.display(typ, w, PrecedenceLevel::Destruct)?;
-            }
-            Expr::GrammarValue(_) => {
-                write!(w, "[GRAMMAR]")?;
-            }
-            Expr::GrammarType => {
-                write!(w, "Grammar")?;
             }
         }
 

@@ -53,6 +53,7 @@ impl<'a> TypecheckPrismEnv<'a> {
         let t = match self.db.exprs[*i] {
             Expr::Type => Expr::Type,
             Expr::Let {
+                name,
                 value: mut v,
                 body: b,
             } => {
@@ -64,7 +65,11 @@ impl<'a> TypecheckPrismEnv<'a> {
                 }
 
                 let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
-                Expr::Let { value: v, body: bt }
+                Expr::Let {
+                    name,
+                    value: v,
+                    body: bt,
+                }
             }
             Expr::DeBruijnIndex { idx: index } => match env.get_idx(index) {
                 Some(CType(_, t) | CSubst(_, t)) => Expr::Shift(*t, index + 1),
@@ -78,6 +83,7 @@ impl<'a> TypecheckPrismEnv<'a> {
                 }
             },
             Expr::FnType {
+                arg_name: _,
                 arg_type: mut a,
                 body: b,
             } => {
@@ -99,11 +105,12 @@ impl<'a> TypecheckPrismEnv<'a> {
 
                 Expr::Type
             }
-            Expr::FnConstruct { body: b } => {
+            Expr::FnConstruct { arg_name, body: b } => {
                 let a = self.db.store(Expr::Free, ValueOrigin::FreeSub(i));
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
                 Expr::FnType {
+                    arg_name,
                     arg_type: a,
                     body: bt,
                 }
@@ -126,7 +133,11 @@ impl<'a> TypecheckPrismEnv<'a> {
                     self.expect_beq_fn_type(ft, at, rt, env)
                 }
 
-                Expr::Let { value: a, body: rt }
+                Expr::Let {
+                    name: None,
+                    value: a,
+                    body: rt,
+                }
             }
             Expr::TypeAssert {
                 value: e,
@@ -153,8 +164,6 @@ impl<'a> TypecheckPrismEnv<'a> {
                 return tid;
             }
             Expr::Shift(v, shift) => Expr::Shift(self._type_check(v, &env.shift(shift)), shift),
-            Expr::GrammarValue(_) => Expr::GrammarType,
-            Expr::GrammarType => Expr::Type,
         };
         let tid = self.db.store(t, ValueOrigin::TypeOf(i));
         self.db.checked_types.insert(i, tid);

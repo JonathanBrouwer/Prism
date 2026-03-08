@@ -113,8 +113,9 @@ impl<'a> ParserPrismEnv<'a> {
             };
             Ok(self.store(
                 Expr::Let {
-                    value: value,
-                    body: body,
+                    name: Some(name),
+                    value,
+                    body,
                 },
                 span,
             ))
@@ -165,7 +166,7 @@ impl<'a> ParserPrismEnv<'a> {
         }) {
             let mut body = self.parse_fnconstruct(&body_env)?;
 
-            for (_, binding_ty, binding_span) in bindings.into_iter().rev() {
+            for (binding_name, binding_ty, binding_span) in bindings.into_iter().rev() {
                 if let Some(binding_ty) = binding_ty {
                     body = {
                         let var_ref = self.store(Expr::DeBruijnIndex { idx: 0 }, binding_span);
@@ -178,15 +179,22 @@ impl<'a> ParserPrismEnv<'a> {
                         );
                         self.store(
                             Expr::Let {
+                                name: None,
                                 value: typ_assert,
-                                body: body,
+                                body,
                             },
                             binding_span,
                         )
                     };
                 }
                 let span = binding_span.span_to(self.span_of(body));
-                body = self.store(Expr::FnConstruct { body: body }, span);
+                body = self.store(
+                    Expr::FnConstruct {
+                        arg_name: Some(binding_name),
+                        body: body,
+                    },
+                    span,
+                );
             }
 
             Ok(body)
@@ -196,23 +204,24 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     fn parse_fntype(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
-        if let Ok((start, binding, typ)) = self.try_parse(|parser| {
+        if let Ok((start, arg_name, typ)) = self.try_parse(|parser| {
             let start = parser.eat_paren_open("(")?;
-            let binding = parser.eat_identifier()?;
+            let arg_name = parser.eat_identifier()?;
             _ = parser.eat_symbol(':')?;
             let typ = parser.parse_fndestruct(env)?;
             parser.eat_paren_close(")")?;
             parser.eat_multi_symbol("->")?;
-            Ok((start, binding, typ))
+            Ok((start, arg_name, typ))
         }) {
-            let body_env = env.insert(binding, ());
+            let body_env = env.insert(arg_name, ());
             let body = self.parse_fndestruct(&body_env)?;
 
             let span = start.span_to(self.span_of(body));
             Ok(self.store(
                 Expr::FnType {
+                    arg_name: Some(arg_name),
                     arg_type: typ,
-                    body: body,
+                    body,
                 },
                 span,
             ))
@@ -225,8 +234,9 @@ impl<'a> ParserPrismEnv<'a> {
             let span = self.span_of(typ).span_to(self.span_of(body));
             Ok(self.store(
                 Expr::FnType {
+                    arg_name: None,
                     arg_type: typ,
-                    body: body,
+                    body,
                 },
                 span,
             ))
