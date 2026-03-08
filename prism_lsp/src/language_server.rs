@@ -1,6 +1,6 @@
 use crate::{DocumentType, LspBackend, LspBackendInner, OpenDocument};
 use prism_compiler::parser::lexer::Token;
-use prism_input::input_table::{InputTableIndex, InputTableInner};
+use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
 use std::mem::take;
 use std::ops::DerefMut;
@@ -212,14 +212,12 @@ impl LanguageServer for LspBackend {
 
             let prism_tokens = inner.document_parses[&index].clone();
 
-            let file_inner = inner.db.input.inner();
-
             let mut prev_line = 0;
             let mut prev_start = 0;
 
             for token in &*prism_tokens {
                 // Convert span to LSP token info
-                let (cur_line, cur_start) = file_inner.line_col_of(token.span().start_pos());
+                let (cur_line, cur_start) = inner.db.input.line_col_of(token.span().start_pos());
                 let token_type = match token {
                     Token::Newline(_) => continue,
                     Token::Whitespace(_) => continue,
@@ -282,7 +280,6 @@ impl LspBackendInner {
         // Update diagnostics
         let mut lsp_diags = Vec::new();
         {
-            let input = self.db.input.inner();
             for diag in diags {
                 let first_span = diag.groups[0].annotations[0].span;
 
@@ -296,10 +293,10 @@ impl LspBackendInner {
                             .map(|annot| DiagnosticRelatedInformation {
                                 location: Location {
                                     uri: Uri::from_file_path(
-                                        input.get_path(annot.span.start_pos().file()),
+                                        self.db.input.get_path(annot.span.start_pos().file()),
                                     )
                                     .unwrap(),
-                                    range: Self::span_to_range(&input, annot.span),
+                                    range: Self::span_to_range(&self.db.input, annot.span),
                                 },
                                 message: match annot.label.as_ref() {
                                     Some(label) => label.to_string(),
@@ -310,7 +307,7 @@ impl LspBackendInner {
                     .collect();
 
                 lsp_diags.push(Diagnostic {
-                    range: Self::span_to_range(&input, first_span),
+                    range: Self::span_to_range(&self.db.input, first_span),
                     severity: Some(DiagnosticSeverity::ERROR),
                     message: diag.title,
                     related_information: Some(related_information),
@@ -337,7 +334,7 @@ impl LspBackendInner {
         self.document_parses.insert(index, tokens);
     }
 
-    fn span_to_range(input: &InputTableInner, span: Span) -> Range {
+    fn span_to_range(input: &InputTable, span: Span) -> Range {
         let (start_line, start_char) = input.line_col_of(span.start_pos());
         let (end_line, end_char) = input.line_col_of(span.end_pos());
         Range {

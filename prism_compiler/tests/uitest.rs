@@ -39,7 +39,7 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
         writeln!(
             &mut stderr,
             "{}\n",
-            diag.render(&RenderConfig::uitest(), &env.input.inner())
+            diag.render(&RenderConfig::uitest(), &env.input)
         )
         .unwrap();
     }
@@ -91,7 +91,7 @@ fn compare_term(
                     writeln!(
                         &mut errs,
                         "{}",
-                        diag.render(&RenderConfig::uitest(), &env.input.inner())
+                        diag.render(&RenderConfig::uitest(), &env.input)
                     )
                     .unwrap();
                 }
