@@ -24,7 +24,7 @@ impl PrismDb {
     }
 
     pub fn load_input(&mut self, data: String, path: PathBuf) -> InputTableIndex {
-        self.input.inner_mut().get_or_push_file(data, path)
+        self.input.get_or_push_file(data, path)
     }
 
     pub fn parse_prism_file(&mut self, file: InputTableIndex) -> (CoreIndex, Arc<Tokens>) {
@@ -43,7 +43,7 @@ struct ParserPrismEnv<'a> {
 
 impl<'a> ParserPrismEnv<'a> {
     pub fn new(db: &'a mut PrismDb, file: InputTableIndex) -> Self {
-        let pos = db.input.inner().start_of(file);
+        let pos = db.input.start_of(file);
         Self {
             db,
             lexer: LexerState::new(pos),
@@ -275,15 +275,12 @@ impl<'a> ParserPrismEnv<'a> {
             Ok(expr)
         } else if let Ok(start) = self.eat_symbol('#') {
             let idx_span = self.eat_simple_nat()?;
-            let input = self.db.input.inner();
-            let idx = input.slice(idx_span);
+            let idx = self.db.input.slice(idx_span);
             let idx = if let Ok(idx) = usize::from_str(idx)
                 && idx < env.len()
             {
-                drop(input);
                 idx
             } else {
-                drop(input);
                 self.db.push_error(DeBruijnIndexOutOfBounds {
                     span: idx_span,
                     env_size: env.len(),
@@ -293,20 +290,16 @@ impl<'a> ParserPrismEnv<'a> {
 
             Ok(self.store(Expr::DeBruijnIndex { idx: idx }, start.span_to(idx_span)))
         } else if let Ok(found_name_span) = self.eat_identifier() {
-            let input = self.db.input.inner();
-            let found_name = input.slice(found_name_span);
+            let found_name = self.db.input.slice(found_name_span);
 
             if found_name == "_" {
-                drop(input);
                 Ok(self.store(Expr::Free, found_name_span))
             } else if let Some(idx) = env
                 .iter()
-                .position(|(name, _)| input.slice(*name) == found_name)
+                .position(|(name, _)| self.db.input.slice(*name) == found_name)
             {
-                drop(input);
                 Ok(self.store(Expr::DeBruijnIndex { idx: idx }, found_name_span))
             } else {
-                drop(input);
                 self.db.push_error(UnknownName {
                     span: found_name_span,
                 });

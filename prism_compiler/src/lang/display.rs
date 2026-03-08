@@ -52,8 +52,7 @@ impl PrismDb {
                 value: v,
                 body: b,
             } => {
-                let input = self.input.inner();
-                let name = name.map(|name| input.slice(name)).unwrap_or("_");
+                let name = name.map(|name| self.input.slice(name)).unwrap_or("_");
                 write!(w, "let {name} = ")?;
                 self.display(v, w, PrecedenceLevel::Construct)?;
                 writeln!(w, ";")?;
@@ -66,8 +65,7 @@ impl PrismDb {
                 body: b,
             } => {
                 if let Some(arg_name) = arg_name {
-                    let input = self.input.inner();
-                    let arg_name = input.slice(arg_name);
+                    let arg_name = self.input.slice(arg_name);
                     write!(w, "({arg_name}: ")?;
                 }
                 self.display(a, w, PrecedenceLevel::TypeAssert)?;
@@ -78,9 +76,8 @@ impl PrismDb {
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
             &Expr::FnConstruct { arg_name, body: b } => {
-                let input = self.input.inner();
                 let arg_name = arg_name
-                    .map(|arg_name| input.slice(arg_name))
+                    .map(|arg_name| self.input.slice(arg_name))
                     .unwrap_or("_");
                 write!(w, "{arg_name} => ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;

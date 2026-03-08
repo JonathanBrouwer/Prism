@@ -48,7 +48,7 @@ impl Pos {
     }
 
     pub fn next(self, input: &InputTable) -> Option<(char, Self)> {
-        input.inner().get_str(self.file)[self.idx..]
+        input.get_str(self.file)[self.idx..]
             .chars()
             .next()
             .map(|c| (c, self + c.len_utf8()))

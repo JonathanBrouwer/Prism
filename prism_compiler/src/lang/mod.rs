@@ -80,7 +80,7 @@ pub struct PrismDb {
     pub args: PrismArgs,
 
     // File info
-    pub input: Arc<InputTable>, //TODO can we remove this arc?
+    pub input: InputTable,
     files: HashMap<InputTableIndex, ProcessedFileTableEntry>,
 
     // Checked Values
@@ -162,12 +162,12 @@ impl PrismDb {
 
     pub fn update_file(&mut self, file: InputTableIndex, content: String) {
         self.files.remove(&file);
-        self.input.inner_mut().update_file(file, content);
+        self.input.update_file(file, content);
     }
 
     pub fn remove_file(&mut self, file: InputTableIndex) {
         self.files.remove(&file);
-        self.input.inner_mut().remove(file);
+        self.input.remove(file);
     }
 
     pub fn store(&mut self, e: Expr, origin: ValueOrigin) -> CoreIndex {

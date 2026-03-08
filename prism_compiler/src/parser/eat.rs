@@ -35,7 +35,7 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn eat_keyword(&mut self, expected_str: &str) -> PResult<Span> {
         self.eat_token(Expected::Literal(expected_str.to_string()), |token, env| {
             if let Token::Identifier { span, .. } = token
-                && env.db.input.inner().slice(span) == expected_str
+                && env.db.input.slice(span) == expected_str
             {
                 env.mark_token_keyword();
                 true
@@ -49,7 +49,7 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn eat_paren_open(&mut self, open: &str) -> PResult<Span> {
         self.eat_token(Expected::Literal(open.to_string()), |token, env| {
             if let Token::OpenParen(span) = token
-                && env.db.input.inner().slice(span) == open
+                && env.db.input.slice(span) == open
             {
                 true
             } else {
@@ -62,7 +62,7 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn eat_paren_close(&mut self, close: &str) -> PResult<Span> {
         self.eat_token(Expected::Literal(close.to_string()), |token, env| {
             if let Token::CloseParen(span) = token
-                && env.db.input.inner().slice(span) == close
+                && env.db.input.slice(span) == close
             {
                 true
             } else {
@@ -103,7 +103,7 @@ impl<'a> ParserPrismEnv<'a> {
             Expected::Literal(expected_symbol.to_string()),
             |token, env| {
                 if let Token::Symbol(span) = token
-                    && env.db.input.inner().slice(span) == String::from_iter([expected_symbol])
+                    && env.db.input.slice(span) == String::from_iter([expected_symbol])
                 {
                     true
                 } else {
@@ -127,7 +127,7 @@ impl<'a> ParserPrismEnv<'a> {
             }
 
             if let Token::Symbol(span) = token
-                && self.db.input.inner().slice(span) == String::from_iter([symbol])
+                && self.db.input.slice(span) == String::from_iter([symbol])
             {
             } else {
                 let span = start.span_to(token.span().end_pos());
