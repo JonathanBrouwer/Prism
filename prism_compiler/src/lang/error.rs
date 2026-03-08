@@ -17,7 +17,7 @@ impl PrismDb {
         };
 
         for error in errors {
-            eprintln!("{}\n", error.render(&render_config, &self.input.inner()));
+            eprintln!("{}\n", error.render(&render_config, &self.input));
         }
     }
 

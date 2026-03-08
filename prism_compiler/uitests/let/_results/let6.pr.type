@@ -1,1 +1,5 @@
+let v = w => (let _ = #0: Type;
+#0);
+let _ = Type;
+let _ = #0;
 Type

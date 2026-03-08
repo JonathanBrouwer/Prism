@@ -45,4 +45,12 @@ impl Span {
             len: 0,
         }
     }
+
+    pub fn span_to(self, other: Span) -> Span {
+        self.span_to_pos(other.end_pos())
+    }
+
+    pub fn span_to_pos(self, other: Pos) -> Span {
+        self.start_pos().span_to(other)
+    }
 }

@@ -20,7 +20,7 @@ impl Display for Input {
 impl Input {
     pub fn from_span(span: Span, input: &InputTable) -> Self {
         Self {
-            s: input.inner().slice(span).to_string().into(),
+            s: input.slice(span).to_string().into(),
             escaped: false,
         }
     }

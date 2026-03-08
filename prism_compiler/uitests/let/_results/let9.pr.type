@@ -1,1 +1,6 @@
+let v = w => (let _ = #0: Type;
+#0);
+let x = Type -> Type;
+let _ = #1;
+let _ = #0;
 Type -> Type

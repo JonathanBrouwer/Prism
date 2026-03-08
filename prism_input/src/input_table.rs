@@ -2,15 +2,9 @@ use crate::pos::Pos;
 use crate::span::Span;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Default)]
 pub struct InputTable {
-    inner: RwLock<InputTableInner>,
-}
-
-#[derive(Default, Clone)]
-pub struct InputTableInner {
     files: Vec<InputTableEntry>,
 }
 
@@ -33,7 +27,7 @@ impl InputTableIndex {
     }
 }
 
-impl InputTableInner {
+impl InputTable {
     pub fn get_or_push_file(&mut self, file: String, path: PathBuf) -> InputTableIndex {
         // If there is already a file with this path, don't load it again
         if let Some(prev) = self.files.iter().position(|e| e.path == path) {
@@ -97,21 +91,5 @@ impl InputTableInner {
             .unwrap_or(0);
         let col = input[last_line_start..pos.idx_in_file()].len();
         (line, col)
-    }
-}
-
-impl InputTable {
-    pub fn deep_clone(&self) -> InputTable {
-        InputTable {
-            inner: RwLock::new(self.inner.read().unwrap().clone()),
-        }
-    }
-
-    pub fn inner(&self) -> RwLockReadGuard<'_, InputTableInner> {
-        self.inner.read().unwrap()
-    }
-
-    pub fn inner_mut(&self) -> RwLockWriteGuard<'_, InputTableInner> {
-        self.inner.write().unwrap()
     }
 }

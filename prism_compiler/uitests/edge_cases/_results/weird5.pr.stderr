@@ -1,11 +1,12 @@
-error[expected_fn_arg]: Argument type mismatch in function application
- --> ./uitests/edge_cases/weird5.pr:1:28
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/edge_cases/weird5.pr:1:2
   |
 1 | (w: (v: _) -> v Type) -> w Type
-  |                            ^^^^ Found an argument of type: Type
-  |
- ::: ./uitests/edge_cases/weird5.pr:1:26
+  |  ^
+
+error[Parser]: Parsing failed
+ --> ./uitests/edge_cases/weird5.pr:1:23
   |
 1 | (w: (v: _) -> v Type) -> w Type
-  |                          ^ Function expects an argument of type: Type -> Type
+  |                       ^ Expected one of: `(` `=>` identifier
 

@@ -1,0 +1,4 @@
+let Type -> Type;
+let => #0;
+let Type;
+Type

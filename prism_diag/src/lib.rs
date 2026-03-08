@@ -3,7 +3,7 @@ pub mod sugg;
 use annotate_snippets::level::ERROR;
 use annotate_snippets::renderer::DecorStyle;
 use annotate_snippets::{AnnotationKind, Group, Renderer, Snippet};
-use prism_input::input_table::InputTableInner;
+use prism_input::input_table::InputTable;
 use prism_input::span::Span;
 
 pub struct Diag {
@@ -43,7 +43,7 @@ impl RenderConfig {
 }
 
 impl Diag {
-    pub fn render(&self, config: &RenderConfig, input: &InputTableInner) -> String {
+    pub fn render(&self, config: &RenderConfig, input: &InputTable) -> String {
         let mut diag: Group =
             Group::with_title(ERROR.clone().primary_title(&self.title).id(&self.id));
 
@@ -91,14 +91,11 @@ mod tests {
 
     #[test]
     fn test() {
-        let input_table = InputTable::default();
-        let file = input_table
-            .inner_mut()
-            .get_or_push_file("Helpy helpy helpy".to_string(), "prism.rs".into());
-        let span = Span::new(input_table.inner().start_of(file) + 6, 5);
+        let mut input_table = InputTable::default();
+        let file = input_table.get_or_push_file("Helpy helpy helpy".to_string(), "prism.rs".into());
+        let span = Span::new(input_table.start_of(file) + 6, 5);
 
         let diag = Diag {
-            // level: Level::ERROR,
             title: "Something is badd".to_string(),
             id: "baddy".to_string(),
             groups: vec![AnnotationGroup {
@@ -109,9 +106,6 @@ mod tests {
             }],
         };
 
-        eprintln!(
-            "{}",
-            diag.render(&RenderConfig::default(), &input_table.inner())
-        )
+        eprintln!("{}", diag.render(&RenderConfig::default(), &input_table))
     }
 }

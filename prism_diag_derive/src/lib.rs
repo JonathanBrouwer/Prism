@@ -16,14 +16,14 @@ fn derive_diagnostic(s: Structure<'_>) -> proc_macro::TokenStream {
         .iter()
         .find(|attr| attr.path().get_ident().unwrap().to_string().as_str() == "diag")
         .expect("Expected diag attr");
-    let DiagArgs { title, id, env } = attr.parse_args().unwrap();
+    let DiagArgs { title, env } = attr.parse_args().unwrap();
 
     let Fields::Named(named) = &data.fields else {
         panic!("Expected named fields")
     };
 
     let struct_name = &s.ast().ident;
-    let diag_id = id.unwrap_or(struct_name_to_id(&struct_name.to_string()));
+    let diag_id = struct_name.to_string();
 
     let (env_param, env_generic) = match env {
         Some(env) => (None, quote!(#env)),
@@ -78,27 +78,14 @@ fn derive_diagnostic(s: Structure<'_>) -> proc_macro::TokenStream {
     .into()
 }
 
-fn struct_name_to_id(name: &str) -> String {
-    let mut buffer = String::new();
-    for char in name.chars() {
-        if char.is_uppercase() && !buffer.is_empty() {
-            buffer.push('_');
-        }
-        buffer.push_str(char.to_lowercase().to_string().as_str());
-    }
-    buffer
-}
-
 struct DiagArgs {
     title: Expr,
-    id: Option<String>,
     env: Option<Type>,
 }
 
 impl Parse for DiagArgs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut title: Option<Expr> = None;
-        let mut id: Option<String> = None;
         let mut env: Option<Type> = None;
         loop {
             let name = input.parse::<Ident>()?;
@@ -107,9 +94,9 @@ impl Parse for DiagArgs {
                 "title" => {
                     title = Some(input.parse::<Expr>()?);
                 }
-                "id" => {
-                    id = Some(input.parse::<Ident>()?.to_string());
-                }
+                // "id" => {
+                //     id = Some(input.parse::<Ident>()?.to_string());
+                // }
                 "env" => {
                     env = Some(input.parse::<Type>()?);
                 }
@@ -123,7 +110,6 @@ impl Parse for DiagArgs {
 
         Ok(DiagArgs {
             title: title.expect("Expected `title` arg"),
-            id,
             env,
         })
     }
