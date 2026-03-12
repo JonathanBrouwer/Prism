@@ -19,7 +19,10 @@ impl PrismDb {
             match self.exprs[*e] {
                 // Values
                 Expr::Type | Expr::FnType { .. } => {
-                    assert!(args.is_empty());
+                    if !args.is_empty() {
+                        self.assert_has_errored();
+                        return (start_expr, start_env.clone());
+                    }
                     return (e, s);
                 }
                 Expr::Let {

@@ -1,4 +1,4 @@
 let v = (w: Type) => #0;
 let x = Type -> Type;
 let _ = #1;
-_
+(w: _) -> _

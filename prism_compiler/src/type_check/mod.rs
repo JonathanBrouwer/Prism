@@ -136,7 +136,7 @@ impl<'a> TypecheckPrismEnv<'a> {
 
                 let recovery_token = self.db.point();
                 let ft = self._type_check(f, env);
-                if self.db.has_errored(recovery_token).is_err() {
+                if self.db.has_errored(recovery_token).is_ok() {
                     self.expect_beq_fn_type(ft, at, rt, env)
                 }
 

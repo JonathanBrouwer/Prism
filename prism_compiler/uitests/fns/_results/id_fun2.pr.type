@@ -1,2 +1,2 @@
-(f: _) -> (let _ = Type;
+(f: (Type -> _)) -> (let _ = Type;
 _)

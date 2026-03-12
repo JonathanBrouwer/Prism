@@ -150,7 +150,6 @@ impl PrismDb {
         };
 
         let (core, tokens) = self.parse_prism_file(file);
-        println!("{}", self.index_to_string(core));
 
         let typ = self.type_check(core);
         let processed_file = ProcessedFile { core, typ, tokens };
