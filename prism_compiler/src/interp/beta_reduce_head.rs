@@ -1,18 +1,18 @@
 use crate::lang::CoreIndex;
-use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
-use crate::lang::{Expr, PrismDb};
+use crate::lang::env::PrismEnv;
+use crate::lang::{Database, Expr};
 
-impl PrismDb {
+impl Database {
     pub fn beta_reduce_head(
         &self,
         mut start_expr: CoreIndex,
-        start_env: &DbEnv,
-    ) -> (CoreIndex, DbEnv) {
-        let mut args: Vec<(CoreIndex, DbEnv)> = Vec::new();
+        start_env: &PrismEnv,
+    ) -> (CoreIndex, PrismEnv) {
+        let mut args: Vec<(CoreIndex, PrismEnv)> = Vec::new();
 
         let mut e: CoreIndex = start_expr;
-        let mut s: DbEnv = start_env.clone();
+        let mut s: PrismEnv = start_env.clone();
         let mut start_env = start_env.clone();
 
         loop {
@@ -35,14 +35,14 @@ impl PrismDb {
                     s = s.cons(RSubst(v, s_clone))
                 }
                 Expr::DeBruijnIndex { idx: i } => match s[i] {
-                    CType(_, _) | RType(_) => {
+                    CType(..) | RType(..) => {
                         return if args.is_empty() {
                             (e, s)
                         } else {
                             (start_expr, start_env.clone())
                         };
                     }
-                    CSubst(v, _) => {
+                    CSubst(v, _, _) => {
                         e = v;
                         s = s.shift(i + 1);
                     }

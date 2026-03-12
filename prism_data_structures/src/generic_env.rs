@@ -53,16 +53,6 @@ impl<'a, V> Iterator for GenericEnvIterator<'a, V> {
 }
 
 impl<V> List<V> {
-    // pub fn get<NB: ?Sized + Eq>(&self, k: &NB) -> Option<&V> {
-    //     let mut node = self.0.as_ref()?;
-    //     loop {
-    //         if node.name.borrow() == k {
-    //             return Some(&node.value);
-    //         }
-    //         node = node.next.as_ref()?;
-    //     }
-    // }
-
     pub fn get_idx(&self, i: usize) -> Option<&V> {
         let mut node = self.0.as_ref()?;
         for _ in 0..i {
@@ -96,8 +86,8 @@ impl<V> List<V> {
 
 impl<V> List<V> {
     #[must_use]
-    pub fn insert(&self, value: V) -> Self {
-        self.extend(iter::once(value))
+    pub fn insert<T>(&self, span: T) -> Self {
+        todo!()
     }
 
     #[must_use]

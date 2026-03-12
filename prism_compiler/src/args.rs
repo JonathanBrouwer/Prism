@@ -20,6 +20,7 @@ impl Display for ErrorFormat {
 #[derive(ValueEnum, Debug, Copy, Clone)]
 pub enum Emit {
     LexerTokens,
+    ParsedProgram,
 }
 
 #[derive(Parser, Debug, Default)]

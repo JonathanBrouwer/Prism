@@ -1,4 +1,4 @@
-use crate::parser::ParserPrismEnv;
+use crate::parser::FileSession;
 use prism_diag::{Annotation, AnnotationGroup, Diag};
 use prism_input::pos::Pos;
 use prism_input::span::Span;
@@ -41,32 +41,32 @@ impl ErrorState {
     }
 }
 
-impl<'a> ParserPrismEnv<'a> {
+impl<'a> FileSession<'a> {
     pub fn expect(&mut self, span: Span, expected: Expected) -> ExpectedGuaranteed {
         let fail_pos = span.start_pos();
-        match fail_pos.cmp(&self.error_state.fail_pos) {
+        match fail_pos.cmp(&self.parser.error_state.fail_pos) {
             Ordering::Less => {
-                assert!(!self.error_state.expected.is_empty());
+                assert!(!self.parser.error_state.expected.is_empty());
             }
             Ordering::Equal => {
-                self.error_state.expected.push((span, expected));
+                self.parser.error_state.expected.push((span, expected));
             }
             Ordering::Greater => {
-                self.error_state.fail_pos = fail_pos;
-                self.error_state.expected.clear();
-                self.error_state.expected.push((span, expected));
+                self.parser.error_state.fail_pos = fail_pos;
+                self.parser.error_state.expected.clear();
+                self.parser.error_state.expected.push((span, expected));
             }
         }
         ExpectedGuaranteed(())
     }
 
     pub fn expected_into_diag(&mut self) -> Option<Diag> {
-        if self.error_state.expected.is_empty() {
+        if self.parser.error_state.expected.is_empty() {
             return None;
         }
 
         let mut labels_map: HashMap<Pos, (Pos, Vec<_>)> = HashMap::new();
-        for (span, exp) in &self.error_state.expected {
+        for (span, exp) in &self.parser.error_state.expected {
             let (end_pos, expected) = labels_map
                 .entry(span.start_pos())
                 .or_insert((span.end_pos(), Vec::new()));
@@ -106,7 +106,7 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn fail(&mut self) -> ExpectedGuaranteed {
-        assert!(!self.error_state.expected.is_empty());
+        assert!(!self.parser.error_state.expected.is_empty());
         ExpectedGuaranteed(())
     }
 }

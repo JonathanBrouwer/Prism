@@ -1,5 +1,5 @@
 use crate::lang::diags::DiagPoint;
-use crate::parser::ParserPrismEnv;
+use crate::parser::FileSession;
 use crate::parser::expect::PResult;
 use prism_diag_derive::Diagnostic;
 use prism_input::pos::Pos;
@@ -110,14 +110,14 @@ impl LexerState {
     }
 }
 
-impl<'a> ParserPrismEnv<'a> {
+impl<'a> FileSession<'a> {
     fn next_char(&mut self, f: impl Fn(char) -> bool) -> Option<(char, Span)> {
-        let (next_char, next_pos) = self.lexer.pos.next(&self.db.input)?;
+        let (next_char, next_pos) = self.parser.lexer.pos.next(&self.db.input)?;
         if !f(next_char) {
             return None;
         }
-        let span = self.lexer.pos.span_to(next_pos);
-        self.lexer.pos = next_pos;
+        let span = self.parser.lexer.pos.span_to(next_pos);
+        self.parser.lexer.pos = next_pos;
         Some((next_char, span))
     }
 
@@ -125,7 +125,7 @@ impl<'a> ParserPrismEnv<'a> {
         let mut invalid_token_start = None;
         let token = loop {
             let Some((ch, ch_span)) = self.next_char(|_| true) else {
-                break Token::EOF(self.lexer.pos);
+                break Token::EOF(self.parser.lexer.pos);
             };
             break match ch {
                 // Newline
@@ -143,7 +143,7 @@ impl<'a> ParserPrismEnv<'a> {
                 // Whitespace
                 ch if ch.is_whitespace() => {
                     while self.next_char(|c| c.is_whitespace()).is_some() {}
-                    Token::Whitespace(ch_span.span_to_pos(self.lexer.pos))
+                    Token::Whitespace(ch_span.span_to_pos(self.parser.lexer.pos))
                 }
                 // Comment
                 '/' => {
@@ -153,7 +153,7 @@ impl<'a> ParserPrismEnv<'a> {
                                 break;
                             }
                         }
-                        Token::Comment(ch_span.span_to_pos(self.lexer.pos))
+                        Token::Comment(ch_span.span_to_pos(self.parser.lexer.pos))
                     } else if self.next_char(|c| c == '*').is_some() {
                         //TODO incomplete block comment
                         while self.next_char(|_| true).is_some() {
@@ -161,7 +161,7 @@ impl<'a> ParserPrismEnv<'a> {
                                 break;
                             }
                         }
-                        Token::Comment(ch_span.span_to_pos(self.lexer.pos))
+                        Token::Comment(ch_span.span_to_pos(self.parser.lexer.pos))
                     } else {
                         Token::Symbol(ch_span)
                     }
@@ -178,7 +178,7 @@ impl<'a> ParserPrismEnv<'a> {
                         .is_some()
                     {}
                     Token::Identifier {
-                        span: ch_span.span_to_pos(self.lexer.pos),
+                        span: ch_span.span_to_pos(self.parser.lexer.pos),
                         // `keyword` will be set to true by the parser if applicable
                         keyword: false,
                     }
@@ -186,10 +186,10 @@ impl<'a> ParserPrismEnv<'a> {
                 c if SYMBOL_CHARS.contains(c) => Token::Symbol(ch_span),
                 c if c.is_ascii_digit() => {
                     while self.next_char(|c| c.is_ascii_digit()).is_some() {}
-                    let value = ch_span.span_to_pos(self.lexer.pos);
+                    let value = ch_span.span_to_pos(self.parser.lexer.pos);
                     let decimal = self.next_char(|c| c == '.').map(|(_, dot)| {
                         while self.next_char(|c| c.is_ascii_digit()).is_some() {}
-                        let value = dot.end_pos().span_to(self.lexer.pos);
+                        let value = dot.end_pos().span_to(self.parser.lexer.pos);
                         NumLitDecimal { dot, value }
                     });
                     while self
@@ -198,7 +198,7 @@ impl<'a> ParserPrismEnv<'a> {
                         })
                         .is_some()
                     {}
-                    let suffix = value.end_pos().span_to(self.lexer.pos);
+                    let suffix = value.end_pos().span_to(self.parser.lexer.pos);
 
                     Token::NumLit(NumLit {
                         value,
@@ -221,7 +221,7 @@ impl<'a> ParserPrismEnv<'a> {
             });
         }
 
-        self.lexer.tokens.push(token);
+        self.parser.lexer.tokens.push(token);
         token
     }
 
@@ -236,16 +236,16 @@ impl<'a> ParserPrismEnv<'a> {
     }
 
     pub fn pop_token(&mut self) {
-        let token = self.lexer.tokens.pop().unwrap();
-        self.lexer.pos = token.span().start_pos();
+        let token = self.parser.lexer.tokens.pop().unwrap();
+        self.parser.lexer.pos = token.span().start_pos();
     }
 
     pub fn finish_lexing(&mut self) -> Tokens {
-        mem::take(&mut self.lexer.tokens)
+        mem::take(&mut self.parser.lexer.tokens)
     }
 
     pub fn mark_token_keyword(&mut self) {
-        let Some(Token::Identifier { keyword, .. }) = self.lexer.tokens.last_mut() else {
+        let Some(Token::Identifier { keyword, .. }) = self.parser.lexer.tokens.last_mut() else {
             unreachable!()
         };
         *keyword = true;
@@ -253,15 +253,15 @@ impl<'a> ParserPrismEnv<'a> {
 
     pub fn fork_lexer(&self) -> Fork {
         Fork {
-            pos: self.lexer.pos,
-            tokens_len: self.lexer.tokens.len(),
+            pos: self.parser.lexer.pos,
+            tokens_len: self.parser.lexer.tokens.len(),
             point: self.db.point(),
         }
     }
 
     pub fn recover_lexer_fork(&mut self, fork: &Fork) {
-        self.lexer.pos = fork.pos;
-        self.lexer.tokens.truncate(fork.tokens_len);
+        self.parser.lexer.pos = fork.pos;
+        self.parser.lexer.tokens.truncate(fork.tokens_len);
         self.db.reset_diags_to_point(fork.point);
     }
 

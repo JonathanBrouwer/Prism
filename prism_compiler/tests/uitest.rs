@@ -1,8 +1,8 @@
 use clap::Parser;
 use libtest_mimic::{Arguments, Failed, Trial};
 use prism_compiler::args::ErrorFormat;
-use prism_compiler::lang::env::DbEnv;
-use prism_compiler::lang::{CoreIndex, PrismDb};
+use prism_compiler::lang::env::PrismEnv;
+use prism_compiler::lang::{CoreIndex, Database};
 use std::collections::VecDeque;
 use std::convert::Into;
 use std::env::args;
@@ -26,7 +26,7 @@ pub struct UitestArguments {
 }
 
 fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
-    let mut env = PrismDb::default();
+    let mut env = Database::default();
     env.args.error_format = ErrorFormat::Plain;
 
     let input = env.load_file(file_path.into()).unwrap();
@@ -55,7 +55,7 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
 
     compare_term(file_path, &mut env, typ, "type", args)?;
 
-    let eval = env.beta_reduce(input, &DbEnv::default());
+    let eval = env.beta_reduce(input, &PrismEnv::default());
     compare_term(file_path, &mut env, eval, "eval", args)?;
 
     Ok(())
@@ -63,7 +63,7 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
 
 fn compare_term(
     file_path: &Path,
-    env: &mut PrismDb,
+    env: &mut Database,
     term: CoreIndex,
     output_ext: &'static str,
     args: &UitestArguments,
@@ -89,7 +89,7 @@ fn compare_term(
                 return Err(stderr);
             }
 
-            match env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default()) {
+            match env.is_beta_equal(term, &PrismEnv::default(), expected, &PrismEnv::default()) {
                 true => Ok(()),
                 false => {
                     env.take_diags();

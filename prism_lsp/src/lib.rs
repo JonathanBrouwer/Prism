@@ -1,6 +1,6 @@
 mod language_server;
 
-use prism_compiler::lang::PrismDb;
+use prism_compiler::lang::Database;
 use prism_compiler::parser::lexer::Tokens;
 use prism_input::input_table::InputTableIndex;
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ impl LspBackend {
 
 #[derive(Default)]
 struct LspBackendInner {
-    db: PrismDb,
+    db: Database,
     documents: HashMap<Uri, OpenDocument>,
     document_parses: HashMap<InputTableIndex, Arc<Tokens>>,
 }

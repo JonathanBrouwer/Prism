@@ -1,8 +1,8 @@
 use std::fmt::Write;
 
 use crate::lang::CoreIndex;
-use crate::lang::env::DbEnv;
-use crate::lang::{Expr, PrismDb};
+use crate::lang::env::PrismEnv;
+use crate::lang::{Database, Expr};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone, Default)]
 pub enum PrecedenceLevel {
@@ -32,7 +32,7 @@ impl Expr {
     }
 }
 
-impl PrismDb {
+impl Database {
     fn display(
         &self,
         i: CoreIndex,
@@ -128,12 +128,13 @@ impl PrismDb {
     }
 
     pub fn index_to_sm_string(&mut self, i: CoreIndex) -> String {
-        let i = self.simplify(i);
-        self.index_to_string(i)
+        todo!()
+        // let i = self.simplify(i);
+        // self.index_to_string(i)
     }
 
-    pub fn index_to_br_string(&mut self, i: CoreIndex, env: &DbEnv) -> String {
-        let i = self.beta_reduce(i, env);
-        self.index_to_string(i)
-    }
+    // pub fn index_to_br_string(&mut self, i: CoreIndex, env: &PrismEnv) -> String {
+    // let i = self.beta_reduce(i, env);
+    // self.index_to_string(i)
+    // }
 }

@@ -1,5 +1,5 @@
 use crate::args::ErrorFormat;
-use crate::lang::PrismDb;
+use crate::lang::Database;
 use prism_diag::{Diag, IntoDiag, RenderConfig, RenderFormat};
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
@@ -11,8 +11,8 @@ pub struct ErrorGuaranteed(());
 #[derive(Copy, Clone)]
 pub struct DiagPoint(usize);
 
-impl PrismDb {
-    pub fn push_error(&mut self, diag: impl IntoDiag<PrismDb>) -> ErrorGuaranteed {
+impl Database {
+    pub fn push_error(&mut self, diag: impl IntoDiag<Database>) -> ErrorGuaranteed {
         let diag = diag.into_diag(self);
         self.diags.push(diag);
         ErrorGuaranteed(())
@@ -46,7 +46,7 @@ impl PrismDb {
 }
 
 pub struct PrismDiags<'a> {
-    db: &'a PrismDb,
+    db: &'a Database,
     diags: Vec<Diag>,
 }
 

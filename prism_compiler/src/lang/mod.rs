@@ -1,6 +1,9 @@
 use crate::args::PrismArgs;
 use crate::lang::diags::ErrorGuaranteed;
+use crate::lang::env::PrismEnv;
+use crate::parser::ParserSessionState;
 use crate::parser::lexer::Tokens;
+use crate::type_check::CheckerSessionState;
 use prism_diag::Diag;
 use prism_input::input_table::{InputTable, InputTableIndex};
 use prism_input::span::Span;
@@ -17,7 +20,7 @@ pub mod env;
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
     /// This is an AST node directly from the source code
-    SourceCode(Span),
+    SourceCode { span: Span, typ: CoreIndex },
     /// This is the type of another AST node
     TypeOf(CoreIndex),
     /// This is an AST node generated from expanding the given free variable
@@ -76,7 +79,7 @@ pub enum Expr {
     },
 }
 
-pub struct PrismDb {
+pub struct Database {
     pub args: PrismArgs,
 
     // File info
@@ -85,8 +88,8 @@ pub struct PrismDb {
 
     // Checked Values
     pub exprs: Vec<Expr>,
+    pub expr_envs: Vec<PrismEnv>,
     pub expr_origins: Vec<ValueOrigin>,
-    pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
     diags: Vec<Diag>,
 }
@@ -99,24 +102,23 @@ enum ProcessedFileTableEntry {
 #[derive(Clone)]
 pub struct ProcessedFile {
     pub core: CoreIndex,
-    pub typ: CoreIndex,
     pub tokens: Arc<Tokens>,
 }
 
-impl Default for PrismDb {
+impl Default for Database {
     fn default() -> Self {
         Self::new(PrismArgs::default())
     }
 }
 
-impl PrismDb {
+impl Database {
     pub fn new(args: PrismArgs) -> Self {
         Self {
             args,
             input: Default::default(),
             exprs: Default::default(),
+            expr_envs: Default::default(),
             expr_origins: Default::default(),
-            checked_types: Default::default(),
             diags: Default::default(),
             files: Default::default(),
         }
@@ -128,8 +130,7 @@ impl PrismDb {
             Ok(file) => file,
             Err(err) => {
                 return ProcessedFile {
-                    core: self.store(Expr::Free, ValueOrigin::Failure(err)),
-                    typ: self.store(Expr::Free, ValueOrigin::Failure(err)),
+                    core: self.store(Expr::Free, ValueOrigin::Failure(err), Default::default()),
                     tokens: Arc::new(vec![]),
                 };
             }
@@ -151,8 +152,7 @@ impl PrismDb {
 
         let (core, tokens) = self.parse_prism_file(file);
 
-        let typ = self.type_check(core);
-        let processed_file = ProcessedFile { core, typ, tokens };
+        let processed_file = ProcessedFile { core, tokens };
         self.files.insert(
             file,
             ProcessedFileTableEntry::Processed(processed_file.clone()),
@@ -170,9 +170,26 @@ impl PrismDb {
         self.input.remove(file);
     }
 
-    pub fn store(&mut self, e: Expr, origin: ValueOrigin) -> CoreIndex {
+    pub fn store(&mut self, e: Expr, origin: ValueOrigin, env: PrismEnv) -> CoreIndex {
         self.exprs.push(e);
+        self.expr_envs.push(env);
         self.expr_origins.push(origin);
         CoreIndex(self.exprs.len() - 1)
+    }
+}
+
+pub struct FileSession<'a> {
+    pub db: &'a mut Database,
+    pub parser: ParserSessionState,
+    pub checker: CheckerSessionState,
+}
+
+impl<'a> FileSession<'a> {
+    pub fn new(db: &'a mut Database, file: InputTableIndex) -> Self {
+        Self {
+            parser: ParserSessionState::new(file, db),
+            checker: CheckerSessionState::new(),
+            db,
+        }
     }
 }

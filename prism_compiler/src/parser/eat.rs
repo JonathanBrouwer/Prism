@@ -1,9 +1,9 @@
-use crate::parser::ParserPrismEnv;
+use crate::parser::FileSession;
 use crate::parser::expect::{Expected, PResult};
 use crate::parser::lexer::{NumLit, SYMBOL_CHARS, Token};
 use prism_input::span::Span;
 
-impl<'a> ParserPrismEnv<'a> {
+impl<'a> FileSession<'a> {
     pub fn eat_token_into<T>(
         &mut self,
         expected: Expected,

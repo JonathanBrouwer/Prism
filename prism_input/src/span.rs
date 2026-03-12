@@ -23,10 +23,6 @@ impl Span {
         self.start
     }
 
-    pub fn start_pos_ref(&self) -> &Pos {
-        &self.start
-    }
-
     pub fn len(self) -> usize {
         self.len
     }

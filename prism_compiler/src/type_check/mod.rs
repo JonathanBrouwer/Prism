@@ -2,11 +2,11 @@ mod errors;
 mod expect_beq;
 mod expect_beq_internal;
 
-use crate::lang::PrismDb;
 use crate::lang::ValueOrigin;
-use crate::lang::env::DbEnv;
 use crate::lang::env::EnvEntry::*;
+use crate::lang::env::PrismEnv;
 use crate::lang::{CoreIndex, Expr};
+use crate::lang::{Database, FileSession};
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
@@ -17,170 +17,169 @@ impl UniqueVariableId {
 }
 
 type QueuedConstraint = (
-    (DbEnv, HashMap<UniqueVariableId, usize>),
-    (CoreIndex, DbEnv, HashMap<UniqueVariableId, usize>),
+    (PrismEnv, HashMap<UniqueVariableId, usize>),
+    (CoreIndex, PrismEnv, HashMap<UniqueVariableId, usize>),
 );
 
-pub struct TypecheckPrismEnv<'a> {
-    pub db: &'a mut PrismDb,
-
-    // State during type checking
+pub struct CheckerSessionState {
     tc_id: usize,
     queued_beq_free: HashMap<CoreIndex, Vec<QueuedConstraint>>,
-    queued_tc: HashMap<CoreIndex, (DbEnv, CoreIndex)>,
+    queued_tc: HashMap<CoreIndex, (PrismEnv, CoreIndex)>,
 }
 
-impl<'a> TypecheckPrismEnv<'a> {
-    pub fn new(db: &'a mut PrismDb) -> Self {
+impl CheckerSessionState {
+    pub fn new() -> Self {
         Self {
-            db,
-
             tc_id: Default::default(),
             queued_beq_free: Default::default(),
             queued_tc: Default::default(),
         }
     }
+}
 
+impl FileSession<'_> {
     pub fn new_tc_id(&mut self) -> UniqueVariableId {
-        let id = UniqueVariableId(self.tc_id);
-        self.tc_id += 1;
+        let id = UniqueVariableId(self.checker.tc_id);
+        self.checker.tc_id += 1;
         id
     }
 
     /// Type checkes `i` in scope `s`. Returns the type.
     /// Invariant: Returned UnionIndex is valid in Env `s`
-    pub fn _type_check(&mut self, i: CoreIndex, env: &DbEnv) -> CoreIndex {
+    pub fn _type_check(&mut self, i: CoreIndex, env: &PrismEnv) -> CoreIndex {
         let t = match self.db.exprs[*i] {
-            Expr::Type => Expr::Type,
-            Expr::Let {
-                name,
-                value: mut v,
-                body: b,
-            } => {
-                // Check `v`
-                let recovery_token = self.db.point();
-                let vt = self._type_check(v, env);
-                if let Err(err) = self.db.has_errored(recovery_token) {
-                    v = self.db.store(Expr::Free, ValueOrigin::Failure(err));
-                }
-
-                let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
-                Expr::Let {
-                    name,
-                    value: v,
-                    body: bt,
-                }
-            }
-            Expr::DeBruijnIndex { idx: index } => match env.get_idx(index) {
-                Some(CType(_, t) | CSubst(_, t)) => Expr::Shift(*t, index + 1),
-                Some(_) => unreachable!(),
-                None => {
-                    let err = self.db.assert_has_errored();
-                    return self.db.store(Expr::Free, ValueOrigin::Failure(err));
-                }
-            },
-            Expr::FnType {
-                arg_name: _,
-                arg_type: mut a,
-                body: b,
-            } => {
-                let recovery_token = self.db.point();
-                let at = self._type_check(a, env);
-                self.expect_beq_type(at, env);
-                if let Err(err) = self.db.has_errored(recovery_token) {
-                    a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
-                }
-
-                let recovery_token = self.db.point();
-                let bs = env.cons(CType(self.new_tc_id(), a));
-                let bt = self._type_check(b, &bs);
-
-                // Check if `b` typechecked without errors.
-                if self.db.has_errored(recovery_token).is_err() {
-                    self.expect_beq_type(bt, &bs);
-                }
-
-                Expr::Type
-            }
-            Expr::FnConstruct {
-                arg_name,
-                arg_type,
-                body: b,
-            } => {
-                let recovery_token = self.db.point();
-                let arg_type_type = self._type_check(arg_type, env);
-                if self.db.has_errored(recovery_token).is_ok() {
-                    self.expect_beq_type(arg_type_type, env);
-                }
-
-                let a = self.db.store(Expr::Free, ValueOrigin::FreeSub(i));
-                let bs = env.cons(CType(self.new_tc_id(), a));
-                let bt = self._type_check(b, &bs);
-                Expr::FnType {
-                    arg_name,
-                    arg_type: a,
-                    body: bt,
-                }
-            }
-            Expr::FnDestruct {
-                function: f,
-                arg: mut a,
-            } => {
-                let recovery_token = self.db.point();
-                let at = self._type_check(a, env);
-                if let Err(err) = self.db.has_errored(recovery_token) {
-                    a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
-                }
-
-                let rt = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
-
-                let recovery_token = self.db.point();
-                let ft = self._type_check(f, env);
-                if self.db.has_errored(recovery_token).is_ok() {
-                    self.expect_beq_fn_type(ft, at, rt, env)
-                }
-
-                Expr::Let {
-                    name: None,
-                    value: a,
-                    body: rt,
-                }
-            }
-            Expr::TypeAssert {
-                value: e,
-                type_hint: typ,
-            } => {
-                let recovery_token1 = self.db.point();
-                let et = self._type_check(e, env);
-
-                let recovery_token2 = self.db.point();
-                let typt = self._type_check(typ, env);
-                if self.db.has_errored(recovery_token2).is_ok() {
-                    self.expect_beq_type(typt, env);
-                }
-
-                if self.db.has_errored(recovery_token1).is_ok() {
-                    self.expect_beq_assert(e, et, typ, env);
-                }
-
-                return et;
-            }
-            Expr::Free => {
-                let tid = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
-                self.queued_tc.insert(i, (env.clone(), tid));
-                return tid;
-            }
-            Expr::Shift(v, shift) => Expr::Shift(self._type_check(v, &env.shift(shift)), shift),
+            _ => todo!(),
+            //     Expr::Type => Expr::Type,
+            //     Expr::Let {
+            //         name,
+            //         value: mut v,
+            //         body: b,
+            //     } => {
+            //         // Check `v`
+            //         let recovery_token = self.db.point();
+            //         let vt = self._type_check(v, env);
+            //         if let Err(err) = self.db.has_errored(recovery_token) {
+            //             v = self.db.store(Expr::Free, ValueOrigin::Failure(err));
+            //         }
+            //
+            //         let bt = self._type_check(b, &env.cons(CSubst(v, vt)));
+            //         Expr::Let {
+            //             name,
+            //             value: v,
+            //             body: bt,
+            //         }
+            //     }
+            //     Expr::DeBruijnIndex { idx: index } => match env.get_idx(index) {
+            //         Some(CType(_, t, _) | CSubst(_, t, _)) => Expr::Shift(*t, index + 1),
+            //         Some(_) => unreachable!(),
+            //         None => {
+            //             let err = self.db.assert_has_errored();
+            //             return self.db.store(Expr::Free, ValueOrigin::Failure(err));
+            //         }
+            //     },
+            //     Expr::FnType {
+            //         arg_name: _,
+            //         arg_type: mut a,
+            //         body: b,
+            //     } => {
+            //         let recovery_token = self.db.point();
+            //         let at = self._type_check(a, env);
+            //         self.expect_beq_type(at, env);
+            //         if let Err(err) = self.db.has_errored(recovery_token) {
+            //             a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
+            //         }
+            //
+            //         let recovery_token = self.db.point();
+            //         let bs = env.cons(CType(self.new_tc_id(), a));
+            //         let bt = self._type_check(b, &bs);
+            //
+            //         // Check if `b` typechecked without errors.
+            //         if self.db.has_errored(recovery_token).is_err() {
+            //             self.expect_beq_type(bt, &bs);
+            //         }
+            //
+            //         Expr::Type
+            //     }
+            //     Expr::FnConstruct {
+            //         arg_name,
+            //         arg_type,
+            //         body: b,
+            //     } => {
+            //         let recovery_token = self.db.point();
+            //         let arg_type_type = self._type_check(arg_type, env);
+            //         if self.db.has_errored(recovery_token).is_ok() {
+            //             self.expect_beq_type(arg_type_type, env);
+            //         }
+            //
+            //         let a = self.db.store(Expr::Free, ValueOrigin::FreeSub(i));
+            //         let bs = env.cons(CType(self.new_tc_id(), a));
+            //         let bt = self._type_check(b, &bs);
+            //         Expr::FnType {
+            //             arg_name,
+            //             arg_type: a,
+            //             body: bt,
+            //         }
+            //     }
+            //     Expr::FnDestruct {
+            //         function: f,
+            //         arg: mut a,
+            //     } => {
+            //         let recovery_token = self.db.point();
+            //         let at = self._type_check(a, env);
+            //         if let Err(err) = self.db.has_errored(recovery_token) {
+            //             a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
+            //         }
+            //
+            //         let rt = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
+            //
+            //         let recovery_token = self.db.point();
+            //         let ft = self._type_check(f, env);
+            //         if self.db.has_errored(recovery_token).is_ok() {
+            //             self.expect_beq_fn_type(ft, at, rt, env)
+            //         }
+            //
+            //         Expr::Let {
+            //             name: None,
+            //             value: a,
+            //             body: rt,
+            //         }
+            //     }
+            //     Expr::TypeAssert {
+            //         value: e,
+            //         type_hint: typ,
+            //     } => {
+            //         let recovery_token1 = self.db.point();
+            //         let et = self._type_check(e, env);
+            //
+            //         let recovery_token2 = self.db.point();
+            //         let typt = self._type_check(typ, env);
+            //         if self.db.has_errored(recovery_token2).is_ok() {
+            //             self.expect_beq_type(typt, env);
+            //         }
+            //
+            //         if self.db.has_errored(recovery_token1).is_ok() {
+            //             self.expect_beq_assert(e, et, typ, env);
+            //         }
+            //
+            //         return et;
+            //     }
+            //     Expr::Free => {
+            //         let tid = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
+            //         self.queued_tc.insert(i, (env.clone(), tid));
+            //         return tid;
+            //     }
+            //     Expr::Shift(v, shift) => Expr::Shift(self._type_check(v, &env.shift(shift)), shift),
         };
-        let tid = self.db.store(t, ValueOrigin::TypeOf(i));
-        self.db.checked_types.insert(i, tid);
-        tid
+        // let tid = self.db.store(t, ValueOrigin::TypeOf(i));
+        // self.db.checked_types.insert(i, tid);
+        // tid
+        todo!()
     }
 }
 
-impl PrismDb {
-    pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {
-        let mut env = TypecheckPrismEnv::new(self);
-        env._type_check(root, &DbEnv::default())
-    }
-}
+// impl PrismDb {
+//     pub fn type_check(&mut self, root: CoreIndex) -> CoreIndex {
+//         let mut env = TypecheckPrismEnv::new(self);
+//         env._type_check(root, &PrismEnv::default())
+//     }
+// }

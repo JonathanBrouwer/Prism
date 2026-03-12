@@ -1,14 +1,14 @@
-use crate::lang::{CoreIndex, PrismDb, ValueOrigin};
+use crate::lang::{CoreIndex, Database, ValueOrigin};
 use prism_diag::sugg::SuggestionArgument;
 use prism_diag_derive::Diagnostic;
 use prism_input::span::Span;
 
-impl SuggestionArgument<PrismDb> for CoreIndex {
-    fn span(&self, env: &PrismDb) -> Span {
+impl SuggestionArgument<Database> for CoreIndex {
+    fn span(&self, env: &Database) -> Span {
         let mut origin = env.expr_origins[self.0];
         loop {
             match origin {
-                ValueOrigin::SourceCode(span) => return span,
+                ValueOrigin::SourceCode { span, .. } => return span,
                 ValueOrigin::TypeOf(i) => origin = env.expr_origins[i.0],
                 ValueOrigin::FreeSub(s) => origin = env.expr_origins[s.0],
                 ValueOrigin::Failure { .. } => todo!(),
@@ -18,21 +18,21 @@ impl SuggestionArgument<PrismDb> for CoreIndex {
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Expected type", env = PrismDb)]
+#[diag(title = "Expected type", env = Database)]
 pub struct ExpectedType {
     #[sugg(label = format!("Expected a type, found value of type: {}", env.index_to_sm_string(self.index)))]
     pub index: CoreIndex,
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Expected function", env = PrismDb)]
+#[diag(title = "Expected function", env = Database)]
 pub struct ExpectedFn {
     #[sugg(label = format!("Expected a function, found value of type: {}", env.index_to_sm_string(self.index)))]
     pub index: CoreIndex,
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Argument type mismatch in function application", env = PrismDb)]
+#[diag(title = "Argument type mismatch in function application", env = Database)]
 pub struct ExpectedFnArg {
     #[sugg(label = format!("Found an argument of type: {}", env.index_to_sm_string(self.arg_type)))]
     pub arg_type: CoreIndex,
@@ -42,7 +42,7 @@ pub struct ExpectedFnArg {
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Failed type assert", env = PrismDb)]
+#[diag(title = "Failed type assert", env = Database)]
 pub struct FailedTypeAssert {
     #[sugg(label = format!("Found a value of type: {}", env.index_to_sm_string(self.expr_type)))]
     pub expr: CoreIndex,
@@ -52,7 +52,7 @@ pub struct FailedTypeAssert {
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Recursion limit reached during beta solving", env = PrismDb)]
+#[diag(title = "Recursion limit reached during beta solving", env = Database)]
 pub struct RecursionLimit {
     #[sugg(label = "Left side of constraint")]
     pub left: CoreIndex,
@@ -61,7 +61,7 @@ pub struct RecursionLimit {
 }
 
 #[derive(Diagnostic)]
-#[diag(title = "Internal problem when inferring this variable", env = PrismDb)]
+#[diag(title = "Internal problem when inferring this variable", env = Database)]
 pub struct BadInfer {
     #[sugg(label = "Free variable")]
     pub free_var: CoreIndex,
