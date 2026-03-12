@@ -2,6 +2,7 @@ mod eat;
 mod expect;
 pub mod lexer;
 
+use crate::args::Emit;
 use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, Expr, PrismDb, ValueOrigin};
 use crate::parser::expect::{ErrorState, Expected, PResult};
@@ -54,6 +55,10 @@ impl<'a> ParserPrismEnv<'a> {
     pub fn parse_file(mut self) -> (CoreIndex, Arc<Tokens>) {
         let program = self.parse_program(&NamesEnv::default());
         let tokens = self.finish_lexing();
+
+        if let Some(Emit::LexerTokens) = self.db.args.emit {
+            println!("Tokens: {tokens:#?}");
+        }
 
         let program = match program {
             Ok(program)

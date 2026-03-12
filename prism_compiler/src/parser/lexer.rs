@@ -148,7 +148,7 @@ impl<'a> ParserPrismEnv<'a> {
                 // Comment
                 '/' => {
                     if self.next_char(|c| c == '/').is_some() {
-                        while self.next_char(|_| true).is_some() {
+                        while let Some((ch, _)) = self.next_char(|_| true) {
                             if ch == '\n' {
                                 break;
                             }

@@ -69,14 +69,18 @@ fn compare_term(
     args: &UitestArguments,
 ) -> Result<(), String> {
     let term_str = env.index_to_sm_string(term);
+    let mut count = 0;
     compare_output(
         file_path,
         term_str.as_bytes(),
         |expected| {
             let expected = env.load_input(
                 String::from_utf8_lossy(expected).to_string(),
-                file_path.with_added_extension(output_ext),
+                file_path
+                    .with_added_extension(output_ext)
+                    .with_added_extension(format!("{count}")),
             );
+            count += 1;
             let (expected, _) = env.parse_prism_file(expected);
 
             let mut stderr = String::new();
@@ -87,7 +91,10 @@ fn compare_term(
 
             match env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default()) {
                 true => Ok(()),
-                false => Err("Not beta-equal".to_string()),
+                false => {
+                    env.take_diags();
+                    Err("Not beta-equal".to_string())
+                }
             }
         },
         output_ext,
@@ -125,7 +132,7 @@ fn compare_output(
         }
         if let Err(e) = compare_with(output) {
             return Err(format!(
-                "Output does not compare equal to itself:\n\n-- OUTPUT\n{}\n\n-- ERROR\n{e}",
+                "Output `{output_ext}` does not compare equal to itself:\n\n-- OUTPUT\n{}\n\n-- ERROR\n{e}",
                 String::from_utf8_lossy(output)
             ));
         }

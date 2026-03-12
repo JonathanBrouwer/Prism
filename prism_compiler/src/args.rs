@@ -17,11 +17,19 @@ impl Display for ErrorFormat {
     }
 }
 
+#[derive(ValueEnum, Debug, Copy, Clone)]
+pub enum Emit {
+    LexerTokens,
+}
+
 #[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct PrismArgs {
     #[arg(long, default_value_t)]
     pub error_format: ErrorFormat,
+
+    #[arg(long)]
+    pub emit: Option<Emit>,
 
     /// Specifies the path to an input .pr file. If None, it means stdin is used for input.
     pub input: String,

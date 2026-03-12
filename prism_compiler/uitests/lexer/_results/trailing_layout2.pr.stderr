@@ -1,0 +1,6 @@
+error[Parser]: Parsing failed
+ --> ./uitests/lexer/trailing_layout2.pr:4:2
+  |
+4 |
+  | ^ Expected one of: `#` `(` `Type` `let` identifier
+
