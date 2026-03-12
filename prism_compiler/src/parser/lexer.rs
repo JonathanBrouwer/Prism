@@ -1,3 +1,4 @@
+use crate::lang::diags::DiagPoint;
 use crate::parser::ParserPrismEnv;
 use crate::parser::expect::PResult;
 use prism_diag_derive::Diagnostic;
@@ -97,7 +98,7 @@ pub struct LexerState {
 pub struct Fork {
     pos: Pos,
     tokens_len: usize,
-    diags_len: usize,
+    point: DiagPoint,
 }
 
 impl LexerState {
@@ -254,14 +255,14 @@ impl<'a> ParserPrismEnv<'a> {
         Fork {
             pos: self.lexer.pos,
             tokens_len: self.lexer.tokens.len(),
-            diags_len: self.db.diags.len(),
+            point: self.db.point(),
         }
     }
 
     pub fn recover_lexer_fork(&mut self, fork: &Fork) {
         self.lexer.pos = fork.pos;
         self.lexer.tokens.truncate(fork.tokens_len);
-        self.db.diags.truncate(fork.diags_len);
+        self.db.reset_diags_to_point(fork.point);
     }
 
     pub fn try_parse<T>(&mut self, f: impl FnOnce(&mut Self) -> PResult<T>) -> PResult<T> {

@@ -50,6 +50,7 @@ impl PrismDb {
                 },
                 Expr::FnConstruct {
                     arg_name: _,
+                    arg_type: _,
                     body: b,
                 } => match args.pop() {
                     None => return (e, s),

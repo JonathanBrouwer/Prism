@@ -55,13 +55,18 @@ impl TypecheckPrismEnv<'_> {
             (
                 &Expr::FnConstruct {
                     arg_name: _,
+                    arg_type: at1,
                     body: b1,
                 },
                 &Expr::FnConstruct {
                     arg_name: _,
+                    arg_type: at2,
                     body: b2,
                 },
             ) => {
+                if !self.is_beta_equal(at1, &s1, at2, &s2) {
+                    return false;
+                }
                 let id = self.new_tc_id();
                 if !self.is_beta_equal(b1, &s1.cons(RType(id)), b2, &s2.cons(RType(id))) {
                     return false;

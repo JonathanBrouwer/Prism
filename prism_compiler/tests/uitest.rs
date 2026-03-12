@@ -1,14 +1,14 @@
 use clap::Parser;
 use libtest_mimic::{Arguments, Failed, Trial};
+use prism_compiler::args::ErrorFormat;
 use prism_compiler::lang::env::DbEnv;
 use prism_compiler::lang::{CoreIndex, PrismDb};
-use prism_diag::RenderConfig;
 use std::collections::VecDeque;
 use std::convert::Into;
 use std::env::args;
 use std::fmt::Write;
+use std::io::Cursor;
 use std::iter::Iterator;
-use std::mem;
 use std::path::{Path, PathBuf};
 
 #[derive(Parser, Debug, Clone, Default)]
@@ -28,6 +28,7 @@ pub struct UitestArguments {
 
 fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
     let mut env = PrismDb::default();
+    env.args.error_format = ErrorFormat::Plain;
 
     let input = env.load_file(file_path.into()).unwrap();
     let (input, _) = env.parse_prism_file(input);
@@ -35,14 +36,7 @@ fn run_uitest(file_path: &Path, args: &UitestArguments) -> Result<(), Failed> {
 
     // Compare stderr
     let mut stderr = String::new();
-    for diag in mem::take(&mut env.diags) {
-        writeln!(
-            &mut stderr,
-            "{}\n",
-            diag.render(&RenderConfig::uitest(), &env.input)
-        )
-        .unwrap();
-    }
+    write!(&mut stderr, "{}", env.take_diags()).unwrap();
     compare_output(
         file_path,
         stderr.as_bytes(),
@@ -85,18 +79,13 @@ fn compare_term(
                 file_path.with_added_extension(output_ext),
             );
             let (expected, _) = env.parse_prism_file(expected);
-            if !env.diags.is_empty() {
-                let mut errs = String::new();
-                for diag in mem::take(&mut env.diags) {
-                    writeln!(
-                        &mut errs,
-                        "{}",
-                        diag.render(&RenderConfig::uitest(), &env.input)
-                    )
-                    .unwrap();
-                }
-                return Err(errs);
+
+            let mut stderr = String::new();
+            write!(&mut stderr, "{}", env.take_diags()).unwrap();
+            if !stderr.is_empty() {
+                return Err(stderr);
             }
+
             match env.is_beta_equal(term, &DbEnv::default(), expected, &DbEnv::default()) {
                 true => Ok(()),
                 false => Err("Not beta-equal".to_string()),

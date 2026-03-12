@@ -10,29 +10,11 @@ fn main() {
     //Load file
     let _processed = env.process_main_file();
 
-    // Print info
-    // println!(
-    //     "> Parsed Program\n====================\n{}\n\n",
-    //     env.parse_index_to_string(processed.parsed),
-    // );
-    // println!(
-    //     "> Core Program\n====================\n{}\n\n",
-    //     env.index_to_string(processed.core),
-    // );
-
-    if !env.diags.is_empty() {
-        env.eprint_errors();
+    let diags = env.take_diags();
+    eprintln!("{diags}");
+    if let Err(_) = diags.has_errored() {
         exit(1);
     }
 
-    // println!(
-    //     "> Type of program\n====================\n{}\n\n",
-    //     env.index_to_br_string(processed.typ, &DbEnv::default())
-    // );
-    //
-    // println!(
-    //     "> Evaluated\n====================\n{}\n\n",
-    //     env.index_to_br_string(processed.core, &DbEnv::default())
-    // );
     exit(0);
 }

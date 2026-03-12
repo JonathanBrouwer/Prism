@@ -1,6 +1,6 @@
 error[Parser]: Parsing failed
- --> ./uitests/programs/church_bools.pr:1:27
-  |
-1 | let Bool = (T: Type) -> T -> T -> T;
-  |                           ^ Expected one of: `#` `(` `;` `Type` identifier
+  --> ./uitests/programs/church_bools.pr:13:2
+   |
+13 |
+   | ^ Expected one of: `#` `(` `Type` `let` identifier
 

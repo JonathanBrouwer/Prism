@@ -58,9 +58,9 @@ impl<'a> TypecheckPrismEnv<'a> {
                 body: b,
             } => {
                 // Check `v`
-                let recovery_token = self.db.recovery_point();
+                let recovery_token = self.db.point();
                 let vt = self._type_check(v, env);
-                if let Some(err) = self.db.try_recover(recovery_token) {
+                if let Err(err) = self.db.has_errored(recovery_token) {
                     v = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
@@ -87,25 +87,35 @@ impl<'a> TypecheckPrismEnv<'a> {
                 arg_type: mut a,
                 body: b,
             } => {
-                let recovery_token = self.db.recovery_point();
+                let recovery_token = self.db.point();
                 let at = self._type_check(a, env);
                 self.expect_beq_type(at, env);
-                if let Some(err) = self.db.try_recover(recovery_token) {
+                if let Err(err) = self.db.has_errored(recovery_token) {
                     a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
-                let err_count = self.db.diags.len();
+                let recovery_token = self.db.point();
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
 
                 // Check if `b` typechecked without errors.
-                if self.db.diags.len() == err_count {
+                if self.db.has_errored(recovery_token).is_err() {
                     self.expect_beq_type(bt, &bs);
                 }
 
                 Expr::Type
             }
-            Expr::FnConstruct { arg_name, body: b } => {
+            Expr::FnConstruct {
+                arg_name,
+                arg_type,
+                body: b,
+            } => {
+                let recovery_token = self.db.point();
+                let arg_type_type = self._type_check(arg_type, env);
+                if self.db.has_errored(recovery_token).is_ok() {
+                    self.expect_beq_type(arg_type_type, env);
+                }
+
                 let a = self.db.store(Expr::Free, ValueOrigin::FreeSub(i));
                 let bs = env.cons(CType(self.new_tc_id(), a));
                 let bt = self._type_check(b, &bs);
@@ -119,17 +129,17 @@ impl<'a> TypecheckPrismEnv<'a> {
                 function: f,
                 arg: mut a,
             } => {
-                let recovery_token = self.db.recovery_point();
+                let recovery_token = self.db.point();
                 let at = self._type_check(a, env);
-                if let Some(err) = self.db.try_recover(recovery_token) {
+                if let Err(err) = self.db.has_errored(recovery_token) {
                     a = self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
 
                 let rt = self.db.store(Expr::Free, ValueOrigin::TypeOf(i));
 
-                let err_count = self.db.diags.len();
+                let recovery_token = self.db.point();
                 let ft = self._type_check(f, env);
-                if self.db.diags.len() == err_count {
+                if self.db.has_errored(recovery_token).is_err() {
                     self.expect_beq_fn_type(ft, at, rt, env)
                 }
 
@@ -143,16 +153,16 @@ impl<'a> TypecheckPrismEnv<'a> {
                 value: e,
                 type_hint: typ,
             } => {
-                let err_count1 = self.db.diags.len();
+                let recovery_token1 = self.db.point();
                 let et = self._type_check(e, env);
 
-                let err_count2 = self.db.diags.len();
+                let recovery_token2 = self.db.point();
                 let typt = self._type_check(typ, env);
-                if self.db.diags.len() == err_count2 {
+                if self.db.has_errored(recovery_token2).is_ok() {
                     self.expect_beq_type(typt, env);
                 }
 
-                if self.db.diags.len() == err_count1 {
+                if self.db.has_errored(recovery_token1).is_ok() {
                     self.expect_beq_assert(e, et, typ, env);
                 }
 

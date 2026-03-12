@@ -56,13 +56,23 @@ impl<'a> TypecheckPrismEnv<'a> {
                     body: b,
                 }
             }
-            Expr::FnConstruct { arg_name, body: b } => {
+            Expr::FnConstruct {
+                arg_name,
+                arg_type,
+                body: b,
+            } => {
+                let arg_type = self.beta_reduce_inner(arg_type, &s, var_map);
+
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let sub_env = s.cons(EnvEntry::RType(id));
                 let b = self.beta_reduce_inner(b, &sub_env, var_map);
                 var_map.remove(&id);
-                Expr::FnConstruct { arg_name, body: b }
+                Expr::FnConstruct {
+                    arg_name,
+                    arg_type,
+                    body: b,
+                }
             }
             Expr::FnDestruct {
                 function: a,

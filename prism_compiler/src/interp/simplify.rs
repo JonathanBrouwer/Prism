@@ -62,12 +62,21 @@ impl TypecheckPrismEnv<'_> {
                     body: b,
                 }
             }
-            &Expr::FnConstruct { arg_name, body: b } => {
+            &Expr::FnConstruct {
+                arg_name,
+                arg_type,
+                body: b,
+            } => {
+                let arg_type = self.simplify_inner(arg_type, s, var_map);
                 let id = self.new_tc_id();
                 var_map.insert(id, var_map.len());
                 let b = self.simplify_inner(b, &s.cons(EnvEntry::RType(id)), var_map);
                 var_map.remove(&id);
-                Expr::FnConstruct { arg_name, body: b }
+                Expr::FnConstruct {
+                    arg_name,
+                    arg_type,
+                    body: b,
+                }
             }
             &Expr::FnDestruct {
                 function: a,

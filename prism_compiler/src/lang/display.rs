@@ -75,11 +75,18 @@ impl PrismDb {
                 write!(w, " -> ")?;
                 self.display(b, w, PrecedenceLevel::FnType)?;
             }
-            &Expr::FnConstruct { arg_name, body: b } => {
+            &Expr::FnConstruct {
+                arg_name,
+                arg_type,
+                body: b,
+            } => {
                 let arg_name = arg_name
                     .map(|arg_name| self.input.slice(arg_name))
                     .unwrap_or("_");
-                write!(w, "{arg_name} => ")?;
+
+                write!(w, "({arg_name}: ")?;
+                self.display(arg_type, w, PrecedenceLevel::TypeAssert)?;
+                write!(w, ") => ")?;
                 self.display(b, w, PrecedenceLevel::Construct)?;
             }
             &Expr::FnDestruct {

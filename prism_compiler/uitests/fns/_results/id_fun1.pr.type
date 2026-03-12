@@ -1,2 +1,1 @@
-(v: Type) -> (let _ = #0: Type;
-Type)
+(v: _) -> _

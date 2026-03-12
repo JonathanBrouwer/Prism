@@ -1,6 +1,12 @@
-error[Parser]: Parsing failed
- --> ./uitests/programs/pair.pr:1:65
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/programs/pair.pr:3:76
   |
-1 | let Pair = (T1: Type) => (T2: Type) => (Out: Type) -> (T1 -> T2 -> Out) -> Out;
-  |                                                                 ^ Expected one of: `#` `(` `)` `Type` identifier
+3 | let fst = (T1: Type) => (T2: Type) => (p: Pair T1 T2) => p T1 (v1 => v2 => v1);
+  |                                                                            ^^
+
+error[Parser]: Parsing failed
+ --> ./uitests/programs/pair.pr:3:78
+  |
+3 | let fst = (T1: Type) => (T2: Type) => (p: Pair T1 T2) => p T1 (v1 => v2 => v1);
+  |                                                                              ^ Expected one of: `#` `(` `->` `;` `=>` `Type` identifier
 

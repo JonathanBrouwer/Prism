@@ -87,22 +87,29 @@ impl<'a> TypecheckPrismEnv<'a> {
             (
                 &Expr::FnConstruct {
                     arg_name: _,
+                    arg_type: at1,
                     body: b1,
                 },
                 &Expr::FnConstruct {
                     arg_name: _,
+                    arg_type: at2,
                     body: b2,
                 },
             ) => {
+                let at_equal =
+                    self.expect_beq_internal((at1, &s1, var_map1), (at2, &s2, var_map2), depth + 1);
+
                 let id = self.new_tc_id();
                 var_map1.insert(id, s1.len());
                 var_map2.insert(id, s2.len());
 
-                self.expect_beq_internal(
+                let b_equal = self.expect_beq_internal(
                     (b1, &s1.cons(RType(id)), var_map1),
                     (b2, &s2.cons(RType(id)), var_map2),
                     depth + 1,
-                )
+                );
+
+                at_equal && b_equal
             }
             // Function destruct (application) is only equal if the functions and the argument are equal
             // This can only occur in this position when `f1` and `f2` are arguments to a function in the original scope
@@ -333,9 +340,18 @@ impl<'a> TypecheckPrismEnv<'a> {
 
                 constraints_eq && a_eq && b_eq
             }
-            &Expr::FnConstruct { arg_name, body: b1 } => {
+            &Expr::FnConstruct {
+                arg_name,
+                arg_type: _,
+                body: b1,
+            } => {
+                let at2 = self.db.store(Expr::Free, FreeSub(i2));
                 let b2 = self.db.store(Expr::Free, FreeSub(i2));
-                self.db.exprs[*i2] = Expr::FnConstruct { arg_name, body: b2 };
+                self.db.exprs[*i2] = Expr::FnConstruct {
+                    arg_name,
+                    arg_type: at2,
+                    body: b2,
+                };
 
                 let constraints_eq = self.handle_constraints(i2, s2, depth + 1);
 

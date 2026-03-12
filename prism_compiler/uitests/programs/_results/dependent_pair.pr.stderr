@@ -1,12 +1,12 @@
 error[UnknownName]: Undefined name within this scope.
- --> ./uitests/programs/dependent_pair.pr:1:65
+ --> ./uitests/programs/dependent_pair.pr:3:85
   |
-1 | let Pair = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
-  |                                                                 ^^^^^^^^
+3 | let fst = (T1: Type) => (T2 : (T1 -> Type)) => (p: Pair T1 T2) => p T1 (v1 => v2 => v1);
+  |                                                                                     ^^
 
 error[Parser]: Parsing failed
- --> ./uitests/programs/dependent_pair.pr:1:73
+ --> ./uitests/programs/dependent_pair.pr:3:87
   |
-1 | let Pair = (T1: Type) => (T2 : (T1 -> Type)) => (Out: Type) -> (destruct: ((v1: T1) -> (v2: T2 v1) -> Out)) -> Out;
-  |                                                                         ^ Expected one of: `#` `(` `)` `->` `=>` `Type` identifier
+3 | let fst = (T1: Type) => (T2 : (T1 -> Type)) => (p: Pair T1 T2) => p T1 (v1 => v2 => v1);
+  |                                                                                       ^ Expected one of: `#` `(` `->` `;` `=>` `Type` identifier
 

@@ -13,7 +13,6 @@ use std::sync::Arc;
 pub mod diags;
 pub mod display;
 pub mod env;
-pub mod error;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug)]
 pub enum ValueOrigin {
@@ -63,6 +62,7 @@ pub enum Expr {
     },
     FnConstruct {
         arg_name: Option<Span>,
+        arg_type: CoreIndex,
         body: CoreIndex,
     },
     FnDestruct {
@@ -88,7 +88,7 @@ pub struct PrismDb {
     pub expr_origins: Vec<ValueOrigin>,
     pub checked_types: HashMap<CoreIndex, CoreIndex>,
 
-    pub diags: Vec<Diag>,
+    diags: Vec<Diag>,
 }
 
 enum ProcessedFileTableEntry {

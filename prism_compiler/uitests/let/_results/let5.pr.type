@@ -1,4 +1,2 @@
-let v = w => (let _ = #0: Type;
-#0);
-(w: Type) -> (let _ = #0: Type;
-Type)
+let v = (w: Type) => #0;
+(w: _) -> _

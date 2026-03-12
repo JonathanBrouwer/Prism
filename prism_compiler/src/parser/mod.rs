@@ -166,32 +166,14 @@ impl<'a> ParserPrismEnv<'a> {
         }) {
             let mut body = self.parse_fnconstruct(&body_env)?;
 
-            for (binding_name, binding_ty, binding_span) in bindings.into_iter().rev() {
-                if let Some(binding_ty) = binding_ty {
-                    body = {
-                        let var_ref = self.store(Expr::DeBruijnIndex { idx: 0 }, binding_span);
-                        let typ_assert = self.store(
-                            Expr::TypeAssert {
-                                value: var_ref,
-                                type_hint: binding_ty,
-                            },
-                            binding_span,
-                        );
-                        self.store(
-                            Expr::Let {
-                                name: None,
-                                value: typ_assert,
-                                body,
-                            },
-                            binding_span,
-                        )
-                    };
-                }
+            for (binding_name, arg_type, binding_span) in bindings.into_iter().rev() {
+                let arg_type = arg_type.unwrap_or_else(|| self.store(Expr::Free, binding_name));
                 let span = binding_span.span_to(self.span_of(body));
                 body = self.store(
                     Expr::FnConstruct {
                         arg_name: Some(binding_name),
-                        body: body,
+                        arg_type,
+                        body,
                     },
                     span,
                 );
@@ -214,7 +196,7 @@ impl<'a> ParserPrismEnv<'a> {
             Ok((start, arg_name, typ))
         }) {
             let body_env = env.insert(arg_name, ());
-            let body = self.parse_fndestruct(&body_env)?;
+            let body = self.parse_fntype(&body_env)?;
 
             let span = start.span_to(self.span_of(body));
             Ok(self.store(
@@ -230,7 +212,7 @@ impl<'a> ParserPrismEnv<'a> {
             parser.eat_multi_symbol("->")?;
             Ok(typ)
         }) {
-            let body = self.parse_fndestruct(env)?;
+            let body = self.parse_fntype(env)?;
             let span = self.span_of(typ).span_to(self.span_of(body));
             Ok(self.store(
                 Expr::FnType {

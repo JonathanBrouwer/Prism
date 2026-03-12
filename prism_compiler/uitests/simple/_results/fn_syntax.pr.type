@@ -1,20 +1,11 @@
-let _ = v => #0;
-let _ = v => (let _ = #0: Type;
-#0);
-let _ = v1 => v2 => #1;
-let _ = v1 => v2 => #0;
-let _ = v1 => (let _ = #0: Type;
-v2 => (let _ = #0: Type;
-#2));
-let _ = v1 => (let _ = #0: Type;
-v2 => (let _ = #0: Type;
-#0));
-let _ = v1 => (let _ = #0: Type;
-v2 => #0);
-let _ = v1 => v2 => (let _ = #0: Type;
-#0);
-let f = v1 => v2 => (let _ = #0: Type;
-v3 => #3 #1);
-(v1: (Type -> _)) -> (v2: Type) -> (let _ = #0: Type;
-(v3: _) -> (let _ = #1;
-_))
+let _ = (v: _) => #0;
+let _ = (v: Type) => #0;
+let _ = (v1: _) => (v2: _) => #1;
+let _ = (v1: _) => (v2: _) => #0;
+let _ = (v1: Type) => (v2: Type) => #2;
+let _ = (v1: Type) => (v2: Type) => #0;
+let _ = (v1: Type) => (v2: _) => #0;
+let _ = (v1: _) => (v2: Type) => #0;
+let f = (v1: _) => (v2: Type) => (v3: _) => #3 #1;
+(v1: _) -> (v2: _) -> (v3: _) -> (let _ = #1;
+_)
