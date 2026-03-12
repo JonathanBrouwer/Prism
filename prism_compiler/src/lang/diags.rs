@@ -30,6 +30,11 @@ impl PrismDb {
         }
     }
 
+    pub fn assert_has_errored(&self) -> ErrorGuaranteed {
+        assert!(!self.diags.is_empty(), "Has errored");
+        ErrorGuaranteed(())
+    }
+
     pub fn reset_diags_to_point(&mut self, point: DiagPoint) {
         self.diags.truncate(point.0);
     }

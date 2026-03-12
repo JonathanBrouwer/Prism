@@ -75,11 +75,8 @@ impl<'a> TypecheckPrismEnv<'a> {
                 Some(CType(_, t) | CSubst(_, t)) => Expr::Shift(*t, index + 1),
                 Some(_) => unreachable!(),
                 None => {
-                    unreachable!("Index out of bound");
-                    // self.push_type_error(TypeError::IndexOutOfBound(i));
-                    // return self
-                    //     .db
-                    //     .store_checked(CorePrismExpr::Free, ValueOrigin::Failure);
+                    let err = self.db.assert_has_errored();
+                    return self.db.store(Expr::Free, ValueOrigin::Failure(err));
                 }
             },
             Expr::FnType {

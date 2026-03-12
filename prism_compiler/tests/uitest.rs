@@ -7,7 +7,6 @@ use std::collections::VecDeque;
 use std::convert::Into;
 use std::env::args;
 use std::fmt::Write;
-use std::io::Cursor;
 use std::iter::Iterator;
 use std::path::{Path, PathBuf};
 

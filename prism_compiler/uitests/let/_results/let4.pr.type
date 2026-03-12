@@ -1,3 +1,2 @@
 let T = Type;
-(v: Type) -> (let _ = #0: #1;
-Type)
+(v: _) -> _

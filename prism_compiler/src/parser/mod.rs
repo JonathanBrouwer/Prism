@@ -144,20 +144,14 @@ impl<'a> ParserPrismEnv<'a> {
 
     fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok((bindings, body_env)) = self.try_parse(|parser| {
-            let typ_env = env.insert(Span::dummy(), ());
-            let mut bindings = vec![parser.parse_fnconstruct_binding(&typ_env)?];
+            let mut bindings = vec![parser.parse_fnconstruct_binding(&env)?];
             let mut body_env = env.insert(bindings[0].0, ());
 
             loop {
-                let typ_env = body_env.insert(Span::dummy(), ());
-                let Ok(binding) = parser.parse_fnconstruct_binding(&typ_env) else {
+                let Ok(binding) = parser.parse_fnconstruct_binding(&body_env) else {
                     break;
                 };
                 bindings.push(binding);
-                if binding.1.is_some() {
-                    // Insert dummy entry for let binding of assert
-                    body_env = body_env.insert(Span::new(binding.0.start_pos(), 0), ());
-                }
                 body_env = body_env.insert(binding.0, ());
             }
 

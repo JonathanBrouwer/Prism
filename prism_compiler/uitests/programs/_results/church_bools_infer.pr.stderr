@@ -4,15 +4,3 @@ error[ExpectedType]: Expected type
 1 | let Bool = (T: Type) -> T -> T -> T;
   |                              ^ Expected a type, found value of type: #0
 
-error[ExpectedType]: Expected type
- --> ./uitests/programs/church_bools_infer.pr:3:31
-  |
-3 | let false = (T: Type) => (v1: T) => (v2: T) => v2;
-  |                               ^ Expected a type, found value of type: (T: _) -> (v1: _) -> (v2: _) -> _
-
-error[ExpectedType]: Expected type
- --> ./uitests/programs/church_bools_infer.pr:3:42
-  |
-3 | let false = (T: Type) => (v1: T) => (v2: T) => v2;
-  |                                          ^ Expected a type, found value of type: (T: _) -> (v1: _) -> (v2: _) -> _
-

@@ -1,1 +1,1 @@
-=> #0 Type
+(f: (Type -> Type)) => #0 Type
