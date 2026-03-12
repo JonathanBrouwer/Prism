@@ -1,6 +1,12 @@
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/edge_cases/bad_infer.pr:7:8
+  |
+7 |     : (T1: Type) (T2 : (T1 -> Type)) -> Type
+  |        ^^
+
 error[Parser]: Parsing failed
-  --> ./uitests/edge_cases/bad_infer.pr:21:16
-   |
-21 | fst Bool _ test
-   |                ^ Expected one of: `#` `(` `Type` `let` identifier
+ --> ./uitests/edge_cases/bad_infer.pr:7:38
+  |
+7 |     : (T1: Type) (T2 : (T1 -> Type)) -> Type
+  |                                      ^ Expected one of: `(` `=>` identifier
 

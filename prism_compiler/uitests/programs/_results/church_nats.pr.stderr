@@ -1,6 +1,17 @@
-error[Parser]: Parsing failed
- --> ./uitests/programs/church_nats.pr:7:2
+error[ExpectedType]: Expected type
+ --> ./uitests/programs/church_nats.pr:1:30
   |
-7 |
-  | ^ Expected one of: `#` `(` `Type` `let` identifier
+1 | let Nat = (T: Type) -> T -> (T -> T) -> T;
+  |                              ^ Expected a type, found value of type: #0
+
+error[BadInfer]: Internal problem when inferring this variable
+ --> ./uitests/programs/church_nats.pr:4:47
+  |
+4 | let add1 = (n: Nat) => (T: Type) => (z: T) => (s: T -> T) => s (n T z s);
+  |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^ Free variable
+  |
+ ::: ./uitests/programs/church_nats.pr:4:71
+  |
+4 | let add1 = (n: Nat) => (T: Type) => (z: T) => (s: T -> T) => s (n T z s);
+  |                                                                       ^ Inferred variable
 

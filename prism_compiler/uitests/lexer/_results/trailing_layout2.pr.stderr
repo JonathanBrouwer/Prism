@@ -1,6 +1,18 @@
-error[Parser]: Parsing failed
- --> ./uitests/lexer/trailing_layout2.pr:4:2
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/lexer/trailing_layout2.pr:3:1
   |
-4 |
-  | ^ Expected one of: `#` `(` `Type` `let` identifier
+3 | x x x
+  | ^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/lexer/trailing_layout2.pr:3:3
+  |
+3 | x x x
+  |   ^
+
+error[UnknownName]: Undefined name within this scope.
+ --> ./uitests/lexer/trailing_layout2.pr:3:5
+  |
+3 | x x x
+  |     ^
 

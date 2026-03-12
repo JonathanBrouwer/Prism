@@ -1,6 +1,18 @@
-error[Parser]: Parsing failed
-  --> ./uitests/programs/church_bools_and_or.pr:36:2
+error[UnknownName]: Undefined name within this scope.
+  --> ./uitests/programs/church_bools_and_or.pr:11:1
    |
-36 |
-   | ^ Expected one of: `#` `(` `Type` `let` identifier
+11 | adapt grammar {
+   | ^^^^^
+
+error[UnknownName]: Undefined name within this scope.
+  --> ./uitests/programs/church_bools_and_or.pr:11:7
+   |
+11 | adapt grammar {
+   |       ^^^^^^^
+
+error[Parser]: Parsing failed
+  --> ./uitests/programs/church_bools_and_or.pr:11:15
+   |
+11 | adapt grammar {
+   |               ^ Expected one of: `#` `(` `->` `=>` `Type` identifier end of file
 
