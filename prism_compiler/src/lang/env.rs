@@ -1,8 +1,8 @@
 use crate::lang::CoreIndex;
 use crate::type_check::UniqueVariableId;
-use prism_data_structures::generic_env::GenericEnv;
+use prism_data_structures::generic_env::List;
 
-pub type DbEnv = GenericEnv<(), EnvEntry>;
+pub type DbEnv = List<EnvEntry>;
 
 #[derive(Clone, Debug)]
 pub enum EnvEntry {

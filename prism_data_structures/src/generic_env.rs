@@ -1,72 +1,67 @@
-use std::borrow::Borrow;
 use std::fmt::{Debug, Formatter};
 use std::iter;
 use std::ops::Index;
 use std::ptr::null;
 use std::sync::Arc;
 
-pub struct GenericEnv<N, V>(Option<Arc<GenericEnvNode<N, V>>>, usize);
+pub struct List<V>(Option<Arc<GenericEnvNode<V>>>, usize);
 
-impl<N, V> Clone for GenericEnv<N, V> {
+impl<V> Clone for List<V> {
     fn clone(&self) -> Self {
         Self(self.0.clone(), self.1)
     }
 }
 
-impl<N, V> Default for GenericEnv<N, V> {
+impl<V> Default for List<V> {
     fn default() -> Self {
         Self(None, 0)
     }
 }
 
 #[derive(Clone)]
-pub struct GenericEnvNode<N, V> {
-    next: Option<Arc<GenericEnvNode<N, V>>>,
-    name: N,
+pub struct GenericEnvNode<V> {
+    next: Option<Arc<GenericEnvNode<V>>>,
     value: V,
 }
 
-impl<N: Debug + Copy, V> Debug for GenericEnv<N, V> {
+impl<V: Debug> Debug for List<V> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "Printing varmap:")?;
-        for (name, _value) in self.iter() {
-            writeln!(f, "- {name:?}")?;
+        for value in self.iter() {
+            writeln!(f, "- {value:?}")?;
         }
         Ok(())
     }
 }
 
-pub struct GenericEnvIterator<'a, N, V> {
-    current: Option<&'a GenericEnvNode<N, V>>,
+pub struct GenericEnvIterator<'a, V> {
+    current: Option<&'a GenericEnvNode<V>>,
 }
 
-impl<'a, N, V> Iterator for GenericEnvIterator<'a, N, V> {
-    type Item = (&'a N, &'a V);
+impl<'a, V> Iterator for GenericEnvIterator<'a, V> {
+    type Item = &'a V;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.current {
             None => None,
             Some(node) => {
                 self.current = node.next.as_deref();
-                Some((&node.name, &node.value))
+                Some(&node.value)
             }
         }
     }
 }
 
-impl<N, V> GenericEnv<N, V> {
-    pub fn get<NB: ?Sized + Eq>(&self, k: &NB) -> Option<&V>
-    where
-        N: Borrow<NB>,
-    {
-        let mut node = self.0.as_ref()?;
-        loop {
-            if node.name.borrow() == k {
-                return Some(&node.value);
-            }
-            node = node.next.as_ref()?;
-        }
-    }
+impl<V> List<V> {
+    // pub fn get<NB: ?Sized + Eq>(&self, k: &NB) -> Option<&V> {
+    //     let mut node = self.0.as_ref()?;
+    //     loop {
+    //         if node.name.borrow() == k {
+    //             return Some(&node.value);
+    //         }
+    //         node = node.next.as_ref()?;
+    //     }
+    // }
 
     pub fn get_idx(&self, i: usize) -> Option<&V> {
         let mut node = self.0.as_ref()?;
@@ -76,25 +71,17 @@ impl<N, V> GenericEnv<N, V> {
         Some(&node.value)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&N, &V)> {
+    pub fn iter(&self) -> impl Iterator<Item = &V> {
         GenericEnvIterator {
             current: self.0.as_deref(),
         }
     }
-
-    pub fn iter_cloned(&self) -> impl Iterator<Item = (N, V)>
-    where
-        N: Clone,
-        V: Clone,
-    {
-        self.iter().map(|(k, v)| (k.clone(), v.clone()))
-    }
 }
 
-impl<V> GenericEnv<(), V> {
+impl<V> List<V> {
     #[must_use]
     pub fn cons(&self, value: V) -> Self {
-        self.extend(iter::once(((), value)))
+        self.extend(iter::once(value))
     }
 
     #[must_use]
@@ -107,20 +94,19 @@ impl<V> GenericEnv<(), V> {
     }
 }
 
-impl<N: Debug, V> GenericEnv<N, V> {
+impl<V> List<V> {
     #[must_use]
-    pub fn insert(&self, key: N, value: V) -> Self {
-        self.extend(iter::once((key, value)))
+    pub fn insert(&self, value: V) -> Self {
+        self.extend(iter::once(value))
     }
 
     #[must_use]
-    pub fn extend<T: IntoIterator<Item = (N, V)>>(&self, iter: T) -> Self {
-        let mut current: Option<Arc<GenericEnvNode<N, V>>> = self.0.clone();
+    pub fn extend<T: IntoIterator<Item = V>>(&self, iter: T) -> Self {
+        let mut current: Option<Arc<GenericEnvNode<V>>> = self.0.clone();
         let mut len = self.1;
-        for (name, value) in iter {
+        for value in iter {
             current = Some(Arc::new(GenericEnvNode {
                 next: current,
-                name,
                 value,
             }));
             len += 1;
@@ -128,10 +114,10 @@ impl<N: Debug, V> GenericEnv<N, V> {
         Self(current, len)
     }
 
-    pub fn as_ptr(&self) -> *const GenericEnvNode<N, V> {
+    pub fn as_ptr(&self) -> *const GenericEnvNode<V> {
         self.0
             .as_ref()
-            .map(|r| (&**r) as *const GenericEnvNode<N, V>)
+            .map(|r| (&**r) as *const GenericEnvNode<V>)
             .unwrap_or(null())
     }
 
@@ -144,13 +130,10 @@ impl<N: Debug, V> GenericEnv<N, V> {
         self.0.is_none()
     }
 
-    pub fn split(&self) -> Option<((&N, &V), Self)> {
-        self.0.as_ref().map(|node| {
-            (
-                (&node.name, &node.value),
-                Self(node.next.clone(), self.1 - 1),
-            )
-        })
+    pub fn split(&self) -> Option<(&V, Self)> {
+        self.0
+            .as_ref()
+            .map(|node| (&node.value, Self(node.next.clone(), self.1 - 1)))
     }
 
     pub fn intersect(&self, other: &Self) -> Self {
@@ -171,8 +154,8 @@ impl<N: Debug, V> GenericEnv<N, V> {
         };
 
         // Traverse until equal
-        while n1.as_ref().map(|p| (&**p) as *const GenericEnvNode<N, V>)
-            != n2.as_ref().map(|p| (&**p) as *const GenericEnvNode<N, V>)
+        while n1.as_ref().map(|p| (&**p) as *const GenericEnvNode<V>)
+            != n2.as_ref().map(|p| (&**p) as *const GenericEnvNode<V>)
         {
             n1 = &n1.as_ref().unwrap().next;
             n2 = &n2.as_ref().unwrap().next;
@@ -183,14 +166,14 @@ impl<N: Debug, V> GenericEnv<N, V> {
     }
 }
 
-impl<N: Debug, V> FromIterator<(N, V)> for GenericEnv<N, V> {
-    fn from_iter<T: IntoIterator<Item = (N, V)>>(iter: T) -> Self {
+impl<V> FromIterator<V> for List<V> {
+    fn from_iter<T: IntoIterator<Item = V>>(iter: T) -> Self {
         let s = Self::default();
         s.extend(iter)
     }
 }
 
-impl<V> Index<usize> for GenericEnv<(), V> {
+impl<V> Index<usize> for List<V> {
     type Output = V;
 
     fn index(&self, index: usize) -> &Self::Output {

@@ -7,7 +7,7 @@ use crate::lang::diags::ErrorGuaranteed;
 use crate::lang::{CoreIndex, Expr, PrismDb, ValueOrigin};
 use crate::parser::expect::{ErrorState, Expected, PResult};
 use crate::parser::lexer::{LexerState, Token, Tokens};
-use prism_data_structures::generic_env::GenericEnv;
+use prism_data_structures::generic_env::List;
 use prism_diag_derive::Diagnostic;
 use prism_input::input_table::InputTableIndex;
 use prism_input::span::Span;
@@ -34,7 +34,7 @@ impl PrismDb {
     }
 }
 
-type NamesEnv = GenericEnv<Span, ()>;
+type NamesEnv = List<Span>;
 
 struct ParserPrismEnv<'a> {
     db: &'a mut PrismDb,
@@ -100,7 +100,7 @@ impl<'a> ParserPrismEnv<'a> {
             let value = self.parse_fnconstruct(env)?;
             let _ = self.eat_symbol(';')?;
 
-            let body_env = env.insert(name, ());
+            let body_env = env.insert(name);
             let body = self.parse_statement(&body_env)?;
 
             let span = kw.span_to(self.span_of(body));
@@ -150,14 +150,14 @@ impl<'a> ParserPrismEnv<'a> {
     fn parse_fnconstruct(&mut self, env: &NamesEnv) -> PResult<CoreIndex> {
         if let Ok((bindings, body_env)) = self.try_parse(|parser| {
             let mut bindings = vec![parser.parse_fnconstruct_binding(&env)?];
-            let mut body_env = env.insert(bindings[0].0, ());
+            let mut body_env = env.insert(bindings[0].0);
 
             loop {
                 let Ok(binding) = parser.parse_fnconstruct_binding(&body_env) else {
                     break;
                 };
                 bindings.push(binding);
-                body_env = body_env.insert(binding.0, ());
+                body_env = body_env.insert(binding.0);
             }
 
             parser.eat_multi_symbol("=>")?;
@@ -194,7 +194,7 @@ impl<'a> ParserPrismEnv<'a> {
             parser.eat_multi_symbol("->")?;
             Ok((start, arg_name, typ))
         }) {
-            let body_env = env.insert(arg_name, ());
+            let body_env = env.insert(arg_name);
             let body = self.parse_fntype(&body_env)?;
 
             let span = start.span_to(self.span_of(body));
@@ -269,7 +269,7 @@ impl<'a> ParserPrismEnv<'a> {
                 return Ok(self.store(Expr::Free, idx_span));
             };
 
-            Ok(self.store(Expr::DeBruijnIndex { idx: idx }, start.span_to(idx_span)))
+            Ok(self.store(Expr::DeBruijnIndex { idx }, start.span_to(idx_span)))
         } else if let Ok(found_name_span) = self.eat_identifier() {
             let found_name = self.db.input.slice(found_name_span);
 
@@ -277,9 +277,9 @@ impl<'a> ParserPrismEnv<'a> {
                 Ok(self.store(Expr::Free, found_name_span))
             } else if let Some(idx) = env
                 .iter()
-                .position(|(name, _)| self.db.input.slice(*name) == found_name)
+                .position(|name| self.db.input.slice(*name) == found_name)
             {
-                Ok(self.store(Expr::DeBruijnIndex { idx: idx }, found_name_span))
+                Ok(self.store(Expr::DeBruijnIndex { idx }, found_name_span))
             } else {
                 self.db.push_error(UnknownName {
                     span: found_name_span,
